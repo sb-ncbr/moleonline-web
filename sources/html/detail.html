@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <link rel="shortcut icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAD5UExURQAAACQ1RH6SkoKVli2h2tI/LBIXL2xrYoibnJZdqC2d1ZNboxMPJdFGKhK1eIdUt+iJMC2g2fMvItFALC0+TS+59x6wdCw7SiErPS2g25VdpuOGOh5aSYGUlZNbqueHOM89LCs9TOSHOYCTlRYYMR2vbyY8S5ZdqO+JMxyuc8w/K4CTlR6wdOaJO9VALSw9TIGUluSHOiye1phfqn6Tliuf1uKHNZpgqx2odB+ydh6vdCUuQWhLkxcaMh+zd4OXmeSHOy2j3OqKPCw+TBYZMZlfq5deqR6vdNRBLS5ATtVBLS4/Ti6n4tpCLi0/TS9BUJ1ir5xhrdNBLSJTHIoAAAA9dFJOUwBhG+vl4Y8FNOkhHGwkczFj0ybY/SuMnDYyzJ4YyjWSL+A1y+OClc4PPz7a5N+7oszox66svGDFLNj0mDZdQChMAAABH0lEQVQ4y4XRWVuCQBSA4QmBgZS0rIQitsDc27cLULFFTdv+/49piJmQQU/c8XzvGR7mIJR/BAWBj3BRAoVwMhx2MdxLypb+T393dbDvTz6a6/sp7bOmM9CAedKlZV3bPN8wHel7zouV/vC4sydNeXGTzfeiqCA8W+nSjvFh9MoLrx/bStLfGsktFgS+i0exjd1Z2gvCurdqIyJ095xtISeq6pda/RVmtiUmpnUHlc+eX1Jx/AewScVS6qB1Qvb1VAw6yWv5iBNyGPpmkAg6wZ0hh09hxTCCqNdm31w5o5X2A1E0gnZ2lUzElxrt48VtbhdU9D3Wx7vbqCis1saeiE/VAjoR13Bn/wd0pPtwJ6JigJ1s6WoBdoQMEe5E8P0HpPxDW5UCLSMAAAAASUVORK5CYII=" />
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1" />
+    <title>MoleOnline - Computation detail</title>    
+    
+	<link rel="stylesheet" href="css/litemol.css?version=1" type="text/css" />
+	<link rel="stylesheet" href="css/styles.css?version=1" type="text/css" />
+	
+	<script src="js/scripts.js?version=1"></script>
+	<script src="js/litemol.js?version=1"></script>
+</head>
+<body>  
+	<div class="home-button" title="Home"><a href="http://webchemdev.ncbr.muni.cz/ChannelsDB/"><span class="glyphicon glyphicon-home" /></a></div>
+	<div id="download-report" class="download-button"></div>
+    <div class="chdb-panel plugin" id="plugin"></div>        
+	<div class="chdb-panel bottom-panel">
+		<div class="left-tabs">
+			<div class="tabs" id="left-tabs">
+				<ul>
+					<li><a href="#left-tabs-1">2D Layer visualizer</a></li>
+					<li><a href="#left-tabs-2">Agglomerated channel parameters</a></li>
+				</ul>
+				<div id="left-tabs-1">
+					<div class="layerVizualizer" id="layer-vizualizer-ui"></div>
+				</div>
+				<div id="left-tabs-2">
+					<div class="aglomered-parameters" id="aglomered-parameters-ui"></div> 
+				</div>
+			</div>
+			<div id="bottom-tabs-toggler" class="toggler btn-xs btn-primary glyphicon glyphicon-resize-horizontal"></div>
+		</div>
+		<div class="right-tabs">
+			<div class="tabs" id="right-tabs">
+				<ul>
+					<li><a href="#right-tabs-1">Layer</a></li>
+					<li><a href="#right-tabs-3">Residue annotations</a></li>
+				</ul>
+				<div id="right-tabs-1">
+					<div id="layer-residues">
+					</div>
+					<div id="layer-properties">
+					</div>
+				</div>
+				<div id="right-tabs-3">
+				</div>
+			</div>
+		</div>	
+		<div id="bottom-panel-toggler" class="toggler btn-xs btn-primary glyphicon glyphicon-resize-vertical"></div>
+	</div>
+	<div class="chdb-panel right-panel">
+		<div id="ui" class="ui toggled">
+            <button id="process">Process</button>
+        </div>
+		<div class="bottom toggled">
+			<div class="tabs" id="right-panel-tabs">
+				<ul>
+					<li><a href="#right-panel-tabs-1">Protein annotations</a></li>
+				</ul>
+				<div id="right-panel-tabs-1">
+				</div>
+			</div>
+			<div id="right-panel-toggler" class="toggler btn-xs btn-primary glyphicon glyphicon-resize-vertical"></div>
+		</div>
+	</div>
+    <script src="MoleOnlineWebUI-Core-View.js?version=1"></script>
+</body>
+</html>

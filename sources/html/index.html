@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>MOLEonline 2.5 | moleOnline</title>
+	<meta name="description" content="The web interface provides a direct access to MOLE 2.0 functionality and enables on-line and easy-to-use interactive analysis of tunnels in (bio)molecular structures.">
+	<meta name="author" content="Ing. Ondřej Hanák; http://ondrejhanak.cz">
+	<link rel="shortcut icon" href="http://beta.mole.upol.cz/favicon.ico" type="image/icon">
+<script type="text/javascript" src="http://beta.mole.upol.cz/temp/jsloader-dfac1c60f3fb.js?1409226142"></script>
+<link rel="stylesheet" type="text/css" media="screen" href="http://beta.mole.upol.cz/temp/cssloader-67095fc34ac3.css?1380184049">
+	<link rel="stylesheet" href="http://beta.mole.upol.cz/css/print.front.css" type="text/css" media="print">
+        <link rel="stylesheet" href="http://beta.mole.upol.cz/libs/css-litemol/LiteMol-plugin.css?lmversion=1484057705188" type="text/css">
+        <!--<link rel="stylesheet" href="/libs/css-litemol/litemol-style.css?lmversion=1484057705188" type="text/css" />-->
+        <!--<script src="http://beta.mole.upol.cz/libs/LiteMol-plugin.js?lmversion=1493053346323"></script>-->
+		<script src="js/provided.js?lmversion=1493053346323"></script>
+        
+         
+
+	<script type="text/javascript">
+	/*
+	$(function () {
+		// auto-hide flash messages
+		$('.flashmsg.info, .flashmsg.ok').livequery(function () {
+			var el = $(this);
+			setTimeout(function () {
+				el.animate({'opacity': 0}, 2000).slideUp();
+			}, 10100);
+		});
+
+		// format hint messages
+		$('span.hint, div.hint').before('<img src="http://beta.mole.upol.cz/images/icons/help.png" class="hint" alt="">').each(function () {
+			var div = $(this);
+			var img = div.prev('img.hint');
+			div.hide();
+			div.css('position', 'absolute');
+			div.append('<img src="http://beta.mole.upol.cz/images/front/hint_toptip.png" alt="" class="toptip">');
+			img.mouseenter(function () { $(this).next('.hint').show();});
+			img.mouseout(function () { $(this).next('.hint').hide();});
+		});
+	});
+	*/
+	</script>
+</head>
+
+<body>
+
+<div id="page">
+
+	<div id="header">
+		<h1><a href="/">MOLE <span>2.0</span></a></h1>
+
+		<div id="topmenu">
+			<ul>
+				<li><a href="/">Home</a></li>
+				<li class="active"><a href="/online">Online</a></li>
+				<li><a href="/documentation">Documentation</a></li>
+				<li><a href="/about">About</a></li>
+			</ul>
+		</div> <!-- #topmenu -->
+	</div> <!-- #header -->
+
+	<div id="content">
+		
+
+
+<h2>MOLE<em>online</em> 2.5</h2>
+
+<p>The web interface provides a direct access to MOLE 2.5 functionality and enables on-line and easy-to-use interactive analysis of tunnels in (bio)molecular structures.</p>
+
+<p><a href="/tour/">Walkthrough guide</a> through MOLE<em>online</em> 2.5 can be found in Documentation section</p>
+
+<div id="init-form">
+</div>
+
+</div> <!-- #content -->
+<hr class="cleaner">
+
+</div> <!-- #page -->
+
+<div id="ajaxspinner"></div>
+<!--
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-4336835-6']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+-->
+<script src="MoleOnlineWebUI-Core-Init.js?version=1"></script>
+</body>
+</html>

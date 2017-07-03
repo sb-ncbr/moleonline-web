@@ -1,0 +1,34 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "noEmitOnError": true,
+    "removeComments": false,
+    "sourceMap": false,
+    "declaration": false,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    "lib": [ "es5", "es2015.collection", "dom", "es2015.promise"],
+    "target": "es5",
+    "jsx": "react",
+    "module": "system",
+    "types": [],
+    "skipDefaultLibCheck": true
+  },
+  "files": [
+    "../../provided/src/LiteMol-plugin.d.ts",
+    /*"../../provided/src/react-dom.d.ts",
+    "../../provided/src/react.d.ts",*/
+    
+    "../../config/common.ts",
+    "../../../tmp/config.ts",
+
+    "../../src/SimpleRouter.ts",
+
+    //InitForm
+    "InitForm/UI.tsx",
+
+    //App
+    "App.ts"
+  ]
+}

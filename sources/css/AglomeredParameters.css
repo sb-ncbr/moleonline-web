@@ -1,0 +1,182 @@
+.aglomered-parameters .aglomered-parameters-ui{
+    /*position:absolute;
+    bottom:1vh;*/
+    left:0;
+    /*right:400px;*/
+    /*width: 24vw;*/
+    height: 30vh;/*17vh;*/
+    min-width:120px;
+    min-height:120px;
+    background-color: white;
+    color: black;
+    /*padding: 10px;*/
+}
+
+.bottom-panel-toggled .aglomered-parameters .aglomered-parameters-ui{
+    height:63vh;
+}
+/*
+
+.aglomered-parameters * table{
+    width:100%;
+}
+
+.aglomered-parameters * table,
+.aglomered-parameters * table * tr,
+.aglomered-parameters * table * tr td,
+.aglomered-parameters * table * tr th{
+    border-color: black;
+    border-style: solid;
+    border-width: 0;
+}
+
+.aglomered-parameters * table.tablescroll_head,
+.aglomered-parameters * table.tablescroll_head * tr{
+    border:0;
+}
+
+.aglomered-parameters * table.tablescroll_head * tr th:first-child{
+    border-left: 0;
+}
+.aglomered-parameters * table.tablescroll_head * tr th:last-child,
+.aglomered-parameters * table * tr td:last-child{
+    border-right: 0;
+}
+
+.aglomered-parameters * table{
+    border-top:1px solid #000;
+}
+.aglomered-parameters * table.tablescroll_head{
+    border-top:0;
+    border-bottom:1px solid #000; 
+}
+
+.aglomered-parameters * table * tr td,
+.aglomered-parameters * table * tr th{
+    text-align: center;
+    border-right-width: 1px;
+    padding: 2px;
+}
+.aglomered-parameters * table * tr th{
+    height: 3vh
+}
+
+.aglomered-parameters * table * tr td:last-child{
+    border-right-width: 1px;
+}
+
+.aglomered-parameters * table * tr td:first-child,
+.aglomered-parameters * table * tr th:first-child{
+    border-left-width: 1px;
+}
+
+.aglomered-parameters * table * tr td:first-child{
+    border-left-width: 0;
+    text-align: left;
+    padding-left: 5px;
+}
+
+.aglomered-parameters * table * tr{
+    border-bottom-width: 1px;
+}
+
+.aglomered-parameters * table thead tr:first-child{
+    border-top-width: 1px;
+}
+*/
+
+/*
+.aglomered-parameters * table tbody tr:last-child{
+    border-bottom-width:0;
+}*/
+
+/*
+.aglomered-parameters * .tablescroll_wrapper{
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    height: 26vh;
+}
+.bottom-panel-toggled .aglomered-parameters * .tablescroll_wrapper{
+    height:59vh;
+}*/
+/*
+.aglomered-parameters * .tablescroll{ 
+    border-right:1px solid #000 !important; 
+    border-bottom:1px solid #000 !important; 
+    border-top:1px solid #000 !important; 
+    border-left:1px solid #000 !important; 
+}
+*/
+/*
+.aglomered-parameters * .tablescroll_wrapper{ 
+    border-top:1px solid #000 !important; 
+}
+*/
+
+#dg-aglomered-parameters.datagrid .icon.bottleneck{
+    background-image: url(../images/bottleneck-radius-white.png);
+    background-repeat: no-repeat;
+    background-position: center center;
+    height: 1em;
+    width: 1em;
+    background-size: 1em 1em;
+    display: inline-block;
+    vertical-align: text-top;
+}
+
+#dg-aglomered-parameters.datagrid .col.col-1{
+    min-width: 80px;
+    width:15%;
+}
+#dg-aglomered-parameters.datagrid .col.col-2{
+    min-width: 55px;/*30px;*/
+    width:15%;
+}
+#dg-aglomered-parameters.datagrid .col.col-3{
+    min-width: 55px;/*30px;*/
+    width:15%;
+}
+#dg-aglomered-parameters.datagrid .col.col-4{
+    min-width: 120px;/*60px;*/
+    width:15%;
+}
+.bottom-tabs-toggled #dg-aglomered-parameters.datagrid .col.col-4{
+    min-width: 60px;
+}
+#dg-aglomered-parameters.datagrid .col.col-5{
+    min-width: 30px;/*70px;*/
+    width:12%;
+}
+#dg-aglomered-parameters.datagrid .col.col-6{
+    min-width: 50px;
+    width:15%;
+}
+#dg-aglomered-parameters.datagrid .col.col-7{
+    min-width: 90px;/*50px;*/
+}
+.bottom-tabs-toggled #dg-aglomered-parameters.datagrid .col.col-7{
+    min-width: 50px;
+}
+
+.bottom-tabs-toggled .aglomered-parameters * table * .ATable-label,
+.bottom-tabs-toggled #dg-aglomered-parameters.datagrid * .ATable-label{
+    display:none;
+}
+/*
+@media only screen and (max-width: 830px) {
+	.aglomered-parameters * table * .ATable-label{
+        display:none;
+    }
+}*/
+
+@media only screen and (max-width: 1300px),
+only screen and (max-height: 900px) {
+    /*
+    .bottom-panel-toggled .aglomered-parameters * .tablescroll_wrapper{
+        height:49vh;
+    }  
+    */
+    .bottom-panel-toggled .aglomered-parameters .aglomered-parameters-ui{
+        height:53vh;
+    }
+}
