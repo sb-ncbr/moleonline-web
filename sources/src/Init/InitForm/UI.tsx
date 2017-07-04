@@ -1,19 +1,27 @@
 namespace MoleOnlineWebUI.InitForm.UI{
-    import React = LiteMol.Plugin.React;
-    import ReactDOM = LiteMol.Plugin.ReactDOM;
+
+    import ApiService =  MoleOnlineWebUI.Service.MoleAPI.ApiService;
+    import MoleAPI = MoleOnlineWebUI.Service.MoleAPI;
 
     interface State{
-        app: App
+        app: App,
+        useBiologicalUnit: boolean,
+        status: string
     };
 
     export function render(target: Element) {
         ReactDOM.render(<App />, target);
     }
 
-    export class App extends React.Component<{}, State> {
+    export class App extends React.Component<{}, {}> {
+
+        private computationId:string;
+        private submitId:number;
 
         state = {
             app: this,
+            useBiologicalUnit: false,
+            status:null
         };
 
         componentDidMount() {
@@ -23,15 +31,14 @@ namespace MoleOnlineWebUI.InitForm.UI{
         }
 
         private handleFormSubmit(e:Event){
-            //console.log(e);
             e.preventDefault();
 
             let form = e.target as HTMLFormElement;
             
-            let pdbid = null;
-            let unit = null;
-            let chains = null;
-            let file = null;
+            let pdbid="";
+            let assembly;
+            let pores:boolean=false;
+            let file;
 
             for(let idx = 0;idx<form.length;idx++){
                 let item = form[idx] as HTMLInputElement;
@@ -39,74 +46,144 @@ namespace MoleOnlineWebUI.InitForm.UI{
                 console.log(name);
                 console.log(item.value);
                 switch(name){
-                    case 'code':
+                    case 'pdbid':
                         pdbid = item.value;
                         break;
-                    case 'unit':
-                        unit = item.value;
+                    case 'assembly':
+                        assembly = (item.value!==""&&!item.disabled)?item.value:void 0;
                         break;
-                    case 'chains':
-                        chains = item.value;
+                    case 'biological-unit':
+                        pores = (item.value!=="")?item.checked:false;
                         break;
                     case 'file':
-                        file = item.value;
+                        file = (item.files!==null)?item.files[0]:void 0;
                         break;                   
                 }
             }
 
-            let values = {
-                pdbid,
-                unit,
-                chains,
-                file
+            if(file === void 0){
+                ApiService.initWithParams(pdbid,pores,assembly)
+                    .then((response)=>{
+                        this.handleFormSubmitResponse(response);
+                    })
+                    .catch((reason)=>{
+                        //TODO:...
+                        console.log(reason);
+                    })
             }
-
-            console.log(values);
+            else{
+                let data = new FormData();
+                data.append("file",file)
+                ApiService.initWithFile(data)
+                    .then((response)=>{
+                        this.handleFormSubmitResponse(response);
+                    })
+                    .catch((reason)=>{
+                        //TODO:...
+                        console.log(reason);
+                    })
+            }
             
             return false;
         }
 
+        private handleFormSubmitResponse(response:MoleAPI.InitResponse){
+            if(response.Status==="FailedInitialization"){
+                throw new Error(`API was unable to initialize computation with specified parameters. API responded with message: ${response.ErrorMsg}`);
+            }
+
+            this.computationId = response.ComputationId;
+            this.submitId = response.SubmitId;
+
+            if(response.Status==="Initialized"){
+                console.log("initialized");
+                //TODO: handle initialized
+                SimpleRouter.GlobalRouter.redirect(`${this.computationId}/${this.submitId}`, true);
+                return;
+            }
+
+            if(response.Status==="Initializing"){
+                console.log("Waiting for computation initialization...");
+                window.setTimeout(this.waitForComputationInitialization.bind(this),100);
+                return;
+            }
+
+            throw new Error(`Unexpected computation status recieved from API: ${response.Status}`);
+        }
+
+        private waitForComputationInitialization(){
+            ApiService.getStatus(this.computationId, this.submitId).then((response)=>{
+                console.log(response);
+                
+                if(response.Status==="FailedInitialization"){
+                    throw new Error(`API was unable to initialize computation with specified parameters. API responded with message: ${response.ErrorMsg}`);
+                }
+
+                if(response.Status==="Initialized"){
+                    console.log("initialized");
+                    //TODO: handle initialized
+                    SimpleRouter.GlobalRouter.redirect(`${this.computationId}/${this.submitId}`, true);
+                    return;
+                }
+
+                if(response.Status==="Initializing"){
+                    console.log("Waiting for computation initialization...");
+                    window.setTimeout(this.waitForComputationInitialization.bind(this),100);
+                    return;
+                }
+
+                throw new Error(`Unexpected computation status recieved from API: ${response.Status}`);
+            });
+        }
+
+        private biologicalUnitChange(e:Event){
+            let el = e.target as HTMLInputElement;
+            this.setState({useBiologicalUnit:el.checked});
+        }
+
         render() {            
             return (
-            <div>
+            <div className="InitForm">
                 <form onSubmit={this.handleFormSubmit.bind(this)} action="/online/" method="post" encType="multipart/form-data">
                     <div className="groupbox">
-                        <table>
-                            <tr>
-                                <th><label htmlFor="frm-jobSetup-setupForm-code">Enter PDB ID code</label>:</th>
-                                <td><input type="text" name="code" maxLength={4} size={10} className="text" id="frm-jobSetup-setupForm-code" value="1tqn" />
-                                    <div className="hint">PDB ID code as can be found on www.pdb.org, for example 1z10.</div></td></tr>
-                                    
-                            <tr>
-                                <th><label htmlFor="frm-jobSetup-setupForm-unit">and optional Unit</label>:</th>
-                                <td><input type="text" name="unit" maxLength={2} size={10} className="text" id="frm-jobSetup-setupForm-unit" value="" />
-                                    <div className="hint">
-                                        no value - assymetric unit (default)<br/>
-                                        1 - biological unit 1,<br/>
-                                        (2 - biological unit 2, etc. )
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th><label htmlFor="frm-jobSetup-setupForm-chains">and optional chain(s)</label>:</th>
-                                <td><input type="text" name="chains" maxLength={20} size={10} className="text" id="frm-jobSetup-setupForm-chains" value=""/>
-                                    <div className="hint">
-                                        no value - all chains (default)<br/>
-                                        AB1 - only chains A, B and 1
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th><label htmlFor="frm-jobSetup-setupForm-file">or upload your own file</label>:</th>
-                                <td>
-                                    <input type="file" name="file" className="text" id="frm-jobSetup-setupForm-file" />
-                                    <div className="hint">
-                                        Plain text PDB files (UTF-8 encoding), ZIP and GZIP archives are supported,
-                                        maximal file size is 50MB.<br/>
-                                        E.g. cleaned PDB with only one chain and without unnecessary HETATMs.
-                                    </div>
-                                </td>
-                            </tr>
+                        <table style={{width:"100%"}}>
+                            <tbody>
+                                <tr>
+                                    <td><label htmlFor="frm-jobSetup-setupForm-code">PDB ID</label>:</td>
+                                    <td><input type="text" name="pdbid" maxLength={4} size={10} className="text" id="frm-jobSetup-setupForm-code" defaultValue="1tqn" />
+                                        <div className="hint">PDB ID code as can be found on www.pdb.org, for example 1z10.</div></td></tr>
+                                        
+                                <tr>
+                                    <td><label htmlFor="frm-jobSetup-setupForm-unit">Assembly ID(optional)</label>:</td>
+                                    <td><input disabled={this.state.useBiologicalUnit} type="text" name="assembly" maxLength={2} size={10} className="text" id="frm-jobSetup-setupForm-unit" defaultValue="" />
+                                        <div className="hint">
+                                            no value - assymetric unit (default)
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><label htmlFor="frm-jobSetup-setupForm-chains">Use biological unit</label>:</td>
+                                    <td><input type="checkbox" onChange={this.biologicalUnitChange.bind(this)} name="biological-unit" className="checkbox" defaultChecked={false}/>
+                                        <div className="hint">
+                                            use biological unit
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colSpan={2}><hr/></td>
+                                </tr>
+                                <tr>
+                                    <td><label htmlFor="frm-jobSetup-setupForm-file">Or upload your own file</label>:</td>
+                                    <td>
+                                        <input type="file" name="file" className="text" id="frm-jobSetup-setupForm-file" />
+                                        <div className="hint">
+                                            Plain text PDB files (UTF-8 encoding), ZIP and GZIP archives are supported,
+                                            maximal file size is 50MB.<br/>
+                                            E.g. cleaned PDB with only one chain and without unnecessary HETATMs.
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
                         </table>
                     </div> 
 

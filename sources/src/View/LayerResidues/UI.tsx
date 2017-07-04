@@ -5,7 +5,7 @@ namespace LayerResidues.UI{
     import LiteMoleEvent = LiteMol.Bootstrap.Event;
     import TunnelUtils = CommonUtils.Tunnels;
     
-    let DGTABLE_COLS_COUNT = 2;
+    let DGTABLE_COLS_COUNT = 1;
     let NO_DATA_MESSAGE = "Hover over channel(2D) for details...";
 
     declare function $(p:any): any;
@@ -15,7 +15,7 @@ namespace LayerResidues.UI{
         data: DataInterface.LayersInfo[] | null,
         app: App,
         layerIdx: number,
-        isWaitingForData: boolean
+        /*isWaitingForData: boolean*/
     };
 
     interface ChannelEventInfo { 
@@ -44,7 +44,7 @@ namespace LayerResidues.UI{
             data: null,
             app: this,
             layerIdx: -1,
-            isWaitingForData: false
+            /*isWaitingForData: false*/
         };
 
         layerIdx = -1;
@@ -71,7 +71,7 @@ namespace LayerResidues.UI{
 
             $( window ).on('layerTriggered', this.layerTriggerHandler.bind(this));
         }
-
+        /*
         private dataWaitHandler(){
             this.setState({isWaitingForData:false});
         }
@@ -84,6 +84,7 @@ namespace LayerResidues.UI{
             this.setState({isWaitingForData: true});
             Annotation.AnnotationDataProvider.subscribeForData(this.dataWaitHandler.bind(this));
         }
+        */
 
         private layerTriggerHandler(event:any,layerIdx:number){
 
@@ -150,10 +151,7 @@ namespace LayerResidues.UI{
                     <tr>
                         <th title="Residue" className="col col-1">
                             Residue
-                        </th>
-                        <th title="Annotation" className="col col-2">
-                            Annotation
-                        </th>                             
+                        </th>                           
                     </tr>
                 </table>
             );
@@ -161,12 +159,14 @@ namespace LayerResidues.UI{
     }
 
     class DGBody extends React.Component<State,{}>{ 
+        /*
         private generateLink(annotation:Annotation.ResidueAnnotation){
             if(annotation.reference===""){
                 return (annotation.text!== void 0 && annotation.text !== null)?<span>{annotation.text}</span>:<span className="no-annotation"/>;
             }
             return <a target="_blank" href={annotation.link} dangerouslySetInnerHTML={{__html:annotation.text}}></a>
-        }    
+        }
+        */
 
         private shortenBackbone(residue:string){
             return residue.replace(/Backbone/g,'');
@@ -175,7 +175,8 @@ namespace LayerResidues.UI{
         private isBackbone(residue:string){
             return residue.indexOf("Backbone") >= 0;
         }
-
+        
+        /*
         private generateSpannedRows(residue:string, annotations: Annotation.ResidueAnnotation[]){
             let trs:JSX.Element[] = [];
 
@@ -207,7 +208,7 @@ namespace LayerResidues.UI{
                 }
             }
             return trs;
-        }
+        }*/
 
         private generateRows(){
             if(this.props.data === null){
@@ -219,7 +220,7 @@ namespace LayerResidues.UI{
             
             for(let residue of layerData){
                 let residueId = residue.split(" ").slice(1,3).join(" ");
-                
+                /*
                 let annotation;
                 let annotationText = "";
                 let annotationSource = "";
@@ -241,7 +242,11 @@ namespace LayerResidues.UI{
                     rows.push(
                         <DGComponents.DGElementRow columns={[residueNameEl,<span/>]} title={[(this.isBackbone(residue)?residue:""),""]} trClass={(this.isBackbone(residue)?"help":"")} />
                     );
-                }
+                }*/
+                let residueNameEl = (this.isBackbone(residue))?<i><strong>{this.shortenBackbone(residue)}</strong></i>:<span>{residue}</span>;
+                rows.push(
+                        <DGComponents.DGElementRow columns={[residueNameEl]} title={[(this.isBackbone(residue)?residue:""),""]} trClass={(this.isBackbone(residue)?"help":"")} />
+                    );
             }            
             rows.push(<DGComponents.DGRowEmpty columnsCount={DGTABLE_COLS_COUNT} />);
 

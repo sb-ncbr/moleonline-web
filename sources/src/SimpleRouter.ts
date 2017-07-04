@@ -247,6 +247,25 @@ namespace SimpleRouter{
 
             return url.getLastPart();
         }
+
+        public static redirect(url:string,relative?:boolean){
+            let rel = false;
+            if(relative!==void 0){
+                rel = relative;
+            }
+            let newUrl = url;
+            if(relative){
+                let currentUrl = this.router.getAbsoluePath();
+                let newUrl = `${currentUrl.getProtocol()}://${currentUrl.getHostname}${this.defaultContextPath}${url}`;
+            }
+            
+            window.location.replace(newUrl);
+        }
+
+        public static getParametersByRegex(regex:RegExp){
+            let url = this.router.getAbsoluePath();
+            return regex.exec(url.toString());
+        }
         
     }
 }

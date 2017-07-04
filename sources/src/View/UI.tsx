@@ -34,7 +34,7 @@ namespace LiteMol.Example.Channels.UI {
             this.currentProteinId = SimpleRouter.GlobalRouter.getCurrentPid();
 
             this.setState({ isLoading: true, error: void 0 });      //https://webchem.ncbr.muni.cz/API/ChannelsDB/PDB/1tqn
-            State.loadData(this.props.plugin, this.currentProteinId, `https://webchem.ncbr.muni.cz/API/ChannelsDB/PDB/${this.currentProteinId}`) //'channels.json'
+            State.loadData(this.props.plugin/*, this.currentProteinId*/) //'channels.json'
                 .then(data => {
                     //console.log("loading done ok");
                     let _data = (this.props.plugin.context.select("mole-data")[0] as Bootstrap.Entity.Data.Json).props.data as DataInterface.MoleData;

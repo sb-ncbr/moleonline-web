@@ -1,2 +1,2 @@
-/// <reference path="./dist/js/LiteMol-plugin.d.ts" />
+/// <reference path="./sources/provided/src/LiteMol-plugin.d.ts" />
 export default LiteMol

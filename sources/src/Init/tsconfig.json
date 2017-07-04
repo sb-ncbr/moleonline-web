@@ -16,14 +16,15 @@
     "skipDefaultLibCheck": true
   },
   "files": [
-    "../../provided/src/LiteMol-plugin.d.ts",
-    /*"../../provided/src/react-dom.d.ts",
-    "../../provided/src/react.d.ts",*/
-    
+    /*"../../provided/src/LiteMol-plugin.d.ts",*/
+     "../../provided/src/react.d.ts",
+    "../../provided/src/react-dom.d.ts",
+
     "../../config/common.ts",
     "../../../tmp/config.ts",
 
     "../../src/SimpleRouter.ts",
+    "../../src/MoleAPIService.ts",
 
     //InitForm
     "InitForm/UI.tsx",

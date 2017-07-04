@@ -50,13 +50,13 @@ function buildViewResources(){
         .pipe(gulp.dest(destDir + '/css'));
 
         let cssMin = gulp.src(providedCss)
-        .pipe(plugins.concat()('litemol.css'))
+        .pipe(plugins.concat()('provided.css'))
         .pipe(gulp.dest(destDir + '/css'));
 
         let providedJs = [sourcesPath + '/provided/js/*'];
         
         let jsMin = gulp.src(providedJs)
-        .pipe(plugins.concat()("litemol.js"))
+        .pipe(plugins.concat()("provided.js"))
         .pipe(gulp.dest(destDir + '/js'));
 
         let js = gulp.src([sourcesPath + '/js/*'])
@@ -80,11 +80,23 @@ function buildInitResources(){
         '!'+projectPath + 'tsconfig.json']).pipe(gulp.dest(destDir))
 
         let providedJs = [
-            sourcesPath + '/provided/src/LiteMol-plugin.js'
+            /*sourcesPath + '/provided/src/LiteMol-plugin.js'*/
+            sourcesPath + '/provided/src/react.js',
+            sourcesPath + '/provided/src/react-with-addons.js',
+            sourcesPath + '/provided/src/react-dom.js',
+            sourcesPath + '/provided/src/react-dom-server.js'
         ];
+
+        let minify = !DEBUG;
         
+        let css = gulp.src([sourcesPath + '/css/Init.css'])
+        .pipe(plugins.sass()({ outputStyle: minify ? 'compressed' : void 0 }).on('error', plugins.sass().logError))
+
+        .pipe(plugins.concat()('init-styles.css'))
+        .pipe(gulp.dest(destDir + '/css'));
+
         let jsMin = gulp.src(providedJs)
-        .pipe(plugins.concat()("provided.js"))
+        .pipe(plugins.concat()("init-provided.js"))
         .pipe(gulp.dest(destDir + '/js'));
 
         return plugins.merge()([src, jsMin]);

@@ -61,6 +61,7 @@
     "DownloadReport/UI.tsx",
 
     "../../src/SimpleRouter.ts",
+    "../../src/MoleAPIService.ts",
     
     //UI
     "State.ts",

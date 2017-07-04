@@ -52,9 +52,9 @@ namespace LiteMol.Example.Channels {
         //LayerResidues.UI.render(document.getElementById("right-tabs-2") !, plugin);
         LayerResidues.UI.render(document.getElementById("layer-residues") !, plugin);
 
-        ResidueAnnotations.UI.render(document.getElementById("right-tabs-3") !, plugin);
+        //ResidueAnnotations.UI.render(document.getElementById("right-tabs-3") !, plugin);
 
-        ProteinAnnotations.UI.render(document.getElementById("right-panel-tabs-1") !, plugin);
+        //ProteinAnnotations.UI.render(document.getElementById("right-panel-tabs-1") !, plugin);
 
         DownloadReport.UI.render(document.getElementById("download-report") !); 
     })();

@@ -50,9 +50,9 @@ $( function() {
         datagridOnResize("dg-layer-residues","right-tabs-2","right-tabs");*/
         datagridOnResize("dg-layer-properties","layer-properties","layer-properties");
         datagridOnResize("dg-layer-residues","layer-residues","layer-residues");
-        datagridOnResize("dg-residue-annotations","right-tabs-3","right-tabs");
+        //datagridOnResize("dg-residue-annotations","right-tabs-3","right-tabs");
         datagridOnResize("dg-aglomered-parameters","left-tabs-2","left-tabs");
-        datagridOnResize("dg-protein-annotations","right-panel-tabs-1","right-panel-tabs");
+        //datagridOnResize("dg-protein-annotations","right-panel-tabs-1","right-panel-tabs");
     };
     //Datagrid
     $( window ).on("resize",dgResize);
@@ -64,8 +64,8 @@ $( function() {
     datagridOnResize("dg-layer-residues","right-tabs-2","right-tabs");*/
     datagridOnResize("dg-layer-properties","layer-properties","layer-properties");
     datagridOnResize("dg-layer-residues","layer-residues","layer-residues");
-    datagridOnResize("dg-residue-annotations","right-tabs-3","right-tabs");
-    datagridOnResize("dg-protein-annotations","right-panel-tabs-1","right-panel-tabs");
+    //datagridOnResize("dg-residue-annotations","right-tabs-3","right-tabs");
+    //datagridOnResize("dg-protein-annotations","right-panel-tabs-1","right-panel-tabs");
     /*datagridOnResize("dg-aglomered-parameters","left-tabs-2","left-tabs");*/
 } );
 

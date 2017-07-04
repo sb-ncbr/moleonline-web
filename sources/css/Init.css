@@ -1,0 +1,4 @@
+.InitForm table tr td:first-child{
+    width:150px;
+    vertical-align:middle;
+}
