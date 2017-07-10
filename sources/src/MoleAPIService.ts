@@ -19,7 +19,7 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
         ComputationId: string,
         UserStructure: boolean,
         PdbId: string,
-        AssemblyId: string,
+        AssemblyId: string|null,
         Submissions: Submission[]
     };
 
@@ -170,6 +170,53 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
             
             console.log(url);
             return this.sendGET(url);
+        }
+
+        private static handleJsonToStringResponse(response:Promise<any>){
+            return new Promise<string>((res,rej)=>{
+                response.then(value=>{
+                    let data = value as Object;
+                    res(JSON.stringify(data));
+                })
+                .catch(error=>{
+                    rej(error);
+                })
+            });
+        }
+
+        public static getProteinStructure(computationId:string, submitId:number):Promise<string>{
+            //let url = `${this.baseUrl}/Data/${computationId}?submitId=${submitId}&format=molecule`;
+            //Mock!!!
+            let url = 'https://api.mole.upol.cz/Data/OaUmDZj0Kk2ZBgJLLxVUA?submitId=1&format=molecule';
+            console.log(url);
+            //return this.sendGET(url);
+            return new Promise<any>((res,rej)=>{
+                fetch(url, {
+                    method: "GET"
+                })
+                .then((rawResponse)=>{
+                    if(!rawResponse.ok){
+                        console.log(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
+                        rej(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
+                        return;
+                    }
+                    rawResponse.text().then(value=>{
+                        res(value);
+                    })
+                    .catch(error=>{
+                        rej(error);
+                    })
+                })
+                .catch(error=>rej(error));
+            });
+        }
+
+        public static getChannelsData(computationId:string, submitId:number):Promise<string>{
+            //let url = `${this.baseUrl}/Data/${computationId}?submitId=${submitId}`;
+            //Mock!!!
+            let url = 'https://api.mole.upol.cz/Data/OaUmDZj0Kk2ZBgJLLxVUA?submitId=1';
+            console.log(url);
+            return this.handleJsonToStringResponse(this.sendGET(url));
         }
     }
 }

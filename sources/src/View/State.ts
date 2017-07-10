@@ -14,23 +14,24 @@ namespace LiteMol.Example.Channels.State {
 
     export interface SurfaceTag { type: string, element?: any }
 
-    function showDefaultVisuals(plugin: Plugin.Controller, data: any, channelCount: number) {
+    function showDefaultVisuals(plugin: Plugin.Controller, data: any) {
         return new Promise(res => {
             let toShow = [];
-            if(data.ReviewedChannels.length > 0){
-                toShow = data.ReviewedChannels;
+     
+            if(data.MergedPores.length > 0){
+                toShow = data.MergedPores;
             }
-            else if(data.CSATunnels.length > 0){
-                toShow = data.CSATunnels;
+            else if(data.Paths.length > 0){
+                toShow = data.Paths;
             }
-            else if(data.TransmembranePores.length > 0){
-                toShow = data.TransmembranePores;
+            else if(data.Pores.length > 0){
+                toShow = data.Pores;
             }
-            else if(data.CofactorTunnels.length > 0){
-                toShow = data.CofactorTunnels;
+            else if(data.Tunnels.length > 0){
+                toShow = data.Tunnels;
             }
             
-            return showChannelVisuals(plugin, toShow/*.slice(0, channelCount)*/, true).then(() => {
+            return showChannelVisuals(plugin, toShow, true).then(() => {
                 if(data.Cavities === void 0){
                     res();
                     return;
@@ -44,21 +45,57 @@ namespace LiteMol.Example.Channels.State {
             })});
     }
 
-    export function loadData(plugin: Plugin.Controller/*, url: string*/) {
+    function downloadChannelsData(plugin:Plugin.Controller, computationId:string, submitId:number){
+        return new Promise<any>((res,rej)=>{
+            ApiService.getChannelsData(computationId, submitId).then((data)=>{
+                let protein = plugin.createTransform().add(plugin.root, Transformer.Data.FromData, { data, id: 'MOLE Data' }, { isHidden: false })
+                    .then(Transformer.Data.ParseJson, { id: 'MOLE Data' }, { ref: 'mole-data' });
+                plugin.applyTransform(protein)
+                    .then(() => {
+                        let parsedData = plugin.context.select('mole-data')[0] as Bootstrap.Entity.Data.Json;
+
+                        if (!parsedData){
+                            rej('Data not available.');
+                        }
+                        else {
+                            let data_ = parsedData.props.data as DataInterface.MoleData;
+                            showDefaultVisuals(plugin, data_.Channels)
+                                .then(() => res());
+                        }
+                    })
+                    .catch(error=>rej(error));
+            });
+        });
+    }
+
+    function downloadProteinData(plugin:Plugin.Controller, computationId:string, submitId:number){      
+        return new Promise<any>((res,rej)=>{
+            ApiService.getProteinStructure(computationId, submitId).then((data)=>{
+                let protein = plugin.createTransform()
+                    .add(plugin.root, Transformer.Data.FromData, { data, id: `${computationId}/${submitId}`}, {isBinding:true})
+                    .then(Transformer.Molecule.CreateFromData, { format: Core.Formats.Molecule.SupportedFormats.mmCIF }, { isBinding: true })
+                    .then(Transformer.Molecule.CreateModel, { modelIndex: 0 })
+                    .then(Transformer.Molecule.CreateMacromoleculeVisual, { polymer: true, polymerRef: 'polymer-visual', het: true });
+                
+                plugin.applyTransform(protein)
+                    .then(() => {
+                        if(plugin.context.select('polymer-visual').length!==1){
+                            rej("Application was unable to retrieve protein structure from coordinate server.");
+                        }
+                        plugin.command(Bootstrap.Command.Entity.Focus, plugin.context.select('polymer-visual'));
+                        res();
+                    })
+                    .catch(error=>rej(error));
+            })
+            .catch(error=>rej(error));
+        });
+    }
+
+    export function loadData(plugin: Plugin.Controller) {
         
             plugin.clear();
 
-            //Subscribe for data
-            //Annotation.AnnotationDataProvider.subscribeToPluginContext(plugin.context);
-            
             let modelLoadPromise = new Promise<any>((res,rej)=>{
-                /*
-                let assemblyInfo = plugin.createTransform().add(plugin.root, Transformer.Data.Download, { 
-                        url: `https://webchem.ncbr.muni.cz/API/ChannelsDB/Assembly/${pdbId}`, 
-                        type: 'String', 
-                        id: 'AssemblyInfo'                        
-                    }, { isHidden: false })
-                    .then(Transformer.Data.ParseJson, { id: 'AssemblyInfo' }, { ref: 'assembly-id' });*/
                 let parameters = SimpleRouter.GlobalRouter.getParametersByRegex(/\/online\/([a-zA-Z0-9]+)\/*([0-9]*)/g);
                 let computationId = null;
                 let submitId = 1;
@@ -76,76 +113,23 @@ namespace LiteMol.Example.Channels.State {
                     if(info.AssemblyId!==null){
                         assemblyId = info.AssemblyId;
                     }
-                    let model = plugin.createTransform()
-                        .add(plugin.root, Transformer.Data.Download, { url: `http://www.ebi.ac.uk/pdbe/coordinates/${info.PdbId}/assembly?id=${assemblyId}`, type: 'String', id: info.PdbId })
-                        .then(Transformer.Molecule.CreateFromData, { format: Core.Formats.Molecule.SupportedFormats.mmCIF }, { isBinding: true })
-                        .then(Transformer.Molecule.CreateModel, { modelIndex: 0 })
-                        .then(Transformer.Molecule.CreateMacromoleculeVisual, { polymer: true, polymerRef: 'polymer-visual', het: true });
+                    let proteinData = downloadProteinData(plugin, info.ComputationId, submitId);                     
+                    let channelsData = downloadChannelsData(plugin, info.ComputationId, submitId);                    
 
-                    plugin.applyTransform(model)
-                        .then(() => {
-                            if(plugin.context.select('polymer-visual').length!==1){
-                                rej("Application was unable to retrieve protein structure from coordinate server.");
-                            }
-                            plugin.command(Bootstrap.Command.Entity.Focus, plugin.context.select('polymer-visual'));
+                    Promise.all([proteinData, channelsData])
+                        .then(()=>{
                             res();
-                        });
-                    //TODO: Switch to MoleAPI channels
-                    let url = `https://webchem.ncbr.muni.cz/API/ChannelsDB/PDB/${info.PdbId}`
-                    let data = plugin.createTransform().add(plugin.root, Transformer.Data.Download, { url, type: 'String', id: 'MOLE Data' }, { isHidden: false })
-                        .then(Transformer.Data.ParseJson, { id: 'MOLE Data' }, { ref: 'mole-data' });
-                    plugin.applyTransform(data)
-                        .then(() => {
-                            let parsedData = plugin.context.select('mole-data')[0] as Bootstrap.Entity.Data.Json;
-
-                            if (!parsedData) throw new Error('Data not available.');
-                            else {
-                                let data_ = parsedData.props.data as DataInterface.MoleData;
-                                showDefaultVisuals(plugin, data_.Channels, /*data_.Channels.length*/2);/*.then(() => res(data_.Channels));*/
-                            }
+                        })
+                        .catch((error)=>{
+                            rej(error);
                         })
                 });
             })
 
-            /*
-            let model = plugin.createTransform()
-                    .add(plugin.root, Transformer.Data.Download, { url: `http://www.ebi.ac.uk/pdbe/coordinates/${pdbId}/assembly?id=1`, type: 'String', id: pdbId })
-                    .then(Transformer.Molecule.CreateFromData, { format: Core.Formats.Molecule.SupportedFormats.mmCIF }, { isBinding: true })
-                    .then(Transformer.Molecule.CreateModel, { modelIndex: 0 })
-                    .then(Transformer.Molecule.CreateMacromoleculeVisual, { polymer: true, polymerRef: 'polymer-visual', het: true })
-            */
-  /*          let data = plugin.createTransform().add(plugin.root, Transformer.Data.Download, { url, type: 'String', id: 'MOLE Data' }, { isHidden: false })
-                .then(Transformer.Data.ParseJson, { id: 'MOLE Data' }, { ref: 'mole-data' });
-*/
-            /*
-            let annotationData = plugin.createTransform().add(plugin.root, Transformer.Data.Download, { url: `https://webchem.ncbr.muni.cz/API/ChannelsDB/Annotations/${pdbId}`, type: 'String', id: 'ChannelDB annotation Data' }, { isHidden: false })
-                .then(Transformer.Data.ParseJson, { id: 'ChannelDB annotation Data' }, { ref: 'channelsDB-annotation-data' });
-            */
             let promises = [];
 
             promises.push(modelLoadPromise);
             
-            /*
-            promises.push(plugin.applyTransform(model)
-                .then(() => {
-                    plugin.command(Bootstrap.Command.Entity.Focus, plugin.context.select('polymer-visual'));
-                }));
-            */
-            /*
-            promises.push(plugin.applyTransform(data)
-                .then(() => {
-                    let parsedData = plugin.context.select('mole-data')[0] as Bootstrap.Entity.Data.Json;
-
-                    if (!parsedData) throw new Error('Data not available.');
-                    else {
-                        let data_ = parsedData.props.data as DataInterface.MoleData;
-                        showDefaultVisuals(plugin, data_.Channels, /*data_.Channels.length*//*2);/*.then(() => res(data_.Channels));*//*
-                    }
-                }));*/
-
-            //promises.push(plugin.applyTransform(annotationData));
-            //plugin.applyTransform(annotationData); //Annotations se donačtou později -> nebude se na ně čekat s vykreslováním UI
-
         return Promise.all(promises);
     }
 

@@ -105,10 +105,10 @@ namespace LiteMol.Example.Channels.UI {
                     Channels
                 </div>
                 <div>
-                    <Channels channels={this.props.data.Channels.ReviewedChannels} state={this.props}  header='Reviewed Channels' />
-                    <Channels channels={this.props.data.Channels.CSATunnels} state={this.props}  header='CSA Tunnels' />
-                    <Channels channels={this.props.data.Channels.TransmembranePores} state={this.props}  header='Transmembrane Pores' />
-                    <Channels channels={this.props.data.Channels.CofactorTunnels} state={this.props}  header='Cofactor Tunnels' />
+                    <Channels channels={this.props.data.Channels.MergedPores} state={this.props}  header='Merged pores' />
+                    <Channels channels={this.props.data.Channels.Paths} state={this.props}  header='Paths' />
+                    <Channels channels={this.props.data.Channels.Pores} state={this.props}  header='Pores' />
+                    <Channels channels={this.props.data.Channels.Tunnels} state={this.props}  header='Tunnels' />
                 </div>
             </div>;
             /*

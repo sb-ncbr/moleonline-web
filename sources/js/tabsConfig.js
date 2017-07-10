@@ -9,13 +9,14 @@ $( function() {
             $(window).trigger('contentResize');
         }
     });
+    
     $( "#right-tabs" ).tabs({
         show: true,
         activate: function(_, _){
             $(window).trigger('resize');
         }
     });
-    $( "#right-panel-tabs" ).tabs({show: true});
+    /*$( "#right-panel-tabs" ).tabs({show: true});*/
     $( "#bottom-tabs-toggler" ).on("click",function(){
         $( ".left-tabs" ).toggleClass( "bottom-tabs-toggled" );
         $( ".right-tabs" ).toggleClass( "bottom-tabs-toggled" );

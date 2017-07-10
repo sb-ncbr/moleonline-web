@@ -235,6 +235,11 @@ only screen and (max-height: 600px) {
 
 .chdb-panel{
 	position:absolute;
+    overflow: hidden;
+}
+
+#controls div:first-child{
+    height:100%;
 }
 
 .plugin{

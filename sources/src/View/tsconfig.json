@@ -17,7 +17,7 @@
   },
   "files": [
     "../../provided/src/LiteMol-plugin.d.ts",
-    
+
     "../../config/common.ts",
     "../../../tmp/config.ts",
 
@@ -33,39 +33,45 @@
     "AnnotationDataProvider.ts", 
 
     //Layer Vizualizer
-    "LayerVizualizer/UI.tsx",
+    "UI/LayerVizualizer/UI.tsx",
     "LayerVizualizer/Backend.ts",           
     "LayerVizualizer/Vizualizer.ts", 
     "LayerVizualizer/Components.ts", 
     "LayerVizualizer/Colors.ts", 
 
     //Datagrid components
-    "Datagrid/Components.tsx",
+    "UI/Common/Datagrid/Components.tsx",
+    
+    //Common UI components
+    "UI/Common/Tabs/BootstrapTabs.tsx",
 
     //Aglomered parameters
-    "AglomeredParameters/UI.tsx",     
+    "UI/AglomeredParameters/UI.tsx",     
 
     //Layer Properties
-    "LayerProperties/UI.tsx",   
+    "UI/LayerProperties/UI.tsx",   
     
     //Layer Residues
-    "LayerResidues/UI.tsx",   
+    "UI/LayerResidues/UI.tsx",   
 
     //Residue Annotations
-    "ResidueAnnotations/UI.tsx", 
+    "UI/ResidueAnnotations/UI.tsx", 
 
     //Protein Annotations
-    "ProteinAnnotations/UI.tsx",
+    "UI/ProteinAnnotations/UI.tsx",
+
+    //Submit Settings
+    "UI/Controls/UI.tsx",
 
     //Download report
-    "DownloadReport/UI.tsx",
+    "UI/DownloadReport/UI.tsx",
 
     "../../src/SimpleRouter.ts",
     "../../src/MoleAPIService.ts",
     
-    //UI
+    //Main UI
     "State.ts",
-    "UI.tsx",
+    "UI/LiteMolControl/UI.tsx",
     "Spec.ts",
 
     //App
