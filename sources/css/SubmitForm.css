@@ -1,0 +1,105 @@
+.submit-form-container{
+    padding-top: 1vh;
+    padding-bottom: 0;
+}
+
+.submit-form-container .nav{
+    padding-left:15px;
+}
+
+.control-text span{
+    display: block;
+    float: none;
+    height: 30px;
+    line-height: 27px;
+    padding-top: 5px;
+}
+
+.submit-form-container .form-horizontal .checkbox, 
+.submit-form-container .form-horizontal .checkbox-inline, 
+.submit-form-container .form-horizontal .radio, 
+.submit-form-container .form-horizontal .radio-inline {
+    padding-top: 0px;
+}
+
+.submit-form-container .basic-settings{
+    padding-top:1vh;
+}
+
+.submit-form-container .tab-content{
+    max-height: 24vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-bottom: #ccc 1px solid;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.toggled .submit-form-container .tab-content{
+    border-bottom: none;
+    max-height: 50vh;
+}
+
+.toggled .submit-form-container .submit-parent{
+    border-top: #ccc 1px solid;
+}
+
+.submit-form-container .submit-parent{
+    position: absolute;
+    bottom: 0px;
+    border-top: none;
+    margin-right: 15px;
+    left: 0;
+    right: 0;
+    margin-left: 15px;
+}
+
+.submit-form-container .submit{
+    width: 25%;
+    max-height: 3.5vh;
+    margin-top: 1vh;
+    margin-bottom: 1vh;
+    line-height: 2vh;
+    padding: 0.75vh 0px;
+}
+
+.nav-tabs > li > a {
+    line-height: 2.5vh !important;
+    height: 3.5vh !important;
+}
+
+.nav > li > a {
+    padding: 0.5vh 15px !important;
+}
+
+.submit-form-container .nav-tabs > li > a{
+    color:#333;
+}
+
+.submit-form-container .nav-tabs > li.active > a, 
+.submit-form-container .nav-tabs > li.active > a:focus, 
+.submit-form-container .nav-tabs > li.active > a:hover {
+    color:#333;
+    border-top-color: #9a9a9a;
+    border-right-color: #9a9a9a;
+    border-left-color: #9a9a9a;
+}
+
+.submit-form-container .nav-tabs > li > a:focus, 
+.submit-form-container .nav-tabs > li > a:hover {
+    background-color: #9a9a9a;
+    color:white;
+}
+
+.submit-form-container .nav-tabs {
+    border-bottom: 1px solid #ddd;
+    border-bottom-color: #9a9a9a;
+}
+
+@media only screen and (max-width: 1300px),
+only screen and (max-height: 900px) {
+    .submit-form-container .tab-content{
+        max-height: 30vh;
+    }
+}
+

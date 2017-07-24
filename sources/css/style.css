@@ -274,7 +274,7 @@ only screen and (max-height: 600px) {
 	bottom:0;
 }
 .bottom-panel.bottom-panel-toggled{
-	height:67%;
+	height:67vh;
 }
 
 .toggler{
@@ -292,6 +292,10 @@ only screen and (max-height: 600px) {
 	top:0;
     margin-top: .4em;
     margin-right: .4em;
+}
+
+.right-panel .toggler{
+    margin-top: .8em;
 }
 
 .tabs{
@@ -331,7 +335,7 @@ only screen and (max-height: 600px) {
 .right-panel .ui{
 	height:66vh;
     padding: 20px;
-    overflow-y: scroll;
+    overflow-y: auto;
     background: #fff;/*#ccc;*/
 }
 .right-panel .bottom{
@@ -342,10 +346,10 @@ only screen and (max-height: 600px) {
 	width:100%;
 }
 .right-panel .bottom.toggled{
-	height:67%;
+	height:67vh;
 }
 .right-panel .ui.toggled{
-	height:33%;
+	height:33vh;
 }
 
 .ui-tabs-panel{
@@ -598,7 +602,10 @@ only screen and (max-height: 900px) {
         height:40vh;
     }
     .bottom-panel.bottom-panel-toggled{
-        height:60%;
+        height:60vh;
+    }
+    .right-panel .toggler{
+        margin-top: .4em;
     }
     .right-panel .ui{
         height:60vh;

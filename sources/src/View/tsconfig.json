@@ -28,9 +28,14 @@
     "CommonUtils/Tunnels.ts",  
     "CommonUtils/Numbers.ts", 
     "CommonUtils/Selection.ts", 
+    "CommonUtils/UrlParameters.ts", 
 
     //Annotation data provider
     "AnnotationDataProvider.ts", 
+
+    "../../src/SimpleRouter.ts",
+    "../../src/MoleAPIService.ts",
+    "DataProxy.ts",
 
     //Layer Vizualizer
     "UI/LayerVizualizer/UI.tsx",
@@ -65,9 +70,6 @@
 
     //Download report
     "UI/DownloadReport/UI.tsx",
-
-    "../../src/SimpleRouter.ts",
-    "../../src/MoleAPIService.ts",
     
     //Main UI
     "State.ts",

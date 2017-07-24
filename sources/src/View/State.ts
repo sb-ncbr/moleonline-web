@@ -96,6 +96,8 @@ namespace LiteMol.Example.Channels.State {
             plugin.clear();
 
             let modelLoadPromise = new Promise<any>((res,rej)=>{
+                let parameters = CommonUtils.UrlParameters.getParameters();
+                /*
                 let parameters = SimpleRouter.GlobalRouter.getParametersByRegex(/\/online\/([a-zA-Z0-9]+)\/*([0-9]*)/g);
                 let computationId = null;
                 let submitId = 1;
@@ -108,6 +110,15 @@ namespace LiteMol.Example.Channels.State {
                 if(parameters[2]!==''){
                     submitId = Number(parameters[2]);
                 }
+                */
+                if(parameters===null){
+                    rej("Corrupted url found - cannot parse parameters.");
+                    return;
+                }
+
+                let computationId = parameters.computationId;
+                let submitId = parameters.submitId;
+
                 ApiService.getComputationInfoList(computationId).then((info)=>{
                     let assemblyId = "1";
                     if(info.AssemblyId!==null){
