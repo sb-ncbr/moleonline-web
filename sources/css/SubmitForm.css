@@ -63,12 +63,12 @@
     padding: 0.75vh 0px;
 }
 
-.nav-tabs > li > a {
+.submit-form-container .nav-tabs > li > a {
     line-height: 2.5vh !important;
     height: 3.5vh !important;
 }
 
-.nav > li > a {
+.submit-form-container .nav > li > a {
     padding: 0.5vh 15px !important;
 }
 
@@ -99,7 +99,28 @@
 @media only screen and (max-width: 1300px),
 only screen and (max-height: 900px) {
     .submit-form-container .tab-content{
-        max-height: 30vh;
+        max-height: 28vh;
+    }
+    .submit-form-container .nav-tabs > li > a {
+        line-height: 3.5vh !important;
+        height: 4.5vh !important;
+    }
+
+    .submit-form-container .nav > li > a {
+        padding: 0.5vh 15px !important;
+    }
+ 
+    .submit-form-container .submit{
+        max-height: 4.5vh;
+        margin-top: 1vh;
+        margin-bottom: 1vh;
+        line-height: 2vh;
+        padding: 1.25vh 0px;
+    }
+
+    .toggled .submit-form-container .tab-content{
+        border-bottom: none;
+        max-height: 48vh;
     }
 }
 

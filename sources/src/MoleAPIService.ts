@@ -25,20 +25,20 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
 
     export interface Submission{
         SubmitId: number,
-        MoleConfig: MoleConfig|{},
-        PoresConfig: PoresConfig|{}
+        MoleConfig: MoleConfig,
+        PoresConfig: PoresConfig
     };
 
     export interface MoleConfig{
-        Input: MoleConfigInput,
-        Cavity: MoleConfigCavity,
-        Tunnel: MoleConfigTunnel,
-        NonActiveResidues: MoleConfigNonActiveResidues[]|null,
-        QueryFilter: string|null,
-        Origin: MoleConfigOrigin|null,
-        CustomExits: MoleConfigOrigin|null,
-        PoresMerged: boolean,
-        PoresAuto: boolean
+        Input?: MoleConfigInput,
+        Cavity?: MoleConfigCavity,
+        Tunnel?: MoleConfigTunnel,
+        NonActiveResidues?: MoleConfigNonActiveResidues[]|null,
+        QueryFilter?: string|null,
+        Origin?: MoleConfigOrigin|null,
+        CustomExits?: MoleConfigOrigin|null,
+        PoresMerged?: boolean,
+        PoresAuto?: boolean
     };
     export interface MoleConfigInput{
         SpecificChains: string,
@@ -73,9 +73,9 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
     export type MoleConfigResidues = any; //TODO:...
 
     export interface PoresConfig{
-        InMembrane: boolean,
-        IsBetaBarel: boolean,
-        Chains: any|null //TODO:...
+        InMembrane?: boolean,
+        IsBetaBarel?: boolean,
+        Chains?: any|null //TODO:...
     };
 
     export class ApiService{

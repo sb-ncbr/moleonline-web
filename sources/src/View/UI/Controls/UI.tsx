@@ -3,6 +3,7 @@ namespace Controls.UI{
     import ReactDOM = LiteMol.Plugin.ReactDOM;
     import TunnelUtils = CommonUtils.Tunnels;
     import Provider = MoleOnlineWebUI.DataProxy.ComputationInfo.DataProvider;
+    import Service = MoleOnlineWebUI.Service.MoleAPI;
 
     declare function $(p:any): any;
 
@@ -84,31 +85,45 @@ namespace Controls.UI{
             );
         }
     }
-
+    /*
     export interface SubmitFormData{
         pdbid: string
+    };*/
+    interface BasicSettingsState{
+        data:Service.CompInfo|null
     };
-    export class BasicSettings extends React.Component<{initialData:SubmitFormData},{data:SubmitFormData}>{
+    export class BasicSettings extends React.Component<{initialData:Service.CompInfo, submitId:number},BasicSettingsState>{
         
-        state = {data:{pdbid:""}}
+        state:BasicSettingsState = {data:null}
         
-        componentDidMount(){
-            let parameters = CommonUtils.UrlParameters.getParameters();
-            if(parameters!==null){
-                let compId = parameters.computationId;
-                Provider.get(parameters.computationId,(compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
-                    this.setState({data:{pdbid:info.PdbId}});
-                });
-            }
-            this.setState({data: this.props.initialData});    
+        componentDidMount(){  
+            console.log(this.props.initialData);
+            this.setState({data:this.props.initialData}); 
         }
         
         render(){
+            console.log("render");
+            console.log(this.state.data);
+            if(this.state.data===null){
+                return <div/>
+            }
+
+            let pdbid = this.state.data.PdbId;
+
+            if(this.state.data.Submissions.length>0){
+                let submissionData = this.state.data.Submissions[this.props.submitId];
+                if(submissionData!==void 0){
+                    let moleConfig = submissionData.MoleConfig;
+                    if(moleConfig!==null){
+                        //moleConfig.
+                    }
+                }
+            }
             let doubleColClasses = ["col-md-4","col-md-8"];
             let chckColClasses = ["col-md-offset-4 col-md-8"];
             return (
                 <div className="basic-settings">
-                    <LabelBox label="Structure" text={this.state.data.pdbid} id="pdbid" classNames={doubleColClasses} />
+                    <LabelBox label="Structure" text={this.state.data.PdbId} id="pdbid" classNames={doubleColClasses} />
                     <CheckBox label="Automatic starting points" defaultChecked={false} id="automaticStartingPoints" classNames={chckColClasses} />
                     <TextBox label="Starting point" id="origin" classNames={doubleColClasses} />
                     <LabelBox label="Active sites from CSA" text="TODO:..." id="activeSites" classNames={doubleColClasses} />
@@ -119,9 +134,9 @@ namespace Controls.UI{
             );
         }
     }
-    export class AdvancedSettings extends React.Component<{initialData:SubmitFormData},{data:SubmitFormData}>{
+    export class AdvancedSettings extends React.Component<{initialData:Service.CompInfo},BasicSettingsState>{
         
-        state = {data:{pdbid:""}}
+        state:BasicSettingsState = {data:null}
         
         componentDidMount(){
             this.state.data = this.props.initialData;    
@@ -136,23 +151,51 @@ namespace Controls.UI{
         }
     }
 
-    export class SubmitForm extends React.Component<{activeTab?: number},{activeTabIdx: number}>{          
+    interface SubmitFormState{
+        activeTabIdx: Number,
+        data?: Service.CompInfo,
+        err?: String,
+        submitId: number
+    };
+    export class SubmitForm extends React.Component<{activeTab?: number},SubmitFormState>{          
         
-        state = {activeTabIdx:0}
+        state:SubmitFormState={
+            activeTabIdx: 0,
+            data: void 0,
+            err: void 0,
+            submitId: 1
+        }
         
         componentDidMount(){
             if(this.props.activeTab !== void 0){
-                this.state.activeTabIdx = this.props.activeTab;
+                this.setState({activeTabIdx:this.props.activeTab});
+            }
+
+            let parameters = CommonUtils.UrlParameters.getParameters();
+            if(parameters!==null){
+                let compId = parameters.computationId;
+                let submitId = parameters.submitId;
+                Provider.get(parameters.computationId,(compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
+                    this.setState({data:info, submitId});
+                });
+            }else{
+                this.setState({err:"Parameters from url cannot be properly processed."});
             }
         }
 
         render(){
+            if(this.state.data === void 0){
+                return <div>No data provided!</div>
+            } 
+
+            //if(this.state.data.)           
+
             let tabs:JSX.Element[]=[];
             tabs.push(
-                <BasicSettings initialData={{pdbid:""}} />
+                <BasicSettings initialData={this.state.data} submitId={this.state.submitId}/>
             );
             tabs.push(
-                <AdvancedSettings initialData={{pdbid:""}} />
+                <AdvancedSettings initialData={this.state.data} />
             );
 
             return (
@@ -161,7 +204,16 @@ namespace Controls.UI{
                         <Common.Tabs.BootstrapTabs.TabbedContainer header={["Settings","Advanced Settings"]} tabContents={tabs} namespace="right-panel-tabs-" htmlClassName="tabs" htmlId="right-panel-tabs" activeTab={this.props.activeTab}/>
                         <SubmitButton />
                     </form>
-                    <div id="right-panel-toggler" className="toggler btn-xs btn-primary glyphicon glyphicon-resize-vertical"></div>
+                    <div id="right-panel-toggler" className="toggler glyphicon glyphicon-resize-vertical" onClick={
+                        ()=>{
+                            $( ".ui" ).toggleClass( "toggled" );
+                            $( ".bottom" ).toggleClass( "toggled" );
+                            //Agglomered parameters resize
+                            $( window ).trigger('resize');
+                            //resizes painting canvas od 2D vizualizer
+                            $( window ).trigger('contentResize');
+                        }
+                    }></div>
                 </div>
             );
         }

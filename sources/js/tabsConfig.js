@@ -34,6 +34,7 @@ $( function() {
         //resizes painting canvas od 2D vizualizer
         $( window ).trigger('contentResize');
     });
+    
     $( "#right-panel-toggler" ).on("click",function(){
         $( ".ui" ).toggleClass( "toggled" );
         $( ".bottom" ).toggleClass( "toggled" );
@@ -42,7 +43,7 @@ $( function() {
         //resizes painting canvas od 2D vizualizer
         $( window ).trigger('contentResize');
     });
-
+    
 
     var dgResize = function(){
         fillSpaceOnResize("layer-residues","right-tabs-1","right-tabs",39);

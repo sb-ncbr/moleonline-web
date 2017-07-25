@@ -66,6 +66,7 @@ namespace MoleOnlineWebUI.DataProxy{
                 this.setPending(compId, true);
                 Service.getComputationInfoList(compId).then((val)=>{
                     this.setPending(compId, false);
+                    console.log(val);
                     this.setData(compId, val);
                 }).catch((err)=>{
                     console.log(err);

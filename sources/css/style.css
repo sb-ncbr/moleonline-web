@@ -290,8 +290,8 @@ only screen and (max-height: 600px) {
 	position:absolute;
 	right:0;
 	top:0;
-    margin-top: .4em;
-    margin-right: .4em;
+    margin-top: .6em;
+    margin-right: .8em;
 }
 
 .right-panel .toggler{
@@ -604,9 +604,9 @@ only screen and (max-height: 900px) {
     .bottom-panel.bottom-panel-toggled{
         height:60vh;
     }
-    .right-panel .toggler{
-        margin-top: .4em;
-    }
+    /*.right-panel .toggler{
+        margin-top: .2em;
+    }*/
     .right-panel .ui{
         height:60vh;
     }
@@ -624,5 +624,21 @@ only screen and (max-height: 900px) {
     }
     .right-tabs.bottom-tabs-toggled{
         width:61%;
+    }
+}
+.right-panel .toggler {
+    margin-bottom: 0;
+    max-height: 3vh;
+    line-height: 2.5vh;
+    text-align: center;
+    margin-right: 15px;
+    margin-top: 1vh;
+    padding-top: 0.5vh;
+}
+
+@media only screen and (max-height: 900px){
+    .right-panel .toggler {
+        max-height: 4vh;
+        line-height: 3.5vh;
     }
 }
