@@ -36,8 +36,20 @@ namespace LiteMol.Example.Channels.UI {
             this.setState({ isLoading: true, error: void 0 });      //https://webchem.ncbr.muni.cz/API/ChannelsDB/PDB/1tqn
             State.loadData(this.props.plugin/*, this.currentProteinId*/) //'channels.json'
                 .then(data => {
-                    //console.log("loading done ok");
-                    let _data = (this.props.plugin.context.select("mole-data")[0] as Bootstrap.Entity.Data.Json).props.data as DataInterface.MoleData;
+                    console.log("loading done ok");
+                    let entities = this.props.plugin.context.select("mole-data");
+                    if(entities.length===0){
+                        let params = CommonUtils.Router.getParameters();
+                        if(params === null){
+                            this.setState({ isLoading: false, error: `Sorry. Given url is not valid.` });                        
+                            return;    
+                        }
+                        let computationId = params.computationId;
+                        let submitId = params.submitId;
+                        this.setState({ isLoading: false, error: `There are no vizualization data for computation '${computationId}' and submission '${submitId}'. Try to submit some computation job.` });                        
+                        return;
+                    }
+                    let _data = (entities[0] as Bootstrap.Entity.Data.Json).props.data as DataInterface.MoleData;
                     if((_data as any).Error !== void 0){
                         this.setState({ isLoading: false, error: (_data as any).Error as string });
                     }

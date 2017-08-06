@@ -256,9 +256,9 @@ namespace SimpleRouter{
             let newUrl = url;
             if(relative){
                 let currentUrl = this.router.getAbsoluePath();
-                let newUrl = `${currentUrl.getProtocol()}://${currentUrl.getHostname}${this.defaultContextPath}${url}`;
+                newUrl = `${currentUrl.getProtocol()}://${currentUrl.getHostname()}${this.defaultContextPath}${url}`;
             }
-            
+
             window.location.replace(newUrl);
         }
 

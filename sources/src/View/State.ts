@@ -96,7 +96,7 @@ namespace LiteMol.Example.Channels.State {
             plugin.clear();
 
             let modelLoadPromise = new Promise<any>((res,rej)=>{
-                let parameters = CommonUtils.UrlParameters.getParameters();
+                let parameters = CommonUtils.Router.getParameters();
                 /*
                 let parameters = SimpleRouter.GlobalRouter.getParametersByRegex(/\/online\/([a-zA-Z0-9]+)\/*([0-9]*)/g);
                 let computationId = null;
@@ -119,22 +119,8 @@ namespace LiteMol.Example.Channels.State {
                 let computationId = parameters.computationId;
                 let submitId = parameters.submitId;
 
-                ApiService.getComputationInfoList(computationId).then((info)=>{
-                    let assemblyId = "1";
-                    if(info.AssemblyId!==null){
-                        assemblyId = info.AssemblyId;
-                    }
-                    let proteinData = downloadProteinData(plugin, info.ComputationId, submitId);                     
-                    let channelsData = downloadChannelsData(plugin, info.ComputationId, submitId);                    
-
-                    Promise.all([proteinData, channelsData])
-                        .then(()=>{
-                            res();
-                        })
-                        .catch((error)=>{
-                            rej(error);
-                        })
-                });
+                let protein = plugin.selectEntities('polymer-visual');
+                waitForResult(computationId,submitId,plugin,res,rej,protein.length!==0);
             })
 
             let promises = [];
@@ -142,6 +128,62 @@ namespace LiteMol.Example.Channels.State {
             promises.push(modelLoadPromise);
             
         return Promise.all(promises);
+    }
+
+    function waitForResult(computationId:string, submitId:number, plugin:LiteMol.Plugin.Controller, res:any, rej:any, proteinLoaded:boolean){
+        ApiService.getStatus(computationId,submitId).then((state)=>{
+            /*
+            "Initializing"| OK
+            "Initialized"| OK
+            "FailedInitialization"| OK
+            "Running"| OK
+            "Finished"| OK
+            "Error"| OK
+            "Deleted"| OK
+            "Aborted"; OK
+            */
+            if(state.Status === "Initializing" || state.Status === "Running"){
+                window.setTimeout(()=>{waitForResult(computationId,submitId,plugin,res,rej,proteinLoaded);},1000);
+            }
+            else if(state.Status === "Initialized"){
+                acquireData(computationId,submitId,plugin,res,rej,true,false);
+            }
+            else if(state.Status === "FailedInitialization" || state.Status === "Error" || state.Status === "Deleted" || state.Status === "Aborted"){
+                rej(state.ErrorMsg);
+            }
+            else if(state.Status === "Finished"){
+                acquireData(computationId,submitId,plugin,res,rej,!proteinLoaded,true);
+            }
+
+        })
+        .catch((err)=>{
+            rej(err);
+        });
+    }
+
+    function acquireData(computationId:string, submitId:number, plugin:LiteMol.Plugin.Controller, res:any, rej:any, protein:boolean, channels:boolean){
+        ApiService.getComputationInfoList(computationId).then((info)=>{
+            let assemblyId = "1";
+            if(info.AssemblyId!==null){
+                assemblyId = info.AssemblyId;
+            }
+            let promises = [];
+
+            if(protein){
+                promises.push(downloadProteinData(plugin, info.ComputationId, submitId));
+            }
+            if(channels){
+                promises.push(downloadChannelsData(plugin, info.ComputationId, submitId));
+            }
+
+            Promise.all(promises)
+                .then(()=>{
+                    res();
+                })
+                .catch((error)=>{
+                    rej(error);
+                })
+        });
     }
 
     function createSurface(mesh: any) {

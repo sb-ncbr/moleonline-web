@@ -28,7 +28,7 @@
     "CommonUtils/Tunnels.ts",  
     "CommonUtils/Numbers.ts", 
     "CommonUtils/Selection.ts", 
-    "CommonUtils/UrlParameters.ts", 
+    "CommonUtils/Router.ts", 
 
     //Annotation data provider
     "AnnotationDataProvider.ts", 

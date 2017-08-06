@@ -122,7 +122,7 @@ namespace MoleOnlineWebUI.InitForm.UI{
                 if(response.Status==="Initialized"){
                     console.log("initialized");
                     //TODO: handle initialized
-                    SimpleRouter.GlobalRouter.redirect(`${this.computationId}/${this.submitId}`, true);
+                    SimpleRouter.GlobalRouter.redirect(`/${this.computationId}/${this.submitId}`, true);
                     return;
                 }
 

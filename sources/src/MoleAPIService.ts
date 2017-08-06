@@ -57,9 +57,9 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
         MaxTunnelSimilarity: number,
         OriginRadius: number,
         SurfaceCoverRadius: number,
-        UseCustomExitsOnly: false
+        UseCustomExitsOnly: boolean
     };
-    export type MoleConfigNonActiveResidues = any; //TODO:...
+    export type MoleConfigNonActiveResidues = MoleConfigResidues; //TODO:...
     export interface MoleConfigOrigin{
         Points: MoleConfigPoint[]|null,
         QueryExpression: string|null,
@@ -70,7 +70,7 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
         Y:number,
         Z:number
     };
-    export type MoleConfigResidues = any; //TODO:...
+    export interface MoleConfigResidues{Chain:string, SequenceNumber:number};
 
     export interface PoresConfig{
         InMembrane?: boolean,
@@ -79,12 +79,23 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
     };
 
     export class ApiService{
-        private static baseUrl = "https://api.mole.upol.cz";
+        private static baseUrl = Config.DataSources.API_URL[Config.DataSources.MODE];
         
         private static sendPOST(url:string,formData:FormData):Promise<any>{
             return this.handleResponse(fetch(url, {
                 method: "POST",
                 body: formData,
+            }), url);
+        }
+        private static sendPOSTjson(url:string,formData:Object):Promise<any>{
+            const headers = new Headers();
+            headers.append("Accept", "application/json");
+            headers.append("Content-Type", "application/json");
+            return this.handleResponse(fetch(url, {
+                method: "POST",
+                headers,
+                body:  JSON.stringify(formData),
+
             }), url);
         }
         private static sendGET(url:string):Promise<any>{
@@ -140,18 +151,14 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
         public static initWithParams(pdbid:string,usePores:boolean,assemblyId?:string):Promise<InitResponse>{
             let url = this.prepareInitUrl(pdbid,usePores,assemblyId);
             console.log(url);
-            return this.mockInitResponse();
-            /*
+            //return this.mockInitResponse();
             return this.sendGET(url);
-            */
         }
         public static initWithFile(formData:FormData):Promise<InitResponse>{
             let url = this.prepareInitUrl("",false);
             console.log(url);
-            return this.mockInitResponse();
-            /*
+            //return this.mockInitResponse();
             return this.sendPOST(url,formData);
-            */
         }
 
         public static getStatus(computationId:string, submitId?:number):Promise<InitResponse>{
@@ -184,10 +191,22 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
             });
         }
 
+        public static submitMoleJob(computationId:string, data:MoleConfig){
+            let url = `${this.baseUrl}/Submit/Mole/${computationId}`;
+            console.log(url);
+            return this.sendPOSTjson(url, data);
+        }
+
+        public static submitPoresJob(computationId:string, data:PoresConfig){
+            let url = `${this.baseUrl}/Submit/Pores/${computationId}?isBetaStructure=${data.IsBetaBarel}&inMembrane=${data.InMembrane}&chains=${data.Chains}`;
+            console.log(url);
+            return this.sendGET(url);
+        }
+
         public static getProteinStructure(computationId:string, submitId:number):Promise<string>{
-            //let url = `${this.baseUrl}/Data/${computationId}?submitId=${submitId}&format=molecule`;
+            let url = `${this.baseUrl}/Data/${computationId}?submitId=${submitId}&format=molecule`;
             //Mock!!!
-            let url = 'https://api.mole.upol.cz/Data/OaUmDZj0Kk2ZBgJLLxVUA?submitId=1&format=molecule';
+            //let url = 'https://api.mole.upol.cz/Data/OaUmDZj0Kk2ZBgJLLxVUA?submitId=1&format=molecule';
             console.log(url);
             //return this.sendGET(url);
             return new Promise<any>((res,rej)=>{
@@ -212,9 +231,9 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
         }
 
         public static getChannelsData(computationId:string, submitId:number):Promise<string>{
-            //let url = `${this.baseUrl}/Data/${computationId}?submitId=${submitId}`;
+            let url = `${this.baseUrl}/Data/${computationId}?submitId=${submitId}`;
             //Mock!!!
-            let url = 'https://api.mole.upol.cz/Data/OaUmDZj0Kk2ZBgJLLxVUA?submitId=1';
+            //let url = 'https://api.mole.upol.cz/Data/OaUmDZj0Kk2ZBgJLLxVUA?submitId=1';
             console.log(url);
             return this.handleJsonToStringResponse(this.sendGET(url));
         }

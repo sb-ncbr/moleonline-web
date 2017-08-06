@@ -235,7 +235,7 @@ only screen and (max-height: 600px) {
 
 .chdb-panel{
 	position:absolute;
-    overflow: hidden;
+    /*overflow: hidden;*/
 }
 
 #controls div:first-child{
@@ -634,6 +634,17 @@ only screen and (max-height: 900px) {
     margin-right: 15px;
     margin-top: 1vh;
     padding-top: 0.5vh;
+}
+
+.form-group .form-3-input{
+    width: 33%;
+    float: left;
+}
+.form-group .form-3-input:first-child{
+    margin-right: 0.5%;
+}
+.form-group .form-3-input:last-child{
+    margin-left: 0.5%;
 }
 
 @media only screen and (max-height: 900px){

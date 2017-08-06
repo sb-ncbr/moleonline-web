@@ -47,16 +47,17 @@ namespace MoleOnlineWebUI.DataProxy{
                     return;
                 }
 
-                let hndlrs = this.handlers;
-                this.handlers = [];
-                for(let h of hndlrs){
+                let hndlrs = [];
+                //this.handlers = [];
+                for(let h of this.handlers){
                     if(h.compId===compId){
                         h.handler(compId,info);
                     }
                     if(h.stayForUpdate===true||h.compId!==compId){
-                        this.handlers.push(h);
+                        hndlrs.push(h);
                     }
                 }
+                this.handlers = hndlrs;
             }
 
             private static requestData(compId:string){

@@ -53,7 +53,8 @@ $( function() {
         datagridOnResize("dg-layer-properties","layer-properties","layer-properties");
         datagridOnResize("dg-layer-residues","layer-residues","layer-residues");
         //datagridOnResize("dg-residue-annotations","right-tabs-3","right-tabs");
-        datagridOnResize("dg-aglomered-parameters","left-tabs-2","left-tabs");
+        //TODO: reenable after whole workflow is done/move to render method
+        //datagridOnResize("dg-aglomered-parameters","left-tabs-2","left-tabs");
         //datagridOnResize("dg-protein-annotations","right-panel-tabs-1","right-panel-tabs");
     };
     //Datagrid
