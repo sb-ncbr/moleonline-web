@@ -34,17 +34,18 @@ namespace AglomeredParameters.UI{
             LiteMoleEvent.Tree.NodeAdded.getStream(this.props.controller.context).subscribe(e => {
                 if(e.data.tree !== void 0 && e.data.ref === "mole-data"){
                     let toShow:DataInterface.Tunnel[] = [];
-                    let data = e.data.props.data as DataInterface.ChannelsDBData;
-                    toShow = toShow.concat(data.Channels.ReviewedChannels);
-                    toShow = toShow.concat(data.Channels.CSATunnels);
-                    toShow = toShow.concat(data.Channels.TransmembranePores);
+                    let data = e.data.props.data as DataInterface.MoleOnlineData;
+                    toShow = toShow.concat(data.Channels.Tunnels);
+                    toShow = toShow.concat(data.Channels.Paths);
+                    toShow = toShow.concat(data.Channels.Pores);
+                    toShow = toShow.concat(data.Channels.MergedPores);
                     this.setState({
                         data: toShow
                     });
                 }
             });
         }
-
+/*
         private dataWaitHandler(){
             this.setState({isWaitingForData:false});
         }
@@ -57,7 +58,7 @@ namespace AglomeredParameters.UI{
             this.setState({isWaitingForData: true});
             Annotation.AnnotationDataProvider.subscribeForData(this.dataWaitHandler.bind(this));
         }
-
+*/
         componentWillUnmount(){
         }
 
@@ -180,14 +181,14 @@ namespace AglomeredParameters.UI{
         
         render(){
             let tunnelID = this.props.tunnel.Type;
-            let annotation = Annotation.AnnotationDataProvider.getChannelAnnotation(this.props.tunnel.Id);
+            /*let annotation = Annotation.AnnotationDataProvider.getChannelAnnotation(this.props.tunnel.Id);
             if(annotation!== void 0 && annotation !== null){
                 tunnelID = annotation.text;
             }
 
             if(annotation === void 0){
                 this.props.app.invokeDataWait();
-            }
+            }*/
             return (
                     <tr>
                         <td className="col col-1">

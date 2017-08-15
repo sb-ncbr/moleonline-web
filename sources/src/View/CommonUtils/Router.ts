@@ -22,4 +22,8 @@ namespace CommonUtils.Router{
     export function redirect(computationId:string, submitId:number){
         SimpleRouter.GlobalRouter.redirect(`/${computationId}/${submitId}`,true);
     }
+
+    export function fakeRedirect(computationId:string, submitId:number){
+        SimpleRouter.GlobalRouter.fakeRedirect(`/${computationId}/${submitId}`,true);
+    }
 }

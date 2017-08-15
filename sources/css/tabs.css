@@ -1,0 +1,86 @@
+.chdb-panel.right-panel .bt-all{
+    margin-right:2px;
+}
+
+#right-tabs,
+#left-tabs,
+#right-panel-tabs{
+    height:100%;
+    margin-right:2px;
+    padding-left:3px;
+}
+
+#left-tabs{
+    padding-left:0px;
+}
+
+#right-tabs .datagrid{
+    padding-right: 7px;
+}
+
+#right-tabs .datagrid,
+#right-panel-tabs .tab-content{
+    border-left: 1px solid #9a9a9a;
+}
+
+#right-tabs .datagrid{
+    padding-left:2px;
+}
+
+#right-tabs-1 .datagrid{
+    border-left: 0;
+    padding-left: 0;
+}
+
+#right-tabs-1{
+    border-left: 1px solid #9a9a9a;
+    padding-left: 2px;
+}
+
+#left-tabs .tab-content{
+    padding-left: 2px;
+    margin-right: 2px;
+}
+
+.nav > li > a {
+    padding: 2px 8px;
+}
+
+.nav {
+    padding-top: 4px;
+}
+
+#left-tabs .nav{
+    padding-left: 4px;
+}
+
+.nav-tabs{
+    border-bottom: 1px solid #ddd;
+    border-bottom-color: #9a9a9a;
+}
+
+.nav-tabs > li.active > a, 
+.nav-tabs > li.active > a:focus, 
+.nav-tabs > li.active > a:hover {
+    color: #333;
+    background-color: #fff;
+    border-top-color: #9a9a9a;
+    border-right-color: #9a9a9a;
+    border-left-color: #9a9a9a;
+}
+
+.nav-tabs > li > a:focus, 
+.nav-tabs > li > a:hover {
+    background-color: #9a9a9a;
+    border-bottom-color:#9a9a9a;
+    color:white;
+}
+
+
+.nav-tabs > li > a {
+    color: #333;
+}
+
+.right-panel-tabs .tab-content{
+    padding-left: 13px;
+}

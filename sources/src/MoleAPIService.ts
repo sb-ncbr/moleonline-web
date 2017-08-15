@@ -113,6 +113,9 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
                     }
                     res(rawResponse.json());
                 })
+                .catch(err=>{
+                    rej(err);
+                });
             });
         }
 

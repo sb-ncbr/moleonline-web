@@ -1,4 +1,4 @@
-namespace LayerResidues.UI{
+namespace LiningResidues.UI{
 
     import DGComponents = Datagrid.Components;
     import React = LiteMol.Plugin.React
@@ -6,16 +6,15 @@ namespace LayerResidues.UI{
     import TunnelUtils = CommonUtils.Tunnels;
     
     let DGTABLE_COLS_COUNT = 1;
-    let NO_DATA_MESSAGE = "Hover over channel(2D) for details...";
+    let NO_DATA_MESSAGE = "Select channel in 3D view for details...";
 
     declare function $(p:any): any;
     declare function datagridOnResize(str:string,str1:string,str2:string):any;
 
     interface State{
-        data: DataInterface.LayersInfo[] | null,
+        data: string[] | null,
         app: App,
-        layerIdx: number,
-        /*isWaitingForData: boolean*/
+        isWaitingForData: boolean
     };
 
     interface ChannelEventInfo { 
@@ -40,41 +39,25 @@ namespace LayerResidues.UI{
 
         private interactionEventStream: LiteMol.Bootstrap.Rx.IDisposable | undefined = void 0;
 
-        state = {
+        state:State = {
             data: null,
             app: this,
-            layerIdx: -1,
-            /*isWaitingForData: false*/
+            isWaitingForData: false
         };
 
         layerIdx = -1;
 
         componentDidMount() {
-            /*
-            var interactionHandler = function showInteraction(type: string, i: ChannelEventInfo | undefined, app: App) {
-                if (!i || i.source == null || i.source.props.tag === void 0 || i.source.props.tag.type === void 0) {
-                    return;    
-                }
-
-                if(i.source.props.tag.type == "Tunnel" 
-                    || i.source.props.tag.type == "Path"
-                    || i.source.props.tag.type == "Pore"
-                    || i.source.props.tag.type == "MergedPore"){
-                    
-                    let layers = i.source.props.tag.element.Layers;
-                    app.setState({data:layers.LayersInfo});
-                }
-                
-            }
-
-            this.interactionEventStream = LiteMoleEvent.Visual.VisualSelectElement.getStream(this.props.controller.context)
-                .subscribe(e => interactionHandler('select', e.data as ChannelEventInfo, this));
-            */
-            CommonUtils.Selection.SelectionHelper.attachOnChannelDeselectHandler(()=>{
-                this.setState({layerIdx:-1,data:null});
+            CommonUtils.Selection.SelectionHelper.attachOnChannelSelectHandler((data)=>{
+                this.setState({data:CommonUtils.Residues.sort(data.ResidueFlow,void 0, true, true)});
+                setTimeout(function(){
+                    $( window ).trigger('contentResize');
+                },1);
             });
-            
-            $( window ).on('layerTriggered', this.layerTriggerHandler.bind(this));
+
+            CommonUtils.Selection.SelectionHelper.attachOnChannelDeselectHandler(()=>{
+                this.setState({data:null});
+            });
         }
         /*
         private dataWaitHandler(){
@@ -88,35 +71,17 @@ namespace LayerResidues.UI{
 
             this.setState({isWaitingForData: true});
             Annotation.AnnotationDataProvider.subscribeForData(this.dataWaitHandler.bind(this));
-        }
-        */
-
-        private layerTriggerHandler(event:any,layerIdx:number){
-
-            this.layerIdx = layerIdx;
-
-            let data = CommonUtils.Selection.SelectionHelper.getSelectedChannelData();
-
-            if(data!==null){
-                this.setState({layerIdx, data: data.LayersInfo});
-            }
-            else{
-                this.setState({layerIdx});
-            }
-
-            setTimeout(function(){
-                $( window ).trigger('contentResize');
-            },1);
-        }
+        }*/
 
         componentWillUnmount(){
         }
 
         render() {
-            if (this.state.data !== null && this.state.layerIdx>=0) {
+            if (this.state.data !== null) {
                 return(
                     <div>
                         <DGTable {...this.state} />
+                        <Controls {...this.state} />
                     </div>
                     );
             } 
@@ -126,10 +91,54 @@ namespace LayerResidues.UI{
                     </div>
         }
     }  
+    function residueStringToResidueLight(residue:string):CommonUtils.Selection.LightResidueInfo{
+        /*
+        [0 , 1 ,2 ,  3   ]
+        VAL 647 A Backbone
+        */
+        let residueParts = residue.split(" ");
+        let rv = {
+            authSeqNumber:Number(residueParts[1]),
+            chain:{
+                authAsymId:residueParts[2]
+            }
+        };
+
+        return rv;
+    }
+
+    class Controls extends React.Component<State,{}>{
+
+        clearSelection(){
+            CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
+        }
+
+        selectAll(){
+            let residues = [];
+            if(this.props.app.state.data === null){
+                return;
+            }
+
+            for(let residue of this.props.app.state.data){
+                residues.push(residueStringToResidueLight(residue));
+            }
+
+            if(!CommonUtils.Selection.SelectionHelper.isBulkResiduesSelected(residues)){
+                CommonUtils.Selection.SelectionHelper.selectResiduesBulkWithBallsAndSticks(this.props.app.props.controller, residues);
+            }
+        }
+
+        render(){
+            return <div className="lining-residues select-controls">
+                <span className="btn-xs btn-default bt-all hand" onClick={this.selectAll.bind(this)}>Select all</span>
+                <span className="btn-xs btn-default bt-none hand" onClick={this.clearSelection.bind(this)}>Clear selection</span>
+            </div>
+        }
+    }
 
     class DGNoData extends React.Component<State,{}>{
         render(){
-            return (<div className="datagrid" id="dg-layer-residues">
+            return (<div className="datagrid" id="dg-lining-residues">
 						<div className="header">
 							<DGHead {...this.props}/>			
 						</div>
@@ -145,7 +154,7 @@ namespace LayerResidues.UI{
 
     class DGTable extends React.Component<State,{}>{
         render(){
-            return (<div className="datagrid" id="dg-layer-residues">
+            return (<div className="datagrid" id="dg-lining-residues">
 						<div className="header">
 							<DGHead {...this.props}/>			
 						</div>
@@ -163,7 +172,7 @@ namespace LayerResidues.UI{
                     <tr>
                         <th title="Residue" className="col col-1">
                             Residue
-                        </th>                           
+                        </th>                          
                     </tr>
                 </table>
             );
@@ -171,14 +180,13 @@ namespace LayerResidues.UI{
     }
 
     class DGBody extends React.Component<State,{}>{ 
-        /*
-        private generateLink(annotation:Annotation.ResidueAnnotation){
+
+         private generateLink(annotation:Annotation.ResidueAnnotation){
             if(annotation.reference===""){
                 return (annotation.text!== void 0 && annotation.text !== null)?<span>{annotation.text}</span>:<span className="no-annotation"/>;
             }
             return <a target="_blank" href={annotation.link} dangerouslySetInnerHTML={{__html:annotation.text}}></a>
-        }
-        */
+        }    
 
         private shortenBackbone(residue:string){
             return residue.replace(/Backbone/g,'');
@@ -187,20 +195,31 @@ namespace LayerResidues.UI{
         private isBackbone(residue:string){
             return residue.indexOf("Backbone") >= 0;
         }
-        
-        /*
+
+        private selectResidue(residue:string){
+            let residueLightEntity = residueStringToResidueLight(residue);
+            if(!CommonUtils.Selection.SelectionHelper.isSelectedLight(residueLightEntity)){
+                CommonUtils.Selection.SelectionHelper.selectResidueByAuthAsymIdAndAuthSeqNumberWithBallsAndSticks(this.props.app.props.controller,residueLightEntity)
+            }
+        }
+
+        private getSelect3DLink(residue:string){           
+            let residueEl = (this.isBackbone(residue))?<i><strong>{this.shortenBackbone(residue)}</strong></i>:<span>{residue}</span>;
+            return <a className="hand" onClick={(e)=>{this.selectResidue(residue)}}>{residueEl}</a>
+        }
+/*
         private generateSpannedRows(residue:string, annotations: Annotation.ResidueAnnotation[]){
             let trs:JSX.Element[] = [];
 
-            let residueNameEl = (this.isBackbone(residue))?<i><strong>{this.shortenBackbone(residue)}</strong></i>:<span>{residue}</span>;
+            let residueNameEl = this.getSelect3DLink(residue);//(this.isBackbone(residue))?<i><strong>{this.shortenBackbone(residue)}</strong></i>:<span>{residue}</span>;
 
             let first = true;
             for(let annotation of annotations){
                 if(first === true){
                     first = false;
                     trs.push(
-                        <tr className={(this.isBackbone(residue)?"help":"")}>
-                            <td title={(this.isBackbone(residue)?residue:"")} className={`col col-1`} rowSpan={(annotations.length>1)?annotations.length:0}>
+                        <tr title={(this.isBackbone(residue)?residue:"")} className={(this.isBackbone(residue)?"help":"")}>
+                            <td className={`col col-1`} rowSpan={(annotations.length>1)?annotations.length:void 0}>
                                 {residueNameEl}
                             </td>    
                             <td className={`col col-2`} >
@@ -227,10 +246,9 @@ namespace LayerResidues.UI{
                 return <DGComponents.DGNoDataInfoRow columnsCount={DGTABLE_COLS_COUNT} infoText={NO_DATA_MESSAGE}/>;
             }
 
-            let layerData = this.props.data[this.props.layerIdx].Residues;
             let rows:JSX.Element[] = [];
             
-            for(let residue of layerData){
+            for(let residue of this.props.data){
                 let residueId = residue.split(" ").slice(1,3).join(" ");
                 /*
                 let annotation;
@@ -238,11 +256,11 @@ namespace LayerResidues.UI{
                 let annotationSource = "";
 
                 annotation = Annotation.AnnotationDataProvider.getResidueAnnotations(residueId);
-                let residueNameEl = (this.isBackbone(residue))?<i><strong>{this.shortenBackbone(residue)}</strong></i>:<span>{residue}</span>;
+                //let residueNameEl = (this.isBackbone(residue))?<i><strong>{this.shortenBackbone(residue)}</strong></i>:<span>{residue}</span>;
                 if(annotation === void 0){
                     this.props.app.invokeDataWait();
                     rows.push(
-                        <DGComponents.DGElementRow columns={[residueNameEl,<span>Annotation data still loading...</span>]} title={[(this.isBackbone(residue)?residue:""),""]} trClass={(this.isBackbone(residue)?"help":"")} />
+                        <DGComponents.DGElementRow columns={[this.getSelect3DLink(residue),<span>Annotation data still loading...</span>]} title={[(this.isBackbone(residue)?residue:""),""]} trClass={(this.isBackbone(residue)?"help":"")} />
                     );
                 }
                 else if(annotation !== null && annotation.length>0){
@@ -250,15 +268,11 @@ namespace LayerResidues.UI{
                         this.generateSpannedRows(residue,annotation)
                     );
                 }
-                else{
+                else{*/
                     rows.push(
-                        <DGComponents.DGElementRow columns={[residueNameEl,<span/>]} title={[(this.isBackbone(residue)?residue:""),""]} trClass={(this.isBackbone(residue)?"help":"")} />
+                        <DGComponents.DGElementRow columns={[this.getSelect3DLink(residue)]} title={[(this.isBackbone(residue)?residue:"")]} trClass={(this.isBackbone(residue)?"help":"")} />
                     );
-                }*/
-                let residueNameEl = (this.isBackbone(residue))?<i><strong>{this.shortenBackbone(residue)}</strong></i>:<span>{residue}</span>;
-                rows.push(
-                        <DGComponents.DGElementRow columns={[residueNameEl]} title={[(this.isBackbone(residue)?residue:""),""]} trClass={(this.isBackbone(residue)?"help":"")} />
-                    );
+                /*}*/
             }            
             rows.push(<DGComponents.DGRowEmpty columnsCount={DGTABLE_COLS_COUNT} />);
 

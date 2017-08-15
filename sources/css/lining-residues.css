@@ -1,0 +1,17 @@
+.lining-residues.select-controls{
+    position: absolute;
+    right: 0;
+    margin-right: 3px;
+    padding-top: 7px;
+    padding-right: 7px;
+}
+
+.lining-residues.select-controls .bt-all{
+    margin-right:2px;
+}
+
+#right-tabs-2 .datagrid .col.col-1,
+#right-tabs-2 .datagrid * .col.col-1{
+	width: 18%;
+    min-width: 105px;
+}

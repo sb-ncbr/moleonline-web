@@ -174,7 +174,7 @@ namespace LayersVizualizer{
             let canvas = this.getCanvas();
             let context = this.getContext();
             
-            if(canvas === void 0 || context === void 0 || !this.isElementVisible(canvas)){
+            if(canvas === void 0 || context === void 0 || !this.isElementVisible(canvas) || !CommonUtils.Tabs.isActive("left-tabs","1")){
                 return;
             }
 
@@ -214,7 +214,7 @@ namespace LayersVizualizer{
             let canvas = this.getCanvas();
             let context = this.getContext();
             
-            if(canvas === void 0 || context === void 0 || !this.isElementVisible(canvas)){
+            if(canvas === void 0 || context === void 0 || !this.isElementVisible(canvas) || !CommonUtils.Tabs.isActive("left-tabs","1")){
                 return;
             }
 

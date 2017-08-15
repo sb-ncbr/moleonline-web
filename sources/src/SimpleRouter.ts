@@ -249,6 +249,11 @@ namespace SimpleRouter{
         }
 
         public static redirect(url:string,relative?:boolean){
+            let newUrl = this.prepareUrlForRedirect(url,relative);
+            window.location.replace(newUrl);
+        }
+
+        private static prepareUrlForRedirect(url:string,relative?:boolean){
             let rel = false;
             if(relative!==void 0){
                 rel = relative;
@@ -259,7 +264,18 @@ namespace SimpleRouter{
                 newUrl = `${currentUrl.getProtocol()}://${currentUrl.getHostname()}${this.defaultContextPath}${url}`;
             }
 
-            window.location.replace(newUrl);
+            return newUrl;
+        }
+
+        public static fakeRedirect(url:string,relative?:boolean){
+            let newUrl = this.prepareUrlForRedirect(url,relative);
+            if(window.history.pushState){
+                let title = document.title;
+                window.history.pushState(null, title, newUrl);
+            }
+            else{
+                window.location.replace(newUrl);
+            }
         }
 
         public static getParametersByRegex(regex:RegExp){

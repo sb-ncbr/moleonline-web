@@ -11,6 +11,8 @@ namespace LayersVizualizer.UI{
     import Transform = Tree.Transform;   
     import Visualization = LiteMol.Bootstrap.Visualization;   
 
+    import Tabs = CommonUtils.Tabs;
+
     declare function $(p:any): any;
 
     interface ChannelEventInfo { 
@@ -410,35 +412,30 @@ namespace LayersVizualizer.UI{
                 colorBoundsMode:this.state.colorBoundsMode
             });
             this.vizualizer = vizualizer;
-            
-            var interactionHandler = function showInteraction(type: string, i: ChannelEventInfo | undefined, app: App) {
-                if (!i || i.source == null || i.source.props.tag === void 0 || i.source.props.tag.type === void 0) {
-                    return;    
-                }
 
-                if(i.source.props.tag.type == "Tunnel" 
-                    || i.source.props.tag.type == "Path"
-                    || i.source.props.tag.type == "Pore"
-                    || i.source.props.tag.type == "MergedPore"){
-                    window.setTimeout(()=>{
-                        app.setState({currentTunnelRef: i.source.ref, isLayerSelected: false});
-                        $('#left-tabs').tabs("option", "active", 0);
-                        let layers = DataInterface.convertLayersToLayerData(i.source.props.tag.element.Layers);
+            CommonUtils.Selection.SelectionHelper.attachOnChannelSelectHandler((data)=>{
+                window.setTimeout(()=>{
+                    this.setState({currentTunnelRef: CommonUtils.Selection.SelectionHelper.getSelectedChannelRef(), isLayerSelected: false});
+                    //$('#left-tabs').tabs("option", "active", 0);
+                    Tabs.activateTab("left-tabs","1");
+                    let layers = DataInterface.convertLayersToLayerData(data);
+                    Tabs.doAfterTabActivated("left-tabs","1",()=>{
                         vizualizer.setData(layers);
-                        app.setState({data: layers, hasData: true, isDOMReady:false, instanceId: vizualizer.getPublicInstanceIdx()});
+                        this.setState({data: layers, hasData: true, isDOMReady:false, instanceId: vizualizer.getPublicInstanceIdx()});
+                        vizualizer.rebindDOMRefs();
                         vizualizer.vizualize();  
-                        app.setState({data: layers, hasData: true, isDOMReady:true, instanceId: vizualizer.getPublicInstanceIdx()});
-                    },50);
-                    //Testing themes... TODO: remove/move to another location...
-                    //app.applyTheme(app.generateColorTheme(),app.props.controller,app.state.currentTunnelRef);                    
-                }
-                
-            }
-
-            this.interactionEventStream = Event.Visual.VisualSelectElement.getStream(this.props.controller.context)
-                .subscribe(e => interactionHandler('select', e.data as ChannelEventInfo, this));
-
-            $( window ).on("lvCcontentResize",(()=>{
+                        this.setState({data: layers, hasData: true, isDOMReady:true, instanceId: vizualizer.getPublicInstanceIdx()});
+                    });
+                },50);
+            });
+            CommonUtils.Selection.SelectionHelper.attachOnChannelDeselectHandler(()=>{
+                this.setState({data: [], hasData:false, isDOMReady:false, currentTunnelRef: "", isLayerSelected: false});
+                setTimeout(function(){
+                    $( window ).trigger('contentResize');
+                },1);
+            });
+            
+            $( window ).on("lvContentResize",(()=>{
                 this.forceUpdate();
             }).bind(this));
             $( window ).on("resize",(()=>{
@@ -1023,21 +1020,24 @@ namespace LayersVizualizer.UI{
             );
 
             /*this.removeResidue3DView();*/
-            CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
-           
+            //CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
+            CommonUtils.Selection.SelectionHelper.clearAltSelection(this.props.app.props.controller);
+            
             let t = this.props.app.props.controller.createTransform();
-            t.add('polymer-visual', Transformer.Molecule.CreateSelectionFromQuery, { query, name: 'Residues' }, { ref: CommonUtils.Selection.SelectionHelper.getSelectionVisualRef()})
+            t.add('polymer-visual', Transformer.Molecule.CreateSelectionFromQuery, { query, name: 'Residues' }, { ref: CommonUtils.Selection.SelectionHelper.getAltSelectionVisualRef()})
                 .then(Transformer.Molecule.CreateVisual, { style: Visualization.Molecule.Default.ForType.get('BallsAndSticks') });
             
             this.props.app.props.controller.applyTransform(t)
                 .then(res=>{
                     //Focus
-                    LiteMol.Bootstrap.Command.Entity.Focus.dispatch(this.props.app.props.controller.context, this.props.app.props.controller.context.select(CommonUtils.Selection.SelectionHelper.getSelectionVisualRef()));
+                    LiteMol.Bootstrap.Command.Entity.Focus.dispatch(this.props.app.props.controller.context, this.props.app.props.controller.context.select(CommonUtils.Selection.SelectionHelper.getAltSelectionVisualRef()));
                 });            
         }
 
         private displayDetailsEventHandler(e: React.MouseEvent<HTMLAreaElement>){
             let targetElement = (e.target as HTMLElement);
+            console.log(targetElement.getAttribute("data-layeridx"));
+            //console.log(this.props.data);
             let layerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
             let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
             let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
@@ -1059,7 +1059,8 @@ namespace LayersVizualizer.UI{
             
             if(instance.getSelectedLayer() === layerIdx){
                 this.props.app.state.isLayerSelected = false;
-                CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
+                //CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
+                CommonUtils.Selection.SelectionHelper.clearAltSelection(this.props.app.props.controller);
                 this.resetFocusToTunnel();
                 instance.deselectLayer();
                 instance.highlightHitbox(layerIdx);

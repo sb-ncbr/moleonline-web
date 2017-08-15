@@ -22,6 +22,9 @@ namespace Controls.UI{
         };
 
         componentDidMount() {
+            MoleOnlineWebUI.Bridge.Events.subscribeNewSubmit(()=>{
+                this.forceUpdate();
+            });
         }
 
         componentWillUnmount(){
@@ -229,29 +232,28 @@ namespace Controls.UI{
                     <NumberBox label="Probe radius" id="probeRadius" classNames={doubleColClasses} min={1.4} max={20} defaultValue={3} step={0.01} />
 
                     <h4>Start and end</h4>
-                    <CheckBox label="Automatic starting points" defaultChecked={false} id="automaticStartingPoints" classNames={chckColClasses} />
                     <TextBox label="Starting point" id="originResidues" classNames={doubleColClasses} />
                     <XYZBox label="Starting point [x,y,z]" id="originPoints" classNames={doubleColClasses} />
-                    <CheckBox label="Automatic endpoints" defaultChecked={false} id="automaticEndPoints" classNames={chckColClasses} />
                     <TextBox label="End point" id="customExitsResidues" classNames={doubleColClasses} />
                     <XYZBox label="End point [x,y,z]" id="customExitsPoints" classNames={doubleColClasses} />
                     <TextBox label="Query expresion" id="queryExpresion" classNames={doubleColClasses} />
 
                     <h4>Tunnel</h4>
-                    <ComboBox label="Weight function" id="tunnelWeightFunction" items={[{label:"Voronoi Scale", value:"VoronoiScale"}]} classNames={doubleColClasses} />
+                    <ComboBox label="Weight function" id="tunnelWeightFunction" items={MoleOnlineWebUI.StaticData.WeightFunctions.get()} classNames={doubleColClasses} />
                     <NumberBox label="Bottleneck radius" id="bottleneckRadius" classNames={doubleColClasses} min={0.8} max={5} defaultValue={1.2} step={0.01} />
                     <NumberBox label="Bottleneck tolerance" id="bottleneckTolerance" classNames={doubleColClasses} min={0} max={5} defaultValue={0} step={0.1} />
                     <NumberBox label="Max tunnel similarity" id="maxTunnelSimilarity" classNames={doubleColClasses} min={0} max={1} defaultValue={0.9} step={0.05} />
                     <NumberBox label="Origin radius" id="originRadius" classNames={doubleColClasses} min={0.1} max={10} defaultValue={5} step={0.05}/>
                     <NumberBox label="Surface cover radius" id="surfaceCoverRadius" classNames={doubleColClasses} min={5} max={20} defaultValue={10} step={0.5} />                    
-                    <CheckBox label="Use custom exits only" defaultChecked={false} id="useCustomExitsOnly" classNames={chckColClasses} />
 
                     <h4>Pores</h4>
                     <CheckBox label="Merge pores" defaultChecked={false} id="mergePores" classNames={chckColClasses} />
                     <CheckBox label="Automatic pores" defaultChecked={false} id="automaticPores" classNames={chckColClasses} />
                 </div>
             );
-
+            //<CheckBox label="Automatic starting points" defaultChecked={false} id="automaticStartingPoints" classNames={chckColClasses} />
+            //<CheckBox label="Automatic endpoints" defaultChecked={false} id="automaticEndPoints" classNames={chckColClasses} />
+            //<CheckBox label="Use custom exits only" defaultChecked={false} id="useCustomExitsOnly" classNames={chckColClasses} />
             //<LabelBox label="Active sites from CSA" text="TODO:..." id="activeSites" classNames={doubleColClasses} />
         }
     }
@@ -368,12 +370,18 @@ namespace Controls.UI{
             return(
                 <div className="panel panel-default">
                     <div className="panel-heading">
-                        <h4 className="panel-title">
-                            <a data-toggle="collapse" href={`#submit-data-${data.SubmitId}`}>#{data.SubmitId}</a>
-                        </h4>
-                        <div className="submission-state">
-                            Status: <span className={`state-${this.props.status}`}>{this.props.status}</span>
-                        </div>
+                        <a data-toggle="collapse" href={`#submit-data-${data.SubmitId}`} onClick={(e)=>{
+                                if(e.currentTarget.attributes.getNamedItem('aria-expanded').value==='true'){
+                                    changeSubmitId(this.props.computationId, data.SubmitId);
+                                }
+                            }}>
+                            <h4 className="panel-title">
+                                #{data.SubmitId}
+                            </h4>
+                            <div className="submission-state">
+                                Status: <span className={`state-${this.props.status}`}>{this.props.status}</span>
+                            </div>
+                        </a>
                     </div>
                     <div id={`submit-data-${data.SubmitId}`} className="panel-collapse collapse">
                         <div className="panel-body">
@@ -405,13 +413,32 @@ namespace Controls.UI{
                             Merge pores: {(data.MoleConfig.PoresMerged===void 0 || data.MoleConfig.PoresMerged===null)?"False":(data.MoleConfig.PoresMerged)?"True":"False"}<br/>
                             Automatic pores: {(data.MoleConfig.PoresAuto===void 0 || data.MoleConfig.PoresAuto===null)?"False":(data.MoleConfig.PoresAuto)?"True":"False"}<br/>
                         </div>
-                        <div className="panel-footer">
-                            <a onClick={()=>CommonUtils.Router.redirect(this.props.computationId, data.SubmitId)} className="hand">View</a>
-                        </div>
                     </div>
                 </div>
             );
         }
+    }
+
+    /*
+    <div className="panel-footer">
+                            <a onClick={()=>{
+                            changeSubmitId(this.props.computationId, data.SubmitId);
+                            //    CommonUtils.Router.fakeRedirect(this.props.computationId, data.SubmitId);
+                            //    LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
+                                //LiteMol.Example.Channels.State.loadData(MoleOnlineWebUI.Bridge.Instances.getPlugin()).then(()=>{
+                            //    MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(data.SubmitId);
+                                /*}).catch(err=>{
+                                    console.log(err);
+                                });*/
+                                //CommonUtils.Router.redirect(this.props.computationId, data.SubmitId)
+                                /*}} className="hand">View</a>
+                        </div>
+    */
+
+    function changeSubmitId(computationId:string, submitId:number){
+        CommonUtils.Router.fakeRedirect(computationId, submitId);
+        LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
+        MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(submitId);
     }
 
     function pointsToString(points: Service.MoleConfigPoint[]):string{
@@ -689,7 +716,13 @@ namespace Controls.UI{
             console.log(formData);
 
             Service.ApiService.submitMoleJob(this.state.data.ComputationId, formData).then((result)=>{
-                CommonUtils.Router.redirect(result.ComputationId, Number(result.SubmitId));
+                //CommonUtils.Router.redirect(result.ComputationId, Number(result.SubmitId));
+                CommonUtils.Router.fakeRedirect(result.ComputationId, Number(result.SubmitId));
+                LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
+                
+                MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
+                MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
+                //LiteMol.Example.Channels.State.loadData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
             })
             .catch((err)=>{
                 console.log(err);

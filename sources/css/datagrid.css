@@ -1,18 +1,18 @@
 div#left-tabs-2,
-div#right-tabs-1,
+/*div#right-tabs-1,*/
 div#right-tabs-2,
 div#right-tabs-3 {
     padding: 0 !important;
 }
 
 .datagrid{
-	position:absolute;
-	bottom:0;
-	width:100%;
-	padding-top:9px;
-	padding-bottom:6px;
-	padding-right:6px;
-	overflow: hidden;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding-top: 4px;
+    padding-bottom: 6px;
+    padding-right: 4px;
+    overflow: hidden;
 }	
 .datagrid .header{
 	height:30px;

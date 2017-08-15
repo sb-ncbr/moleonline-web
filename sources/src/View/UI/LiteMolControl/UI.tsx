@@ -22,6 +22,16 @@ namespace LiteMol.Example.Channels.UI {
         componentDidMount() {
             this.load();
             $(window).on("contentResize", this.onContentResize.bind(this));
+
+            MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId((submitId)=>{
+                try{
+                    console.log('loadData on event');
+                    this.load();
+                }catch(ex){
+                    console.log(ex);
+                    this.setState({isLoading:false,data: void 0, error:"Data not available"});
+                }
+            });
         }
 
         private onContentResize(_:any){
@@ -55,13 +65,14 @@ namespace LiteMol.Example.Channels.UI {
                     }
                     else{
                         this.setState({ 
-                            isLoading: false, data: _data 
+                            isLoading: false, data: _data, error: void 0 
                         });
                     }
                 })
                 .catch(e => {
                     console.log(`ERR on loading: ${e}`);
-                    this.setState({ isLoading: false, error: 'Application was unable to load data. Please try again later.' });
+                    console.log(this);
+                    this.setState({ isLoading: false, error: 'Application was unable to load data. Please try again later.', data: void 0 });
                 });
         }
 
@@ -169,7 +180,38 @@ namespace LiteMol.Example.Channels.UI {
         private observer: Bootstrap.Rx.IDisposable | undefined = void 0;
         private observerChannels: Bootstrap.Rx.IDisposable | undefined = void 0;
         componentWillMount() {
-            
+            CommonUtils.Selection.SelectionHelper.attachOnResidueSelectHandler(((r:any)=>{
+                this.setState({ label: `${r.name} ${r.authSeqNumber} ${r.chain.authAsymId}`});
+            }).bind(this));
+            CommonUtils.Selection.SelectionHelper.attachOnResidueLightSelectHandler(((r:CommonUtils.Selection.LightResidueInfo)=>{
+                let name = CommonUtils.Residues.getName(r.authSeqNumber,this.props.plugin);
+                this.setState({ label: `${name} ${r.authSeqNumber} ${r.chain.authAsymId}`});
+            }).bind(this));
+            CommonUtils.Selection.SelectionHelper.attachOnResidueBulkSelectHandler(((r:CommonUtils.Selection.LightResidueInfo[])=>{    
+                let label = r.map((val,idx,array)=>{
+                    let name = CommonUtils.Residues.getName(val.authSeqNumber,this.props.plugin);
+                    return `${name}&nbsp;${val.authSeqNumber}&nbsp;${val.chain.authAsymId}`;
+                }).reduce((prev,cur,idx,array)=>{
+                    return `${prev}${(idx===0)?'':',\n'}${cur}`;
+                });
+                let items = label.split('\n');
+                let elements = [];
+                for(let e of items){
+                    let lineParts = e.split('&nbsp;');
+                    elements.push(
+                        <div>
+                            {lineParts[0]}&nbsp;{lineParts[1]}&nbsp;{lineParts[2]}
+                        </div>
+                    );
+                }
+                this.setState({ 
+                    label: <div className="columns">{elements}</div>
+                });
+            }).bind(this));
+            CommonUtils.Selection.SelectionHelper.attachOnClearSelectionHandler((()=>{
+                this.setState({ label: void 0});
+            }).bind(this));
+
             this.observer = this.props.plugin.subscribe(Bootstrap.Event.Molecule.ModelSelect, e => {
                 if (!e.data) {
                     this.setState({ label: void 0})
@@ -178,27 +220,40 @@ namespace LiteMol.Example.Channels.UI {
                     this.setState({ label: `${r.name} ${r.authSeqNumber} ${r.chain.authAsymId}` });
                 }
             });
-            
 
+            this.observer = this.props.plugin.subscribe(Bootstrap.Event.Molecule.ModelSelect, e => {
+                if (e.data) {
+                    let r = e.data.residues[0];
+                    CommonUtils.Selection.SelectionHelper.selectResidueWithBallsAndSticks(this.props.plugin,r);
+                    
+                    if(!CommonUtils.Selection.SelectionHelper.isSelectedAny()){
+                        this.setState({ label: void 0})
+                    }
+                }
+            });
+            
             this.observerChannels = this.props.plugin.subscribe(Bootstrap.Event.Visual.VisualSelectElement, e => {
                 let eventData = e.data as ChannelEventInfo;
                 if(e.data !== void 0 && eventData.source !== void 0 && eventData.source.props !== void 0 && eventData.source.props.tag === void 0){
                     return;
                 }
 
-                if (!e.data || (eventData !== void 0 && e.data.kind === 0)) {
-                    this.setState({ label: void 0})
-                } else {
-                    let data = e.data as ChannelEventInfo;
-                    let c = data.source.props.tag.element;
-                    let len = CommonUtils.Tunnels.getLength(c);
-                    //let bneck = CommonUtils.Tunnels.getBottleneck(c);
-                    let annotation = Annotation.AnnotationDataProvider.getChannelAnnotation(c.Id);
-                    if(annotation === void 0 || annotation === null){
-                        this.setState({ label: <span><b>{c.Type}</b>, {`Length: ${len} Å`}</span> });
+                if (e.data && (eventData === void 0 || e.data.kind !== 0)) {
+                    if(CommonUtils.Selection.SelectionHelper.isSelectedAnyChannel()){
+                        let data = e.data as ChannelEventInfo;
+                        let c = data.source.props.tag.element;
+                        let len = CommonUtils.Tunnels.getLength(c);
+                        //let bneck = CommonUtils.Tunnels.getBottleneck(c);
+                        let annotation = Annotation.AnnotationDataProvider.getChannelAnnotation(c.Id);
+                        if(annotation === void 0 || annotation === null){
+                            this.setState({ label: <span><b>{c.Type}</b>, {`Length: ${len} Å`}</span> });
+                        }
+                        else{
+                            this.setState({ label: <span><b>{annotation.text}</b>, Length: {len} Å</span> });
+                        }
                     }
-                    else{
-                        this.setState({ label: <span><b>{annotation.text}</b>, Length: {len} Å</span> });
+                    else if(!CommonUtils.Selection.SelectionHelper.isSelectedAny()){
+                        this.setState({ label: void 0})
                     }
                 }
             });

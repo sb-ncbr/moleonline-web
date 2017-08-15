@@ -24,15 +24,20 @@
     //Data Interface
     "DataInterface.ts",
 
+    "Bridge.ts",
+
     //Common Utils
     "CommonUtils/Tunnels.ts",  
     "CommonUtils/Numbers.ts", 
+    "CommonUtils/Residues.ts", 
     "CommonUtils/Selection.ts", 
     "CommonUtils/Router.ts", 
+    "CommonUtils/Tabs.ts",  
 
     //Annotation data provider
     "AnnotationDataProvider.ts", 
 
+    "../../src/StaticData.ts",
     "../../src/SimpleRouter.ts",
     "../../src/MoleAPIService.ts",
     "DataProxy.ts",
@@ -58,6 +63,9 @@
     
     //Layer Residues
     "UI/LayerResidues/UI.tsx",   
+
+    //Lining Residues
+    "UI/LiningResidues/UI.tsx", 
 
     //Residue Annotations
     "UI/ResidueAnnotations/UI.tsx", 

@@ -63,16 +63,20 @@ namespace DataInterface{
     };
     export interface ChannelsDBData{
         Channels:{
-            /*
-            Tunnels:Tunnel[],
-            MergedPores:Tunnel[],
-            Pores:Tunnel[],
-            Paths:Tunnel[]
-            */
             ReviewedChannels: Tunnel[],
             CSATunnels: Tunnel[],
             TransmembranePores: Tunnel[],
             CofactorTunnels: Tunnel[]
+        },
+        Annotations:AnnotationObject[]
+    }
+
+    export interface MoleOnlineData{
+        Channels:{
+            Tunnels:Tunnel[],
+            MergedPores:Tunnel[],
+            Pores:Tunnel[],
+            Paths:Tunnel[]
         },
         Annotations:AnnotationObject[]
     }

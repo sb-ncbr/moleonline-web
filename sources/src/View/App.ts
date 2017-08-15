@@ -38,6 +38,8 @@ namespace LiteMol.Example.Channels {
             customSpecification: PluginSpec
         });
 
+        MoleOnlineWebUI.Bridge.Instances.setPlugin(plugin);
+
         CommonUtils.Selection.SelectionHelper.attachClearSelectionToEventHandler(plugin);
 
         UI.render(plugin, document.getElementById('ui') !);
@@ -51,6 +53,8 @@ namespace LiteMol.Example.Channels {
 
         //LayerResidues.UI.render(document.getElementById("right-tabs-2") !, plugin);
         LayerResidues.UI.render(document.getElementById("layer-residues") !, plugin);
+
+        LiningResidues.UI.render(document.getElementById("right-tabs-2") !, plugin);
 
         Controls.UI.render(document.getElementById("controls") !);
 

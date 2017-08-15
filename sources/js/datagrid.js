@@ -34,18 +34,7 @@ function datagridOnResize(elementId,lowLevelContainerId,highLevelContainerId){
 	datagrid.style.height = String(parentHeight-filledHeight)+"px";
 
 	var datagrid_updated = $( "#"+elementId )[0];
-	//var header = $( "#"+elementId+" .header" )[0];
 	var body = $( "#"+elementId+" .body" )[0];
 
 	body.style.height = String((parentHeight-filledHeight)-headHeight-paddingAndMargin)+"px";
 };
-//Needs to be included in index.html
-/*
-$( function() {
-	$( window ).on("resize",function(){
-		datagridOnResize("datagrid");
-	});
-
-	datagridOnResize("datagrid");
-});
-*/

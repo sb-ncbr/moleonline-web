@@ -470,8 +470,12 @@ only screen and (max-height: 600px) {
 }
 
 .ui-selection{
-    height: 30px;
+    min-height: 30px;
     line-height: 30px;
+}
+
+.ui-selection .columns {
+    column-count: 3;
 }
 
 .ui-header{
@@ -581,6 +585,22 @@ only screen and (max-height: 600px) {
 span.ATable-label {
     font-size: 9pt;
 }
+
+.icon.bottleneck.black {
+    background-image: url(../images/bottleneck-radius-black.png);
+}
+
+.icon.bottleneck {
+    background-image: url(../images/bottleneck-radius-white.png);
+    background-repeat: no-repeat;
+    background-position: center center;
+    height: 1em;
+    width: 1em;
+    background-size: 1em 1em;
+    display: inline-block;
+    vertical-align: text-top;
+}
+
 @media only screen and (max-width: 1360px){
     #dg-aglomered-parameters.datagrid .col.col-4{
         min-width:50px;

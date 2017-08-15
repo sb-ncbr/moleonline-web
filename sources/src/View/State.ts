@@ -45,12 +45,35 @@ namespace LiteMol.Example.Channels.State {
             })});
     }
 
+    function getNodeFromTree(root:Bootstrap.Entity.Any,ref:string):Bootstrap.Entity.Any | null{
+        console.log(root.ref);
+        if(root.ref===ref){
+            return root;
+        }
+        for(let c of root.children){
+            let n = getNodeFromTree(c, ref);
+            if(n!==null){
+                return n;
+            }
+        }
+
+        return null;
+    }
+
+    export function removeChannelsData(plugin:Plugin.Controller){
+        let channelsDataObj = getNodeFromTree(plugin.root, 'mole-data-object');
+        if(channelsDataObj!==null){
+            Tree.remove(channelsDataObj);
+        }
+    }
+
     function downloadChannelsData(plugin:Plugin.Controller, computationId:string, submitId:number){
+        removeChannelsData(plugin);
         return new Promise<any>((res,rej)=>{
             ApiService.getChannelsData(computationId, submitId).then((data)=>{
-                let protein = plugin.createTransform().add(plugin.root, Transformer.Data.FromData, { data, id: 'MOLE Data' }, { isHidden: false })
+                let channels = plugin.createTransform().add(plugin.root, Transformer.Data.FromData, { data, id: 'MOLE Data' }, { isHidden: false, ref:'mole-data-object' })
                     .then(Transformer.Data.ParseJson, { id: 'MOLE Data' }, { ref: 'mole-data' });
-                plugin.applyTransform(protein)
+                plugin.applyTransform(channels)
                     .then(() => {
                         let parsedData = plugin.context.select('mole-data')[0] as Bootstrap.Entity.Data.Json;
 
@@ -72,7 +95,7 @@ namespace LiteMol.Example.Channels.State {
         return new Promise<any>((res,rej)=>{
             ApiService.getProteinStructure(computationId, submitId).then((data)=>{
                 let protein = plugin.createTransform()
-                    .add(plugin.root, Transformer.Data.FromData, { data, id: `${computationId}/${submitId}`}, {isBinding:true})
+                    .add(plugin.root, Transformer.Data.FromData, { data, id: `${computationId}/${submitId}`}, {isBinding:true, ref:'protein-data'})
                     .then(Transformer.Molecule.CreateFromData, { format: Core.Formats.Molecule.SupportedFormats.mmCIF }, { isBinding: true })
                     .then(Transformer.Molecule.CreateModel, { modelIndex: 0 })
                     .then(Transformer.Molecule.CreateMacromoleculeVisual, { polymer: true, polymerRef: 'polymer-visual', het: true });
@@ -93,7 +116,7 @@ namespace LiteMol.Example.Channels.State {
 
     export function loadData(plugin: Plugin.Controller) {
         
-            plugin.clear();
+            //plugin.clear();
 
             let modelLoadPromise = new Promise<any>((res,rej)=>{
                 let parameters = CommonUtils.Router.getParameters();
@@ -119,8 +142,8 @@ namespace LiteMol.Example.Channels.State {
                 let computationId = parameters.computationId;
                 let submitId = parameters.submitId;
 
-                let protein = plugin.selectEntities('polymer-visual');
-                waitForResult(computationId,submitId,plugin,res,rej,protein.length!==0);
+                //let protein = plugin.selectEntities('polymer-visual');
+                waitForResult(computationId,submitId/*,plugin*/,res,rej/*,protein.length!==0*/);
             })
 
             let promises = [];
@@ -130,8 +153,27 @@ namespace LiteMol.Example.Channels.State {
         return Promise.all(promises);
     }
 
-    function waitForResult(computationId:string, submitId:number, plugin:LiteMol.Plugin.Controller, res:any, rej:any, proteinLoaded:boolean){
+    function existsRefInTree(root:Bootstrap.Entity.Any,ref:string){
+        console.log(root.ref);
+        if(root.ref===ref){
+            return true;
+        }
+        for(let c of root.children){
+            if(existsRefInTree(c, ref)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    function waitForResult(computationId:string, submitId:number/*, plugin:LiteMol.Plugin.Controller*/, res:any, rej:any/*, proteinLoaded:boolean*/){
         ApiService.getStatus(computationId,submitId).then((state)=>{
+            let plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
+            console.log(state);
+            //.select('protein-data');
+            let proteinLoaded = existsRefInTree(plugin.root,'protein-data');
+
             /*
             "Initializing"| OK
             "Initialized"| OK
@@ -143,10 +185,10 @@ namespace LiteMol.Example.Channels.State {
             "Aborted"; OK
             */
             if(state.Status === "Initializing" || state.Status === "Running"){
-                window.setTimeout(()=>{waitForResult(computationId,submitId,plugin,res,rej,proteinLoaded);},1000);
+                window.setTimeout(()=>{waitForResult(computationId,submitId/*,plugin*/,res,rej/*,proteinLoaded*/);},1000);
             }
             else if(state.Status === "Initialized"){
-                acquireData(computationId,submitId,plugin,res,rej,true,false);
+                acquireData(computationId,submitId,plugin,res,rej,!proteinLoaded,false);
             }
             else if(state.Status === "FailedInitialization" || state.Status === "Error" || state.Status === "Deleted" || state.Status === "Aborted"){
                 rej(state.ErrorMsg);
@@ -170,9 +212,11 @@ namespace LiteMol.Example.Channels.State {
             let promises = [];
 
             if(protein){
+                console.log("reloading protein structure");
                 promises.push(downloadProteinData(plugin, info.ComputationId, submitId));
             }
             if(channels){
+                console.log("reloading channels");
                 promises.push(downloadChannelsData(plugin, info.ComputationId, submitId));
             }
 

@@ -24,10 +24,12 @@
 	height:24vh;/**/
 }
 .wrapper-container{
-	width: 100%;/*65*/
+	width: 100%;
     position: absolute;
     left: 0;
-	margin: auto auto;
+    margin: auto auto;
+    padding-top: 3px;
+    padding-left: 4px;
 }
 .bottom-panel-toggled .wrapper-container,
 .bottom-panel-toggled .bottom-tabs-toggled .wrapper-container{
@@ -140,10 +142,11 @@
 }
 
 .layerVizualizer * .controls .common-area{
-	position:absolute;
-	top:0;
-	right:0;
-	padding-right:5px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding-right: 3px;
+    padding-top: 3px;
 }
 
 .layerVizualizer * .controls .export-button,
