@@ -25,10 +25,10 @@ namespace LiteMol.Example.Channels.UI {
 
             MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId((submitId)=>{
                 try{
-                    console.log('loadData on event');
                     this.load();
                 }catch(ex){
-                    console.log(ex);
+                    if(Config.CommonOptions.DEBUG_MODE)
+                        console.log(ex);
                     this.setState({isLoading:false,data: void 0, error:"Data not available"});
                 }
             });
@@ -46,7 +46,8 @@ namespace LiteMol.Example.Channels.UI {
             this.setState({ isLoading: true, error: void 0 });      //https://webchem.ncbr.muni.cz/API/ChannelsDB/PDB/1tqn
             State.loadData(this.props.plugin/*, this.currentProteinId*/) //'channels.json'
                 .then(data => {
-                    console.log("loading done ok");
+                    if(Config.CommonOptions.DEBUG_MODE)
+                        console.log("loading done ok");
                     let entities = this.props.plugin.context.select("mole-data");
                     if(entities.length===0){
                         let params = CommonUtils.Router.getParameters();
@@ -70,8 +71,6 @@ namespace LiteMol.Example.Channels.UI {
                     }
                 })
                 .catch(e => {
-                    console.log(`ERR on loading: ${e}`);
-                    console.log(this);
                     this.setState({ isLoading: false, error: 'Application was unable to load data. Please try again later.', data: void 0 });
                 });
         }

@@ -19,6 +19,10 @@ namespace Config{
 
         public static MODE = "unknown";
     }
+
+    export class CommonOptions{
+        public static DEBUG_MODE=false;
+    }
     /*
     export let ROUTING_OPTIONS:any = {
         "local":{defaultContextPath: "/online", defaultCompId:"compid", defaultSubmitId:"1", useParameterAsPid:true},

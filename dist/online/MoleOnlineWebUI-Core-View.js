@@ -59,9 +59,9 @@ var Config;
         return Routing;
     }());
     Routing.ROUTING_OPTIONS = {
-        "local": { defaultContextPath: "/online", defaultCompId: "compid", defaultSubmitId: "1", useParameterAsPid: true },
-        "test": { defaultContextPath: "/online/<?pid>", defaultPid: "5an8", useLastPathPartAsPid: true },
-        "prod": { defaultContextPath: "/online", defaultPid: "5an8", useLastPathPartAsPid: true },
+        "local": { defaultContextPath: "/online", defaultCompId: "compid", defaultSubmitId: "1" },
+        "test": { defaultContextPath: "/online" },
+        "prod": { defaultContextPath: "/online" },
     };
     Routing.ROUTING_MODE = "unknown";
     Config.Routing = Routing;
@@ -77,6 +77,13 @@ var Config;
     };
     DataSources.MODE = "unknown";
     Config.DataSources = DataSources;
+    var CommonOptions = (function () {
+        function CommonOptions() {
+        }
+        return CommonOptions;
+    }());
+    CommonOptions.DEBUG_MODE = false;
+    Config.CommonOptions = CommonOptions;
     /*
     export let ROUTING_OPTIONS:any = {
         "local":{defaultContextPath: "/online", defaultCompId:"compid", defaultSubmitId:"1", useParameterAsPid:true},
@@ -89,6 +96,7 @@ var Config;
 (function (Config) {
     Config.Routing.ROUTING_MODE = "prod";
     Config.DataSources.MODE = "prod";
+    Config.CommonOptions.DEBUG_MODE = false;
 })(Config || (Config = {}));
 var DataInterface;
 (function (DataInterface) {
@@ -150,6 +158,71 @@ var DataInterface;
     })(Annotations = DataInterface.Annotations || (DataInterface.Annotations = {}));
 })(DataInterface || (DataInterface = {}));
 ;
+var MoleOnlineWebUI;
+(function (MoleOnlineWebUI) {
+    var Bridge;
+    (function (Bridge) {
+        var Instances = (function () {
+            function Instances() {
+            }
+            Instances.setPlugin = function (plugin) {
+                this.plugin = plugin;
+            };
+            Instances.getPlugin = function () {
+                return this.plugin;
+            };
+            return Instances;
+        }());
+        Bridge.Instances = Instances;
+        var HandlerTypes;
+        (function (HandlerTypes) {
+            HandlerTypes.NewSubmitType = "NEW-SUBMIT";
+            HandlerTypes.ChangeSubmitIdType = "CHANGE-SUBMIT-ID";
+        })(HandlerTypes || (HandlerTypes = {}));
+        ;
+        var Events = (function () {
+            function Events() {
+            }
+            Events.subscribeNewSubmit = function (h) {
+                var list = this.handlers.get(HandlerTypes.NewSubmitType);
+                if (list === void 0) {
+                    list = [];
+                }
+                list.push(h);
+                this.handlers.set(HandlerTypes.NewSubmitType, list);
+            };
+            Events.invokeNewSubmit = function () {
+                var hndlrs = this.handlers.get(HandlerTypes.NewSubmitType);
+                if (hndlrs !== void 0) {
+                    for (var _i = 0, hndlrs_1 = hndlrs; _i < hndlrs_1.length; _i++) {
+                        var h = hndlrs_1[_i];
+                        h();
+                    }
+                }
+            };
+            Events.subscribeChangeSubmitId = function (h) {
+                var list = this.handlers.get(HandlerTypes.ChangeSubmitIdType);
+                if (list === void 0) {
+                    list = [];
+                }
+                list.push(h);
+                this.handlers.set(HandlerTypes.ChangeSubmitIdType, list);
+            };
+            Events.invokeChangeSubmitId = function (submitId) {
+                var hndlrs = this.handlers.get(HandlerTypes.ChangeSubmitIdType);
+                if (hndlrs !== void 0) {
+                    for (var _i = 0, hndlrs_2 = hndlrs; _i < hndlrs_2.length; _i++) {
+                        var h = hndlrs_2[_i];
+                        h(submitId);
+                    }
+                }
+            };
+            return Events;
+        }());
+        Events.handlers = new Map();
+        Bridge.Events = Events;
+    })(Bridge = MoleOnlineWebUI.Bridge || (MoleOnlineWebUI.Bridge = {}));
+})(MoleOnlineWebUI || (MoleOnlineWebUI = {}));
 var CommonUtils;
 (function (CommonUtils) {
     var Tunnels = (function () {
@@ -194,58 +267,484 @@ var CommonUtils;
 })(CommonUtils || (CommonUtils = {}));
 var CommonUtils;
 (function (CommonUtils) {
+    ;
+    var Residues = (function () {
+        function Residues() {
+        }
+        Residues.initCache = function () {
+            if (this.cache !== void 0) {
+                return;
+            }
+            this.cache = new Map();
+        };
+        Residues.getDirect = function (residueSeqNumber, plugin) {
+            if (plugin.context.select('polymer-visual')[0].props !== void 0) {
+                var props = plugin.context.select('polymer-visual')[0].props;
+                if (props.model === void 0 || props.model.model === void 0) {
+                    return "";
+                }
+                var model = props.model.model;
+                var params = LiteMol.Core.Structure.Query.residuesById(residueSeqNumber).compile()(LiteMol.Core.Structure.Query.Context.ofStructure(model));
+                var fragment = params.fragments[0];
+                var residueInd = fragment.residueIndices[0];
+                var residueData = params.context.structure.data.residues;
+                var resIdx = residueData.indices[residueInd];
+                var name_1 = residueData.name[resIdx];
+                return name_1;
+            }
+            return "";
+        };
+        Residues.getName = function (residueSeqNumber, plugin) {
+            this.initCache();
+            if (this.cache.has(residueSeqNumber)) {
+                var name_2 = this.cache.get(residueSeqNumber);
+                if (name_2 === void 0) {
+                    return "";
+                }
+                return name_2;
+            }
+            var name = this.getDirect(residueSeqNumber, plugin);
+            this.cache.set(residueSeqNumber, name);
+            return name;
+        };
+        Residues.sort = function (residues, groupFunction, hasName, includeBackbone) {
+            if (includeBackbone === void 0) {
+                includeBackbone = false;
+            }
+            if (hasName === void 0) {
+                hasName = false;
+            }
+            if (residues.length === 0) {
+                return residues;
+            }
+            var resParsed = this.parseResidues(residues, hasName);
+            var groups = [];
+            if (groupFunction !== void 0) {
+                groups = groupFunction(resParsed);
+            }
+            else {
+                groups.push(resParsed);
+            }
+            var sortFn = this.getSortFunction();
+            var all = [];
+            for (var _i = 0, groups_1 = groups; _i < groups_1.length; _i++) {
+                var group = groups_1[_i];
+                all = all.concat(group.sort(sortFn));
+            }
+            return all.map(function (val, idx, array) {
+                if (hasName) {
+                    return val.name + " " + val.authSeqNumber + " " + val.chain.authAsymId + ((includeBackbone && val.backbone) ? ' Backbone' : '');
+                }
+                else {
+                    return val.authSeqNumber + " " + val.chain.authAsymId + ((includeBackbone && val.backbone) ? ' Backbone' : '');
+                }
+            });
+        };
+        Residues.parseResidue = function (residue) {
+            return residue.split(" ");
+        };
+        Residues.parseResidues = function (residues, hasName) {
+            if (hasName === void 0) {
+                hasName = false;
+            }
+            var resParsed = [];
+            for (var _i = 0, residues_1 = residues; _i < residues_1.length; _i++) {
+                var residue = residues_1[_i];
+                var residueParts = this.parseResidue(residue);
+                if (hasName) {
+                    resParsed.push({
+                        chain: { authAsymId: residueParts[2] },
+                        authSeqNumber: Number(residueParts[1]),
+                        name: residueParts[0],
+                        backbone: (residueParts.length === 4)
+                    });
+                }
+                else {
+                    resParsed.push({
+                        chain: { authAsymId: residueParts[1] },
+                        authSeqNumber: Number(residueParts[0]),
+                        backbone: (residueParts.length === 3)
+                    });
+                }
+            }
+            return resParsed;
+        };
+        Residues.getSortFunction = function () {
+            return function (a, b) {
+                if (a.chain.authAsymId < b.chain.authAsymId) {
+                    return -1;
+                }
+                else if (a.chain.authAsymId > b.chain.authAsymId) {
+                    return 1;
+                }
+                else {
+                    if (a.authSeqNumber === b.authSeqNumber) {
+                        if (a.backbone && b.backbone) {
+                            return 0;
+                        }
+                        else if (a.backbone && !b.backbone) {
+                            return -1;
+                        }
+                        else {
+                            return 1;
+                        }
+                    }
+                    return a.authSeqNumber - b.authSeqNumber;
+                }
+            };
+        };
+        return Residues;
+    }());
+    CommonUtils.Residues = Residues;
+})(CommonUtils || (CommonUtils = {}));
+var CommonUtils;
+(function (CommonUtils) {
     var Selection;
     (function (Selection) {
+        var Transformer = LiteMol.Bootstrap.Entity.Transformer;
+        ;
+        ;
+        ;
+        ;
         ;
         var SelectionHelper = (function () {
             function SelectionHelper() {
             }
+            SelectionHelper.attachOnResidueSelectHandler = function (handler) {
+                if (this.onResidueSelectHandlers === void 0) {
+                    this.onResidueSelectHandlers = [];
+                }
+                this.onResidueSelectHandlers.push({ handler: handler });
+            };
+            SelectionHelper.invokeOnResidueSelectHandlers = function (residue) {
+                if (this.onResidueSelectHandlers === void 0) {
+                    return;
+                }
+                for (var _i = 0, _a = this.onResidueSelectHandlers; _i < _a.length; _i++) {
+                    var h = _a[_i];
+                    h.handler(residue);
+                }
+            };
+            SelectionHelper.attachOnResidueLightSelectHandler = function (handler) {
+                if (this.onResidueLightSelectHandlers === void 0) {
+                    this.onResidueLightSelectHandlers = [];
+                }
+                this.onResidueLightSelectHandlers.push({ handler: handler });
+            };
+            SelectionHelper.invokeOnResidueLightSelectHandlers = function (residue) {
+                if (this.onResidueLightSelectHandlers === void 0) {
+                    return;
+                }
+                for (var _i = 0, _a = this.onResidueLightSelectHandlers; _i < _a.length; _i++) {
+                    var h = _a[_i];
+                    h.handler(residue);
+                }
+            };
+            SelectionHelper.attachOnResidueBulkSelectHandler = function (handler) {
+                if (this.onResidueBulkSelectHandlers === void 0) {
+                    this.onResidueBulkSelectHandlers = [];
+                }
+                this.onResidueBulkSelectHandlers.push({ handler: handler });
+            };
+            SelectionHelper.invokeOnResidueBulkSelectHandlers = function (residues) {
+                if (this.onResidueBulkSelectHandlers === void 0) {
+                    return;
+                }
+                for (var _i = 0, _a = this.onResidueBulkSelectHandlers; _i < _a.length; _i++) {
+                    var h = _a[_i];
+                    h.handler(residues);
+                }
+            };
+            SelectionHelper.attachOnClearSelectionHandler = function (handler) {
+                if (this.onClearSelectionHandlers === void 0) {
+                    this.onClearSelectionHandlers = [];
+                }
+                this.onClearSelectionHandlers.push({ handler: handler });
+            };
+            SelectionHelper.invokeOnClearSelectionHandlers = function () {
+                if (this.onClearSelectionHandlers === void 0) {
+                    return;
+                }
+                for (var _i = 0, _a = this.onClearSelectionHandlers; _i < _a.length; _i++) {
+                    var h = _a[_i];
+                    h.handler();
+                }
+            };
+            SelectionHelper.attachOnChannelSelectHandler = function (handler) {
+                if (this.onChannelSelectHandlers === void 0) {
+                    this.onChannelSelectHandlers = [];
+                }
+                this.onChannelSelectHandlers.push({ handler: handler });
+            };
+            SelectionHelper.invokeOnChannelSelectHandlers = function (data) {
+                if (this.onChannelSelectHandlers === void 0) {
+                    return;
+                }
+                for (var _i = 0, _a = this.onChannelSelectHandlers; _i < _a.length; _i++) {
+                    var h = _a[_i];
+                    h.handler(data);
+                }
+            };
+            SelectionHelper.attachOnChannelDeselectHandler = function (handler) {
+                if (this.onChannelDeselectHandlers === void 0) {
+                    this.onChannelDeselectHandlers = [];
+                }
+                this.onChannelDeselectHandlers.push({ handler: handler });
+            };
+            SelectionHelper.invokeOnChannelDeselectHandlers = function () {
+                if (this.onChannelDeselectHandlers === void 0) {
+                    return;
+                }
+                for (var _i = 0, _a = this.onChannelDeselectHandlers; _i < _a.length; _i++) {
+                    var h = _a[_i];
+                    h.handler();
+                }
+            };
             SelectionHelper.getSelectionVisualRef = function () {
                 return this.SELECTION_VISUAL_REF;
             };
+            SelectionHelper.getAltSelectionVisualRef = function () {
+                return this.SELECTION_ALT_VISUAL_REF;
+            };
             SelectionHelper.clearSelection = function (plugin) {
+                this.clearSelectionPrivate(plugin);
+                this.selectedBulkResidues = void 0;
+                this.selectedResidue = void 0;
+                this.selectedChannelRef = void 0;
+                this.selectedChannelData = void 0;
+                this.resetScene(plugin);
+            };
+            SelectionHelper.clearSelectionPrivate = function (plugin) {
                 LiteMol.Bootstrap.Command.Tree.RemoveNode.dispatch(plugin.context, this.SELECTION_VISUAL_REF);
+                if (this.selectedChannelRef !== void 0) {
+                    deselectTunnelByRef(plugin, this.selectedChannelRef);
+                }
+                setTimeout(function () { return LiteMol.Bootstrap.Event.Visual.VisualSelectElement.dispatch(plugin.context, LiteMol.Bootstrap.Interactivity.Info.empty); }, 0);
+                this.clearAltSelection(plugin);
+                this.invokeOnClearSelectionHandlers();
+            };
+            SelectionHelper.clearAltSelection = function (plugin) {
+                LiteMol.Bootstrap.Command.Tree.RemoveNode.dispatch(plugin.context, this.SELECTION_ALT_VISUAL_REF);
+            };
+            SelectionHelper.resetScene = function (plugin) {
+                LiteMol.Bootstrap.Command.Visual.ResetScene.dispatch(plugin.context, void 0);
+            };
+            SelectionHelper.chainEquals = function (c1, c2) {
+                if ((c1.asymId !== c2.asymId)
+                    || (c1.authAsymId !== c2.authAsymId)
+                    || (c1.index !== c2.index)) {
+                    return false;
+                }
+                return true;
+            };
+            SelectionHelper.residueEquals = function (r1, r2) {
+                if (r1 === void 0 && r2 === void 0) {
+                    return true;
+                }
+                if (r1 === void 0 || r2 === void 0) {
+                    return false;
+                }
+                if ((r1.authName !== r2.authName)
+                    || (r1.authSeqNumber !== r2.authSeqNumber)
+                    || (!this.chainEquals(r1.chain, r2.chain))
+                    || (r1.index !== r2.index)
+                    || (r1.insCode !== r2.insCode)
+                    || (r1.isHet !== r2.isHet)
+                    || (r1.name !== r2.name)
+                    || (r1.seqNumber !== r2.seqNumber)) {
+                    return false;
+                }
+                return true;
+            };
+            SelectionHelper.residueBulkSort = function (bulk) {
+                bulk.sort(function (a, b) {
+                    if (a.chain.authAsymId < b.chain.authAsymId) {
+                        return -1;
+                    }
+                    else if (a.chain.authAsymId == b.chain.authAsymId) {
+                        return a.authSeqNumber - b.authSeqNumber;
+                    }
+                    else {
+                        return 1;
+                    }
+                });
+            };
+            SelectionHelper.residueBulkEquals = function (r1, r2) {
+                if (r1.length !== r2.length) {
+                    return false;
+                }
+                this.residueBulkSort(r1);
+                this.residueBulkSort(r2);
+                for (var idx = 0; idx < r1.length; idx++) {
+                    if (this.residueLightEquals({ type: "light", info: r1[idx] }, { type: "light", info: r2[idx] })) {
+                        return false;
+                    }
+                }
+                return true;
+            };
+            SelectionHelper.selectResiduesBulkWithBallsAndSticks = function (plugin, residues) {
+                CommonUtils.Selection.SelectionHelper.clearSelectionPrivate(plugin);
+                this.selectedChannelRef = void 0;
+                this.selectedChannelData = void 0;
+                this.selectedBulkResidues = void 0;
+                this.resetScene(plugin);
+                if (this.selectedBulkResidues !== void 0) {
+                    if (this.residueBulkEquals(residues, this.selectedBulkResidues)) {
+                        this.selectedResidue = undefined;
+                        return;
+                    }
+                }
+                var queries = [];
+                for (var _i = 0, residues_2 = residues; _i < residues_2.length; _i++) {
+                    var residue = residues_2[_i];
+                    queries.push((_a = LiteMol.Core.Structure.Query).chainsById.apply(_a, [residue.chain.authAsymId]).intersectWith((_b = LiteMol.Core.Structure.Query).residues.apply(_b, [{ authSeqNumber: residue.authSeqNumber }])).compile());
+                }
+                var query = (_c = LiteMol.Core.Structure.Query).or.apply(_c, queries);
+                var t = plugin.createTransform();
+                t.add('polymer-visual', Transformer.Molecule.CreateSelectionFromQuery, { query: query, name: 'Residues' }, { ref: CommonUtils.Selection.SelectionHelper.getSelectionVisualRef(), isHidden: true })
+                    .then(Transformer.Molecule.CreateVisual, { style: LiteMol.Bootstrap.Visualization.Molecule.Default.ForType.get('BallsAndSticks') }, { isHidden: true });
+                plugin.applyTransform(t)
+                    .then(function () {
+                    LiteMol.Bootstrap.Command.Entity.Focus.dispatch(plugin.context, plugin.context.select(CommonUtils.Selection.SelectionHelper.getSelectionVisualRef()));
+                });
+                this.selectedBulkResidues = residues;
+                this.invokeOnResidueBulkSelectHandlers(residues);
+                var _a, _b, _c;
+            };
+            SelectionHelper.isBulkResiduesSelected = function (residues) {
+                return this.selectedBulkResidues !== void 0;
+            };
+            SelectionHelper.selectResidueByAuthAsymIdAndAuthSeqNumberWithBallsAndSticks = function (plugin, residue) {
+                var query = LiteMol.Core.Structure.Query.chainsById(residue.chain.authAsymId).intersectWith((_a = LiteMol.Core.Structure.Query).residues.apply(_a, [{ authSeqNumber: residue.authSeqNumber }]));
+                CommonUtils.Selection.SelectionHelper.clearSelectionPrivate(plugin);
+                this.selectedChannelRef = void 0;
+                this.selectedChannelData = void 0;
+                this.selectedBulkResidues = void 0;
+                this.resetScene(plugin);
+                if (this.selectedResidue !== void 0) {
+                    if ((this.selectedResidue.type === "full" && this.residueLightEquals({ type: "light", info: residue }, this.residueToLight(this.selectedResidue)))
+                        || (this.selectedResidue.type === "light" && this.residueLightEquals({ type: "light", info: residue }, this.selectedResidue))) {
+                        this.selectedResidue = undefined;
+                        return;
+                    }
+                }
+                var t = plugin.createTransform();
+                t.add('polymer-visual', Transformer.Molecule.CreateSelectionFromQuery, { query: query, name: 'Residues' }, { ref: CommonUtils.Selection.SelectionHelper.getSelectionVisualRef(), isHidden: true })
+                    .then(Transformer.Molecule.CreateVisual, { style: LiteMol.Bootstrap.Visualization.Molecule.Default.ForType.get('BallsAndSticks') }, { isHidden: true });
+                plugin.applyTransform(t)
+                    .then(function () {
+                    LiteMol.Bootstrap.Command.Entity.Focus.dispatch(plugin.context, plugin.context.select(CommonUtils.Selection.SelectionHelper.getSelectionVisualRef()));
+                });
+                this.selectedResidue = { type: "light", info: residue };
+                this.invokeOnResidueLightSelectHandlers(residue);
+                var _a;
+            };
+            SelectionHelper.residueToLight = function (residue) {
+                return {
+                    type: "light",
+                    info: {
+                        chain: residue.info.chain,
+                        authSeqNumber: residue.info.authSeqNumber
+                    }
+                };
+            };
+            SelectionHelper.residueLightEquals = function (r1, r2) {
+                if ((!this.chainLightEquals(r1.info.chain, r2.info.chain))
+                    || r1.info.authSeqNumber !== r2.info.authSeqNumber) {
+                    return false;
+                }
+                return true;
+            };
+            SelectionHelper.chainLightEquals = function (c1, c2) {
+                return (c1.authAsymId === c2.authAsymId);
+            };
+            SelectionHelper.isSelectedAnyChannel = function () {
+                return this.selectedChannelRef !== void 0;
+            };
+            SelectionHelper.isSelectedAny = function () {
+                return this.isSelectedAnyChannel() || this.selectedResidue !== void 0 || this.selectedBulkResidues !== void 0;
+            };
+            SelectionHelper.selectResidueWithBallsAndSticks = function (plugin, residue) {
+                var query = LiteMol.Core.Structure.Query.chainsById(residue.chain.asymId)
+                    .intersectWith(LiteMol.Core.Structure.Query.residues(residue));
+                CommonUtils.Selection.SelectionHelper.clearSelectionPrivate(plugin);
+                this.selectedChannelRef = void 0;
+                this.selectedChannelData = void 0;
+                this.selectedBulkResidues = void 0;
+                this.resetScene(plugin);
+                if (this.selectedResidue !== void 0) {
+                    if (this.isSelected(residue)) {
+                        this.selectedResidue = undefined;
+                        return;
+                    }
+                }
+                var t = plugin.createTransform();
+                t.add('polymer-visual', Transformer.Molecule.CreateSelectionFromQuery, { query: query, name: 'Residues' }, { ref: CommonUtils.Selection.SelectionHelper.getSelectionVisualRef(), isHidden: true })
+                    .then(Transformer.Molecule.CreateVisual, { style: LiteMol.Bootstrap.Visualization.Molecule.Default.ForType.get('BallsAndSticks') }, { isHidden: true });
+                plugin.applyTransform(t)
+                    .then(function () {
+                    LiteMol.Bootstrap.Command.Entity.Focus.dispatch(plugin.context, plugin.context.select(CommonUtils.Selection.SelectionHelper.getSelectionVisualRef()));
+                });
+                this.selectedResidue = { type: "full", info: residue };
+                this.invokeOnResidueSelectHandlers(residue);
+            };
+            SelectionHelper.isSelected = function (residue) {
+                return (this.selectedResidue !== void 0)
+                    && ((this.selectedResidue.type === "full" && this.residueEquals(residue, this.selectedResidue.info))
+                        || (this.selectedResidue.type === "light" && this.residueLightEquals(this.residueToLight({ type: "full", info: residue }), this.selectedResidue)));
+            };
+            SelectionHelper.isSelectedLight = function (residue) {
+                return (this.selectedResidue !== void 0)
+                    && ((this.selectedResidue.type === "full" && this.residueLightEquals({ type: "light", info: residue }, this.residueToLight(this.selectedResidue)))
+                        || (this.selectedResidue.type === "light" && this.residueLightEquals({ type: "light", info: residue }, this.selectedResidue)));
+            };
+            SelectionHelper.getSelectedChannelData = function () {
+                return (this.selectedChannelData === void 0) ? null : this.selectedChannelData;
+            };
+            SelectionHelper.getSelectedChannelRef = function () {
+                return (this.selectedChannelRef === void 0) ? "" : this.selectedChannelRef;
             };
             SelectionHelper.attachClearSelectionToEventHandler = function (plugin) {
                 var _this = this;
                 this.interactionEventStream = LiteMol.Bootstrap.Event.Visual.VisualSelectElement.getStream(plugin.context)
                     .subscribe(function (e) { return _this.interactionHandler('select', e.data, plugin); });
             };
-            SelectionHelper.entitiesSame = function (entityIndices, elements) {
-                if (entityIndices == void 0) {
-                    return false;
-                }
-                if (elements == void 0) {
-                    return false;
-                }
-                if (entityIndices.length !== elements.length) {
-                    return false;
-                }
-                entityIndices.sort();
-                elements.sort();
-                for (var i = 0; i < entityIndices.length; i++) {
-                    if (entityIndices[i] !== elements[i]) {
-                        return false;
-                    }
-                }
-                return true;
-            };
             SelectionHelper.interactionHandler = function (type, i, plugin) {
                 //console.log("SelectionHelper: Caught-SelectEvent");
-                if (!i || i.source == null || i.source.ref === void 0) {
+                if (!i || i.source == null || i.source.ref === void 0 || i.source.props === void 0 || i.source.props.tag === void 0) {
                     //console.log("SelectionHelper: Event incomplete - ignoring");
                     return;
                 }
-                if (i.source.ref !== this.SELECTION_VISUAL_REF) {
-                    var currentInCodeSelectedEntity = plugin.context.select(this.SELECTION_VISUAL_REF)[0];
-                    if (currentInCodeSelectedEntity !== void 0 && currentInCodeSelectedEntity.props !== void 0) {
-                        if (this.entitiesSame(currentInCodeSelectedEntity.props.indices, i.elements)) {
-                            //console.log('SelectionHelper: Detected attempt to select selected item - reseting scene');
-                            LiteMol.Bootstrap.Command.Visual.ResetScene.dispatch(plugin.context, void 0);
-                        }
+                if (this.selectedResidue !== void 0) {
+                    //console.log("selected channel - clearing residues");
+                    LiteMol.Bootstrap.Command.Tree.RemoveNode.dispatch(plugin.context, this.SELECTION_VISUAL_REF);
+                    this.selectedResidue = void 0;
+                    return;
+                }
+                if (this.selectedBulkResidues !== void 0) {
+                    //console.log("selected channel - clearing residues");
+                    LiteMol.Bootstrap.Command.Tree.RemoveNode.dispatch(plugin.context, this.SELECTION_VISUAL_REF);
+                    this.selectedBulkResidues = void 0;
+                    return;
+                }
+                if ((this.selectedChannelRef !== void 0) && (this.selectedChannelRef === i.source.ref)) {
+                    //console.log("double clicked on tunel - deselecting");
+                    this.clearSelectionPrivate(plugin);
+                    this.selectedChannelRef = void 0;
+                    this.selectedChannelData = void 0;
+                    this.invokeOnChannelDeselectHandlers();
+                    return;
+                }
+                else {
+                    //console.log("Channel selected");
+                    if (this.selectedChannelRef !== void 0 && this.selectedChannelRef !== i.source.ref) {
+                        deselectTunnelByRef(plugin, this.selectedChannelRef);
                     }
-                    //console.log("SelectionHelper: SelectEvent from user interaction - clearing previous selection");
-                    SelectionHelper.clearSelection(plugin);
+                    this.selectedChannelRef = i.source.ref;
+                    this.selectedChannelData = i.source.props.tag.element.Layers;
+                    selectTunnelByRef(plugin, this.selectedChannelRef);
+                    this.clearAltSelection(plugin);
+                    this.invokeOnChannelSelectHandlers(this.selectedChannelData);
                     return;
                 }
                 //console.log("SelectionHelper: SelectEvent from code - ignoring ");
@@ -253,8 +752,29 @@ var CommonUtils;
             return SelectionHelper;
         }());
         SelectionHelper.SELECTION_VISUAL_REF = "res_visual";
+        SelectionHelper.SELECTION_ALT_VISUAL_REF = "alt_res_visual";
         SelectionHelper.interactionEventStream = void 0;
         Selection.SelectionHelper = SelectionHelper;
+        function getIndices(v) {
+            if (v.props.model.surface === void 0) {
+                return [];
+            }
+            return v.props.model.surface.triangleIndices;
+        }
+        function selectTunnelByRef(plugin, ref) {
+            var entities = plugin.selectEntities(ref);
+            var v = entities[0];
+            if (LiteMol.Bootstrap.Entity.isVisual(entities[0]) && v.props.isSelectable) {
+                v.props.model.applySelection(getIndices(v), 1 /* Select */);
+            }
+        }
+        function deselectTunnelByRef(plugin, ref) {
+            var entities = plugin.selectEntities(ref);
+            var v = entities[0];
+            if (LiteMol.Bootstrap.Entity.isVisual(entities[0]) && v.props.isSelectable) {
+                v.props.model.applySelection(getIndices(v), 2 /* RemoveSelect */);
+            }
+        }
     })(Selection = CommonUtils.Selection || (CommonUtils.Selection = {}));
 })(CommonUtils || (CommonUtils = {}));
 var CommonUtils;
@@ -284,7 +804,49 @@ var CommonUtils;
             SimpleRouter.GlobalRouter.redirect("/" + computationId + "/" + submitId, true);
         }
         Router.redirect = redirect;
+        function fakeRedirect(computationId, submitId) {
+            SimpleRouter.GlobalRouter.fakeRedirect("/" + computationId + "/" + submitId, true);
+        }
+        Router.fakeRedirect = fakeRedirect;
     })(Router = CommonUtils.Router || (CommonUtils.Router = {}));
+})(CommonUtils || (CommonUtils = {}));
+var CommonUtils;
+(function (CommonUtils) {
+    var Tabs;
+    (function (Tabs) {
+        function getTabLinkById(tabbedElementId, tabId) {
+            var tabs = $("#" + tabbedElementId + " li a");
+            for (var _i = 0, tabs_1 = tabs; _i < tabs_1.length; _i++) {
+                var t = tabs_1[_i];
+                if ($(t).attr('href') === "#" + tabbedElementId + "-" + tabId) {
+                    return $(t);
+                }
+            }
+        }
+        Tabs.getTabLinkById = getTabLinkById;
+        function isActive(tabbedElementId, tabId) {
+            return getTabLinkById(tabbedElementId, tabId).parent().attr("class").indexOf("active") >= 0;
+        }
+        Tabs.isActive = isActive;
+        function activateTab(tabbedElementId, tabId) {
+            getTabLinkById(tabbedElementId, tabId).click();
+        }
+        Tabs.activateTab = activateTab;
+        function doAfterTabActivated(tabbedElementId, tabId, callback) {
+            var checker = function () {
+                var link = getTabLinkById(tabbedElementId, tabId);
+                var href = link.attr("href");
+                if (link.parent().attr("class").indexOf("active") >= 0 && $(href).css("display") !== "none") {
+                    callback();
+                }
+                else {
+                    window.setTimeout(checker, 10);
+                }
+            };
+            window.setTimeout(checker, 10);
+        }
+        Tabs.doAfterTabActivated = doAfterTabActivated;
+    })(Tabs = CommonUtils.Tabs || (CommonUtils.Tabs = {}));
 })(CommonUtils || (CommonUtils = {}));
 var Annotation;
 (function (Annotation) {
@@ -608,6 +1170,50 @@ var Annotation;
     AnnotationDataProvider.retries = 0;
     Annotation.AnnotationDataProvider = AnnotationDataProvider;
 })(Annotation || (Annotation = {}));
+var MoleOnlineWebUI;
+(function (MoleOnlineWebUI) {
+    var StaticData;
+    (function (StaticData) {
+        var Bundle = (function () {
+            function Bundle() {
+            }
+            Bundle.get = function (key) {
+                var value = this.bundle[key];
+                if (value === void 0) {
+                    return key;
+                }
+                return value;
+            };
+            return Bundle;
+        }());
+        Bundle.bundle = {
+            "VoronoiScale": "Voronoi scale",
+            "Length": "Length",
+            "LengthAndRadius": "Length and radius"
+        };
+        StaticData.Bundle = Bundle;
+        var WeightFunctions = (function () {
+            function WeightFunctions() {
+            }
+            WeightFunctions.get = function () {
+                if (this.cache !== void 0) {
+                    return this.cache;
+                }
+                var rv = [];
+                for (var _i = 0, _a = this.functions; _i < _a.length; _i++) {
+                    var key = _a[_i];
+                    rv.push({ label: Bundle.get(key), value: key });
+                }
+                this.cache = rv;
+                return rv;
+            };
+            return WeightFunctions;
+        }());
+        WeightFunctions.cache = void 0;
+        WeightFunctions.functions = ["VoronoiScale", "Length", "LengthAndRadius"];
+        StaticData.WeightFunctions = WeightFunctions;
+    })(StaticData = MoleOnlineWebUI.StaticData || (MoleOnlineWebUI.StaticData = {}));
+})(MoleOnlineWebUI || (MoleOnlineWebUI = {}));
 var SimpleRouter;
 (function (SimpleRouter) {
     var URL = (function () {
@@ -797,6 +1403,10 @@ var SimpleRouter;
             return url.getLastPart();
         };
         GlobalRouter.redirect = function (url, relative) {
+            var newUrl = this.prepareUrlForRedirect(url, relative);
+            window.location.replace(newUrl);
+        };
+        GlobalRouter.prepareUrlForRedirect = function (url, relative) {
             var rel = false;
             if (relative !== void 0) {
                 rel = relative;
@@ -806,7 +1416,17 @@ var SimpleRouter;
                 var currentUrl = this.router.getAbsoluePath();
                 newUrl = currentUrl.getProtocol() + "://" + currentUrl.getHostname() + this.defaultContextPath + url;
             }
-            window.location.replace(newUrl);
+            return newUrl;
+        };
+        GlobalRouter.fakeRedirect = function (url, relative) {
+            var newUrl = this.prepareUrlForRedirect(url, relative);
+            if (window.history.pushState) {
+                var title = document.title;
+                window.history.pushState(null, title, newUrl);
+            }
+            else {
+                window.location.replace(newUrl);
+            }
         };
         GlobalRouter.getParametersByRegex = function (regex) {
             var url = this.router.getAbsoluePath();
@@ -859,14 +1479,20 @@ var MoleOnlineWebUI;
                     }), url);
                 };
                 ApiService.handleResponse = function (response, url) {
+                    var _this = this;
                     return new Promise(function (res, rej) {
                         response.then(function (rawResponse) {
                             if (!rawResponse.ok) {
-                                console.log("GET: " + url + " " + rawResponse.status + ": " + rawResponse.statusText);
+                                if (_this.DEBUG_MODE) {
+                                    console.log("GET: " + url + " " + rawResponse.status + ": " + rawResponse.statusText);
+                                }
                                 rej("GET: " + url + " " + rawResponse.status + ": " + rawResponse.statusText);
                                 return;
                             }
                             res(rawResponse.json());
+                        })
+                            .catch(function (err) {
+                            rej(err);
                         });
                     });
                 };
@@ -888,8 +1514,9 @@ var MoleOnlineWebUI;
                     }
                     return this.baseUrl + "/Init/" + pores + pdbid + optional;
                 };
-                ApiService.mockInitResponse = function () {
-                    return new Promise(function (res, rej) {
+                /*
+                private static mockInitResponse(){
+                    return new Promise<any>((res,rej)=>{
                         res({
                             ComputationId: "DjcRaVhHHEqgrd1tI44zGQ",
                             SubmitId: 1,
@@ -897,17 +1524,19 @@ var MoleOnlineWebUI;
                             ErrorMsg: ""
                         });
                     });
-                };
+                }*/
                 ApiService.initWithParams = function (pdbid, usePores, assemblyId) {
                     var url = this.prepareInitUrl(pdbid, usePores, assemblyId);
-                    console.log(url);
-                    //return this.mockInitResponse();
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
                     return this.sendGET(url);
                 };
                 ApiService.initWithFile = function (formData) {
                     var url = this.prepareInitUrl("", false);
-                    console.log(url);
-                    //return this.mockInitResponse();
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
                     return this.sendPOST(url, formData);
                 };
                 ApiService.getStatus = function (computationId, submitId) {
@@ -916,12 +1545,16 @@ var MoleOnlineWebUI;
                         optional = "?submitId=" + submitId;
                     }
                     var url = this.baseUrl + "/Status/" + computationId + optional;
-                    console.log(url);
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
                     return this.sendGET(url);
                 };
                 ApiService.getComputationInfoList = function (computationId) {
                     var url = this.baseUrl + "/Compinfo/" + computationId;
-                    console.log(url);
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
                     return this.sendGET(url);
                 };
                 ApiService.handleJsonToStringResponse = function (response) {
@@ -937,27 +1570,33 @@ var MoleOnlineWebUI;
                 };
                 ApiService.submitMoleJob = function (computationId, data) {
                     var url = this.baseUrl + "/Submit/Mole/" + computationId;
-                    console.log(url);
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
                     return this.sendPOSTjson(url, data);
                 };
                 ApiService.submitPoresJob = function (computationId, data) {
                     var url = this.baseUrl + "/Submit/Pores/" + computationId + "?isBetaStructure=" + data.IsBetaBarel + "&inMembrane=" + data.InMembrane + "&chains=" + data.Chains;
-                    console.log(url);
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
                     return this.sendGET(url);
                 };
                 ApiService.getProteinStructure = function (computationId, submitId) {
+                    var _this = this;
                     var url = this.baseUrl + "/Data/" + computationId + "?submitId=" + submitId + "&format=molecule";
-                    //Mock!!!
-                    //let url = 'https://api.mole.upol.cz/Data/OaUmDZj0Kk2ZBgJLLxVUA?submitId=1&format=molecule';
-                    console.log(url);
-                    //return this.sendGET(url);
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
                     return new Promise(function (res, rej) {
                         fetch(url, {
                             method: "GET"
                         })
                             .then(function (rawResponse) {
                             if (!rawResponse.ok) {
-                                console.log("GET: " + url + " " + rawResponse.status + ": " + rawResponse.statusText);
+                                if (_this.DEBUG_MODE) {
+                                    console.log("GET: " + url + " " + rawResponse.status + ": " + rawResponse.statusText);
+                                }
                                 rej("GET: " + url + " " + rawResponse.status + ": " + rawResponse.statusText);
                                 return;
                             }
@@ -973,13 +1612,14 @@ var MoleOnlineWebUI;
                 };
                 ApiService.getChannelsData = function (computationId, submitId) {
                     var url = this.baseUrl + "/Data/" + computationId + "?submitId=" + submitId;
-                    //Mock!!!
-                    //let url = 'https://api.mole.upol.cz/Data/OaUmDZj0Kk2ZBgJLLxVUA?submitId=1';
-                    console.log(url);
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
                     return this.handleJsonToStringResponse(this.sendGET(url));
                 };
                 return ApiService;
             }());
+            ApiService.DEBUG_MODE = Config.CommonOptions.DEBUG_MODE;
             ApiService.baseUrl = Config.DataSources.API_URL[Config.DataSources.MODE];
             MoleAPI.ApiService = ApiService;
         })(MoleAPI = Service.MoleAPI || (Service.MoleAPI = {}));
@@ -1041,10 +1681,12 @@ var MoleOnlineWebUI;
                     this.setPending(compId, true);
                     Service.getComputationInfoList(compId).then(function (val) {
                         _this.setPending(compId, false);
-                        console.log(val);
+                        if (Config.CommonOptions.DEBUG_MODE)
+                            console.log(val);
                         _this.setData(compId, val);
                     }).catch(function (err) {
-                        console.log(err);
+                        if (Config.CommonOptions.DEBUG_MODE)
+                            console.log(err);
                         window.setTimeout((function () { _this.requestData(compId); }).bind(_this), 2000);
                     });
                 };
@@ -1060,8 +1702,8 @@ var MoleOnlineWebUI;
                     this.requestData(compId);
                 };
                 //--
-                DataProvider.get = function (compId, handler) {
-                    if (this.data !== void 0) {
+                DataProvider.get = function (compId, handler, onlyFresh) {
+                    if (this.data !== void 0 && !onlyFresh) {
                         var data = this.data.get(compId);
                         if (data !== void 0) {
                             handler(compId, data);
@@ -1070,8 +1712,8 @@ var MoleOnlineWebUI;
                     }
                     this.attachHandler(compId, handler, false);
                 };
-                DataProvider.subscribe = function (compId, handler) {
-                    if (this.data !== void 0) {
+                DataProvider.subscribe = function (compId, handler, onlyFresh) {
+                    if (this.data !== void 0 && !onlyFresh) {
                         var data = this.data.get(compId);
                         if (data !== void 0) {
                             handler(compId, data);
@@ -1083,6 +1725,106 @@ var MoleOnlineWebUI;
             }());
             ComputationInfo.DataProvider = DataProvider;
         })(ComputationInfo = DataProxy.ComputationInfo || (DataProxy.ComputationInfo = {}));
+        var JobStatus;
+        (function (JobStatus) {
+            var Watcher = (function () {
+                function Watcher() {
+                }
+                Watcher.makeHash = function (computationId, submitId) {
+                    return computationId + ":" + computationId;
+                };
+                Watcher.registerErrHandler = function (computationId, submitId, handler) {
+                    if (this.errHandlers === void 0) {
+                        this.errHandlers = new Map();
+                    }
+                    var key = this.makeHash(computationId, submitId);
+                    var handlers = this.errHandlers.get(key);
+                    if (handlers === void 0) {
+                        handlers = [];
+                    }
+                    handlers.push(handler);
+                    this.errHandlers.set(key, handlers);
+                };
+                Watcher.registerOnChangeHandler = function (computationId, submitId, handler, onErr) {
+                    if (this.handlers === void 0) {
+                        this.handlers = new Map();
+                    }
+                    var key = this.makeHash(computationId, submitId);
+                    var handlers = this.handlers.get(key);
+                    var shouldStartLoop = false;
+                    if (handlers === void 0) {
+                        handlers = [];
+                        shouldStartLoop = true;
+                    }
+                    handlers.push(handler);
+                    this.handlers.set(key, handlers);
+                    this.registerErrHandler(computationId, submitId, onErr);
+                    if (shouldStartLoop) {
+                        this.waitForResult(computationId, submitId);
+                    }
+                };
+                Watcher.notifyStatusUpdate = function (computationId, submitId, status) {
+                    var handlers = this.handlers.get(this.makeHash(computationId, submitId));
+                    if (handlers === void 0) {
+                        return;
+                    }
+                    for (var _i = 0, handlers_1 = handlers; _i < handlers_1.length; _i++) {
+                        var h = handlers_1[_i];
+                        h(status);
+                    }
+                };
+                Watcher.removeHandlers = function (computationId, submitId) {
+                    var key = this.makeHash(computationId, submitId);
+                    this.handlers.delete(key);
+                    this.errHandlers.delete(key);
+                };
+                Watcher.waitForResult = function (computationId, submitId) {
+                    var _this = this;
+                    Service.getStatus(computationId, submitId).then(function (state) {
+                        if (Config.CommonOptions.DEBUG_MODE)
+                            console.log(state);
+                        /*
+                        "Initializing"| OK
+                        "Initialized"| OK
+                        "FailedInitialization"| OK
+                        "Running"| OK
+                        "Finished"| OK
+                        "Error"| OK
+                        "Deleted"| OK
+                        "Aborted"; OK
+                        */
+                        switch (state.Status) {
+                            case "Initializing":
+                            case "Running":
+                                _this.notifyStatusUpdate(computationId, submitId, state);
+                                window.setTimeout(function () { _this.waitForResult(computationId, submitId); }, 1000);
+                                break;
+                            case "Initialized":
+                            case "FailedInitialization":
+                            case "Error":
+                            case "Deleted":
+                            case "Aborted":
+                            case "Finished":
+                                _this.notifyStatusUpdate(computationId, submitId, state);
+                                _this.removeHandlers(computationId, submitId);
+                                break;
+                        }
+                    })
+                        .catch(function (err) {
+                        var h = _this.errHandlers.get(_this.makeHash(computationId, submitId));
+                        if (h === void 0) {
+                            throw new Error(err);
+                        }
+                        for (var _i = 0, h_1 = h; _i < h_1.length; _i++) {
+                            var handler = h_1[_i];
+                            handler(err);
+                        }
+                    });
+                };
+                return Watcher;
+            }());
+            JobStatus.Watcher = Watcher;
+        })(JobStatus = DataProxy.JobStatus || (DataProxy.JobStatus = {}));
     })(DataProxy = MoleOnlineWebUI.DataProxy || (MoleOnlineWebUI.DataProxy = {}));
 })(MoleOnlineWebUI || (MoleOnlineWebUI = {}));
 var LayersVizualizer;
@@ -1090,11 +1832,11 @@ var LayersVizualizer;
     var UI;
     (function (UI) {
         var React = LiteMol.Plugin.React;
-        var Event = LiteMol.Bootstrap.Event;
         var Transformer = LiteMol.Bootstrap.Entity.Transformer;
         var Tree = LiteMol.Bootstrap.Tree;
         var Transform = Tree.Transform;
         var Visualization = LiteMol.Bootstrap.Visualization;
+        var Tabs = CommonUtils.Tabs;
         ;
         function createProfileToLayerByCenterDistanceMapping(channel) {
             var map = new Map();
@@ -1438,30 +2180,28 @@ var LayersVizualizer;
                     colorBoundsMode: this.state.colorBoundsMode
                 });
                 this.vizualizer = vizualizer;
-                var interactionHandler = function showInteraction(type, i, app) {
-                    if (!i || i.source == null || i.source.props.tag === void 0 || i.source.props.tag.type === void 0) {
-                        return;
-                    }
-                    if (i.source.props.tag.type == "Tunnel"
-                        || i.source.props.tag.type == "Path"
-                        || i.source.props.tag.type == "Pore"
-                        || i.source.props.tag.type == "MergedPore") {
-                        window.setTimeout(function () {
-                            app.setState({ currentTunnelRef: i.source.ref, isLayerSelected: false });
-                            $('#left-tabs').tabs("option", "active", 0);
-                            var layers = DataInterface.convertLayersToLayerData(i.source.props.tag.element.Layers);
+                CommonUtils.Selection.SelectionHelper.attachOnChannelSelectHandler(function (data) {
+                    window.setTimeout(function () {
+                        _this.setState({ currentTunnelRef: CommonUtils.Selection.SelectionHelper.getSelectedChannelRef(), isLayerSelected: false });
+                        //$('#left-tabs').tabs("option", "active", 0);
+                        Tabs.activateTab("left-tabs", "1");
+                        var layers = DataInterface.convertLayersToLayerData(data);
+                        Tabs.doAfterTabActivated("left-tabs", "1", function () {
                             vizualizer.setData(layers);
-                            app.setState({ data: layers, hasData: true, isDOMReady: false, instanceId: vizualizer.getPublicInstanceIdx() });
+                            _this.setState({ data: layers, hasData: true, isDOMReady: false, instanceId: vizualizer.getPublicInstanceIdx() });
+                            vizualizer.rebindDOMRefs();
                             vizualizer.vizualize();
-                            app.setState({ data: layers, hasData: true, isDOMReady: true, instanceId: vizualizer.getPublicInstanceIdx() });
-                        }, 50);
-                        //Testing themes... TODO: remove/move to another location...
-                        //app.applyTheme(app.generateColorTheme(),app.props.controller,app.state.currentTunnelRef);                    
-                    }
-                };
-                this.interactionEventStream = Event.Visual.VisualSelectElement.getStream(this.props.controller.context)
-                    .subscribe(function (e) { return interactionHandler('select', e.data, _this); });
-                $(window).on("lvCcontentResize", (function () {
+                            _this.setState({ data: layers, hasData: true, isDOMReady: true, instanceId: vizualizer.getPublicInstanceIdx() });
+                        });
+                    }, 50);
+                });
+                CommonUtils.Selection.SelectionHelper.attachOnChannelDeselectHandler(function () {
+                    _this.setState({ data: [], hasData: false, isDOMReady: false, currentTunnelRef: "", isLayerSelected: false });
+                    setTimeout(function () {
+                        $(window).trigger('contentResize');
+                    }, 1);
+                });
+                $(window).on("lvContentResize", (function () {
                     _this.forceUpdate();
                 }).bind(this));
                 $(window).on("resize", (function () {
@@ -1662,15 +2402,18 @@ var LayersVizualizer;
                 var instance = LayersVizualizer.Vizualizer.ACTIVE_INSTANCES[instanceIdx];
                 var propertyName = targetElement.getAttribute("data-propertyname");
                 if (propertyName === null) {
-                    console.log("No property name found!");
+                    if (Config.CommonOptions.DEBUG_MODE)
+                        console.log("No property name found!");
                     return;
                 }
                 if (this.props.isCustom) {
-                    console.log("setting custom property key: " + propertyName);
+                    if (Config.CommonOptions.DEBUG_MODE)
+                        console.log("setting custom property key: " + propertyName);
                     instance.setCustomColoringPropertyKey(propertyName);
                 }
                 else {
-                    console.log("setting regular property key: " + propertyName);
+                    if (Config.CommonOptions.DEBUG_MODE)
+                        console.log("setting regular property key: " + propertyName);
                     instance.setColoringPropertyKey(propertyName);
                 }
                 instance.vizualize();
@@ -1990,14 +2733,15 @@ var LayersVizualizer;
                 var residues = this.getLayerResidues(layerIdx);
                 var query = (_a = LiteMol.Core.Structure.Query).residues.apply(_a, residues);
                 /*this.removeResidue3DView();*/
-                CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
+                //CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
+                CommonUtils.Selection.SelectionHelper.clearAltSelection(this.props.app.props.controller);
                 var t = this.props.app.props.controller.createTransform();
-                t.add('polymer-visual', Transformer.Molecule.CreateSelectionFromQuery, { query: query, name: 'Residues' }, { ref: CommonUtils.Selection.SelectionHelper.getSelectionVisualRef() })
+                t.add('polymer-visual', Transformer.Molecule.CreateSelectionFromQuery, { query: query, name: 'Residues' }, { ref: CommonUtils.Selection.SelectionHelper.getAltSelectionVisualRef() })
                     .then(Transformer.Molecule.CreateVisual, { style: Visualization.Molecule.Default.ForType.get('BallsAndSticks') });
                 this.props.app.props.controller.applyTransform(t)
                     .then(function (res) {
                     //Focus
-                    LiteMol.Bootstrap.Command.Entity.Focus.dispatch(_this.props.app.props.controller.context, _this.props.app.props.controller.context.select(CommonUtils.Selection.SelectionHelper.getSelectionVisualRef()));
+                    LiteMol.Bootstrap.Command.Entity.Focus.dispatch(_this.props.app.props.controller.context, _this.props.app.props.controller.context.select(CommonUtils.Selection.SelectionHelper.getAltSelectionVisualRef()));
                 });
                 var _a;
             };
@@ -2021,7 +2765,8 @@ var LayersVizualizer;
                 var instance = LayersVizualizer.Vizualizer.ACTIVE_INSTANCES[instanceIdx];
                 if (instance.getSelectedLayer() === layerIdx) {
                     this.props.app.state.isLayerSelected = false;
-                    CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
+                    //CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
+                    CommonUtils.Selection.SelectionHelper.clearAltSelection(this.props.app.props.controller);
                     this.resetFocusToTunnel();
                     instance.deselectLayer();
                     instance.highlightHitbox(layerIdx);
@@ -2876,7 +3621,7 @@ var LayersVizualizer;
             }
             var canvas = this.getCanvas();
             var context = this.getContext();
-            if (canvas === void 0 || context === void 0 || !this.isElementVisible(canvas)) {
+            if (canvas === void 0 || context === void 0 || !this.isElementVisible(canvas) || !CommonUtils.Tabs.isActive("left-tabs", "1")) {
                 return;
             }
             var xUnit = canvas.width / 100;
@@ -2906,7 +3651,7 @@ var LayersVizualizer;
             }
             var canvas = this.getCanvas();
             var context = this.getContext();
-            if (canvas === void 0 || context === void 0 || !this.isElementVisible(canvas)) {
+            if (canvas === void 0 || context === void 0 || !this.isElementVisible(canvas) || !CommonUtils.Tabs.isActive("left-tabs", "1")) {
                 return;
             }
             this.resizeCanvas();
@@ -4425,6 +5170,39 @@ var LayersVizualizer;
         }
     })(Colors = LayersVizualizer.Colors || (LayersVizualizer.Colors = {}));
 })(LayersVizualizer || (LayersVizualizer = {}));
+var Common;
+(function (Common) {
+    var Controls;
+    (function (Controls) {
+        var React = LiteMol.Plugin.React;
+        var SimpleComboBox = (function (_super) {
+            __extends(SimpleComboBox, _super);
+            function SimpleComboBox() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            SimpleComboBox.prototype.render = function () {
+                var classNames = "";
+                if (this.props.className !== void 0) {
+                    classNames = this.props.className;
+                }
+                var selectedIdx = 0;
+                if (this.props.defaultSelectedIndex !== void 0) {
+                    selectedIdx = this.props.defaultSelectedIndex;
+                }
+                var items = [];
+                var idx = 0;
+                for (var _i = 0, _a = this.props.items; _i < _a.length; _i++) {
+                    var item = _a[_i];
+                    items.push(React.createElement("option", { value: item.value, selected: (idx === selectedIdx) }, item.label));
+                    idx++;
+                }
+                return (React.createElement("select", { id: this.props.id, className: classNames, onChange: this.props.onSelectedChange }, items));
+            };
+            return SimpleComboBox;
+        }(React.Component));
+        Controls.SimpleComboBox = SimpleComboBox;
+    })(Controls = Common.Controls || (Common.Controls = {}));
+})(Common || (Common = {}));
 var Datagrid;
 (function (Datagrid) {
     var Components;
@@ -4674,25 +5452,30 @@ var AglomeredParameters;
                     if (e.data.tree !== void 0 && e.data.ref === "mole-data") {
                         var toShow = [];
                         var data = e.data.props.data;
-                        toShow = toShow.concat(data.Channels.ReviewedChannels);
-                        toShow = toShow.concat(data.Channels.CSATunnels);
-                        toShow = toShow.concat(data.Channels.TransmembranePores);
+                        toShow = toShow.concat(data.Channels.Tunnels);
+                        toShow = toShow.concat(data.Channels.Paths);
+                        toShow = toShow.concat(data.Channels.Pores);
+                        toShow = toShow.concat(data.Channels.MergedPores);
                         _this.setState({
                             data: toShow
                         });
                     }
                 });
             };
-            App.prototype.dataWaitHandler = function () {
-                this.setState({ isWaitingForData: false });
-            };
-            App.prototype.invokeDataWait = function () {
-                if (this.state.isWaitingForData) {
-                    return;
-                }
-                this.setState({ isWaitingForData: true });
-                Annotation.AnnotationDataProvider.subscribeForData(this.dataWaitHandler.bind(this));
-            };
+            /*
+                    private dataWaitHandler(){
+                        this.setState({isWaitingForData:false});
+                    }
+            
+                    public invokeDataWait(){
+                        if(this.state.isWaitingForData){
+                            return;
+                        }
+            
+                        this.setState({isWaitingForData: true});
+                        Annotation.AnnotationDataProvider.subscribeForData(this.dataWaitHandler.bind(this));
+                    }
+            */
             App.prototype.componentWillUnmount = function () {
             };
             App.prototype.render = function () {
@@ -4807,13 +5590,14 @@ var AglomeredParameters;
             }
             DGRow.prototype.render = function () {
                 var tunnelID = this.props.tunnel.Type;
-                var annotation = Annotation.AnnotationDataProvider.getChannelAnnotation(this.props.tunnel.Id);
-                if (annotation !== void 0 && annotation !== null) {
+                /*let annotation = Annotation.AnnotationDataProvider.getChannelAnnotation(this.props.tunnel.Id);
+                if(annotation!== void 0 && annotation !== null){
                     tunnelID = annotation.text;
                 }
-                if (annotation === void 0) {
+    
+                if(annotation === void 0){
                     this.props.app.invokeDataWait();
-                }
+                }*/
                 return (React.createElement("tr", null,
                     React.createElement("td", { className: "col col-1" }, tunnelID),
                     React.createElement("td", { className: "col col-2" },
@@ -4836,7 +5620,6 @@ var LayerProperties;
     var UI;
     (function (UI) {
         var React = LiteMol.Plugin.React;
-        var LiteMoleEvent = LiteMol.Bootstrap.Event;
         var DGComponents = Datagrid.Components;
         var DGTABLE_COLS_COUNT = 2;
         var NO_DATA_MESSAGE = "Hover over channel(2D) for details...";
@@ -4861,25 +5644,40 @@ var LayerProperties;
             }
             App.prototype.componentDidMount = function () {
                 var _this = this;
-                var interactionHandler = function showInteraction(type, i, app) {
+                /*
+                var interactionHandler = function showInteraction(type: string, i: ChannelEventInfo | undefined, app: App) {
                     if (!i || i.source == null || i.source.props.tag === void 0 || i.source.props.tag.type === void 0) {
                         return;
                     }
-                    if (i.source.props.tag.type == "Tunnel"
+    
+                    if(i.source.props.tag.type == "Tunnel"
                         || i.source.props.tag.type == "Path"
                         || i.source.props.tag.type == "Pore"
-                        || i.source.props.tag.type == "MergedPore") {
-                        var layers = i.source.props.tag.element.Layers;
-                        app.setState({ data: layers.LayersInfo });
+                        || i.source.props.tag.type == "MergedPore"){
+                        
+                        let layers = i.source.props.tag.element.Layers;
+                        app.setState({data:layers.LayersInfo});
                     }
-                };
+                    
+                }*/
+                /*
                 this.interactionEventStream = LiteMoleEvent.Visual.VisualSelectElement.getStream(this.props.controller.context)
-                    .subscribe(function (e) { return interactionHandler('select', e.data, _this); });
+                    .subscribe(e => interactionHandler('select', e.data as ChannelEventInfo, this));
+                */
+                CommonUtils.Selection.SelectionHelper.attachOnChannelDeselectHandler(function () {
+                    _this.setState({ layerIdx: -1, data: null });
+                });
                 $(window).on('layerTriggered', this.layerTriggerHandler.bind(this));
             };
             App.prototype.layerTriggerHandler = function (event, layerIdx) {
                 this.layerIdx = layerIdx;
-                this.setState({ layerIdx: layerIdx });
+                var data = CommonUtils.Selection.SelectionHelper.getSelectedChannelData();
+                if (data !== null) {
+                    this.setState({ layerIdx: layerIdx, data: data.LayersInfo });
+                }
+                else {
+                    this.setState({ layerIdx: layerIdx });
+                }
                 setTimeout(function () {
                     $(window).trigger('contentResize');
                 }, 1);
@@ -4953,37 +5751,25 @@ var LayerProperties;
                 var layerData = this.props.data[this.props.layerIdx].Properties;
                 var rows = [];
                 var charge = CommonUtils.Numbers.roundToDecimal(layerData.Charge, 2).toString() + " (+" + CommonUtils.Numbers.roundToDecimal(layerData.NumPositives, 2).toString() + "/-" + CommonUtils.Numbers.roundToDecimal(layerData.NumNegatives, 2).toString() + ")";
-                /*
-                rows.push(
-                        <DGRow columns={["Charged(+)",CommonUtils.Numbers.roundToDecimal(layerData.NumPositives,2).toString()]} />
-                    );
-                rows.push(
-                        <DGRow columns={["Charged(-)",CommonUtils.Numbers.roundToDecimal(layerData.NumNegatives,2).toString()]} />
-                    );
-                    */
+                var minRadius = this.props.data[this.props.layerIdx].LayerGeometry.MinRadius;
                 rows.push(React.createElement(DGComponents.DGElementRow, { columns: [React.createElement("span", null,
                             React.createElement("span", { className: "glyphicon glyphicon-tint properties-icon" }),
                             "Hydropathy"), React.createElement("span", null, CommonUtils.Numbers.roundToDecimal(layerData.Hydropathy, 2).toString())] }));
                 rows.push(React.createElement(DGComponents.DGElementRow, { columns: [React.createElement("span", null,
                             React.createElement("span", { className: "glyphicon glyphicon-plus properties-icon" }),
-                            "Polarity"), React.createElement("span", null, CommonUtils.Numbers.roundToDecimal(layerData.Polarity, 2).toString())] })
-                /*<DGRow columns={["Polarity",CommonUtils.Numbers.roundToDecimal(layerData.Polarity,2).toString()]} />*/
-                );
+                            "Polarity"), React.createElement("span", null, CommonUtils.Numbers.roundToDecimal(layerData.Polarity, 2).toString())] }));
                 rows.push(React.createElement(DGComponents.DGElementRow, { columns: [React.createElement("span", null,
                             React.createElement("span", { className: "glyphicon glyphicon-tint properties-icon upside-down" }),
-                            "Hydrophobicity"), React.createElement("span", null, CommonUtils.Numbers.roundToDecimal(layerData.Hydrophobicity, 2).toString())] })
-                /*<DGRow columns={["Hydrophobicity",CommonUtils.Numbers.roundToDecimal(layerData.Hydrophobicity,2).toString()]} />*/
-                );
+                            "Hydrophobicity"), React.createElement("span", null, CommonUtils.Numbers.roundToDecimal(layerData.Hydrophobicity, 2).toString())] }));
                 rows.push(React.createElement(DGComponents.DGElementRow, { columns: [React.createElement("span", null,
                             React.createElement("span", { className: "glyphicon glyphicon-scissors properties-icon" }),
-                            "Mutability"), React.createElement("span", null, CommonUtils.Numbers.roundToDecimal(layerData.Mutability, 2).toString())] })
-                /*<DGRow columns={["Mutability",CommonUtils.Numbers.roundToDecimal(layerData.Mutability,2).toString()]} />*/
-                );
+                            "Mutability"), React.createElement("span", null, CommonUtils.Numbers.roundToDecimal(layerData.Mutability, 2).toString())] }));
                 rows.push(React.createElement(DGComponents.DGElementRow, { columns: [React.createElement("span", null,
                             React.createElement("span", { className: "glyphicon glyphicon-flash properties-icon" }),
-                            "Charge"), React.createElement("span", null, charge)] })
-                /*<DGRow columns={["Charge",/*CommonUtils.Numbers.roundToDecimal(layerData.Charge,2).toString()*/ /*charge]} />*/
-                );
+                            "Charge"), React.createElement("span", null, charge)] }));
+                rows.push(React.createElement(DGComponents.DGElementRow, { columns: [React.createElement("span", null,
+                            React.createElement("span", { className: "icon bottleneck black properties-icon" }),
+                            "Radius"), React.createElement("span", null, CommonUtils.Numbers.roundToDecimal(minRadius, 1))] }));
                 rows.push(React.createElement(DGComponents.DGRowEmpty, { columnsCount: DGTABLE_COLS_COUNT }));
                 return rows;
             };
@@ -5019,7 +5805,6 @@ var LayerResidues;
     (function (UI) {
         var DGComponents = Datagrid.Components;
         var React = LiteMol.Plugin.React;
-        var LiteMoleEvent = LiteMol.Bootstrap.Event;
         var DGTABLE_COLS_COUNT = 1;
         var NO_DATA_MESSAGE = "Hover over channel(2D) for details...";
         ;
@@ -5043,20 +5828,29 @@ var LayerResidues;
             }
             App.prototype.componentDidMount = function () {
                 var _this = this;
-                var interactionHandler = function showInteraction(type, i, app) {
+                /*
+                var interactionHandler = function showInteraction(type: string, i: ChannelEventInfo | undefined, app: App) {
                     if (!i || i.source == null || i.source.props.tag === void 0 || i.source.props.tag.type === void 0) {
                         return;
                     }
-                    if (i.source.props.tag.type == "Tunnel"
+    
+                    if(i.source.props.tag.type == "Tunnel"
                         || i.source.props.tag.type == "Path"
                         || i.source.props.tag.type == "Pore"
-                        || i.source.props.tag.type == "MergedPore") {
-                        var layers = i.source.props.tag.element.Layers;
-                        app.setState({ data: layers.LayersInfo });
+                        || i.source.props.tag.type == "MergedPore"){
+                        
+                        let layers = i.source.props.tag.element.Layers;
+                        app.setState({data:layers.LayersInfo});
                     }
-                };
+                    
+                }
+    
                 this.interactionEventStream = LiteMoleEvent.Visual.VisualSelectElement.getStream(this.props.controller.context)
-                    .subscribe(function (e) { return interactionHandler('select', e.data, _this); });
+                    .subscribe(e => interactionHandler('select', e.data as ChannelEventInfo, this));
+                */
+                CommonUtils.Selection.SelectionHelper.attachOnChannelDeselectHandler(function () {
+                    _this.setState({ layerIdx: -1, data: null });
+                });
                 $(window).on('layerTriggered', this.layerTriggerHandler.bind(this));
             };
             /*
@@ -5075,7 +5869,13 @@ var LayerResidues;
             */
             App.prototype.layerTriggerHandler = function (event, layerIdx) {
                 this.layerIdx = layerIdx;
-                this.setState({ layerIdx: layerIdx });
+                var data = CommonUtils.Selection.SelectionHelper.getSelectedChannelData();
+                if (data !== null) {
+                    this.setState({ layerIdx: layerIdx, data: data.LayersInfo });
+                }
+                else {
+                    this.setState({ layerIdx: layerIdx });
+                }
                 setTimeout(function () {
                     $(window).trigger('contentResize');
                 }, 1);
@@ -5236,6 +6036,261 @@ var LayerResidues;
         }(React.Component));
     })(UI = LayerResidues.UI || (LayerResidues.UI = {}));
 })(LayerResidues || (LayerResidues = {}));
+var LiningResidues;
+(function (LiningResidues) {
+    var UI;
+    (function (UI) {
+        var DGComponents = Datagrid.Components;
+        var React = LiteMol.Plugin.React;
+        var DGTABLE_COLS_COUNT = 1;
+        var NO_DATA_MESSAGE = "Select channel in 3D view for details...";
+        ;
+        ;
+        function render(target, plugin) {
+            LiteMol.Plugin.ReactDOM.render(React.createElement(App, { controller: plugin }), target);
+        }
+        UI.render = render;
+        var App = (function (_super) {
+            __extends(App, _super);
+            function App() {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.interactionEventStream = void 0;
+                _this.state = {
+                    data: null,
+                    app: _this,
+                    isWaitingForData: false
+                };
+                _this.layerIdx = -1;
+                return _this;
+            }
+            App.prototype.componentDidMount = function () {
+                var _this = this;
+                CommonUtils.Selection.SelectionHelper.attachOnChannelSelectHandler(function (data) {
+                    _this.setState({ data: CommonUtils.Residues.sort(data.ResidueFlow, void 0, true, true) });
+                    setTimeout(function () {
+                        $(window).trigger('contentResize');
+                    }, 1);
+                });
+                CommonUtils.Selection.SelectionHelper.attachOnChannelDeselectHandler(function () {
+                    _this.setState({ data: null });
+                });
+            };
+            /*
+            private dataWaitHandler(){
+                this.setState({isWaitingForData:false});
+            }
+    
+            public invokeDataWait(){
+                if(this.state.isWaitingForData){
+                    return;
+                }
+    
+                this.setState({isWaitingForData: true});
+                Annotation.AnnotationDataProvider.subscribeForData(this.dataWaitHandler.bind(this));
+            }*/
+            App.prototype.componentWillUnmount = function () {
+            };
+            App.prototype.render = function () {
+                if (this.state.data !== null) {
+                    return (React.createElement("div", null,
+                        React.createElement(DGTable, __assign({}, this.state)),
+                        React.createElement(Controls, __assign({}, this.state))));
+                }
+                return React.createElement("div", null,
+                    React.createElement(DGNoData, __assign({}, this.state)));
+            };
+            return App;
+        }(React.Component));
+        UI.App = App;
+        function residueStringToResidueLight(residue) {
+            /*
+            [0 , 1 ,2 ,  3   ]
+            VAL 647 A Backbone
+            */
+            var residueParts = residue.split(" ");
+            var rv = {
+                authSeqNumber: Number(residueParts[1]),
+                chain: {
+                    authAsymId: residueParts[2]
+                }
+            };
+            return rv;
+        }
+        var Controls = (function (_super) {
+            __extends(Controls, _super);
+            function Controls() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            Controls.prototype.clearSelection = function () {
+                CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
+            };
+            Controls.prototype.selectAll = function () {
+                var residues = [];
+                if (this.props.app.state.data === null) {
+                    return;
+                }
+                for (var _i = 0, _a = this.props.app.state.data; _i < _a.length; _i++) {
+                    var residue = _a[_i];
+                    residues.push(residueStringToResidueLight(residue));
+                }
+                if (!CommonUtils.Selection.SelectionHelper.isBulkResiduesSelected(residues)) {
+                    CommonUtils.Selection.SelectionHelper.selectResiduesBulkWithBallsAndSticks(this.props.app.props.controller, residues);
+                }
+            };
+            Controls.prototype.render = function () {
+                return React.createElement("div", { className: "lining-residues select-controls" },
+                    React.createElement("span", { className: "btn-xs btn-default bt-all hand", onClick: this.selectAll.bind(this) }, "Select all"),
+                    React.createElement("span", { className: "btn-xs btn-default bt-none hand", onClick: this.clearSelection.bind(this) }, "Clear selection"));
+            };
+            return Controls;
+        }(React.Component));
+        var DGNoData = (function (_super) {
+            __extends(DGNoData, _super);
+            function DGNoData() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            DGNoData.prototype.render = function () {
+                return (React.createElement("div", { className: "datagrid", id: "dg-lining-residues" },
+                    React.createElement("div", { className: "header" },
+                        React.createElement(DGHead, __assign({}, this.props))),
+                    React.createElement("div", { className: "body" },
+                        React.createElement("table", null,
+                            React.createElement(DGComponents.DGNoDataInfoRow, { columnsCount: DGTABLE_COLS_COUNT, infoText: NO_DATA_MESSAGE }),
+                            React.createElement(DGComponents.DGRowEmpty, { columnsCount: DGTABLE_COLS_COUNT })))));
+            };
+            return DGNoData;
+        }(React.Component));
+        var DGTable = (function (_super) {
+            __extends(DGTable, _super);
+            function DGTable() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            DGTable.prototype.render = function () {
+                return (React.createElement("div", { className: "datagrid", id: "dg-lining-residues" },
+                    React.createElement("div", { className: "header" },
+                        React.createElement(DGHead, __assign({}, this.props))),
+                    React.createElement("div", { className: "body" },
+                        React.createElement(DGBody, __assign({}, this.props)))));
+            };
+            return DGTable;
+        }(React.Component));
+        var DGHead = (function (_super) {
+            __extends(DGHead, _super);
+            function DGHead() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            DGHead.prototype.render = function () {
+                return (React.createElement("table", null,
+                    React.createElement("tr", null,
+                        React.createElement("th", { title: "Residue", className: "col col-1" }, "Residue"))));
+            };
+            ;
+            return DGHead;
+        }(React.Component));
+        var DGBody = (function (_super) {
+            __extends(DGBody, _super);
+            function DGBody() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            DGBody.prototype.generateLink = function (annotation) {
+                if (annotation.reference === "") {
+                    return (annotation.text !== void 0 && annotation.text !== null) ? React.createElement("span", null, annotation.text) : React.createElement("span", { className: "no-annotation" });
+                }
+                return React.createElement("a", { target: "_blank", href: annotation.link, dangerouslySetInnerHTML: { __html: annotation.text } });
+            };
+            DGBody.prototype.shortenBackbone = function (residue) {
+                return residue.replace(/Backbone/g, '');
+            };
+            DGBody.prototype.isBackbone = function (residue) {
+                return residue.indexOf("Backbone") >= 0;
+            };
+            DGBody.prototype.selectResidue = function (residue) {
+                var residueLightEntity = residueStringToResidueLight(residue);
+                if (!CommonUtils.Selection.SelectionHelper.isSelectedLight(residueLightEntity)) {
+                    CommonUtils.Selection.SelectionHelper.selectResidueByAuthAsymIdAndAuthSeqNumberWithBallsAndSticks(this.props.app.props.controller, residueLightEntity);
+                }
+            };
+            DGBody.prototype.getSelect3DLink = function (residue) {
+                var _this = this;
+                var residueEl = (this.isBackbone(residue)) ? React.createElement("i", null,
+                    React.createElement("strong", null, this.shortenBackbone(residue))) : React.createElement("span", null, residue);
+                return React.createElement("a", { className: "hand", onClick: function (e) { _this.selectResidue(residue); } }, residueEl);
+            };
+            /*
+                    private generateSpannedRows(residue:string, annotations: Annotation.ResidueAnnotation[]){
+                        let trs:JSX.Element[] = [];
+            
+                        let residueNameEl = this.getSelect3DLink(residue);//(this.isBackbone(residue))?<i><strong>{this.shortenBackbone(residue)}</strong></i>:<span>{residue}</span>;
+            
+                        let first = true;
+                        for(let annotation of annotations){
+                            if(first === true){
+                                first = false;
+                                trs.push(
+                                    <tr title={(this.isBackbone(residue)?residue:"")} className={(this.isBackbone(residue)?"help":"")}>
+                                        <td className={`col col-1`} rowSpan={(annotations.length>1)?annotations.length:void 0}>
+                                            {residueNameEl}
+                                        </td>
+                                        <td className={`col col-2`} >
+                                            {this.generateLink(annotation)}
+                                        </td>
+                                    </tr>
+                                );
+                            }
+                            else{
+                               trs.push(
+                                    <tr>
+                                        <td className={`col col-2`} >
+                                            {this.generateLink(annotation)}
+                                        </td>
+                                    </tr>
+                                );
+                            }
+                        }
+                        return trs;
+                    }*/
+            DGBody.prototype.generateRows = function () {
+                if (this.props.data === null) {
+                    return React.createElement(DGComponents.DGNoDataInfoRow, { columnsCount: DGTABLE_COLS_COUNT, infoText: NO_DATA_MESSAGE });
+                }
+                var rows = [];
+                for (var _i = 0, _a = this.props.data; _i < _a.length; _i++) {
+                    var residue = _a[_i];
+                    var residueId = residue.split(" ").slice(1, 3).join(" ");
+                    /*
+                    let annotation;
+                    let annotationText = "";
+                    let annotationSource = "";
+    
+                    annotation = Annotation.AnnotationDataProvider.getResidueAnnotations(residueId);
+                    //let residueNameEl = (this.isBackbone(residue))?<i><strong>{this.shortenBackbone(residue)}</strong></i>:<span>{residue}</span>;
+                    if(annotation === void 0){
+                        this.props.app.invokeDataWait();
+                        rows.push(
+                            <DGComponents.DGElementRow columns={[this.getSelect3DLink(residue),<span>Annotation data still loading...</span>]} title={[(this.isBackbone(residue)?residue:""),""]} trClass={(this.isBackbone(residue)?"help":"")} />
+                        );
+                    }
+                    else if(annotation !== null && annotation.length>0){
+                        rows = rows.concat(
+                            this.generateSpannedRows(residue,annotation)
+                        );
+                    }
+                    else{*/
+                    rows.push(React.createElement(DGComponents.DGElementRow, { columns: [this.getSelect3DLink(residue)], title: [(this.isBackbone(residue) ? residue : "")], trClass: (this.isBackbone(residue) ? "help" : "") }));
+                    /*}*/
+                }
+                rows.push(React.createElement(DGComponents.DGRowEmpty, { columnsCount: DGTABLE_COLS_COUNT }));
+                return rows;
+            };
+            DGBody.prototype.render = function () {
+                var rows = this.generateRows();
+                return (React.createElement("table", null, rows));
+            };
+            ;
+            return DGBody;
+        }(React.Component));
+    })(UI = LiningResidues.UI || (LiningResidues.UI = {}));
+})(LiningResidues || (LiningResidues = {}));
 var ResidueAnnotations;
 (function (ResidueAnnotations) {
     var UI;
@@ -5418,8 +6473,8 @@ var ResidueAnnotations;
                     }
                 };
                 var this_2 = this;
-                for (var _i = 0, residues_1 = residues; _i < residues_1.length; _i++) {
-                    var residueId = residues_1[_i];
+                for (var _i = 0, residues_3 = residues; _i < residues_3.length; _i++) {
+                    var residueId = residues_3[_i];
                     _loop_2(residueId);
                 }
                 rows.push(React.createElement(DGComponents.DGRowEmpty, { columnsCount: DGTABLE_COLS_COUNT }));
@@ -5644,6 +6699,10 @@ var Controls;
                 return _this;
             }
             App.prototype.componentDidMount = function () {
+                var _this = this;
+                MoleOnlineWebUI.Bridge.Events.subscribeNewSubmit(function () {
+                    _this.forceUpdate();
+                });
             };
             App.prototype.componentWillUnmount = function () {
             };
@@ -5846,24 +6905,24 @@ var Controls;
                     React.createElement(NumberBox, { label: "Interior Treshold", id: "interiorTreshold", classNames: doubleColClasses, min: 0.8, max: 2.4, defaultValue: 1.25, step: 0.01 }),
                     React.createElement(NumberBox, { label: "Probe radius", id: "probeRadius", classNames: doubleColClasses, min: 1.4, max: 20, defaultValue: 3, step: 0.01 }),
                     React.createElement("h4", null, "Start and end"),
-                    React.createElement(CheckBox, { label: "Automatic starting points", defaultChecked: false, id: "automaticStartingPoints", classNames: chckColClasses }),
                     React.createElement(TextBox, { label: "Starting point", id: "originResidues", classNames: doubleColClasses }),
                     React.createElement(XYZBox, { label: "Starting point [x,y,z]", id: "originPoints", classNames: doubleColClasses }),
-                    React.createElement(CheckBox, { label: "Automatic endpoints", defaultChecked: false, id: "automaticEndPoints", classNames: chckColClasses }),
                     React.createElement(TextBox, { label: "End point", id: "customExitsResidues", classNames: doubleColClasses }),
                     React.createElement(XYZBox, { label: "End point [x,y,z]", id: "customExitsPoints", classNames: doubleColClasses }),
                     React.createElement(TextBox, { label: "Query expresion", id: "queryExpresion", classNames: doubleColClasses }),
                     React.createElement("h4", null, "Tunnel"),
-                    React.createElement(ComboBox, { label: "Weight function", id: "tunnelWeightFunction", items: [{ label: "Voronoi Scale", value: "VoronoiScale" }], classNames: doubleColClasses }),
+                    React.createElement(ComboBox, { label: "Weight function", id: "tunnelWeightFunction", items: MoleOnlineWebUI.StaticData.WeightFunctions.get(), classNames: doubleColClasses }),
                     React.createElement(NumberBox, { label: "Bottleneck radius", id: "bottleneckRadius", classNames: doubleColClasses, min: 0.8, max: 5, defaultValue: 1.2, step: 0.01 }),
                     React.createElement(NumberBox, { label: "Bottleneck tolerance", id: "bottleneckTolerance", classNames: doubleColClasses, min: 0, max: 5, defaultValue: 0, step: 0.1 }),
                     React.createElement(NumberBox, { label: "Max tunnel similarity", id: "maxTunnelSimilarity", classNames: doubleColClasses, min: 0, max: 1, defaultValue: 0.9, step: 0.05 }),
                     React.createElement(NumberBox, { label: "Origin radius", id: "originRadius", classNames: doubleColClasses, min: 0.1, max: 10, defaultValue: 5, step: 0.05 }),
                     React.createElement(NumberBox, { label: "Surface cover radius", id: "surfaceCoverRadius", classNames: doubleColClasses, min: 5, max: 20, defaultValue: 10, step: 0.5 }),
-                    React.createElement(CheckBox, { label: "Use custom exits only", defaultChecked: false, id: "useCustomExitsOnly", classNames: chckColClasses }),
                     React.createElement("h4", null, "Pores"),
                     React.createElement(CheckBox, { label: "Merge pores", defaultChecked: false, id: "mergePores", classNames: chckColClasses }),
                     React.createElement(CheckBox, { label: "Automatic pores", defaultChecked: false, id: "automaticPores", classNames: chckColClasses })));
+                //<CheckBox label="Automatic starting points" defaultChecked={false} id="automaticStartingPoints" classNames={chckColClasses} />
+                //<CheckBox label="Automatic endpoints" defaultChecked={false} id="automaticEndPoints" classNames={chckColClasses} />
+                //<CheckBox label="Use custom exits only" defaultChecked={false} id="useCustomExitsOnly" classNames={chckColClasses} />
                 //<LabelBox label="Active sites from CSA" text="TODO:..." id="activeSites" classNames={doubleColClasses} />
             };
             return Settings;
@@ -5877,21 +6936,45 @@ var Controls;
                 _this.state = { computationInfo: null, loading: true, statusInfo: null };
                 return _this;
             }
-            Submissions.prototype.componentDidMount = function () {
+            Submissions.prototype.componentWillReceiveProps = function (nextProps) {
+                this.prepareSubmissionData(nextProps.computationInfo);
+            };
+            Submissions.prototype.prepareSubmissionData = function (computationInfo) {
                 var _this = this;
                 var promises = [];
-                for (var _i = 0, _a = this.props.computationInfo.Submissions; _i < _a.length; _i++) {
+                for (var _i = 0, _a = computationInfo.Submissions; _i < _a.length; _i++) {
                     var submission = _a[_i];
-                    promises.push(Service.ApiService.getStatus(this.props.computationInfo.ComputationId, submission.SubmitId));
+                    promises.push(Service.ApiService.getStatus(computationInfo.ComputationId, submission.SubmitId));
                 }
                 Promise.all(promises).then(function (statusResponses) {
                     var map = new Map();
+                    var _loop_3 = function (status_1) {
+                        if (status_1.Status === "Initializing" || status_1.Status === "Running") {
+                            MoleOnlineWebUI.DataProxy.JobStatus.Watcher.registerOnChangeHandler(status_1.ComputationId, status_1.SubmitId, function (state) {
+                                var statusInfo = _this.state.statusInfo;
+                                if (statusInfo !== null) {
+                                    var old = statusInfo.get(String(status_1.SubmitId));
+                                    if (old === void 0 || old !== state.Status) {
+                                        statusInfo.set(String(status_1.SubmitId), state.Status);
+                                        _this.setState({ statusInfo: map });
+                                    }
+                                }
+                            }, function (err) {
+                                if (Config.CommonOptions.DEBUG_MODE)
+                                    console.log(err);
+                            });
+                        }
+                        map.set(String(status_1.SubmitId), status_1.Status);
+                    };
                     for (var _i = 0, statusResponses_1 = statusResponses; _i < statusResponses_1.length; _i++) {
                         var status_1 = statusResponses_1[_i];
-                        map.set(String(status_1.SubmitId), status_1.Status);
+                        _loop_3(status_1);
                     }
-                    _this.setState({ computationInfo: _this.props.computationInfo, loading: false, statusInfo: map });
+                    _this.setState({ computationInfo: computationInfo, loading: false, statusInfo: map });
                 });
+            };
+            Submissions.prototype.componentDidMount = function () {
+                this.prepareSubmissionData(this.props.computationInfo);
             };
             Submissions.prototype.render = function () {
                 if (this.state.computationInfo !== null && !this.state.loading) {
@@ -5933,8 +7016,8 @@ var Controls;
         UI.Submissions = Submissions;
         function flattenResidues(residues) {
             var rv = "";
-            for (var _i = 0, residues_2 = residues; _i < residues_2.length; _i++) {
-                var r = residues_2[_i];
+            for (var _i = 0, residues_4 = residues; _i < residues_4.length; _i++) {
+                var r = residues_4[_i];
                 if (rv !== "") {
                     rv += ", ";
                 }
@@ -5954,13 +7037,17 @@ var Controls;
                 var data = this.props.data;
                 return (React.createElement("div", { className: "panel panel-default" },
                     React.createElement("div", { className: "panel-heading" },
-                        React.createElement("h4", { className: "panel-title" },
-                            React.createElement("a", { "data-toggle": "collapse", href: "#submit-data-" + data.SubmitId },
+                        React.createElement("a", { "data-toggle": "collapse", href: "#submit-data-" + data.SubmitId, onClick: function (e) {
+                                if (e.currentTarget.attributes.getNamedItem('aria-expanded').value === 'true') {
+                                    changeSubmitId(_this.props.computationId, data.SubmitId);
+                                }
+                            } },
+                            React.createElement("h4", { className: "panel-title" },
                                 "#",
-                                data.SubmitId)),
-                        React.createElement("div", { className: "submission-state" },
-                            "Status: ",
-                            React.createElement("span", { className: "state-" + this.props.status }, this.props.status))),
+                                data.SubmitId),
+                            React.createElement("div", { className: "submission-state" },
+                                "Status: ",
+                                React.createElement("span", { className: "state-" + this.props.status }, this.props.status)))),
                     React.createElement("div", { id: "submit-data-" + data.SubmitId, className: "panel-collapse collapse" },
                         React.createElement("div", { className: "panel-body" },
                             React.createElement("h4", null, "General"),
@@ -6033,13 +7120,16 @@ var Controls;
                             React.createElement("br", null),
                             "Automatic pores: ",
                             (data.MoleConfig.PoresAuto === void 0 || data.MoleConfig.PoresAuto === null) ? "False" : (data.MoleConfig.PoresAuto) ? "True" : "False",
-                            React.createElement("br", null)),
-                        React.createElement("div", { className: "panel-footer" },
-                            React.createElement("a", { onClick: function () { return CommonUtils.Router.redirect(_this.props.computationId, data.SubmitId); }, className: "hand" }, "View")))));
+                            React.createElement("br", null)))));
             };
             return Submission;
         }(React.Component));
         UI.Submission = Submission;
+        function changeSubmitId(computationId, submitId) {
+            CommonUtils.Router.fakeRedirect(computationId, submitId);
+            LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
+            MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(submitId);
+        }
         function pointsToString(points) {
             var rv = "";
             for (var _i = 0, points_1 = points; _i < points_1.length; _i++) {
@@ -6113,8 +7203,12 @@ var Controls;
                 else {
                     this.setState({ err: "Parameters from url cannot be properly processed." });
                 }
+                MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId(function (submitId) {
+                    _this.setState({ submitId: submitId });
+                });
             };
             ControlTabs.prototype.handleSubmit = function (e) {
+                var _this = this;
                 e.preventDefault();
                 if (this.state.data === void 0) {
                     return;
@@ -6150,8 +7244,8 @@ var Controls;
                 var automaticPores;
                 for (var idx = 0; idx < form.length; idx++) {
                     var item = form[idx];
-                    var name_1 = item.getAttribute('id');
-                    switch (name_1) {
+                    var name_3 = item.getAttribute('id');
+                    switch (name_3) {
                         case 'specificChains':
                             specificChains = item.value;
                             break;
@@ -6297,12 +7391,18 @@ var Controls;
                     PoresMerged: mergePores,
                     QueryFilter: queryFilter
                 };
-                console.log(formData);
                 Service.ApiService.submitMoleJob(this.state.data.ComputationId, formData).then(function (result) {
-                    CommonUtils.Router.redirect(result.ComputationId, Number(result.SubmitId));
+                    CommonUtils.Router.fakeRedirect(result.ComputationId, Number(result.SubmitId));
+                    LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
+                    Provider.get(result.ComputationId, (function (compId, info) {
+                        _this.setState({ data: info });
+                        MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
+                        MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
+                    }).bind(_this), true);
                 })
                     .catch(function (err) {
-                    console.log(err);
+                    if (Config.CommonOptions.DEBUG_MODE)
+                        console.log(err);
                 });
             };
             ControlTabs.prototype.render = function () {
@@ -6317,24 +7417,96 @@ var Controls;
                 return (React.createElement("div", { className: "submit-form-container" },
                     React.createElement("form", { className: "form-horizontal", onSubmit: this.handleSubmit.bind(this) },
                         React.createElement(Common.Tabs.BootstrapTabs.TabbedContainer, { header: ["Submission settings", "Submissions"], tabContents: tabs, namespace: "right-panel-tabs-", htmlClassName: "tabs", htmlId: "right-panel-tabs", activeTab: this.props.activeTab }),
-                        React.createElement(SubmitButton, null)),
+                        React.createElement(ControlButtons, { submitId: this.state.submitId, computationInfo: this.state.data })),
                     React.createElement("div", { id: "right-panel-toggler", className: "toggler glyphicon glyphicon-resize-vertical" })));
             };
             return ControlTabs;
         }(React.Component));
         UI.ControlTabs = ControlTabs;
-        var SubmitButton = (function (_super) {
-            __extends(SubmitButton, _super);
-            function SubmitButton() {
-                return _super !== null && _super.apply(this, arguments) || this;
+        var ControlButtons = (function (_super) {
+            __extends(ControlButtons, _super);
+            function ControlButtons() {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.state = { submitId: -1 };
+                return _this;
             }
-            SubmitButton.prototype.render = function () {
-                return React.createElement("div", { className: "submit-parent" },
-                    React.createElement("input", { className: "btn btn-primary submit", type: "submit", value: "Submit" }));
+            ControlButtons.prototype.componentDidMount = function () {
+                this.state.submitId = this.props.submitId;
             };
-            return SubmitButton;
+            ControlButtons.prototype.componentWillReceiveProps = function (nextProps) {
+                this.setState({
+                    submitId: nextProps.submitId
+                });
+            };
+            ControlButtons.prototype.getSubmissions = function () {
+                var submissions = [];
+                if (this.props.computationInfo !== void 0) {
+                    submissions = this.sortSubmissions(this.props.computationInfo.Submissions);
+                }
+                return submissions;
+            };
+            ControlButtons.prototype.sortSubmissions = function (items) {
+                return items.sort(function (a, b) {
+                    return a.SubmitId - b.SubmitId;
+                });
+            };
+            ControlButtons.prototype.prepareSubmissionItems = function () {
+                var submissions = this.getSubmissions();
+                if (submissions.length === 0) {
+                    return [];
+                }
+                var rv = [];
+                for (var _i = 0, submissions_1 = submissions; _i < submissions_1.length; _i++) {
+                    var item = submissions_1[_i];
+                    rv.push({
+                        label: "" + item.SubmitId,
+                        value: "" + item.SubmitId
+                    });
+                }
+                return rv;
+            };
+            ControlButtons.prototype.getSelectedIndex = function (submitId, items) {
+                for (var idx = 0; idx < items.length; idx++) {
+                    var item = items[idx];
+                    if (item.value === "" + submitId) {
+                        return idx;
+                    }
+                }
+                return void 0;
+            };
+            ControlButtons.prototype.onSubmitIdComboSelectChange = function (e) {
+                if (this.props.computationInfo === void 0) {
+                    return;
+                }
+                var idx = e.currentTarget.selectedIndex;
+                var submitId = e.currentTarget.options[idx].value;
+                var sid = Number(submitId).valueOf();
+                changeSubmitId(this.props.computationInfo.ComputationId, sid);
+                this.setState({ submitId: sid });
+            };
+            ControlButtons.prototype.changeSubmitIdByStep = function (e) {
+                if (this.props.computationInfo === void 0) {
+                    return;
+                }
+                var submitId = e.currentTarget.dataset["value"];
+                if (submitId !== void 0) {
+                    var sid = Number(submitId).valueOf();
+                    changeSubmitId(this.props.computationInfo.ComputationId, sid);
+                    this.setState({ submitId: sid });
+                }
+            };
+            ControlButtons.prototype.render = function () {
+                var items = this.prepareSubmissionItems();
+                var idx = this.getSelectedIndex(this.state.submitId, items);
+                return React.createElement("div", { className: "submit-parent" },
+                    React.createElement("input", { className: "btn btn-primary submit", type: "submit", value: "Submit" }),
+                    React.createElement("input", { className: "btn btn-primary submit-arrow", type: "button", value: ">", disabled: (idx === void 0 || idx === items.length - 1) ? true : void 0, "data-value": (idx === void 0 || idx === items.length - 1) ? void 0 : items[idx + 1].value, onClick: this.changeSubmitIdByStep.bind(this) }),
+                    React.createElement(Common.Controls.SimpleComboBox, { id: "submissionComboSwitch", items: items, defaultSelectedIndex: idx, className: "form-control submit-combo", onSelectedChange: this.onSubmitIdComboSelectChange.bind(this) }),
+                    React.createElement("input", { className: "btn btn-primary submit-arrow", type: "button", value: "<", disabled: (idx === void 0 || idx === 0) ? true : void 0, "data-value": (idx === void 0 || idx === 0) ? void 0 : items[idx - 1].value, onClick: this.changeSubmitIdByStep.bind(this) }));
+            };
+            return ControlButtons;
         }(React.Component));
-        UI.SubmitButton = SubmitButton;
+        UI.ControlButtons = ControlButtons;
         var TabbedContainer = (function (_super) {
             __extends(TabbedContainer, _super);
             function TabbedContainer() {
@@ -6350,14 +7522,14 @@ var Controls;
             TabbedContainer.prototype.header = function () {
                 var _this = this;
                 var rv = [];
-                var _loop_3 = function (idx) {
+                var _loop_4 = function (idx) {
                     var header = this_3.props.header[idx];
                     rv.push(React.createElement("li", { className: (idx === this_3.state.activeTabIdx) ? "active" : "" },
                         React.createElement("a", { "data-toggle": "tab", href: "#" + this_3.props.namespace + (idx + 1), onClick: (function () { _this.setState({ activeTabIdx: idx }); }).bind(this_3) }, header)));
                 };
                 var this_3 = this;
                 for (var idx = 0; idx < this.props.header.length; idx++) {
-                    _loop_3(idx);
+                    _loop_4(idx);
                 }
                 return rv;
             };
@@ -6487,6 +7659,7 @@ var LiteMol;
             (function (State) {
                 var _this = this;
                 var ApiService = MoleOnlineWebUI.Service.MoleAPI.ApiService;
+                var Tree = LiteMol.Bootstrap.Tree;
                 var Transformer = LiteMol.Bootstrap.Entity.Transformer;
                 function showDefaultVisuals(plugin, data) {
                     return new LiteMol.Promise(function (res) {
@@ -6517,12 +7690,33 @@ var LiteMol;
                         });
                     });
                 }
+                function getNodeFromTree(root, ref) {
+                    if (root.ref === ref) {
+                        return root;
+                    }
+                    for (var _i = 0, _a = root.children; _i < _a.length; _i++) {
+                        var c = _a[_i];
+                        var n = getNodeFromTree(c, ref);
+                        if (n !== null) {
+                            return n;
+                        }
+                    }
+                    return null;
+                }
+                function removeChannelsData(plugin) {
+                    var channelsDataObj = getNodeFromTree(plugin.root, 'mole-data-object');
+                    if (channelsDataObj !== null) {
+                        Tree.remove(channelsDataObj);
+                    }
+                }
+                State.removeChannelsData = removeChannelsData;
                 function downloadChannelsData(plugin, computationId, submitId) {
+                    removeChannelsData(plugin);
                     return new LiteMol.Promise(function (res, rej) {
                         ApiService.getChannelsData(computationId, submitId).then(function (data) {
-                            var protein = plugin.createTransform().add(plugin.root, Transformer.Data.FromData, { data: data, id: 'MOLE Data' }, { isHidden: false })
+                            var channels = plugin.createTransform().add(plugin.root, Transformer.Data.FromData, { data: data, id: 'MOLE Data' }, { isHidden: false, ref: 'mole-data-object' })
                                 .then(Transformer.Data.ParseJson, { id: 'MOLE Data' }, { ref: 'mole-data' });
-                            plugin.applyTransform(protein)
+                            plugin.applyTransform(channels)
                                 .then(function () {
                                 var parsedData = plugin.context.select('mole-data')[0];
                                 if (!parsedData) {
@@ -6542,7 +7736,7 @@ var LiteMol;
                     return new LiteMol.Promise(function (res, rej) {
                         ApiService.getProteinStructure(computationId, submitId).then(function (data) {
                             var protein = plugin.createTransform()
-                                .add(plugin.root, Transformer.Data.FromData, { data: data, id: computationId + "/" + submitId }, { isBinding: true })
+                                .add(plugin.root, Transformer.Data.FromData, { data: data, id: computationId + "/" + submitId }, { isBinding: true, ref: 'protein-data' })
                                 .then(Transformer.Molecule.CreateFromData, { format: LiteMol.Core.Formats.Molecule.SupportedFormats.mmCIF }, { isBinding: true })
                                 .then(Transformer.Molecule.CreateModel, { modelIndex: 0 })
                                 .then(Transformer.Molecule.CreateMacromoleculeVisual, { polymer: true, polymerRef: 'polymer-visual', het: true });
@@ -6560,7 +7754,7 @@ var LiteMol;
                     });
                 }
                 function loadData(plugin) {
-                    plugin.clear();
+                    //plugin.clear();
                     var modelLoadPromise = new LiteMol.Promise(function (res, rej) {
                         var parameters = CommonUtils.Router.getParameters();
                         /*
@@ -6583,16 +7777,56 @@ var LiteMol;
                         }
                         var computationId = parameters.computationId;
                         var submitId = parameters.submitId;
-                        var protein = plugin.selectEntities('polymer-visual');
-                        waitForResult(computationId, submitId, plugin, res, rej, protein.length !== 0);
+                        //let protein = plugin.selectEntities('polymer-visual');
+                        //waitForResult(computationId,submitId/*,plugin*/,res,rej/*,protein.length!==0*/);
+                        MoleOnlineWebUI.DataProxy.JobStatus.Watcher.registerOnChangeHandler(computationId, submitId, (function (status) {
+                            var plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
+                            var proteinLoaded = existsRefInTree(plugin.root, 'protein-data');
+                            /*
+                            "Initializing"| OK
+                            "Initialized"| OK
+                            "FailedInitialization"| OK
+                            "Running"| OK
+                            "Finished"| OK
+                            "Error"| OK
+                            "Deleted"| OK
+                            "Aborted"; OK
+                            */
+                            if (status.Status === "Initializing" || status.Status === "Running") {
+                                //Do Nothing
+                            }
+                            else if (status.Status === "Initialized") {
+                                acquireData(computationId, submitId, plugin, res, rej, !proteinLoaded, false);
+                            }
+                            else if (status.Status === "FailedInitialization" || status.Status === "Error" || status.Status === "Deleted" || status.Status === "Aborted") {
+                                rej(status.ErrorMsg);
+                            }
+                            else if (status.Status === "Finished") {
+                                acquireData(computationId, submitId, plugin, res, rej, !proteinLoaded, true);
+                            }
+                        }), function (err) { return rej(err); });
                     });
                     var promises = [];
                     promises.push(modelLoadPromise);
                     return LiteMol.Promise.all(promises);
                 }
                 State.loadData = loadData;
-                function waitForResult(computationId, submitId, plugin, res, rej, proteinLoaded) {
+                function existsRefInTree(root, ref) {
+                    if (root.ref === ref) {
+                        return true;
+                    }
+                    for (var _i = 0, _a = root.children; _i < _a.length; _i++) {
+                        var c = _a[_i];
+                        if (existsRefInTree(c, ref)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                function waitForResult(computationId, submitId /*, plugin:LiteMol.Plugin.Controller*/, res, rej /*, proteinLoaded:boolean*/) {
                     ApiService.getStatus(computationId, submitId).then(function (state) {
+                        var plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
+                        var proteinLoaded = existsRefInTree(plugin.root, 'protein-data');
                         /*
                         "Initializing"| OK
                         "Initialized"| OK
@@ -6604,10 +7838,10 @@ var LiteMol;
                         "Aborted"; OK
                         */
                         if (state.Status === "Initializing" || state.Status === "Running") {
-                            window.setTimeout(function () { waitForResult(computationId, submitId, plugin, res, rej, proteinLoaded); }, 1000);
+                            window.setTimeout(function () { waitForResult(computationId, submitId /*,plugin*/, res, rej /*,proteinLoaded*/); }, 1000);
                         }
                         else if (state.Status === "Initialized") {
-                            acquireData(computationId, submitId, plugin, res, rej, true, false);
+                            acquireData(computationId, submitId, plugin, res, rej, !proteinLoaded, false);
                         }
                         else if (state.Status === "FailedInitialization" || state.Status === "Error" || state.Status === "Deleted" || state.Status === "Aborted") {
                             rej(state.ErrorMsg);
@@ -6628,9 +7862,13 @@ var LiteMol;
                         }
                         var promises = [];
                         if (protein) {
+                            if (Config.CommonOptions.DEBUG_MODE)
+                                console.log("reloading protein structure");
                             promises.push(downloadProteinData(plugin, info.ComputationId, submitId));
                         }
                         if (channels) {
+                            if (Config.CommonOptions.DEBUG_MODE)
+                                console.log("reloading channels");
                             promises.push(downloadChannelsData(plugin, info.ComputationId, submitId));
                         }
                         LiteMol.Promise.all(promises)
@@ -6970,7 +8208,7 @@ var LiteMol;
                     /*let type = "Channel";*/
                     var alpha = 1.0;
                     var promises = [];
-                    var _loop_4 = function (channel) {
+                    var _loop_5 = function (channel) {
                         // Stejné jako v Examples/Channels
                         if (!channel.__id)
                             channel.__id = LiteMol.Bootstrap.Utils.generateUUID();
@@ -7020,7 +8258,7 @@ var LiteMol;
                     };
                     for (var _i = 0, channels_2 = channels; _i < channels_2.length; _i++) {
                         var channel = channels_2[_i];
-                        _loop_4(channel);
+                        _loop_5(channel);
                     }
                     return LiteMol.Promise.all(promises).then(function () {
                         for (var _i = 0, channels_3 = channels; _i < channels_3.length; _i++) {
@@ -7135,8 +8373,19 @@ var LiteMol;
                         return _this;
                     }
                     App.prototype.componentDidMount = function () {
+                        var _this = this;
                         this.load();
                         $(window).on("contentResize", this.onContentResize.bind(this));
+                        MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId(function (submitId) {
+                            try {
+                                _this.load();
+                            }
+                            catch (ex) {
+                                if (Config.CommonOptions.DEBUG_MODE)
+                                    console.log(ex);
+                                _this.setState({ isLoading: false, data: void 0, error: "Data not available" });
+                            }
+                        });
                     };
                     App.prototype.onContentResize = function (_) {
                         var prevState = this.props.plugin.context.layout.latestState;
@@ -7149,7 +8398,8 @@ var LiteMol;
                         this.setState({ isLoading: true, error: void 0 }); //https://webchem.ncbr.muni.cz/API/ChannelsDB/PDB/1tqn
                         Channels_1.State.loadData(this.props.plugin /*, this.currentProteinId*/) //'channels.json'
                             .then(function (data) {
-                            console.log("loading done ok");
+                            if (Config.CommonOptions.DEBUG_MODE)
+                                console.log("loading done ok");
                             var entities = _this.props.plugin.context.select("mole-data");
                             if (entities.length === 0) {
                                 var params = CommonUtils.Router.getParameters();
@@ -7168,13 +8418,12 @@ var LiteMol;
                             }
                             else {
                                 _this.setState({
-                                    isLoading: false, data: _data
+                                    isLoading: false, data: _data, error: void 0
                                 });
                             }
                         })
                             .catch(function (e) {
-                            console.log("ERR on loading: " + e);
-                            _this.setState({ isLoading: false, error: 'Application was unable to load data. Please try again later.' });
+                            _this.setState({ isLoading: false, error: 'Application was unable to load data. Please try again later.', data: void 0 });
                         });
                     };
                     App.prototype.render = function () {
@@ -7257,6 +8506,39 @@ var LiteMol;
                     }
                     Selection.prototype.componentWillMount = function () {
                         var _this = this;
+                        CommonUtils.Selection.SelectionHelper.attachOnResidueSelectHandler((function (r) {
+                            _this.setState({ label: r.name + " " + r.authSeqNumber + " " + r.chain.authAsymId });
+                        }).bind(this));
+                        CommonUtils.Selection.SelectionHelper.attachOnResidueLightSelectHandler((function (r) {
+                            var name = CommonUtils.Residues.getName(r.authSeqNumber, _this.props.plugin);
+                            _this.setState({ label: name + " " + r.authSeqNumber + " " + r.chain.authAsymId });
+                        }).bind(this));
+                        CommonUtils.Selection.SelectionHelper.attachOnResidueBulkSelectHandler((function (r) {
+                            var label = r.map(function (val, idx, array) {
+                                var name = CommonUtils.Residues.getName(val.authSeqNumber, _this.props.plugin);
+                                return name + "&nbsp;" + val.authSeqNumber + "&nbsp;" + val.chain.authAsymId;
+                            }).reduce(function (prev, cur, idx, array) {
+                                return "" + prev + ((idx === 0) ? '' : ',\n') + cur;
+                            });
+                            var items = label.split('\n');
+                            var elements = [];
+                            for (var _i = 0, items_3 = items; _i < items_3.length; _i++) {
+                                var e = items_3[_i];
+                                var lineParts = e.split('&nbsp;');
+                                elements.push(React.createElement("div", null,
+                                    lineParts[0],
+                                    "\u00A0",
+                                    lineParts[1],
+                                    "\u00A0",
+                                    lineParts[2]));
+                            }
+                            _this.setState({
+                                label: React.createElement("div", { className: "columns" }, elements)
+                            });
+                        }).bind(this));
+                        CommonUtils.Selection.SelectionHelper.attachOnClearSelectionHandler((function () {
+                            _this.setState({ label: void 0 });
+                        }).bind(this));
                         this.observer = this.props.plugin.subscribe(LiteMol.Bootstrap.Event.Molecule.ModelSelect, function (e) {
                             if (!e.data) {
                                 _this.setState({ label: void 0 });
@@ -7266,31 +8548,42 @@ var LiteMol;
                                 _this.setState({ label: r.name + " " + r.authSeqNumber + " " + r.chain.authAsymId });
                             }
                         });
+                        this.observer = this.props.plugin.subscribe(LiteMol.Bootstrap.Event.Molecule.ModelSelect, function (e) {
+                            if (e.data) {
+                                var r = e.data.residues[0];
+                                CommonUtils.Selection.SelectionHelper.selectResidueWithBallsAndSticks(_this.props.plugin, r);
+                                if (!CommonUtils.Selection.SelectionHelper.isSelectedAny()) {
+                                    _this.setState({ label: void 0 });
+                                }
+                            }
+                        });
                         this.observerChannels = this.props.plugin.subscribe(LiteMol.Bootstrap.Event.Visual.VisualSelectElement, function (e) {
                             var eventData = e.data;
                             if (e.data !== void 0 && eventData.source !== void 0 && eventData.source.props !== void 0 && eventData.source.props.tag === void 0) {
                                 return;
                             }
-                            if (!e.data || (eventData !== void 0 && e.data.kind === 0)) {
-                                _this.setState({ label: void 0 });
-                            }
-                            else {
-                                var data = e.data;
-                                var c = data.source.props.tag.element;
-                                var len = CommonUtils.Tunnels.getLength(c);
-                                //let bneck = CommonUtils.Tunnels.getBottleneck(c);
-                                var annotation = Annotation.AnnotationDataProvider.getChannelAnnotation(c.Id);
-                                if (annotation === void 0 || annotation === null) {
-                                    _this.setState({ label: React.createElement("span", null,
-                                            React.createElement("b", null, c.Type),
-                                            ", ", "Length: " + len + " \u00C5") });
+                            if (e.data && (eventData === void 0 || e.data.kind !== 0)) {
+                                if (CommonUtils.Selection.SelectionHelper.isSelectedAnyChannel()) {
+                                    var data = e.data;
+                                    var c = data.source.props.tag.element;
+                                    var len = CommonUtils.Tunnels.getLength(c);
+                                    //let bneck = CommonUtils.Tunnels.getBottleneck(c);
+                                    var annotation = Annotation.AnnotationDataProvider.getChannelAnnotation(c.Id);
+                                    if (annotation === void 0 || annotation === null) {
+                                        _this.setState({ label: React.createElement("span", null,
+                                                React.createElement("b", null, c.Type),
+                                                ", ", "Length: " + len + " \u00C5") });
+                                    }
+                                    else {
+                                        _this.setState({ label: React.createElement("span", null,
+                                                React.createElement("b", null, annotation.text),
+                                                ", Length: ",
+                                                len,
+                                                " \u00C5") });
+                                    }
                                 }
-                                else {
-                                    _this.setState({ label: React.createElement("span", null,
-                                            React.createElement("b", null, annotation.text),
-                                            ", Length: ",
-                                            len,
-                                            " \u00C5") });
+                                else if (!CommonUtils.Selection.SelectionHelper.isSelectedAny()) {
+                                    _this.setState({ label: void 0 });
                                 }
                             }
                         });
@@ -7730,6 +9023,7 @@ var LiteMol;
                     },
                     customSpecification: Channels.PluginSpec
                 });
+                MoleOnlineWebUI.Bridge.Instances.setPlugin(plugin);
                 CommonUtils.Selection.SelectionHelper.attachClearSelectionToEventHandler(plugin);
                 Channels.UI.render(plugin, document.getElementById('ui'));
                 Vizualizer.UI.render(layerVizualizer, document.getElementById('layer-vizualizer-ui'), plugin);
@@ -7738,6 +9032,7 @@ var LiteMol;
                 LayerProperties.UI.render(document.getElementById("layer-properties"), plugin);
                 //LayerResidues.UI.render(document.getElementById("right-tabs-2") !, plugin);
                 LayerResidues.UI.render(document.getElementById("layer-residues"), plugin);
+                LiningResidues.UI.render(document.getElementById("right-tabs-2"), plugin);
                 Controls.UI.render(document.getElementById("controls"));
                 //ResidueAnnotations.UI.render(document.getElementById("right-tabs-3") !, plugin);
                 //ProteinAnnotations.UI.render(document.getElementById("right-panel-tabs-1") !, plugin);

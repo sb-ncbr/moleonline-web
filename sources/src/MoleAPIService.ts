@@ -79,6 +79,8 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
     };
 
     export class ApiService{
+        private static DEBUG_MODE = Config.CommonOptions.DEBUG_MODE;
+        
         private static baseUrl = Config.DataSources.API_URL[Config.DataSources.MODE];
         
         private static sendPOST(url:string,formData:FormData):Promise<any>{
@@ -107,7 +109,9 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
             return new Promise<any>((res,rej)=>{
                 response.then((rawResponse)=>{
                     if(!rawResponse.ok){
-                        console.log(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
+                        if(this.DEBUG_MODE){
+                            console.log(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
+                        }
                         rej(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
                         return;
                     }
@@ -141,6 +145,7 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
 
             return `${this.baseUrl}/Init/${pores}${pdbid}${optional}`;
         }
+        /*
         private static mockInitResponse(){
             return new Promise<any>((res,rej)=>{
                 res({
@@ -150,17 +155,19 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
                     ErrorMsg: ""
                 });
             });
-        }
+        }*/
         public static initWithParams(pdbid:string,usePores:boolean,assemblyId?:string):Promise<InitResponse>{
             let url = this.prepareInitUrl(pdbid,usePores,assemblyId);
-            console.log(url);
-            //return this.mockInitResponse();
+            if(this.DEBUG_MODE){
+                console.log(url);
+            }
             return this.sendGET(url);
         }
         public static initWithFile(formData:FormData):Promise<InitResponse>{
             let url = this.prepareInitUrl("",false);
-            console.log(url);
-            //return this.mockInitResponse();
+            if(this.DEBUG_MODE){
+                console.log(url);
+            }
             return this.sendPOST(url,formData);
         }
 
@@ -170,15 +177,17 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
                 optional = `?submitId=${submitId}`;
             }
             let url = `${this.baseUrl}/Status/${computationId}${optional}`;
-            
-            console.log(url);
+            if(this.DEBUG_MODE){
+                console.log(url);
+            }
             return this.sendGET(url);
         }
 
         public static getComputationInfoList(computationId:string):Promise<CompInfo>{
             let url = `${this.baseUrl}/Compinfo/${computationId}`;
-            
-            console.log(url);
+            if(this.DEBUG_MODE){
+                console.log(url);
+            }
             return this.sendGET(url);
         }
 
@@ -196,29 +205,34 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
 
         public static submitMoleJob(computationId:string, data:MoleConfig){
             let url = `${this.baseUrl}/Submit/Mole/${computationId}`;
-            console.log(url);
+            if(this.DEBUG_MODE){
+                console.log(url);
+            }
             return this.sendPOSTjson(url, data);
         }
 
         public static submitPoresJob(computationId:string, data:PoresConfig){
             let url = `${this.baseUrl}/Submit/Pores/${computationId}?isBetaStructure=${data.IsBetaBarel}&inMembrane=${data.InMembrane}&chains=${data.Chains}`;
-            console.log(url);
+            if(this.DEBUG_MODE){
+                console.log(url);
+            }
             return this.sendGET(url);
         }
 
         public static getProteinStructure(computationId:string, submitId:number):Promise<string>{
             let url = `${this.baseUrl}/Data/${computationId}?submitId=${submitId}&format=molecule`;
-            //Mock!!!
-            //let url = 'https://api.mole.upol.cz/Data/OaUmDZj0Kk2ZBgJLLxVUA?submitId=1&format=molecule';
-            console.log(url);
-            //return this.sendGET(url);
+            if(this.DEBUG_MODE){
+                console.log(url);
+            }
             return new Promise<any>((res,rej)=>{
                 fetch(url, {
                     method: "GET"
                 })
                 .then((rawResponse)=>{
                     if(!rawResponse.ok){
-                        console.log(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
+                        if(this.DEBUG_MODE){
+                            console.log(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
+                        }
                         rej(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
                         return;
                     }
@@ -235,9 +249,9 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
 
         public static getChannelsData(computationId:string, submitId:number):Promise<string>{
             let url = `${this.baseUrl}/Data/${computationId}?submitId=${submitId}`;
-            //Mock!!!
-            //let url = 'https://api.mole.upol.cz/Data/OaUmDZj0Kk2ZBgJLLxVUA?submitId=1';
-            console.log(url);
+            if(this.DEBUG_MODE){
+                console.log(url);
+            }
             return this.handleJsonToStringResponse(this.sendGET(url));
         }
     }

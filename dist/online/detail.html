@@ -20,7 +20,7 @@
     <div class="chdb-panel plugin" id="plugin"></div>        
 	<div class="chdb-panel bottom-panel">
 		<div class="left-tabs">
-			<div class="tabs" id="left-tabs">
+			<!--<div class="tabs" id="left-tabs">
 				<ul>
 					<li><a href="#left-tabs-1">2D Layer visualizer</a></li>
 					<li><a href="#left-tabs-2">Agglomerated channel parameters</a></li>
@@ -31,14 +31,28 @@
 				<div id="left-tabs-2">
 					<div class="aglomered-parameters" id="aglomered-parameters-ui"></div> 
 				</div>
+			</div>-->
+			<div id="left-tabs">
+				<ul class="nav nav-tabs">
+					<li class="active"><a data-toggle="tab" href="#left-tabs-1">Channel profile</a></li>
+					<li><a data-toggle="tab" href="#left-tabs-2">Channels properties</a></li>
+				</ul>
+				<div class="tab-content" >
+					<div id="left-tabs-1" class="tab-pane fade in active">
+						<div class="layerVizualizer" id="layer-vizualizer-ui"></div>
+					</div>
+					<div id="left-tabs-2" class="tab-pane fade">
+						<div class="aglomered-parameters" id="aglomered-parameters-ui"></div> 
+					</div>
+				</div>
 			</div>
 			<div id="bottom-tabs-toggler" class="toggler glyphicon glyphicon-resize-horizontal"></div>
 		</div>
 		<div class="right-tabs">
-			<div class="tabs" id="right-tabs">
+			<!--<div class="tabs" id="right-tabs">
 				<ul>
 					<li><a href="#right-tabs-1">Layer</a></li>
-					<!--<li><a href="#right-tabs-3">Residue annotations</a></li>-->
+					<li><a href="#right-tabs-2">Lining residues</a></li>
 				</ul>
 				<div id="right-tabs-1">
 					<div id="layer-residues">
@@ -46,8 +60,24 @@
 					<div id="layer-properties">
 					</div>
 				</div>
-				<!--<div id="right-tabs-3">
-				</div>-->
+				<div id="right-tabs-2">
+				</div>
+			</div>-->
+			<div id="right-tabs">
+				<ul class="nav nav-tabs">
+					<li class="active"><a data-toggle="tab" href="#right-tabs-1">Layer</a></li>
+					<li><a data-toggle="tab"  href="#right-tabs-2">Lining residues</a></li>
+				</ul>
+				<div class="tab-content" >
+					<div id="right-tabs-1" class="tab-pane fade in active">
+						<div id="layer-residues">
+						</div>
+						<div id="layer-properties">
+						</div>
+					</div>
+					<div id="right-tabs-2" class="tab-pane fade">
+					</div>
+				</div>
 			</div>
 		</div>	
 		<div id="bottom-panel-toggler" class="toggler glyphicon glyphicon-resize-vertical"></div>

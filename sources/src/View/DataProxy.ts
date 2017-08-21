@@ -67,10 +67,12 @@ namespace MoleOnlineWebUI.DataProxy{
                 this.setPending(compId, true);
                 Service.getComputationInfoList(compId).then((val)=>{
                     this.setPending(compId, false);
-                    console.log(val);
+                    if(Config.CommonOptions.DEBUG_MODE)
+                        console.log(val);
                     this.setData(compId, val);
                 }).catch((err)=>{
-                    console.log(err);
+                    if(Config.CommonOptions.DEBUG_MODE)
+                        console.log(err);
                     window.setTimeout((()=>{this.requestData(compId)}).bind(this),2000);
                 });
             }
@@ -93,8 +95,8 @@ namespace MoleOnlineWebUI.DataProxy{
 
             //--
 
-            public static get(compId:string, handler: CompInfoHandler){
-                if(this.data!==void 0){
+            public static get(compId:string, handler: CompInfoHandler, onlyFresh?:boolean){
+                if(this.data!==void 0 && !onlyFresh){
                     let data = this.data.get(compId);
                     if(data!==void 0){
                         handler(compId, data);
@@ -105,8 +107,8 @@ namespace MoleOnlineWebUI.DataProxy{
                 this.attachHandler(compId, handler, false);
             }
 
-            public static subscribe(compId:string, handler: CompInfoHandler){
-                if(this.data!==void 0){
+            public static subscribe(compId:string, handler: CompInfoHandler, onlyFresh?:boolean){
+                if(this.data!==void 0 && !onlyFresh){
                     let data = this.data.get(compId);
                     if(data!==void 0){
                         handler(compId, data);
@@ -114,6 +116,119 @@ namespace MoleOnlineWebUI.DataProxy{
                 }
 
                 this.attachHandler(compId, handler, true);
+            }
+        }
+    }
+
+    export namespace JobStatus{
+        export type OnStatusChangeHandler = (status:Service.MoleAPI.InitResponse)=>void;
+        export type OnErrHandler = (err:any)=>void;
+        export class Watcher{
+            private static handlers:Map<String,OnStatusChangeHandler[]>
+            private static errHandlers: Map<String,OnErrHandler[]>            
+            private static makeHash(computationId:string, submitId:number){
+                return `${computationId}:${computationId}`;
+            }
+
+            private static registerErrHandler(computationId:string, submitId:number, handler:OnErrHandler){
+                if(this.errHandlers===void 0){
+                    this.errHandlers = new Map<string,OnErrHandler[]>();
+                }
+                let key = this.makeHash(computationId,submitId);
+                let handlers = this.errHandlers.get(key);
+
+                if(handlers===void 0){
+                    handlers = [];                    
+                }
+
+                handlers.push(
+                    handler
+                );
+                this.errHandlers.set(key,handlers);
+            }
+
+            public static registerOnChangeHandler(computationId:string, submitId:number, handler:OnStatusChangeHandler, onErr:OnErrHandler){
+                if(this.handlers===void 0){
+                    this.handlers = new Map<string,OnStatusChangeHandler[]>();
+                }
+                let key = this.makeHash(computationId,submitId);
+                let handlers = this.handlers.get(key);
+                let shouldStartLoop = false;
+                if(handlers===void 0){
+                    handlers = [];
+                    shouldStartLoop=true;
+                }
+
+                handlers.push(
+                    handler
+                );
+                this.handlers.set(key,handlers);
+
+                this.registerErrHandler(computationId,submitId,onErr);
+
+                if(shouldStartLoop){
+                    this.waitForResult(computationId,submitId);
+                }
+            }
+
+            private static notifyStatusUpdate(computationId:string, submitId:number, status:Service.MoleAPI.InitResponse){
+                let handlers = this.handlers.get(this.makeHash(computationId,submitId));
+                if(handlers===void 0){
+                    return;
+                }
+
+                for(let h of handlers){
+                    h(status);
+                }
+            }
+
+            private static removeHandlers(computationId:string, submitId:number){
+                let key = this.makeHash(computationId,submitId);
+                this.handlers.delete(key);
+                this.errHandlers.delete(key);
+            }
+
+            private static waitForResult(computationId:string, submitId:number){
+                Service.getStatus(computationId,submitId).then((state)=>{
+                    if(Config.CommonOptions.DEBUG_MODE)
+                        console.log(state);                   
+                    /*
+                    "Initializing"| OK
+                    "Initialized"| OK
+                    "FailedInitialization"| OK
+                    "Running"| OK
+                    "Finished"| OK
+                    "Error"| OK
+                    "Deleted"| OK
+                    "Aborted"; OK
+                    */
+                    switch(state.Status){
+                        case "Initializing":
+                        case "Running":
+                            this.notifyStatusUpdate(computationId,submitId,state);
+                            window.setTimeout(()=>{this.waitForResult(computationId,submitId);},1000);
+                            break;
+                        case "Initialized":
+                        case "FailedInitialization":
+                        case "Error":
+                        case "Deleted":
+                        case "Aborted":
+                        case "Finished":
+                            this.notifyStatusUpdate(computationId,submitId,state);
+                            this.removeHandlers(computationId,submitId);    
+                            break;
+                    }
+                })
+                .catch((err)=>{
+                    let h = this.errHandlers.get(this.makeHash(computationId,submitId));
+                    if(h===void 0){
+                        throw new Error(err);
+                    }
+
+                    for(let handler of h){
+                        handler(err);
+                    }
+                });
             }
         }
     }

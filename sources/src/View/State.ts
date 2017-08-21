@@ -46,7 +46,6 @@ namespace LiteMol.Example.Channels.State {
     }
 
     function getNodeFromTree(root:Bootstrap.Entity.Any,ref:string):Bootstrap.Entity.Any | null{
-        console.log(root.ref);
         if(root.ref===ref){
             return root;
         }
@@ -143,7 +142,34 @@ namespace LiteMol.Example.Channels.State {
                 let submitId = parameters.submitId;
 
                 //let protein = plugin.selectEntities('polymer-visual');
-                waitForResult(computationId,submitId/*,plugin*/,res,rej/*,protein.length!==0*/);
+                //waitForResult(computationId,submitId/*,plugin*/,res,rej/*,protein.length!==0*/);
+                MoleOnlineWebUI.DataProxy.JobStatus.Watcher.registerOnChangeHandler(computationId,submitId,(status=>{
+                    let plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
+                    let proteinLoaded = existsRefInTree(plugin.root,'protein-data');
+
+                    /*
+                    "Initializing"| OK
+                    "Initialized"| OK
+                    "FailedInitialization"| OK
+                    "Running"| OK
+                    "Finished"| OK
+                    "Error"| OK
+                    "Deleted"| OK
+                    "Aborted"; OK
+                    */
+                    if(status.Status === "Initializing" || status.Status === "Running"){
+                        //Do Nothing
+                    }
+                    else if(status.Status === "Initialized"){
+                        acquireData(computationId,submitId,plugin,res,rej,!proteinLoaded,false);
+                    }
+                    else if(status.Status === "FailedInitialization" || status.Status === "Error" || status.Status === "Deleted" || status.Status === "Aborted"){
+                        rej(status.ErrorMsg);
+                    }
+                    else if(status.Status === "Finished"){
+                        acquireData(computationId,submitId,plugin,res,rej,!proteinLoaded,true);
+                    }                        
+                }),(err)=>rej(err));
             })
 
             let promises = [];
@@ -154,7 +180,6 @@ namespace LiteMol.Example.Channels.State {
     }
 
     function existsRefInTree(root:Bootstrap.Entity.Any,ref:string){
-        console.log(root.ref);
         if(root.ref===ref){
             return true;
         }
@@ -170,8 +195,6 @@ namespace LiteMol.Example.Channels.State {
     function waitForResult(computationId:string, submitId:number/*, plugin:LiteMol.Plugin.Controller*/, res:any, rej:any/*, proteinLoaded:boolean*/){
         ApiService.getStatus(computationId,submitId).then((state)=>{
             let plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
-            console.log(state);
-            //.select('protein-data');
             let proteinLoaded = existsRefInTree(plugin.root,'protein-data');
 
             /*
@@ -212,11 +235,13 @@ namespace LiteMol.Example.Channels.State {
             let promises = [];
 
             if(protein){
-                console.log("reloading protein structure");
+                if(Config.CommonOptions.DEBUG_MODE)
+                    console.log("reloading protein structure");
                 promises.push(downloadProteinData(plugin, info.ComputationId, submitId));
             }
             if(channels){
-                console.log("reloading channels");
+                if(Config.CommonOptions.DEBUG_MODE)
+                    console.log("reloading channels");
                 promises.push(downloadChannelsData(plugin, info.ComputationId, submitId));
             }
 

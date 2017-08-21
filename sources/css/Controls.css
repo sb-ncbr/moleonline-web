@@ -140,6 +140,37 @@
     text-decoration: none;
 }
 
+.submit-parent .submit-arrow,
+.submit-parent .submit-combo{
+    max-height: 3.5vh;
+    margin-top: 0.75vh;
+    margin-bottom: 0.75vh;
+    line-height: 2vh;
+    padding: 0.75vh 0px;
+    padding-left: 10px;
+    padding-right: 10px;
+    float: right;
+}
+
+.submit-parent .submit-combo{
+    width: 45px;
+    margin-left: 5px;
+    margin-right: 5px;
+    padding-top: 5px;
+    padding-left: 5px;
+    padding-right: 2px;
+/*
+    max-height: 3.5vh;
+    margin-top: 0.75vh;
+    margin-bottom: 0.75vh;
+    line-height: 2vh;
+    padding: 0.75vh 0px;
+    padding-left: 10px;
+    padding-right: 10px;
+    float: right;
+*/
+}
+
 @media only screen and (max-width: 1300px),
 only screen and (max-height: 900px) {
     .submit-form-container .tab-content{

@@ -16,9 +16,9 @@ var Config;
         return Routing;
     }());
     Routing.ROUTING_OPTIONS = {
-        "local": { defaultContextPath: "/online", defaultCompId: "compid", defaultSubmitId: "1", useParameterAsPid: true },
-        "test": { defaultContextPath: "/online/<?pid>", defaultPid: "5an8", useLastPathPartAsPid: true },
-        "prod": { defaultContextPath: "/online", defaultPid: "5an8", useLastPathPartAsPid: true },
+        "local": { defaultContextPath: "/online", defaultCompId: "compid", defaultSubmitId: "1" },
+        "test": { defaultContextPath: "/online" },
+        "prod": { defaultContextPath: "/online" },
     };
     Routing.ROUTING_MODE = "unknown";
     Config.Routing = Routing;
@@ -34,6 +34,13 @@ var Config;
     };
     DataSources.MODE = "unknown";
     Config.DataSources = DataSources;
+    var CommonOptions = (function () {
+        function CommonOptions() {
+        }
+        return CommonOptions;
+    }());
+    CommonOptions.DEBUG_MODE = false;
+    Config.CommonOptions = CommonOptions;
     /*
     export let ROUTING_OPTIONS:any = {
         "local":{defaultContextPath: "/online", defaultCompId:"compid", defaultSubmitId:"1", useParameterAsPid:true},
@@ -46,6 +53,7 @@ var Config;
 (function (Config) {
     Config.Routing.ROUTING_MODE = "prod";
     Config.DataSources.MODE = "prod";
+    Config.CommonOptions.DEBUG_MODE = false;
 })(Config || (Config = {}));
 var SimpleRouter;
 (function (SimpleRouter) {
@@ -236,6 +244,10 @@ var SimpleRouter;
             return url.getLastPart();
         };
         GlobalRouter.redirect = function (url, relative) {
+            var newUrl = this.prepareUrlForRedirect(url, relative);
+            window.location.replace(newUrl);
+        };
+        GlobalRouter.prepareUrlForRedirect = function (url, relative) {
             var rel = false;
             if (relative !== void 0) {
                 rel = relative;
@@ -245,7 +257,17 @@ var SimpleRouter;
                 var currentUrl = this.router.getAbsoluePath();
                 newUrl = currentUrl.getProtocol() + "://" + currentUrl.getHostname() + this.defaultContextPath + url;
             }
-            window.location.replace(newUrl);
+            return newUrl;
+        };
+        GlobalRouter.fakeRedirect = function (url, relative) {
+            var newUrl = this.prepareUrlForRedirect(url, relative);
+            if (window.history.pushState) {
+                var title = document.title;
+                window.history.pushState(null, title, newUrl);
+            }
+            else {
+                window.location.replace(newUrl);
+            }
         };
         GlobalRouter.getParametersByRegex = function (regex) {
             var url = this.router.getAbsoluePath();
@@ -298,14 +320,20 @@ var MoleOnlineWebUI;
                     }), url);
                 };
                 ApiService.handleResponse = function (response, url) {
+                    var _this = this;
                     return new Promise(function (res, rej) {
                         response.then(function (rawResponse) {
                             if (!rawResponse.ok) {
-                                console.log("GET: " + url + " " + rawResponse.status + ": " + rawResponse.statusText);
+                                if (_this.DEBUG_MODE) {
+                                    console.log("GET: " + url + " " + rawResponse.status + ": " + rawResponse.statusText);
+                                }
                                 rej("GET: " + url + " " + rawResponse.status + ": " + rawResponse.statusText);
                                 return;
                             }
                             res(rawResponse.json());
+                        })
+                            .catch(function (err) {
+                            rej(err);
                         });
                     });
                 };
@@ -327,8 +355,9 @@ var MoleOnlineWebUI;
                     }
                     return this.baseUrl + "/Init/" + pores + pdbid + optional;
                 };
-                ApiService.mockInitResponse = function () {
-                    return new Promise(function (res, rej) {
+                /*
+                private static mockInitResponse(){
+                    return new Promise<any>((res,rej)=>{
                         res({
                             ComputationId: "DjcRaVhHHEqgrd1tI44zGQ",
                             SubmitId: 1,
@@ -336,17 +365,19 @@ var MoleOnlineWebUI;
                             ErrorMsg: ""
                         });
                     });
-                };
+                }*/
                 ApiService.initWithParams = function (pdbid, usePores, assemblyId) {
                     var url = this.prepareInitUrl(pdbid, usePores, assemblyId);
-                    console.log(url);
-                    //return this.mockInitResponse();
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
                     return this.sendGET(url);
                 };
                 ApiService.initWithFile = function (formData) {
                     var url = this.prepareInitUrl("", false);
-                    console.log(url);
-                    //return this.mockInitResponse();
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
                     return this.sendPOST(url, formData);
                 };
                 ApiService.getStatus = function (computationId, submitId) {
@@ -355,12 +386,16 @@ var MoleOnlineWebUI;
                         optional = "?submitId=" + submitId;
                     }
                     var url = this.baseUrl + "/Status/" + computationId + optional;
-                    console.log(url);
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
                     return this.sendGET(url);
                 };
                 ApiService.getComputationInfoList = function (computationId) {
                     var url = this.baseUrl + "/Compinfo/" + computationId;
-                    console.log(url);
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
                     return this.sendGET(url);
                 };
                 ApiService.handleJsonToStringResponse = function (response) {
@@ -376,27 +411,33 @@ var MoleOnlineWebUI;
                 };
                 ApiService.submitMoleJob = function (computationId, data) {
                     var url = this.baseUrl + "/Submit/Mole/" + computationId;
-                    console.log(url);
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
                     return this.sendPOSTjson(url, data);
                 };
                 ApiService.submitPoresJob = function (computationId, data) {
                     var url = this.baseUrl + "/Submit/Pores/" + computationId + "?isBetaStructure=" + data.IsBetaBarel + "&inMembrane=" + data.InMembrane + "&chains=" + data.Chains;
-                    console.log(url);
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
                     return this.sendGET(url);
                 };
                 ApiService.getProteinStructure = function (computationId, submitId) {
+                    var _this = this;
                     var url = this.baseUrl + "/Data/" + computationId + "?submitId=" + submitId + "&format=molecule";
-                    //Mock!!!
-                    //let url = 'https://api.mole.upol.cz/Data/OaUmDZj0Kk2ZBgJLLxVUA?submitId=1&format=molecule';
-                    console.log(url);
-                    //return this.sendGET(url);
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
                     return new Promise(function (res, rej) {
                         fetch(url, {
                             method: "GET"
                         })
                             .then(function (rawResponse) {
                             if (!rawResponse.ok) {
-                                console.log("GET: " + url + " " + rawResponse.status + ": " + rawResponse.statusText);
+                                if (_this.DEBUG_MODE) {
+                                    console.log("GET: " + url + " " + rawResponse.status + ": " + rawResponse.statusText);
+                                }
                                 rej("GET: " + url + " " + rawResponse.status + ": " + rawResponse.statusText);
                                 return;
                             }
@@ -412,13 +453,14 @@ var MoleOnlineWebUI;
                 };
                 ApiService.getChannelsData = function (computationId, submitId) {
                     var url = this.baseUrl + "/Data/" + computationId + "?submitId=" + submitId;
-                    //Mock!!!
-                    //let url = 'https://api.mole.upol.cz/Data/OaUmDZj0Kk2ZBgJLLxVUA?submitId=1';
-                    console.log(url);
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
                     return this.handleJsonToStringResponse(this.sendGET(url));
                 };
                 return ApiService;
             }());
+            ApiService.DEBUG_MODE = Config.CommonOptions.DEBUG_MODE;
             ApiService.baseUrl = Config.DataSources.API_URL[Config.DataSources.MODE];
             MoleAPI.ApiService = ApiService;
         })(MoleAPI = Service.MoleAPI || (Service.MoleAPI = {}));
@@ -510,7 +552,7 @@ var MoleOnlineWebUI;
                     this.computationId = response.ComputationId;
                     this.submitId = response.SubmitId;
                     if (response.Status === "Initialized") {
-                        console.log("initialized");
+                        console.log("Initialized");
                         //TODO: handle initialized
                         SimpleRouter.GlobalRouter.redirect(this.computationId + "/" + this.submitId, true);
                         return;
@@ -532,7 +574,7 @@ var MoleOnlineWebUI;
                         if (response.Status === "Initialized") {
                             console.log("initialized");
                             //TODO: handle initialized
-                            SimpleRouter.GlobalRouter.redirect(_this.computationId + "/" + _this.submitId, true);
+                            SimpleRouter.GlobalRouter.redirect("/" + _this.computationId + "/" + _this.submitId, true);
                             return;
                         }
                         if (response.Status === "Initializing") {

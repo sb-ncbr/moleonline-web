@@ -667,16 +667,19 @@ namespace LayersVizualizer.UI{
 
             let propertyName = targetElement.getAttribute("data-propertyname");
             if(propertyName === null){
-                console.log("No property name found!");
+                if(Config.CommonOptions.DEBUG_MODE)
+                    console.log("No property name found!");
                 return;
             }
 
             if(this.props.isCustom){
-                console.log(`setting custom property key: ${propertyName}`);
+                if(Config.CommonOptions.DEBUG_MODE)
+                    console.log(`setting custom property key: ${propertyName}`);
                 instance.setCustomColoringPropertyKey(propertyName);
             }
             else{
-                console.log(`setting regular property key: ${propertyName}`);
+                if(Config.CommonOptions.DEBUG_MODE)
+                    console.log(`setting regular property key: ${propertyName}`);
                 instance.setColoringPropertyKey(propertyName);                   
             }
 
@@ -1036,8 +1039,6 @@ namespace LayersVizualizer.UI{
 
         private displayDetailsEventHandler(e: React.MouseEvent<HTMLAreaElement>){
             let targetElement = (e.target as HTMLElement);
-            console.log(targetElement.getAttribute("data-layeridx"));
-            //console.log(this.props.data);
             let layerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
             let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
             let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];

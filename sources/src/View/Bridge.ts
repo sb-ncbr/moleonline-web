@@ -58,10 +58,6 @@ namespace MoleOnlineWebUI.Bridge{
 
         public static invokeChangeSubmitId(submitId:number){
             let hndlrs = this.handlers.get(HandlerTypes.ChangeSubmitIdType);
-            console.log("invoke change submit id");
-            console.log(hndlrs);
-            console.log(HandlerTypes.ChangeSubmitIdType);
-            console.log(this.handlers);
             if(hndlrs!==void 0){
                 for(let h of hndlrs){
                     h(submitId);

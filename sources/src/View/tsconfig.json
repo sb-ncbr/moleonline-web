@@ -49,6 +49,9 @@
     "LayerVizualizer/Components.ts", 
     "LayerVizualizer/Colors.ts", 
 
+    //Controls components
+    "UI/Common/Controls/Components.tsx",
+
     //Datagrid components
     "UI/Common/Datagrid/Components.tsx",
     

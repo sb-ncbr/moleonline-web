@@ -267,21 +267,44 @@ namespace Controls.UI{
         
         state:ComputationsState = {computationInfo:null,loading:true,statusInfo:null}
         
-        componentDidMount(){
+        componentWillReceiveProps(nextProps:{computationInfo:Service.CompInfo}){
+            this.prepareSubmissionData(nextProps.computationInfo);
+        }
+
+        private prepareSubmissionData(computationInfo:Service.CompInfo){
             let promises = [];
-            for(let submission of this.props.computationInfo.Submissions){
+            for(let submission of computationInfo.Submissions){
                 promises.push(
-                    Service.ApiService.getStatus(this.props.computationInfo.ComputationId, submission.SubmitId)
+                    Service.ApiService.getStatus(computationInfo.ComputationId, submission.SubmitId)
                 );
             }
             Promise.all(promises).then((statusResponses)=>{
                 let map = new Map<string,string>();
                 for(let status of statusResponses){
+                    if(status.Status==="Initializing"||status.Status==="Running"){
+                        MoleOnlineWebUI.DataProxy.JobStatus.Watcher.registerOnChangeHandler(status.ComputationId,status.SubmitId,(state)=>{
+                            let statusInfo = this.state.statusInfo;
+                            if(statusInfo!==null){
+                                let old = statusInfo.get(String(status.SubmitId));
+                                if(old===void 0||old!==state.Status){
+                                    statusInfo.set(String(status.SubmitId),state.Status);
+                                    this.setState({statusInfo:map});
+                                }
+                            }
+                        },(err)=>{
+                            if(Config.CommonOptions.DEBUG_MODE)
+                                console.log(err);
+                        })
+                    }
                     map.set(String(status.SubmitId),status.Status);
                 }
 
-                this.setState({computationInfo:this.props.computationInfo, loading:false, statusInfo:map});
-            });
+                this.setState({computationInfo:computationInfo, loading:false, statusInfo:map});
+            });    
+        }
+
+        componentDidMount(){
+            this.prepareSubmissionData(this.props.computationInfo);
         }
 
         render(){
@@ -419,22 +442,6 @@ namespace Controls.UI{
         }
     }
 
-    /*
-    <div className="panel-footer">
-                            <a onClick={()=>{
-                            changeSubmitId(this.props.computationId, data.SubmitId);
-                            //    CommonUtils.Router.fakeRedirect(this.props.computationId, data.SubmitId);
-                            //    LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
-                                //LiteMol.Example.Channels.State.loadData(MoleOnlineWebUI.Bridge.Instances.getPlugin()).then(()=>{
-                            //    MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(data.SubmitId);
-                                /*}).catch(err=>{
-                                    console.log(err);
-                                });*/
-                                //CommonUtils.Router.redirect(this.props.computationId, data.SubmitId)
-                                /*}} className="hand">View</a>
-                        </div>
-    */
-
     function changeSubmitId(computationId:string, submitId:number){
         CommonUtils.Router.fakeRedirect(computationId, submitId);
         LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
@@ -520,6 +527,10 @@ namespace Controls.UI{
             }else{
                 this.setState({err:"Parameters from url cannot be properly processed."});
             }
+
+            MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId((submitId)=>{
+                this.setState({submitId});
+            });
         }
 
         handleSubmit(e:React.FormEvent<HTMLFormElement>){
@@ -713,19 +724,19 @@ namespace Controls.UI{
                 QueryFilter: queryFilter
             } 
 
-            console.log(formData);
-
             Service.ApiService.submitMoleJob(this.state.data.ComputationId, formData).then((result)=>{
-                //CommonUtils.Router.redirect(result.ComputationId, Number(result.SubmitId));
                 CommonUtils.Router.fakeRedirect(result.ComputationId, Number(result.SubmitId));
-                LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
-                
-                MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
-                MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
-                //LiteMol.Example.Channels.State.loadData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
+                LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
+
+                Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
+                    this.setState({data:info});
+                    MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
+                    MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
+                }).bind(this), true);
             })
             .catch((err)=>{
-                console.log(err);
+                if(Config.CommonOptions.DEBUG_MODE)
+                    console.log(err);
             })
         }
 
@@ -750,7 +761,7 @@ namespace Controls.UI{
                 <div className="submit-form-container">
                     <form className="form-horizontal" onSubmit={this.handleSubmit.bind(this)}>
                         <Common.Tabs.BootstrapTabs.TabbedContainer header={["Submission settings","Submissions"]} tabContents={tabs} namespace="right-panel-tabs-" htmlClassName="tabs" htmlId="right-panel-tabs" activeTab={this.props.activeTab}/>
-                        <SubmitButton />
+                        <ControlButtons submitId={this.state.submitId} computationInfo={this.state.data} />
                     </form>
                     <div id="right-panel-toggler" className="toggler glyphicon glyphicon-resize-vertical"></div>
                 </div>
@@ -758,10 +769,108 @@ namespace Controls.UI{
         }
     }
 
-    export class SubmitButton extends React.Component<{},{}>{
-        render(){
+    interface SubmissionCoboboxItem{
+        label:string,
+        value:string
+    }
+    interface ControlButtonsState{
+        submitId:number
+    }
+    interface ControlButtonsProps{
+        submitId:number,
+        computationInfo:Service.CompInfo|undefined
+    }
+    export class ControlButtons extends React.Component<ControlButtonsProps,ControlButtonsState>{
+        state:ControlButtonsState = {submitId:-1}
+
+        componentDidMount(){
+            this.state.submitId = this.props.submitId;
+        }
+
+        componentWillReceiveProps(nextProps:ControlButtonsProps){
+            this.setState({
+                submitId:nextProps.submitId
+            });
+        }
+
+        private getSubmissions(){
+            let submissions:Service.Submission[] = [];
+            if(this.props.computationInfo!==void 0){
+                submissions = this.sortSubmissions(this.props.computationInfo.Submissions);
+            }
+
+            return submissions;
+        }
+
+        private sortSubmissions(items:Service.Submission[]):Service.Submission[]{
+            return items.sort((a,b)=>{
+                return a.SubmitId-b.SubmitId;
+            });
+        }
+
+        private prepareSubmissionItems():SubmissionCoboboxItem[]{
+            let submissions = this.getSubmissions(); 
+            if(submissions.length===0){
+                return [];
+            }
+
+            let rv = [];
+            for(let item of submissions){
+                rv.push(
+                    {
+                        label:`${item.SubmitId}`,
+                        value:`${item.SubmitId}`
+                    }
+                );
+            }
+
+            return rv;
+        }
+
+        private getSelectedIndex(submitId:number, items:SubmissionCoboboxItem[]):number|undefined{
+            for(let idx=0;idx<items.length;idx++){
+                let item = items[idx];
+                if(item.value===`${submitId}`){
+                    return idx;
+                }
+            }
+
+            return void 0;
+        }
+
+        private onSubmitIdComboSelectChange(e:React.ChangeEvent<HTMLSelectElement>){
+            if(this.props.computationInfo===void 0){
+                return;
+            }
+
+            let idx = e.currentTarget.selectedIndex;
+            let submitId = (e.currentTarget.options[idx] as HTMLOptionElement).value;
+            let sid = Number(submitId).valueOf();
+            changeSubmitId(this.props.computationInfo.ComputationId, sid);
+            this.setState({submitId:sid})
+        }
+
+        private changeSubmitIdByStep(e:React.MouseEvent<HTMLInputElement>){
+            if(this.props.computationInfo===void 0){
+                return;
+            }
+            
+            let submitId = e.currentTarget.dataset["value"];
+            if(submitId!==void 0){
+                let sid = Number(submitId).valueOf();
+                changeSubmitId(this.props.computationInfo.ComputationId, sid);
+                this.setState({submitId:sid})
+            }
+        }
+
+        render(){            
+            let items=this.prepareSubmissionItems(); 
+            let idx = this.getSelectedIndex(this.state.submitId,items);
             return <div className="submit-parent">
                     <input className="btn btn-primary submit" type="submit" value="Submit" />
+                    <input className="btn btn-primary submit-arrow" type="button" value=">" disabled={(idx===void 0||idx===items.length-1)?true:void 0} data-value={(idx===void 0||idx===items.length-1)?void 0:items[idx+1].value} onClick={this.changeSubmitIdByStep.bind(this)} />
+                    <Common.Controls.SimpleComboBox id="submissionComboSwitch" items={items} defaultSelectedIndex={idx} className="form-control submit-combo" onSelectedChange={this.onSubmitIdComboSelectChange.bind(this)} />
+                    <input className="btn btn-primary submit-arrow" type="button" value="<" disabled={(idx===void 0||idx===0)?true:void 0} data-value={(idx===void 0||idx===0)?void 0:items[idx-1].value} onClick={this.changeSubmitIdByStep.bind(this)} />
                 </div>
         }
     }
