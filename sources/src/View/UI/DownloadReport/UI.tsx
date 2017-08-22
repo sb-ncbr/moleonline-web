@@ -9,7 +9,7 @@ namespace DownloadReport.UI{
 
     export class App extends React.Component<{}, {}> {
 
-        componentDidMount() {
+        componentDidMount(){
         }
 
         componentWillUnmount(){
@@ -51,24 +51,57 @@ namespace DownloadReport.UI{
         }
     }
 
-    class DownloadResultsMenu extends React.Component<{},{}>{
-        render(){
-            let pdbid = SimpleRouter.GlobalRouter.getCurrentPid();
-            let linkBase = `https://webchem.ncbr.muni.cz/API/ChannelsDB/Download/${pdbid}`;
+    interface DownloadResultsMenuState{
+        computationId:string,
+        submitId:number
+    }
+    class DownloadResultsMenu extends React.Component<{},DownloadResultsMenuState>{
+        state = {computationId:"",submitId:0}
+
+        componentDidMount(){
+            let params = CommonUtils.Router.getParameters();
+            if(params!==null){
+                let computationId = params.computationId;
+                let submitId = params.submitId;
+                this.setState({computationId,submitId});    
+            }
+
+            MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId((submitId)=>{
+                this.setState({submitId});
+            });
+        }
+        
+        render(){                       
+            let computationId = this.state.computationId;
+            let submitId = `?submitId=${this.state.submitId}`;
+            
+            let linkBase = `${Config.DataSources.API_URL[Config.DataSources.MODE]}/Data/${computationId}${submitId}`;
+            
             let items:JSX.Element[] = [];
         
-            items.push(
-                <BootstrapDropDownMenuItem linkText=".zip" link={`${linkBase}?type=zip`} targetBlank={true} />
-            );
-            items.push(
-                <BootstrapDropDownMenuItem linkText=".pdb" link={`${linkBase}?type=pdb`} targetBlank={true} />
-            );
-            items.push(
-                <BootstrapDropDownMenuItem linkText=".json" link={`${linkBase}?type=json`} targetBlank={true} />
-            );
-            items.push(
-                <BootstrapDropDownMenuItem linkText=".py" link={`${linkBase}?type=py`} targetBlank={true} />
-            );
+            if(computationId!==void 0){
+                items.push(
+                    <BootstrapDropDownMenuItem linkText="Molecule" link={`${linkBase}&format=molecule`} targetBlank={true} />
+                );
+                items.push(
+                    <BootstrapDropDownMenuItem linkText="PyMol" link={`${linkBase}&format=pymol`} targetBlank={true} />
+                );
+                items.push(
+                    <BootstrapDropDownMenuItem linkText="VMD" link={`${linkBase}&format=vmd`} targetBlank={true} />
+                );
+                items.push(
+                    <BootstrapDropDownMenuItem linkText="PDB" link={`${linkBase}&format=pdb`} targetBlank={true} />
+                );
+                items.push(
+                    <BootstrapDropDownMenuItem linkText="Chimera" link={`${linkBase}&format=chimera`} targetBlank={true} />
+                );
+                items.push(
+                    <BootstrapDropDownMenuItem linkText="JSON" link={`${linkBase}`} targetBlank={true} />
+                );
+                items.push(
+                    <BootstrapDropDownMenuItem linkText="Report" link={`${linkBase}&format=report`} targetBlank={true} />
+                );
+            }
             return <BootstrapDropDownMenuButton label="Download report" items={items} />
         }
     }

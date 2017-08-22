@@ -10,25 +10,58 @@ namespace MoleOnlineWebUI.Bridge{
             return this.plugin;
         }
     }
+    
+    export type MessageType = "Success" | "Info" | "Warning" | "Danger";
+    export interface MessageInfo{message:string, messageType:MessageType};
 
     type SimpleHandler = (args?:any)=>any;
 
     export type NewSubmitHandler = SimpleHandler;
     export type ChangeSubmitIdHandler = (submitId:number)=>void;
+    export type ChannelSelectHandler = (channelId:number)=>void;
+    export type ChangeHasKillableHandler = (hasKillable:boolean)=>void;
+    export type NotifyMessageHandler = (e:MessageInfo)=>void;
 
     namespace HandlerTypes{
         export const NewSubmitType = "NEW-SUBMIT";
         export const ChangeSubmitIdType = "CHANGE-SUBMIT-ID";
+        export const ChannelSelectType = "CHANNEL-SELECT";
+        export const ChangeHasKillableType = "CHANGE-HAS-KILLABLE";
+        export const NotifyMessageType = "NOTIFY-MESSAGE";
         
         export type NewSubmit = "NEW-SUBMIT";
         export type ChangeSubmitId = "CHANGE-SUBMIT-ID";
+        export type ChannelSelect = "CHANNEL-SELECT";
+        export type ChangeHasKillable = "CHANGE-HAS-KILLABLE";
+        export type NotifyMessage = "NOTIFY-MESSAGE";
+        
     };
 
-    type HandlerType = HandlerTypes.NewSubmit | HandlerTypes.ChangeSubmitId;
+    type HandlerType = HandlerTypes.NewSubmit | HandlerTypes.ChangeSubmitId | HandlerTypes.ChannelSelect | HandlerTypes.ChangeHasKillable | HandlerTypes.NotifyMessage;
 
     export class Events{
         private static handlers = new Map<HandlerType,SimpleHandler[]>();
      
+        public static subscribeChannelSelect(handler:ChannelSelectHandler){
+            let hndlrs = this.handlers.get(HandlerTypes.ChannelSelectType);
+            if(hndlrs===void 0){
+                hndlrs = [];
+            }
+            hndlrs.push(handler);
+            this.handlers.set(HandlerTypes.ChannelSelectType,hndlrs);
+        }
+
+        public static invokeChannelSelect(channelId:string){
+            let hndlrs = this.handlers.get(HandlerTypes.ChannelSelectType);
+            if(hndlrs === void 0){
+                return;
+            }
+            
+            for(let h of hndlrs){
+                h(channelId);
+            }
+        }
+
         public static subscribeNewSubmit(h:NewSubmitHandler){
             let list = this.handlers.get(HandlerTypes.NewSubmitType);
             if(list===void 0){
@@ -64,5 +97,42 @@ namespace MoleOnlineWebUI.Bridge{
                 }
             }
         }
+
+        public static subscribeChangeHasKillable(h:ChangeHasKillableHandler){
+            let list = this.handlers.get(HandlerTypes.ChangeHasKillableType);
+            if(list===void 0){
+                list = [];
+            }
+            list.push(h);
+            this.handlers.set(HandlerTypes.ChangeHasKillableType, list);
+        }
+
+        public static invokeChangeHasKillable(hasKillable:boolean){
+            let hndlrs = this.handlers.get(HandlerTypes.ChangeHasKillableType);
+            if(hndlrs!==void 0){
+                for(let h of hndlrs){
+                    h(hasKillable);
+                }
+            }
+        }
+        
+        public static subscribeNotifyMessage(h:NotifyMessageHandler){
+            let list = this.handlers.get(HandlerTypes.NotifyMessageType);
+            if(list===void 0){
+                list = [];
+            }
+            list.push(h);
+            this.handlers.set(HandlerTypes.NotifyMessageType, list);
+        }
+
+        public static invokeNotifyMessage(e:MessageInfo){
+            let hndlrs = this.handlers.get(HandlerTypes.NotifyMessageType);
+            if(hndlrs!==void 0){
+                for(let h of hndlrs){
+                    h(e);
+                }
+            }
+        }
+        
     }
 }

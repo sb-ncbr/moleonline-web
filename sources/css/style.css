@@ -237,10 +237,10 @@ only screen and (max-height: 600px) {
 	position:absolute;
     /*overflow: hidden;*/
 }
-
+/*
 #controls div:first-child{
     height:100%;
-}
+}*/
 
 .plugin{
 	width:75vw;

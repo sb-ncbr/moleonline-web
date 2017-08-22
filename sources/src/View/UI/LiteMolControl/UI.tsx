@@ -296,10 +296,8 @@ namespace LiteMol.Example.Channels.UI {
         }
     }
 
-    export class Renderable extends React.Component<{ label: string | JSX.Element, element: any, annotations?: Annotation.ChannelAnnotation[], toggle: (plugin: Plugin.Controller, elements: any[], visible: boolean) => Promise<any> } & State, { isAnnotationsVisible:boolean }> {
-        
-        state = {isAnnotationsVisible: false};
-
+    export class Renderable extends React.Component<{ label: string | JSX.Element, element: any, toggle: (plugin: Plugin.Controller, elements: any[], visible: boolean) => Promise<any> } & State, { }> {
+    
         private toggle() {
             this.props.element.__isBusy = true;
             this.forceUpdate(() =>
@@ -311,47 +309,13 @@ namespace LiteMol.Example.Channels.UI {
             this.props.plugin.command(Bootstrap.Command.Entity.Highlight, { entities: this.props.plugin.context.select(this.props.element.__id), isOn });
         }
 
-        private toggleAnnotations(e:any){
-            this.setState({isAnnotationsVisible:!this.state.isAnnotationsVisible});
-        }
-
-        private getAnnotationToggler(){
-            return [(this.state.isAnnotationsVisible)
-                ?<span className="hand glyphicon glyphicon-chevron-up" title="Hide list annotations for this channel" onClick={this.toggleAnnotations.bind(this)} />
-            :<span className="hand glyphicon glyphicon-chevron-down" title="Show all annotations available for this channel" onClick={this.toggleAnnotations.bind(this)} />];
-        }
-
-        private getAnnotationsElements(){
-            if(this.props.annotations === void 0){
-                return [];
-            }
-            if(!this.state.isAnnotationsVisible){
-                return [];
-            }
-            let elements:JSX.Element[] = [];
-            for(let annotation of this.props.annotations){
-                let reference = <i>(No reference provided)</i>;
-                if(annotation.reference!==""){
-                    reference = <a target="_blank" href={annotation.link}>{annotation.reference} <span className="glyphicon glyphicon-new-window"/></a>;
-                }
-                elements.push(
-                    <div className="annotation-line">
-                        <span className="bullet"/> <b>{annotation.text}</b>, {reference}
-                    </div>
-                );
-            }
-            return elements;
-        }
 
         render() {           
-
-            let emptyToggler = <span className="disabled glyphicon glyphicon-chevron-down" title="No annotations available for this channel" onClick={this.toggleAnnotations.bind(this)} />
             return <div className="ui-label">
                 <input type='checkbox' checked={!!this.props.element.__isVisible} onChange={() => this.toggle()} disabled={!!this.props.element.__isBusy} />
                 <label className="ui-label-element" onMouseEnter={() => this.highlight(true)} onMouseLeave={() => this.highlight(false)} >
-                     {(this.props.annotations!==void 0 && this.props.annotations.length>0)?this.getAnnotationToggler():emptyToggler} {this.props.label}
+                     {this.props.label}
                 </label>
-                {this.getAnnotationsElements()}
             </div>
         }
     }
@@ -383,6 +347,14 @@ namespace LiteMol.Example.Channels.UI {
     export class Channel extends React.Component<{state:State, channel: any }, { isVisible: boolean, isWaitingForData:boolean }> {
         state = { isVisible: false, isWaitingForData: false };
 
+        componentDidMount(){
+            MoleOnlineWebUI.Bridge.Events.subscribeChannelSelect(((channelId:string)=>{
+                if(this.props.channel.Id === channelId){
+                    this.selectChannel();
+                }
+            }).bind(this));
+        }
+
         private dataWaitHandler(){
             this.setState({isWaitingForData:false});
         }
@@ -400,26 +372,17 @@ namespace LiteMol.Example.Channels.UI {
             let c = this.props.channel as DataInterface.Tunnel;
             let len = CommonUtils.Tunnels.getLength(c);
 
-            let annotations = Annotation.AnnotationDataProvider.getChannelAnnotations(c.Id);
-            if(annotations === void 0){
-                this.invokeDataWait();
-            }
-
-            if(annotations!==null && annotations !== void 0){
-                let annotation = annotations[0];
-                return <Renderable annotations={annotations} label={<span><b><a onClick={this.selectChannel.bind(this)}>{annotation.text}</a></b>, Length: {len} Å</span>} element={c} toggle={State.showChannelVisuals} {...this.props.state} />
-            }
-            else{
-                return <Renderable label={<span><b>{c.Type}</b>, {`Length: ${len} Å`}</span>} element={c} toggle={State.showChannelVisuals} {...this.props.state} />
-            }
+            return <Renderable label={<span><b><a onClick={this.selectChannel.bind(this)}>{c.Type}</a></b>, {`Length: ${len} Å`}</span>} element={c} toggle={State.showChannelVisuals} {...this.props.state} />
         }
 
         private selectChannel(){
             let entity = this.props.state.plugin.context.select(this.props.channel.__id)[0];
-            if(entity == void 0){
+            if(entity === void 0 || entity.ref === "undefined"){
                 State.showChannelVisuals(this.props.state.plugin,[this.props.channel],true);
                 this.setState({isVisible:true});
-                window.setTimeout((()=>{this.selectChannel()}).bind(this),50);
+                window.setTimeout((()=>{
+                    this.selectChannel();
+                }).bind(this),50);
                 return;
             }
             let channelRef = entity.ref;

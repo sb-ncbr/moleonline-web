@@ -4,6 +4,7 @@ namespace AglomeredParameters.UI{
     import LiteMoleEvent = LiteMol.Bootstrap.Event;
 
     import DGComponents = Datagrid.Components;
+    import Tooltips = MoleOnlineWebUI.StaticData.TooltipText;
     
     let DGTABLE_COLS_COUNT = 7;
 
@@ -20,7 +21,8 @@ namespace AglomeredParameters.UI{
         LiteMol.Plugin.ReactDOM.render(<App controller={plugin} />, target);
     }
 
-    export class App extends React.Component<{controller: LiteMol.Plugin.Controller }, State> {
+    interface Props{controller: LiteMol.Plugin.Controller}
+    export class App extends React.Component<Props, State> {
 
         private interactionEventStream: LiteMol.Bootstrap.Rx.IDisposable | undefined = void 0;
 
@@ -42,8 +44,17 @@ namespace AglomeredParameters.UI{
                     this.setState({
                         data: toShow
                     });
+                    $( window ).trigger("contentResize");
                 }
             });
+            LiteMoleEvent.Tree.NodeRemoved.getStream(this.props.controller.context).subscribe(e => {
+                if(e.data.tree !== void 0 && e.data.ref === "mole-data"){
+                    this.setState({
+                        data: null
+                    });
+                }
+            });
+            this.forceUpdate();
         }
 /*
         private dataWaitHandler(){
@@ -62,16 +73,16 @@ namespace AglomeredParameters.UI{
         componentWillUnmount(){
         }
 
+        componentDidUpdate(prevProps:Props, prevState:State){
+            $('.init-agp-tooltip').tooltip({container:'body'});
+        }
+
         render() {
-            if (this.state.data !== null) {
-                return(
-                    <div>
-                        <DGTable {...this.state} />
-                    </div>
-                    );
-            } 
-            
-            return <div/>
+            return(
+                <div>
+                    <DGTable {...this.state} />
+                </div>
+                );
         }
     }  
 
@@ -93,25 +104,25 @@ namespace AglomeredParameters.UI{
             return(
                 <table>
                     <tr>
-                        <th title="Identifier" className="col col-1 ATable-header-identifier">
+                        <th title={Tooltips.get("Name")} className="col col-1 ATable-header-identifier init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
                             Name
                         </th>
-                        <th title="Length" className="col col-2 ATable-header-length">
+                        <th title={Tooltips.get("Length")} className="col col-2 ATable-header-length init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
                             <span className="glyphicon glyphicon-resize-horizontal" /> <span className="ATable-label">Length</span>
                         </th>
-                        <th title="Bottleneck" className="col col-3 ATable-header-bottleneck">
+                        <th title={Tooltips.get("Bottleneck")} className="col col-3 ATable-header-bottleneck init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
                             <span className="icon bottleneck" /> <span className="ATable-label">Bottleneck</span>
                         </th>
-                        <th title="Hydropathy" className="col col-4 ATable-header-hydropathy">
+                        <th title={Tooltips.get("agl-Hydropathy")} className="col col-4 ATable-header-hydropathy init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
                             <span className="glyphicon glyphicon-tint" /> <span className="ATable-label">Hydropathy</span>
                         </th>
-                        <th title="Charge" className="col col-5 ATable-header-charge">
+                        <th title={Tooltips.get("agl-Charge")} className="col col-5 ATable-header-charge init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
                             <span className="glyphicon glyphicon-flash" /> <span className="ATable-label">Charge</span>
                         </th>
-                        <th title="Polarity" className="col col-6 ATable-header-polarity">
+                        <th title={Tooltips.get("agl-Polarity")} className="col col-6 ATable-header-polarity init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
                             <span className="glyphicon glyphicon-plus" /> <span className="ATable-label">Polarity</span>
                         </th>
-                        <th title="Mutability" className="col col-7 ATable-header-mutability">
+                        <th title={Tooltips.get("agl-Mutability")} className="col col-7 ATable-header-mutability init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
                             <span className="glyphicon glyphicon-scissors" /> <span className="ATable-label">Mutability</span>
                         </th>                     
                     </tr>
@@ -122,43 +133,21 @@ namespace AglomeredParameters.UI{
 
     class DGBody extends React.Component<State,{}>{
         
-        private generateMockData(){
-            if(this.props.data === null){
-                return <tr><td colSpan={DGTABLE_COLS_COUNT} >There are no data to be displayed...</td></tr>;
-            }
-
-            let rows = [];
-
-            for(let tunnel of this.props.data){
-                rows.push(
-                    <DGRow tunnel={tunnel} app={this.props.app} />
-                );
-            }
-
-            if(rows.length===0){
-                return rows;
-            }
-
-            for(let i=rows.length;i<100;i++){
-                rows.push(rows[0]);
-            }            
-
-            rows.push(<DGComponents.DGRowEmpty columnsCount={DGTABLE_COLS_COUNT}/>);
-
-            return rows;
-        }
-        
         private generateRows(){
-            if(this.props.data === null){
-                return <tr><td colSpan={DGTABLE_COLS_COUNT} >There are no data to be displayed...</td></tr>;
-            }
-
             let rows = [];
 
-            for(let tunnel of this.props.data){
+            if(this.props.data === null){
                 rows.push(
-                    <DGRow tunnel={tunnel} app={this.props.app}/>
+                    <tr><td colSpan={DGTABLE_COLS_COUNT} >There are no data to be displayed...</td></tr>
                 );
+            }
+
+            if(this.props.data!==null){
+                for(let tunnel of this.props.data){
+                    rows.push(
+                        <DGRow tunnel={tunnel} app={this.props.app}/>
+                    );
+                }
             }
 
             rows.push(<DGComponents.DGRowEmpty columnsCount={DGTABLE_COLS_COUNT}/>);

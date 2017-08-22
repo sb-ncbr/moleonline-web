@@ -1,0 +1,26 @@
+.lvz-radius + .tooltip > .tooltip-inner,
+.lvz-properties + .tooltip > .tooltip-inner{
+    max-width:420px;
+    min-width:220px;
+    background-color:white;
+    color:black;
+    box-shadow: #ccc 0px 0px 1px;
+}
+
+.tooltip.in{
+    opacity: 1 !important;
+}
+
+.lvz-properties + .tooltip > .tooltip-inner{
+    width:420px;
+}
+
+.lvz-radius + .tooltip.right > .tooltip-arrow,
+.lvz-properties + .tooltip.right > .tooltip-arrow{
+    border-right:5px solid white;
+}
+
+.tooltip > .tooltip-inner{
+    max-height:170px;
+    max-width:400px;
+}

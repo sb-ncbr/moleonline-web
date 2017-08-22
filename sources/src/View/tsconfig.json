@@ -49,6 +49,9 @@
     "LayerVizualizer/Components.ts", 
     "LayerVizualizer/Colors.ts", 
 
+    //Alert messages
+    "UI/AlertMessages/UI.tsx",
+
     //Controls components
     "UI/Common/Controls/Components.tsx",
 
@@ -81,6 +84,9 @@
 
     //Download report
     "UI/DownloadReport/UI.tsx",
+
+    //PDB id sign
+    "UI/PdbIdSign/UI.tsx",
     
     //Main UI
     "State.ts",

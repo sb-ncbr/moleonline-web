@@ -544,6 +544,7 @@ namespace LayersVizualizer.UI{
 
         render() {
             if (this.state.hasData) {
+                $('.init-lvz-tooltip').tooltip();
                 return <PaintingArea {...this.state} />
             } 
             
@@ -695,7 +696,7 @@ namespace LayersVizualizer.UI{
 
         render(){
             return(
-                <li><a data-instanceidx={this.props.instanceId} data-propertyname={this.props.propertyName} onClick={this.changeColoringProperty.bind(this)}>{this.props.propertyName}</a></li>
+                <li><a data-instanceidx={this.props.instanceId} data-propertyname={this.props.propertyName} data-toggle="tooltip" data-placement="right" title={MoleOnlineWebUI.StaticData.TooltipText.get(this.props.propertyName)} onClick={this.changeColoringProperty.bind(this)} className="init-lvz-tooltip lvz-properties">{MoleOnlineWebUI.StaticData.Bundle.get(this.props.propertyName)}</a></li>
             );
         }
     }
@@ -730,7 +731,7 @@ namespace LayersVizualizer.UI{
 
         render(){
             return(
-                <li><a data-instanceidx={this.props.instanceId} data-propertyname={this.props.propertyName} onClick={this.changeRadiusProperty.bind(this)}>{this.props.propertyName}</a></li>
+                <li><a data-instanceidx={this.props.instanceId} data-propertyname={this.props.propertyName} data-toggle="tooltip" data-placement="right" title={MoleOnlineWebUI.StaticData.TooltipText.get(this.props.propertyName)} onClick={this.changeRadiusProperty.bind(this)} className="init-lvz-tooltip lvz-radius">{MoleOnlineWebUI.StaticData.Bundle.get(this.props.propertyName)}</a></li>
             );
         }
     }

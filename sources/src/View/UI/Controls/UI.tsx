@@ -263,9 +263,10 @@ namespace Controls.UI{
         loading:boolean,
         statusInfo: Map<string,string>|null
     };
-    export class Submissions extends React.Component<{computationInfo:Service.CompInfo},ComputationsState>{
+    export class Submissions extends React.Component<{computationInfo:Service.CompInfo,onResubmit:(info:Service.CompInfo)=>void},ComputationsState>{
         
         state:ComputationsState = {computationInfo:null,loading:true,statusInfo:null}
+        private hasKillable = false;
         
         componentWillReceiveProps(nextProps:{computationInfo:Service.CompInfo}){
             this.prepareSubmissionData(nextProps.computationInfo);
@@ -286,9 +287,16 @@ namespace Controls.UI{
                             let statusInfo = this.state.statusInfo;
                             if(statusInfo!==null){
                                 let old = statusInfo.get(String(status.SubmitId));
-                                if(old===void 0||old!==state.Status){
+                                if(old===void 0||old!==state.Status){                                    
                                     statusInfo.set(String(status.SubmitId),state.Status);
                                     this.setState({statusInfo:map});
+                                    if(old!==void 0){
+                                        let hasKillable = this.checkHasKillable(map);
+                                        if(this.hasKillable!==hasKillable){
+                                            this.hasKillable = hasKillable;
+                                            MoleOnlineWebUI.Bridge.Events.invokeChangeHasKillable(hasKillable);
+                                        }    
+                                    }
                                 }
                             }
                         },(err)=>{
@@ -297,10 +305,26 @@ namespace Controls.UI{
                         })
                     }
                     map.set(String(status.SubmitId),status.Status);
-                }
-
+                }  
+                let hasKillable = this.checkHasKillable(map);
+                if(this.hasKillable!==hasKillable){
+                    this.hasKillable = hasKillable;
+                    MoleOnlineWebUI.Bridge.Events.invokeChangeHasKillable(hasKillable);
+                }              
                 this.setState({computationInfo:computationInfo, loading:false, statusInfo:map});
             });    
+        }
+
+        private checkHasKillable(map:Map<string,string>){
+            let hasKillable = false;
+            map.forEach((val,key,map)=>{
+                if(val==="Running"){
+                    hasKillable = true;
+                    return hasKillable;
+                }
+            })
+
+            return hasKillable;
         }
 
         componentDidMount(){
@@ -311,7 +335,11 @@ namespace Controls.UI{
             if(this.state.computationInfo!==null&&!this.state.loading){
                 let submissions:JSX.Element[] = [];
                 let submissionsData = this.state.computationInfo.Submissions;
-
+                let submitId = 1;
+                let params = CommonUtils.Router.getParameters();
+                if(params!==null){
+                    submitId=params.submitId;
+                }
                 for(let s of submissionsData.sort((a,b)=>{
                     return a.SubmitId-b.SubmitId;
                 })){
@@ -325,7 +353,7 @@ namespace Controls.UI{
                     }
 
                     submissions.push(
-                        <Submission data={s} computationId={this.props.computationInfo.ComputationId} status={(stat===void 0)?"Unknown":stat}/>
+                        <Submission data={s} currentSubmitId={submitId} computationId={this.props.computationInfo.ComputationId} status={(stat===void 0)?"Unknown":stat} onResubmit={this.props.onResubmit}/>
                     );
                 }
 
@@ -383,13 +411,65 @@ namespace Controls.UI{
         return rv;
     }
 
-    export class Submission extends React.Component<{data:Service.Submission, computationId:string, status:string},{}>{
+    function checkCanKill(status:Service.ComputationStatus){
+        let result = false;
+        switch(status as Service.ComputationStatus){
+            case "Running":
+                result = true;
+                break;
+        }
+        return result;
+    }
+
+    function checkCanDelete(status:Service.ComputationStatus){
+        let result = false;
+        switch(status as Service.ComputationStatus){
+            case "Aborted":
+            case "Error":
+            case "FailedInitialization":
+            case "Finished":
+            case "Initialized":
+                result = true;
+                break;
+            case "Running":
+            case "Initializing":
+                result = false;
+                break;
+        }
+        return result;
+    }
+
+    function checkCanResubmit(status:Service.ComputationStatus){
+        let result = false;
+        switch(status as Service.ComputationStatus){
+            case "Aborted":
+            case "Error":
+            case "FailedInitialization":
+            case "Finished":
+            case "Initialized":
+                result = true;
+                break;
+            case "Running":
+            case "Initializing":
+            case "Deleted":
+                result = false;
+                break;
+        }
+        return result;
+    }
+
+    export class Submission extends React.Component<{data:Service.Submission, computationId:string, status:string, currentSubmitId:number, onResubmit:(info:Service.CompInfo)=>void},{}>{
         
         componentDidMount(){
         }
 
         render(){
+            let currentSubmitId = this.props.currentSubmitId;
             let data = this.props.data;
+            //let canKill = checkCanKill(this.props.status as Service.ComputationStatus);
+            //let canDelete = checkCanDelete(this.props.status as Service.ComputationStatus);
+            let canResubmit = checkCanResubmit(this.props.status as Service.ComputationStatus);
+
             return(
                 <div className="panel panel-default">
                     <div className="panel-heading">
@@ -406,7 +486,7 @@ namespace Controls.UI{
                             </div>
                         </a>
                     </div>
-                    <div id={`submit-data-${data.SubmitId}`} className="panel-collapse collapse">
+                    <div id={`submit-data-${data.SubmitId}`} className={`panel-collapse collapse${(currentSubmitId.toString()===data.SubmitId.toString())?' in':''}`}>
                         <div className="panel-body">
                             <h4>General</h4>
                             Specific chains: {(data.MoleConfig.Input===void 0)?"":data.MoleConfig.Input.SpecificChains}<br/>
@@ -436,9 +516,40 @@ namespace Controls.UI{
                             Merge pores: {(data.MoleConfig.PoresMerged===void 0 || data.MoleConfig.PoresMerged===null)?"False":(data.MoleConfig.PoresMerged)?"True":"False"}<br/>
                             Automatic pores: {(data.MoleConfig.PoresAuto===void 0 || data.MoleConfig.PoresAuto===null)?"False":(data.MoleConfig.PoresAuto)?"True":"False"}<br/>
                         </div>
+                        <div className="panel-footer">
+                            <span className="btn btn-xs btn-primary" disabled={!canResubmit} onClick={(()=>this.reSubmit()).bind(this)}>Resubmit</span>
+                        </div>
                     </div>
                 </div>
             );
+        }
+
+        private reSubmit(){
+            if(this.props.data.MoleConfig!==void 0){
+                Service.ApiService.submitMoleJob(this.props.computationId,this.props.data.MoleConfig).then((result)=>{
+                    CommonUtils.Router.fakeRedirect(result.ComputationId, Number(result.SubmitId));
+                    LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
+
+                    Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
+                        this.props.onResubmit(info);
+                        MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
+                        MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
+                    }).bind(this), true);
+                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                        messageType: "Success",
+                        message: "Job was successfully resubmited."
+                    })
+                })
+                .catch(err=>{
+                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                        messageType:"Danger",
+                        message: `Resubmit failed with message: ${err}.`
+                    });
+                });
+            }
+            else{
+
+            }
         }
     }
 
@@ -733,10 +844,18 @@ namespace Controls.UI{
                     MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
                     MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
                 }).bind(this), true);
+                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                    messageType: "Success",
+                    message: "Job was successfully submited."
+                })
             })
             .catch((err)=>{
                 if(Config.CommonOptions.DEBUG_MODE)
                     console.log(err);
+                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                    messageType: "Danger",
+                    message: "Job submit was not completed succesfully! Please try again later."
+                })
             })
         }
 
@@ -748,7 +867,7 @@ namespace Controls.UI{
                     <Settings initialData={this.state.data} submitId={this.state.submitId}/>
                 );
                 tabs.push(
-                    <Submissions computationInfo={this.state.data} />
+                    <Submissions computationInfo={this.state.data} onResubmit={(info)=>this.setState({data:info})}/>
                 );
             } 
             else{
@@ -774,17 +893,21 @@ namespace Controls.UI{
         value:string
     }
     interface ControlButtonsState{
-        submitId:number
+        submitId:number,
+        hasKillable:boolean
     }
     interface ControlButtonsProps{
         submitId:number,
         computationInfo:Service.CompInfo|undefined
     }
     export class ControlButtons extends React.Component<ControlButtonsProps,ControlButtonsState>{
-        state:ControlButtonsState = {submitId:-1}
+        state:ControlButtonsState = {submitId:-1,hasKillable:false}
 
         componentDidMount(){
             this.state.submitId = this.props.submitId;
+            MoleOnlineWebUI.Bridge.Events.subscribeChangeHasKillable((hasKillable)=>{
+                this.setState({hasKillable});
+            });
         }
 
         componentWillReceiveProps(nextProps:ControlButtonsProps){
@@ -864,70 +987,97 @@ namespace Controls.UI{
         }
 
         render(){            
+            let canKill = (this.props.computationInfo!==void 0&&this.state.hasKillable);
             let items=this.prepareSubmissionItems(); 
             let idx = this.getSelectedIndex(this.state.submitId,items);
             return <div className="submit-parent">
                     <input className="btn btn-primary submit" type="submit" value="Submit" />
+                    <span className="btn btn-primary kill-job-button" data-toggle="modal" data-target="#killJobDialog" disabled={!canKill} onClick={(e=>{e.preventDefault();return false;})}>Kill</span>
+                    <span className="btn btn-primary delete-project-button" data-toggle="modal" data-target="#deleteProjectDialog" onClick={(e=>{e.preventDefault();return false;})}>Delete</span>
                     <input className="btn btn-primary submit-arrow" type="button" value=">" disabled={(idx===void 0||idx===items.length-1)?true:void 0} data-value={(idx===void 0||idx===items.length-1)?void 0:items[idx+1].value} onClick={this.changeSubmitIdByStep.bind(this)} />
                     <Common.Controls.SimpleComboBox id="submissionComboSwitch" items={items} defaultSelectedIndex={idx} className="form-control submit-combo" onSelectedChange={this.onSubmitIdComboSelectChange.bind(this)} />
                     <input className="btn btn-primary submit-arrow" type="button" value="<" disabled={(idx===void 0||idx===0)?true:void 0} data-value={(idx===void 0||idx===0)?void 0:items[idx-1].value} onClick={this.changeSubmitIdByStep.bind(this)} />
+                    <ModalDialog id="killJobDialog" header="Do you really want to kill running job?" body={this.prepareKillJobDialogBody()}/>
+                    <ModalDialog id="deleteProjectDialog" header="Do you really want to delete whole computation project?" body={this.prepareDeleteDialogBody()}/>
                 </div>
         }
-    }
 
-    export class TabbedContainer extends React.Component<{tabContents:JSX.Element[], header: string[], namespace:string, htmlId?:string, htmlClassName?:string, activeTab?:number},{activeTabIdx:number}>{
-        
-        state = {activeTabIdx:0}
-
-        componentDidMount(){
-            if(this.props.activeTab!== void 0){
-                this.state.activeTabIdx = this.props.activeTab;
-            }
-        }
-
-        header(){
-            let rv:JSX.Element[] = [];
-            for(let idx=0;idx<this.props.header.length;idx++){
-                let header = this.props.header[idx];
-                rv.push(<li className={(idx===this.state.activeTabIdx)?"active":""}><a data-toggle="tab" href={`#${this.props.namespace}${idx+1}`} onClick={(()=>{this.setState({activeTabIdx:idx})}).bind(this)}>{header}</a></li>);
-            }
-            return rv;
-        }
-
-        contents(){
-           let rv:JSX.Element[] = [];
-            for(let idx=0;idx<this.props.tabContents.length;idx++){
-                let contents = this.props.tabContents[idx];
-                rv.push(
-                    <div id={`${this.props.namespace}${idx+1}`} className={`tab-pane fade ${(idx===this.state.activeTabIdx)?"in active":""}`}>
-                        {contents}
-                    </div>
+        private prepareKillJobDialogBody(){
+            return( 
+                <div>
+                    <button className="btn btn-primary left-button" onClick={(e)=>{
+                            e.preventDefault();
+                            if(this.props.computationInfo===void 0){
+                                return false;
+                            }
+                            Service.ApiService.killRunningJob(this.props.computationInfo.ComputationId).then(()=>{
+                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                    message:"Job has been successfully killed.",
+                                    messageType:"Success"
+                                });
+                            })
+                            .catch((err)=>{
+                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                    message:"Attempt to kill running job failed! Please try again later.",
+                                    messageType:"Danger"
+                                });
+                            });
+                            return false;
+                        }} data-dismiss="modal">Yes</button>
+                    <button className="btn btn-primary right-button" data-dismiss="modal">No</button>
+                </div>
                 );
-            }
-            return rv;
         }
 
-        render(){
-            return (
-                <div className={this.props.htmlClassName} id={this.props.htmlId}>
-                    <ul className="nav nav-tabs">
-                        {this.header()}
-                    </ul>
-                    <div className="tab-content">
-                        {this.contents()}
-                    </div>
+        private prepareDeleteDialogBody(){
+            return( 
+                <div>
+                    <button className="btn btn-primary left-button" onClick={(e)=>{
+                            e.preventDefault();
+                            if(this.props.computationInfo===void 0){
+                                return false;
+                            }
+                            Service.ApiService.deleteProject(this.props.computationInfo.ComputationId).then(()=>{
+                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                    message:"Current computation was succesfuly deleted. You will be redirected to initial page.",
+                                    messageType:"Success"
+                                });
+                                window.setTimeout(()=>{
+                                    SimpleRouter.GlobalRouter.redirect("/online");
+                                },5000);
+                            })
+                            .catch((err)=>{
+                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                    message:"Attempt to delete current computation failed! Please try again later.",
+                                    messageType:"Danger"
+                                });
+                            });
+                            return false;
+                        }} data-dismiss="modal">Yes</button>
+                    <button className="btn btn-primary right-button" data-dismiss="modal">No</button>
                 </div>
-            );
+                );
         }
     }
 
-    export class Tab extends React.Component<{active:boolean, tabIndex:number, contents:JSX.Element, namespace:string},{}>{
+    class ModalDialog extends React.Component<{id:string,header:string,body:JSX.Element},{}>{
         render(){
-            return (
-                <div id={`${this.props.namespace}${this.props.tabIndex}`} className={(this.props.active)?"active":""}>
-                    {this.props.contents}
-                </div>
-            );
+            return  <div id={this.props.id} className="modal fade" role="dialog">
+                        <div className="modal-dialog">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <button type="button" className="close" data-dismiss="modal">&times;</button>
+                                    <h4 className="modal-title">{this.props.header}</h4>
+                                </div>
+                                <div className="modal-body">
+                                    {this.props.body}
+                                </div>
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
         }
     }
 }

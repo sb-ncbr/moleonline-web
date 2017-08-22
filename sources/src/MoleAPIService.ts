@@ -254,5 +254,21 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
             }
             return this.handleJsonToStringResponse(this.sendGET(url));
         }
+
+        public static killRunningJob(computationId:string){
+            let url = `${this.baseUrl}/Kill/${computationId}`;
+            if(this.DEBUG_MODE){
+                console.log(url);
+            }
+            return this.sendGET(url);
+        }
+
+        public static deleteProject(computationId:string){
+            let url = `${this.baseUrl}/Delete/${computationId}`;
+            if(this.DEBUG_MODE){
+                console.log(url);
+            }
+            return this.sendGET(url);
+        }
     }
 }

@@ -123,6 +123,10 @@
     color:red;
     font-weight: bold;
 }
+.submissions .submission-state .state-Aborted{
+    color:blue;
+    font-weight:bold;
+}
 .submissions .submission-state .state-Running{
     color:orange;
     font-style: italic;
@@ -140,6 +144,17 @@
     text-decoration: none;
 }
 
+.submissions .panel-footer .btn{
+    margin-left:2px;
+    margin-right:2px;
+}
+.submissions .panel-footer .btn:first-child{
+    margin-left:0;
+}
+.submissions .panel-footer .btn:last-child{
+    margin-right:0;
+}
+
 .submit-parent .submit-arrow,
 .submit-parent .submit-combo{
     max-height: 3.5vh;
@@ -153,7 +168,7 @@
 }
 
 .submit-parent .submit-combo{
-    width: 45px;
+    width: auto;
     margin-left: 5px;
     margin-right: 5px;
     padding-top: 5px;
@@ -171,6 +186,25 @@
 */
 }
 
+.submit-parent .kill-job-button{
+    margin-left:4px;
+    margin-right:2px;
+}
+.submit-parent .delete-project-button{
+    margin-left:2px;
+}
+
+.modal-dialog .left-button,
+.modal-dialog .right-button{
+    width:49%;
+}
+.modal-dialog .left-button{
+    margin-right:1%;
+}
+.modal-dialog .right-button{
+    margin-left:1%;
+}
+
 @media only screen and (max-width: 1300px),
 only screen and (max-height: 900px) {
     .submit-form-container .tab-content{
@@ -185,12 +219,20 @@ only screen and (max-height: 900px) {
         padding: 0.5vh 15px !important;
     }
  
-    .submit-form-container .submit{
+    .submit-form-container .submit,
+    .submit-form-container .delete-project-button,
+    .submit-form-container .kill-job-button,
+    .submit-form-container .submit-arrow,
+    .submit-form-container .submit-combo{
         max-height: 4.5vh;
         margin-top: 0.5vh;
         margin-bottom: 0.5vh;
         line-height: 2vh;
-        padding: 1.25vh 0px;
+        padding: 1.25vh 5px;
+    }
+
+    .submit-form-container .submit-combo{
+        padding:0;
     }
 
     .toggled .submit-form-container .tab-content{
