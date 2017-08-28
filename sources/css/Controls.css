@@ -22,6 +22,7 @@
 
 .submit-form-container .settings-form{
     padding-top:1vh;
+    margin-top: -34px;
 }
 
 .submit-form-container .settings-form h4{
@@ -203,6 +204,17 @@
 }
 .modal-dialog .right-button{
     margin-left:1%;
+}
+
+.submit-form-container .mode-switch{
+    margin-top: 6px;
+    cursor: pointer;
+    display: inline-block;
+    margin-bottom: 0;
+}
+
+.submit-form-container .mode-switch-button-container{
+    text-align: right;
 }
 
 @media only screen and (max-width: 1300px),

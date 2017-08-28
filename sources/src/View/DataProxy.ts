@@ -232,4 +232,122 @@ namespace MoleOnlineWebUI.DataProxy{
             }
         }
     }
+
+    export namespace CSAResidues{
+        import CSAResidues = MoleOnlineWebUI.Service.MoleAPI.CSAResidues;
+
+        type CSAResiduesHandler = (compId:string, info:CSAResidues)=>void;
+
+        export class DataProvider{
+            private static data: Map<string,CSAResidues>;
+            private static handlers: {
+                compId: string,
+                handler: CSAResiduesHandler,
+                stayForUpdate: boolean
+            }[];
+            private static pending: Map<string,boolean>;
+
+            //--
+
+            private static hasPending(compId:string):boolean{
+                if(this.pending===void 0){
+                    return false;
+                }
+
+                let isPending = this.pending.get(compId);
+                return (isPending===void 0)?false:isPending;
+            }
+
+            private static setPending(compId:string,isPending:boolean){
+                if(this.pending===void 0){
+                    this.pending = new Map<string,boolean>();
+                }
+                this.pending.set(compId, isPending);
+            }
+
+            private static setData(compId:string, info: CSAResidues){
+                if(this.data===void 0){
+                    this.data = new Map<string,CSAResidues>();
+                }
+                this.data.set(compId, info);
+                this.runHandlers(compId, info);
+            }
+
+            private static runHandlers(compId:string , info:CSAResidues){
+                if(this.handlers===void 0){
+                    return;
+                }
+
+                let hndlrs = [];
+                //this.handlers = [];
+                for(let h of this.handlers){
+                    if(h.compId===compId){
+                        h.handler(compId,info);
+                    }
+                    if(h.stayForUpdate===true||h.compId!==compId){
+                        hndlrs.push(h);
+                    }
+                }
+                this.handlers = hndlrs;
+            }
+
+            private static requestData(compId:string){
+                if(this.hasPending(compId)){
+                    return;
+                }
+                this.setPending(compId, true);
+                Service.getCSAResidues(compId).then((val)=>{
+                    this.setPending(compId, false);
+                    if(Config.CommonOptions.DEBUG_MODE)
+                        console.log(val);
+                    this.setData(compId, val);
+                }).catch((err)=>{
+                    if(Config.CommonOptions.DEBUG_MODE)
+                        console.log(err);
+                    window.setTimeout((()=>{this.requestData(compId)}).bind(this),2000);
+                });
+            }
+
+            private static attachHandler(compId:string, handler: CSAResiduesHandler, stayForUpdate:boolean){
+                if(this.handlers===void 0){
+                    this.handlers = [];
+                }
+
+                this.handlers.push(
+                    {
+                        compId,
+                        handler,
+                        stayForUpdate
+                    }
+                );
+
+                this.requestData(compId);
+            }
+
+            //--
+
+            public static get(compId:string, handler: CSAResiduesHandler, onlyFresh?:boolean){
+                if(this.data!==void 0 && !onlyFresh){
+                    let data = this.data.get(compId);
+                    if(data!==void 0){
+                        handler(compId, data);
+                        return;
+                    }
+                }
+
+                this.attachHandler(compId, handler, false);
+            }
+
+            public static subscribe(compId:string, handler: CSAResiduesHandler, onlyFresh?:boolean){
+                if(this.data!==void 0 && !onlyFresh){
+                    let data = this.data.get(compId);
+                    if(data!==void 0){
+                        handler(compId, data);
+                    }
+                }
+
+                this.attachHandler(compId, handler, true);
+            }
+        }
+    }
 }

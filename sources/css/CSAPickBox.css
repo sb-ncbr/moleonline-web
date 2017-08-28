@@ -1,0 +1,14 @@
+.csa-pick-box-item{
+    padding: 2px 5px;
+}
+
+.csa-pick-box-item.has-data{
+    cursor: pointer;
+}
+.csa-pick-box-item.has-data::before{
+    content: '\00bb';
+    padding-right:3px;
+}
+.csa-pick-box-item.has-data:hover{
+    font-weight: bold;
+}

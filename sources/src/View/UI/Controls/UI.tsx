@@ -144,7 +144,7 @@ namespace Controls.UI{
         }
     }
 
-    export class XYZBox extends React.Component<{label: string, id:string, defaultValue?:{x:number,y:number,z:number}, classNames?:string[]},{}>{
+    export class XYZBox extends React.Component<{label: string, id:string, defaultValue?:{x:number,y:number,z:number}, classNames?:string[], placeholder?:{x:number,y:number,z:number}},{}>{
         render(){
             let classNames = ["",""];
             if(this.props.classNames!==void 0){
@@ -152,17 +152,96 @@ namespace Controls.UI{
             }
 
             let defaultValue = this.props.defaultValue;
+            let placeholder = this.props.placeholder;
 
             return (
                 <div className="form-group">
                     <label className={`control-label ${classNames[0]}`} htmlFor={this.props.id}>{this.props.label}:</label>
                     <div className={`${classNames[1]}`}>
-                        <input type="text" className="form-control form-3-input" id={`${this.props.id}_x`} defaultValue={(defaultValue===void 0)?void 0:defaultValue.x.toString()}/>
-                        <input type="text" className="form-control form-3-input" id={`${this.props.id}_y`} defaultValue={(defaultValue===void 0)?void 0:defaultValue.x.toString()}/>
-                        <input type="text" className="form-control form-3-input" id={`${this.props.id}_z`} defaultValue={(defaultValue===void 0)?void 0:defaultValue.x.toString()}/>
+                        <input type="text" className="form-control form-3-input" id={`${this.props.id}_x`} defaultValue={(defaultValue===void 0)?void 0:defaultValue.x.toString()} placeholder={(placeholder===void 0)?void 0:placeholder.x.toString()} />
+                        <input type="text" className="form-control form-3-input" id={`${this.props.id}_y`} defaultValue={(defaultValue===void 0)?void 0:defaultValue.y.toString()} placeholder={(placeholder===void 0)?void 0:placeholder.y.toString()} />
+                        <input type="text" className="form-control form-3-input" id={`${this.props.id}_z`} defaultValue={(defaultValue===void 0)?void 0:defaultValue.z.toString()} placeholder={(placeholder===void 0)?void 0:placeholder.z.toString()} />
                     </div>
                 </div>
             );
+        }
+    }
+
+    interface CSAPickBoxState{isLoading:boolean, data:Service.CSAResidues|null};
+    export class CSAPickBox extends React.Component<{label: string, id:string, outputRefId:string, computationId:string, classNames?:string[]},CSAPickBoxState>{
+        
+        state:CSAPickBoxState = {isLoading:true, data:null};
+
+        componentDidMount(){
+            this.getData();
+        }
+
+        render(){
+            let classNames = ["",""];
+            if(this.props.classNames!==void 0){
+                classNames = this.props.classNames;
+            }
+
+            let contents;
+
+            if(!this.state.isLoading&&this.state.data !== null){
+                contents = this.generateItems(this.state.data);
+            }
+
+            if(this.state.isLoading){
+                contents = <CSAPickBoxItem outputRefId="" isLoading={true} />
+            }
+            else if(!this.state.isLoading&&this.state.data === null){
+                contents = <CSAPickBoxItem outputRefId="" />
+            }
+            
+
+            return (
+                <div className="form-group">
+                    <label className={`control-label ${classNames[0]}`} htmlFor={this.props.id}>{this.props.label}:</label>
+                    <div className={`${classNames[1]}`}>
+                        {contents}
+                    </div>
+                </div>
+            );
+        }
+
+        getData(){
+            MoleOnlineWebUI.DataProxy.CSAResidues.DataProvider.get(this.props.computationId,(compid,residues)=>{
+                this.setState({isLoading:false,data:residues});
+            });
+        }
+
+        generateItems(activeResidues:Service.CSAResidues){
+            let items = [];
+            for(let item of activeResidues){
+                items.push(
+                    <CSAPickBoxItem outputRefId={this.props.outputRefId} value={item} />
+                );
+            }
+
+            return items;
+        }
+    }
+
+    export class CSAPickBoxItem extends React.Component<{outputRefId:string, value?:Service.MoleConfigResidue[], isLoading?:boolean},{}>{
+        render(){
+            if(this.props.isLoading===true){
+                return <div className="csa-pick-box-item no-data">Loading...</div>
+            }
+            if(this.props.value===void 0){
+                return <div className="csa-pick-box-item no-data">No active sites available...</div>
+            }
+
+            let value = this.props.value;
+
+            return <div className="csa-pick-box-item has-data" onClick={()=>{
+                let output = $(`#${this.props.outputRefId}`)[0] as HTMLInputElement;
+                if(output.value.length>0){
+                    output.value += ", ";
+                }
+                output.value += '['+flattenResidues(value)+']';
+            }}>{flattenResidues(value)}</div>
         }
     }
 
@@ -188,23 +267,54 @@ namespace Controls.UI{
         pdbid: string
     };*/
     interface SettingsState{
-        data:Service.CompInfo|null
+        data:Service.CompInfo|null,
+        mode:"Mole"|"Pores"
     };
     export class Settings extends React.Component<{initialData:Service.CompInfo, submitId:number},SettingsState>{
         
-        state:SettingsState = {data:null}
+        state:SettingsState = {data:null,mode:"Mole"}
         
         componentDidMount(){  
             this.setState({data:this.props.initialData}); 
         }
-        
+
         render(){
+            let form = <div/>;
+
+            if(this.state.mode==="Mole"){
+                form = this.getMoleForm();
+            }
+            else if (this.state.mode==="Pores"){
+                form = this.getPoresForm();
+            }
+
+            return (
+                <div>
+                    <div className="mode-switch-button-container">
+                        <span className="btn-sm btn-primary mode-switch" onClick={(e)=>{
+                                this.setState({mode:(this.state.mode==="Mole")?"Pores":"Mole"});
+                            }}>Switch to {(this.state.mode==="Mole")?"Pores":"Mole"} calculation</span>
+                    </div>
+                    {form}
+                </div>
+            );
+            //<CheckBox label="Automatic starting points" defaultChecked={false} id="automaticStartingPoints" classNames={chckColClasses} />
+            //<CheckBox label="Automatic endpoints" defaultChecked={false} id="automaticEndPoints" classNames={chckColClasses} />
+            //<CheckBox label="Use custom exits only" defaultChecked={false} id="useCustomExitsOnly" classNames={chckColClasses} />
+            //<LabelBox label="Active sites from CSA" text="TODO:..." id="activeSites" classNames={doubleColClasses} />
+        }
+
+        getMoleForm(){
+            let doubleColClasses = ["col-md-5","col-md-7"];
+            let chckColClasses = doubleColClasses;//["col-md-offset-4 col-md-8"];
+
             if(this.state.data===null){
                 return <div/>
             }
 
             let pdbid = this.state.data.PdbId;
 
+            /*
             if(this.state.data.Submissions.length>0){
                 let submissionData = this.state.data.Submissions[this.props.submitId];
                 if(submissionData!==void 0){
@@ -213,48 +323,63 @@ namespace Controls.UI{
                         //moleConfig.
                     }
                 }
-            }
+            }*/
+
+            return <div className="settings-form basic-settings">
+                        <h4>General</h4>
+                        <LabelBox label="Structure" text={this.state.data.PdbId} id="pdbid" classNames={doubleColClasses} />
+                        <TextBox label="Specific chains" id="specificChains" classNames={doubleColClasses} placeholder="A, B, ..." />
+                        <CheckBox label="Read all models" defaultChecked={false} id="readAllModels" classNames={chckColClasses} />
+                        <TextBox label="Ignored residues" id="nonActiveResidues" classNames={doubleColClasses} placeholder="GLY A 69, MET A 386, ..."/>
+                        <TextBox label="Query filter" id="queryFilter" classNames={doubleColClasses} placeholder='ResidueIdRange("A", 50, 100)' />
+
+                        <h4>Cavity</h4>
+                        <CheckBox label="Ignore hydrogens" defaultChecked={false} id="ignoreHydrogens" classNames={chckColClasses} />
+                        <CheckBox label="Ignore all HETATM" defaultChecked={false} id="ignoreAllHetatm" classNames={chckColClasses} />
+                        <NumberBox label="Interior Treshold" id="interiorTreshold" classNames={doubleColClasses} min={0.8} max={2.4} defaultValue={1.25} step={0.01} />
+                        <NumberBox label="Probe radius" id="probeRadius" classNames={doubleColClasses} min={1.4} max={20} defaultValue={3} step={0.01} />
+
+                        <h4>Start and end</h4>
+                        <CSAPickBox label="Active sites from CSA" id="csaActiveSites" classNames={doubleColClasses} outputRefId="originResidues" computationId={this.props.initialData.ComputationId} />
+                        <TextBox label="Starting point" id="originResidues" classNames={doubleColClasses} placeholder="[GLY A 69, MET A 386], [PHE A 137, THR A 136]" />
+                        <XYZBox label="Starting point [x,y,z]" id="originPoints" classNames={doubleColClasses} placeholder={{x:-1,y:0,z:4}} />
+                        <TextBox label="End point" id="customExitsResidues" classNames={doubleColClasses} placeholder="[GLY A 69, MET A 386], [PHE A 137, THR A 136]"/>
+                        <XYZBox label="End point [x,y,z]" id="customExitsPoints" classNames={doubleColClasses} placeholder={{x:-1,y:0,z:4}} />
+                        <TextBox label="Query expresion" id="queryExpresion" classNames={doubleColClasses} placeholder='ResidueIdRange("A", 50, 100)'/>
+
+                        <h4>Tunnel</h4>
+                        <ComboBox label="Weight function" id="tunnelWeightFunction" items={MoleOnlineWebUI.StaticData.WeightFunctions.get()} classNames={doubleColClasses} />
+                        <NumberBox label="Bottleneck radius" id="bottleneckRadius" classNames={doubleColClasses} min={0.8} max={5} defaultValue={1.2} step={0.01} />
+                        <NumberBox label="Bottleneck tolerance" id="bottleneckTolerance" classNames={doubleColClasses} min={0} max={5} defaultValue={0} step={0.1} />
+                        <NumberBox label="Max tunnel similarity" id="maxTunnelSimilarity" classNames={doubleColClasses} min={0} max={1} defaultValue={0.9} step={0.05} />
+                        <NumberBox label="Origin radius" id="originRadius" classNames={doubleColClasses} min={0.1} max={10} defaultValue={5} step={0.05}/>
+                        <NumberBox label="Surface cover radius" id="surfaceCoverRadius" classNames={doubleColClasses} min={5} max={20} defaultValue={10} step={0.5} />                    
+
+                        <h4>Pores</h4>
+                        <CheckBox label="Merge pores" defaultChecked={false} id="mergePores" classNames={chckColClasses} />
+                        <CheckBox label="Automatic pores" defaultChecked={false} id="automaticPores" classNames={chckColClasses} />
+                        <input type="hidden" id="mode" value="Mole" />
+                    </div>
+        }
+
+        getPoresForm(){
             let doubleColClasses = ["col-md-5","col-md-7"];
             let chckColClasses = doubleColClasses;//["col-md-offset-4 col-md-8"];
-            return (
-                <div className="settings-form basic-settings">
-                    <h4>General</h4>
-                    <LabelBox label="Structure" text={this.state.data.PdbId} id="pdbid" classNames={doubleColClasses} />
-                    <TextBox label="Specific chains" id="specificChains" classNames={doubleColClasses} />
-                    <CheckBox label="Read all models" defaultChecked={false} id="readAllModels" classNames={chckColClasses} />
-                    <TextBox label="Ignored residues" id="nonActiveResidues" classNames={doubleColClasses} />
-                    <TextBox label="Query filter" id="queryFilter" classNames={doubleColClasses} />
 
-                    <h4>Cavity</h4>
-                    <CheckBox label="Ignore hydrogens" defaultChecked={false} id="ignoreHydrogens" classNames={chckColClasses} />
-                    <CheckBox label="Ignore all HETATM" defaultChecked={false} id="ignoreAllHetatm" classNames={chckColClasses} />
-                    <NumberBox label="Interior Treshold" id="interiorTreshold" classNames={doubleColClasses} min={0.8} max={2.4} defaultValue={1.25} step={0.01} />
-                    <NumberBox label="Probe radius" id="probeRadius" classNames={doubleColClasses} min={1.4} max={20} defaultValue={3} step={0.01} />
+            if(this.state.data===null){
+                return <div/>
+            }
 
-                    <h4>Start and end</h4>
-                    <TextBox label="Starting point" id="originResidues" classNames={doubleColClasses} />
-                    <XYZBox label="Starting point [x,y,z]" id="originPoints" classNames={doubleColClasses} />
-                    <TextBox label="End point" id="customExitsResidues" classNames={doubleColClasses} />
-                    <XYZBox label="End point [x,y,z]" id="customExitsPoints" classNames={doubleColClasses} />
-                    <TextBox label="Query expresion" id="queryExpresion" classNames={doubleColClasses} />
+            let pdbid = this.state.data.PdbId;
 
-                    <h4>Tunnel</h4>
-                    <ComboBox label="Weight function" id="tunnelWeightFunction" items={MoleOnlineWebUI.StaticData.WeightFunctions.get()} classNames={doubleColClasses} />
-                    <NumberBox label="Bottleneck radius" id="bottleneckRadius" classNames={doubleColClasses} min={0.8} max={5} defaultValue={1.2} step={0.01} />
-                    <NumberBox label="Bottleneck tolerance" id="bottleneckTolerance" classNames={doubleColClasses} min={0} max={5} defaultValue={0} step={0.1} />
-                    <NumberBox label="Max tunnel similarity" id="maxTunnelSimilarity" classNames={doubleColClasses} min={0} max={1} defaultValue={0.9} step={0.05} />
-                    <NumberBox label="Origin radius" id="originRadius" classNames={doubleColClasses} min={0.1} max={10} defaultValue={5} step={0.05}/>
-                    <NumberBox label="Surface cover radius" id="surfaceCoverRadius" classNames={doubleColClasses} min={5} max={20} defaultValue={10} step={0.5} />                    
-
-                    <h4>Pores</h4>
-                    <CheckBox label="Merge pores" defaultChecked={false} id="mergePores" classNames={chckColClasses} />
-                    <CheckBox label="Automatic pores" defaultChecked={false} id="automaticPores" classNames={chckColClasses} />
-                </div>
-            );
-            //<CheckBox label="Automatic starting points" defaultChecked={false} id="automaticStartingPoints" classNames={chckColClasses} />
-            //<CheckBox label="Automatic endpoints" defaultChecked={false} id="automaticEndPoints" classNames={chckColClasses} />
-            //<CheckBox label="Use custom exits only" defaultChecked={false} id="useCustomExitsOnly" classNames={chckColClasses} />
-            //<LabelBox label="Active sites from CSA" text="TODO:..." id="activeSites" classNames={doubleColClasses} />
+            return <div className="settings-form basic-settings">
+                        <h4>General</h4>
+                        <LabelBox label="Structure" text={this.state.data.PdbId} id="pdbid" classNames={doubleColClasses} />
+                        <CheckBox label="Is beta structure" defaultChecked={false} id="poresIsBetaStructure" classNames={chckColClasses} />
+                        <CheckBox label="In transmembrane" defaultChecked={false} id="poresInMembrane" classNames={chckColClasses} />
+                        <TextBox label="Chains" id="poresChains" classNames={doubleColClasses} placeholder="A, B, ..." />
+                        <input type="hidden" id="mode" value="Pores" />
+                    </div>
         }
     }
 
@@ -400,7 +525,20 @@ namespace Controls.UI{
         }
     }
     
-    function flattenResidues(residues:Service.MoleConfigResidues[]):string{
+    function flattenResiduesArray(residuesArrayy:Service.MoleConfigResidue[][]):string{
+        let rv = "";
+        let idx=0;
+        for(let array of residuesArrayy){
+            if(idx>0){
+                rv = `${rv}, `;
+            }
+            rv = `${rv}[${flattenResidues(array)}]`;
+            idx++;
+        }
+        return rv;
+    }
+
+    function flattenResidues(residues:Service.MoleConfigResidue[]):string{
         let rv = "";
         for(let r of residues){
             if(rv !== ""){
@@ -463,12 +601,78 @@ namespace Controls.UI{
         componentDidMount(){
         }
 
+        getMoleJob(data:Service.Submission){
+            return <div className="panel-body">
+                <h4>General</h4>
+                Specific chains: {(data.MoleConfig.Input===void 0)?"":data.MoleConfig.Input.SpecificChains}<br/>
+                Read all models: {(data.MoleConfig.Input===void 0)?"False":(data.MoleConfig.Input.ReadAllModels)?"True":"False"}<br/>
+                Ignored residues: {(data.MoleConfig.NonActiveResidues===void 0||data.MoleConfig.NonActiveResidues===null)?"":flattenResidues(data.MoleConfig.NonActiveResidues)}<br/>
+                Query filter: {(data.MoleConfig.QueryFilter===void 0)?"":data.MoleConfig.QueryFilter}<br/>
+                <h4>Cavity</h4>
+                Ignore hdrogens: {(data.MoleConfig.Cavity===void 0)?"False":(data.MoleConfig.Cavity.IgnoreHydrogens)?"True":"False"}<br/>
+                Ignore all HETATM: {(data.MoleConfig.Cavity===void 0)?"False":(data.MoleConfig.Cavity.IgnoreHETAtoms)?"True":"False"}<br/>
+                Interior treshold: {(data.MoleConfig.Cavity===void 0)?"":data.MoleConfig.Cavity.InteriorThreshold}<br/>
+                Probe radius: {(data.MoleConfig.Cavity===void 0)?"":data.MoleConfig.Cavity.ProbeRadius}<br/>
+                <h4>Start and end</h4>
+                Starting points: {(data.MoleConfig.Origin===void 0 || data.MoleConfig.Origin===null)?"":(data.MoleConfig.Origin.Residues===void 0 || data.MoleConfig.Origin.Residues===null || data.MoleConfig.Origin.Residues.length===0)?"":flattenResiduesArray(data.MoleConfig.Origin.Residues)}<br/>
+                Starting point[x,y,z]: {(data.MoleConfig.Origin===void 0 || data.MoleConfig.Origin===null)?"":(data.MoleConfig.Origin.Points===void 0 || data.MoleConfig.Origin.Points===null)?"":pointsToString(data.MoleConfig.Origin.Points)}<br/>
+                End points: {(data.MoleConfig.CustomExits===void 0 || data.MoleConfig.CustomExits===null)?"":(data.MoleConfig.CustomExits.Residues===void 0 || data.MoleConfig.CustomExits.Residues===null || data.MoleConfig.CustomExits.Residues.length===0)?"":flattenResiduesArray(data.MoleConfig.CustomExits.Residues)}<br/>
+                End point[x,y,z]: {(data.MoleConfig.CustomExits===void 0 || data.MoleConfig.CustomExits===null)?"":(data.MoleConfig.CustomExits.Points===void 0 || data.MoleConfig.CustomExits.Points===null)?"":pointsToString(data.MoleConfig.CustomExits.Points)}<br/>
+                Query expression: {(data.MoleConfig.Origin===void 0 || data.MoleConfig.Origin===null)?"":(data.MoleConfig.Origin.QueryExpression===void 0 || data.MoleConfig.Origin.QueryExpression===null)?"":data.MoleConfig.Origin.QueryExpression}<br/>
+                <h4>Tunnel</h4>
+                Weight function: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.WeightFunction}<br/>
+                Bottleneck radius: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.BottleneckRadius}<br/>
+                Bottleneck tolerance: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.BottleneckTolerance}<br/>
+                Max tunnel similarity: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.MaxTunnelSimilarity}<br/>
+                Origin radius: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.OriginRadius}<br/>
+                Surface cover radius: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.SurfaceCoverRadius}<br/>
+                Use custom exits only: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"False":(data.MoleConfig.Tunnel.UseCustomExitsOnly)?"True":"False"}<br/>
+                <h4>Pores</h4>
+                Merge pores: {(data.MoleConfig.PoresMerged===void 0 || data.MoleConfig.PoresMerged===null)?"False":(data.MoleConfig.PoresMerged)?"True":"False"}<br/>
+                Automatic pores: {(data.MoleConfig.PoresAuto===void 0 || data.MoleConfig.PoresAuto===null)?"False":(data.MoleConfig.PoresAuto)?"True":"False"}<br/>
+            </div>
+        }
+
+        getPoresJob(data:Service.Submission){
+            return <div className="panel-body">
+                <h4>General</h4>
+                Chains: {(data.PoresConfig.Chains===void 0)?"":data.PoresConfig.Chains}<br/>
+                Is beta structure: {(data.PoresConfig.IsBetaBarel===void 0)?"False":(data.PoresConfig.IsBetaBarel)?"True":"False"}<br/>
+                In transmembrane: {(data.PoresConfig.InMembrane===void 0)?"False":(data.PoresConfig.InMembrane)?"True":"False"}<br/>
+            </div>
+        }
+
+        isMoleJob(data: Service.Submission){
+            if(data.MoleConfig===void 0 || data.MoleConfig===null){
+                return false;
+            }
+
+            let c = data.MoleConfig;
+            return !(c.Cavity===void 0 
+                && c.CustomExits === void 0
+                && c.Input === void 0
+                && c.NonActiveResidues === void 0
+                && c.Origin === void 0
+                && c.PoresAuto === void 0
+                && c.PoresMerged === void 0
+                && c.QueryFilter === void 0
+                && c.Tunnel === void 0);
+        }
+
         render(){
             let currentSubmitId = this.props.currentSubmitId;
             let data = this.props.data;
             //let canKill = checkCanKill(this.props.status as Service.ComputationStatus);
             //let canDelete = checkCanDelete(this.props.status as Service.ComputationStatus);
             let canResubmit = checkCanResubmit(this.props.status as Service.ComputationStatus);
+
+            let contents;
+            if(this.isMoleJob(data)){
+                contents = this.getMoleJob(data);
+            }            
+            else{
+                contents = this.getPoresJob(data);
+            }
 
             return(
                 <div className="panel panel-default">
@@ -487,35 +691,7 @@ namespace Controls.UI{
                         </a>
                     </div>
                     <div id={`submit-data-${data.SubmitId}`} className={`panel-collapse collapse${(currentSubmitId.toString()===data.SubmitId.toString())?' in':''}`}>
-                        <div className="panel-body">
-                            <h4>General</h4>
-                            Specific chains: {(data.MoleConfig.Input===void 0)?"":data.MoleConfig.Input.SpecificChains}<br/>
-                            Read all models: {(data.MoleConfig.Input===void 0)?"False":(data.MoleConfig.Input.ReadAllModels)?"True":"False"}<br/>
-                            Ignored residues: {(data.MoleConfig.NonActiveResidues===void 0||data.MoleConfig.NonActiveResidues===null)?"":flattenResidues(data.MoleConfig.NonActiveResidues)}<br/>
-                            Query filter: {(data.MoleConfig.QueryFilter===void 0)?"":data.MoleConfig.QueryFilter}<br/>
-                            <h4>Cavity</h4>
-                            Ignore hdrogens: {(data.MoleConfig.Cavity===void 0)?"False":(data.MoleConfig.Cavity.IgnoreHydrogens)?"True":"False"}<br/>
-                            Ignore all HETATM: {(data.MoleConfig.Cavity===void 0)?"False":(data.MoleConfig.Cavity.IgnoreHETAtoms)?"True":"False"}<br/>
-                            Interior treshold: {(data.MoleConfig.Cavity===void 0)?"":data.MoleConfig.Cavity.InteriorThreshold}<br/>
-                            Probe radius: {(data.MoleConfig.Cavity===void 0)?"":data.MoleConfig.Cavity.ProbeRadius}<br/>
-                            <h4>Start and end</h4>
-                            Starting point: {(data.MoleConfig.Origin===void 0 || data.MoleConfig.Origin===null)?"":(data.MoleConfig.Origin.Residues===void 0 || data.MoleConfig.Origin.Residues===null || data.MoleConfig.Origin.Residues.length===0)?"":flattenResidues(data.MoleConfig.Origin.Residues)}<br/>
-                            Starting point[x,y,z]: {(data.MoleConfig.Origin===void 0 || data.MoleConfig.Origin===null)?"":(data.MoleConfig.Origin.Points===void 0 || data.MoleConfig.Origin.Points===null)?"":pointsToString(data.MoleConfig.Origin.Points)}<br/>
-                            End point: {(data.MoleConfig.CustomExits===void 0 || data.MoleConfig.CustomExits===null)?"":(data.MoleConfig.CustomExits.Residues===void 0 || data.MoleConfig.CustomExits.Residues===null || data.MoleConfig.CustomExits.Residues.length===0)?"":flattenResidues(data.MoleConfig.CustomExits.Residues)}<br/>
-                            End point[x,y,z]: {(data.MoleConfig.CustomExits===void 0 || data.MoleConfig.CustomExits===null)?"":(data.MoleConfig.CustomExits.Points===void 0 || data.MoleConfig.CustomExits.Points===null)?"":pointsToString(data.MoleConfig.CustomExits.Points)}<br/>
-                            Query expression: {(data.MoleConfig.Origin===void 0 || data.MoleConfig.Origin===null)?"":(data.MoleConfig.Origin.QueryExpression===void 0 || data.MoleConfig.Origin.QueryExpression===null)?"":data.MoleConfig.Origin.QueryExpression}<br/>
-                            <h4>Tunnel</h4>
-                            Weight function: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.WeightFunction}<br/>
-                            Bottleneck radius: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.BottleneckRadius}<br/>
-                            Bottleneck tolerance: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.BottleneckTolerance}<br/>
-                            Max tunnel similarity: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.MaxTunnelSimilarity}<br/>
-                            Origin radius: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.OriginRadius}<br/>
-                            Surface cover radius: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.SurfaceCoverRadius}<br/>
-                            Use custom exits only: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"False":(data.MoleConfig.Tunnel.UseCustomExitsOnly)?"True":"False"}<br/>
-                            <h4>Pores</h4>
-                            Merge pores: {(data.MoleConfig.PoresMerged===void 0 || data.MoleConfig.PoresMerged===null)?"False":(data.MoleConfig.PoresMerged)?"True":"False"}<br/>
-                            Automatic pores: {(data.MoleConfig.PoresAuto===void 0 || data.MoleConfig.PoresAuto===null)?"False":(data.MoleConfig.PoresAuto)?"True":"False"}<br/>
-                        </div>
+                        {contents}
                         <div className="panel-footer">
                             <span className="btn btn-xs btn-primary" disabled={!canResubmit} onClick={(()=>this.reSubmit()).bind(this)}>Resubmit</span>
                         </div>
@@ -570,12 +746,29 @@ namespace Controls.UI{
         return rv;
     }
 
+    function parseResiduesArray(residuesArray:string|undefined):{Chain:string,SequenceNumber:number}[][]{
+        if(residuesArray===void 0){
+            return [];
+        }
+        residuesArray = residuesArray.replace("], [","],[");
+        let parts = residuesArray.split("],[");
+        let rv = [];
+        for(let part of parts){
+            part = part.replace("[","");
+            part = part.replace("]","");
+            rv.push(parseResidues(part));
+        }
+        console.log(rv);
+        return rv;
+    }
+
     function parseResidues(residues:string|undefined):{Chain:string,SequenceNumber:number}[]{
         if(residues===void 0){
             return [];
         }
 
-        let items = residues.split(', ');
+        residues = residues.replace(", ",",");
+        let items = residues.split(',');
         let rv = [];
         
         let seqNumReg = new RegExp(/^[0-9]+$/);
@@ -644,6 +837,14 @@ namespace Controls.UI{
             });
         }
 
+        nullIfEmpty(data:any[][]){
+            if(data.length===1&&data[0].length===0){
+                return null;
+            }
+
+            return data;
+        }
+
         handleSubmit(e:React.FormEvent<HTMLFormElement>){
             e.preventDefault();
             if(this.state.data===void 0){
@@ -652,6 +853,9 @@ namespace Controls.UI{
 
             let form = e.target as HTMLFormElement;
             
+            let mode = "Mole";
+
+            //Mole
             let specificChains = "";
             let readAllModels = false;
             let nonActiveResidues;
@@ -681,10 +885,19 @@ namespace Controls.UI{
             let mergePores;
             let automaticPores;
 
+            //Pores
+            let isBetaStructure = false;
+            let inMembrane = false;
+            let chains = "";
+
             for(let idx = 0;idx<form.length;idx++){
                 let item = form[idx] as HTMLInputElement;
                 let name = item.getAttribute('id');
                 switch(name){
+                    case 'mode':
+                        mode = item.value;
+                        break;
+                    //Mole
                     case 'specificChains':
                         specificChains = item.value;
                         break;
@@ -769,6 +982,16 @@ namespace Controls.UI{
                     case 'automaticPores':
                         automaticPores = (item.value!=="")?item.checked:false;
                         break;
+                    //Pores
+                    case 'poresChains':
+                        chains = item.value;
+                        break;
+                    case 'poresInMembrane':
+                        inMembrane = (item.value!=="")?item.checked:false;
+                        break;
+                    case 'poresIsBetaStructure':
+                        isBetaStructure = (item.value!=="")?item.checked:false;
+                        break;
                 }
             }
 
@@ -797,66 +1020,82 @@ namespace Controls.UI{
             let customExits;
             if(customExitsResidues!==void 0 || customExitsPoints!==null){
                 customExits = {
-                    Residues:parseResidues(customExitsResidues),
+                    Residues:this.nullIfEmpty(parseResiduesArray(customExitsResidues)),
                     Points:customExitsPoints,
                     QueryExpression:null
                 }
             }
 
-            let formData:Service.MoleConfig = {
-                Input: {
-                    ReadAllModels: readAllModels,
-                    SpecificChains: specificChains
-                },
-                Cavity: {
-                    IgnoreHETAtoms: ignoreAllHetatm,
-                    IgnoreHydrogens: ignoreHydrogens,
-                    InteriorThreshold: interiorTreshold,
-                    ProbeRadius: probeRadius
-                },
-                Origin:{
-                    Points: originPoints,
-                    Residues: parseResidues(originResidues),
-                    QueryExpression: queryExpresion
-                },
-                Tunnel:{
-                    BottleneckRadius: bottleneckRadius,
-                    BottleneckTolerance: bottleneckTolerance,
-                    MaxTunnelSimilarity: maxTunnelSimilarity,
-                    OriginRadius: originRadius,
-                    SurfaceCoverRadius: surfaceCoverRadius,
-                    UseCustomExitsOnly: useCustomExitsOnly,
-                    WeightFunction: tunnelWeightFunction
-                },
-                CustomExits:customExits,
-                NonActiveResidues:parseResidues(nonActiveResidues),
-                PoresAuto:automaticPores,
-                PoresMerged: mergePores,
-                QueryFilter: queryFilter
-            } 
+            let promise;
+            if(mode === "Mole"){
+                let moleFormData:Service.MoleConfig = {
+                    Input: {
+                        ReadAllModels: readAllModels,
+                        SpecificChains: specificChains
+                    },
+                    Cavity: {
+                        IgnoreHETAtoms: ignoreAllHetatm,
+                        IgnoreHydrogens: ignoreHydrogens,
+                        InteriorThreshold: interiorTreshold,
+                        ProbeRadius: probeRadius
+                    },
+                    Origin:{
+                        Points: originPoints,
+                        Residues: this.nullIfEmpty(parseResiduesArray(originResidues)),
+                        QueryExpression: queryExpresion
+                    },
+                    Tunnel:{
+                        BottleneckRadius: bottleneckRadius,
+                        BottleneckTolerance: bottleneckTolerance,
+                        MaxTunnelSimilarity: maxTunnelSimilarity,
+                        OriginRadius: originRadius,
+                        SurfaceCoverRadius: surfaceCoverRadius,
+                        UseCustomExitsOnly: useCustomExitsOnly,
+                        WeightFunction: tunnelWeightFunction
+                    },
+                    CustomExits:customExits,
+                    NonActiveResidues:parseResidues(nonActiveResidues),
+                    PoresAuto:automaticPores,
+                    PoresMerged: mergePores,
+                    QueryFilter: queryFilter
+                } 
 
-            Service.ApiService.submitMoleJob(this.state.data.ComputationId, formData).then((result)=>{
-                CommonUtils.Router.fakeRedirect(result.ComputationId, Number(result.SubmitId));
-                LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
+                promise = Service.ApiService.submitMoleJob(this.state.data.ComputationId, moleFormData)
+                
+            }
+            else{
+                let poresFormData: Service.PoresConfig = {
+                    Chains: chains,
+                    InMembrane: inMembrane,
+                    IsBetaBarel: isBetaStructure
+                };
 
-                Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
-                    this.setState({data:info});
-                    MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
-                    MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
-                }).bind(this), true);
-                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                    messageType: "Success",
-                    message: "Job was successfully submited."
+                promise = Service.ApiService.submitPoresJob(this.state.data.ComputationId, poresFormData);
+            }
+
+            promise
+                .then((result:any)=>{
+                    CommonUtils.Router.fakeRedirect(result.ComputationId, Number(result.SubmitId));
+                    LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
+
+                    Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
+                        this.setState({data:info});
+                        MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
+                        MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
+                    }).bind(this), true);
+                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                        messageType: "Success",
+                        message: "Job was successfully submited."
+                    })
                 })
-            })
-            .catch((err)=>{
-                if(Config.CommonOptions.DEBUG_MODE)
-                    console.log(err);
-                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                    messageType: "Danger",
-                    message: "Job submit was not completed succesfully! Please try again later."
+                .catch((err:any)=>{
+                    if(Config.CommonOptions.DEBUG_MODE)
+                        console.log(err);
+                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                        messageType: "Danger",
+                        message: "Job submit was not completed succesfully! Please try again later."
+                    })
                 })
-            })
         }
 
         render(){ 

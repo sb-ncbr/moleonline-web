@@ -483,6 +483,11 @@ only screen and (max-height: 600px) {
     margin-bottom: 0px;
 }
 
+.ui-header.origins{
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
 .ui-subheader{
     padding: 0;
     line-height: 20px;

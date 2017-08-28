@@ -132,29 +132,28 @@ namespace LiteMol.Example.Channels.UI {
                     <Channels channels={this.props.data.Channels.Pores} state={this.props}  header='Pores' />
                     <Channels channels={this.props.data.Channels.Tunnels} state={this.props}  header='Tunnels' />
                 </div>
-            </div>;
-            /*
-            <h2>Empty Space</h2>
-                <Cavities cavities={[this.props.data.Cavities.Surface]} state={this.props} header='Surface' />
-                <Cavities cavities={this.props.data.Cavities.Cavities} state={this.props} header='Cavities' />
-                <Cavities cavities={this.props.data.Cavities.Voids} state={this.props} header='Voids' />
-                
-                <h2>Origins</h2>
-                <Origins origins={this.props.data.Origins.User} {...this.props} label='User Specifed (optimized)' />
-                <Origins origins={this.props.data.Origins.InputOrigins} {...this.props} label='User Specifed' />                
-                <Origins origins={this.props.data.Origins.Computed} {...this.props} label='Computed' />
-                <Origins origins={this.props.data.Origins.Database} {...this.props} label='Database' />
-             */
-            
-            /*
-            return <div>
-                <Selection {...this.props} />
 
-                <h2>Channels</h2>
-                <Channels channels={this.props.data.Channels} state={this.props}  header='Tunnels' />
+                <div className="ui-header origins">
+                    Origins
+                </div>
+                <div>
+                    <Origins origins={this.props.data.Origins.User} {...this.props} label='User Specifed (optimized)' />
+                    <Origins origins={this.props.data.Origins.InputOrigins} {...this.props} label='User Specifed' />                
+                    <Origins origins={this.props.data.Origins.Computed} {...this.props} label='Computed' />
+                    <Origins origins={this.props.data.Origins.Database} {...this.props} label='Database' />
+                    <Origins origins={this.props.data.Origins.InputExits} {...this.props} label='Input Exits' />
+		            <Origins origins={this.props.data.Origins.InputFoundExits} {...this.props} label='Input Found Exits' />
+                </div>
+
+                <div className="ui-header cavities">
+                    Cavities
+                </div>
+                <div>
+                    <Cavities cavities={[this.props.data.Cavities.Surface]} state={this.props} header='Surface' />
+                    <Cavities cavities={this.props.data.Cavities.Cavities} state={this.props} header='Cavities' />
+                    <Cavities cavities={this.props.data.Cavities.Voids} state={this.props} header='Voids' />
+                </div>
             </div>;
-            */
-            
         }
     }
 

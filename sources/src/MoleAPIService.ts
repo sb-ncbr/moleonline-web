@@ -59,24 +59,27 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
         SurfaceCoverRadius: number,
         UseCustomExitsOnly: boolean
     };
-    export type MoleConfigNonActiveResidues = MoleConfigResidues; //TODO:...
+    export type MoleConfigNonActiveResidues = MoleConfigResidue; //TODO:...
     export interface MoleConfigOrigin{
         Points: MoleConfigPoint[]|null,
         QueryExpression: string|null,
-        Residues: MoleConfigResidues[]|null
+        Residues: MoleConfigResidue[][]|null
     };
     export interface MoleConfigPoint{
         X:number,
         Y:number,
         Z:number
     };
-    export interface MoleConfigResidues{Chain:string, SequenceNumber:number};
+    export interface MoleConfigResidue{Chain:string, SequenceNumber:number};
 
     export interface PoresConfig{
         InMembrane?: boolean,
         IsBetaBarel?: boolean,
         Chains?: any|null //TODO:...
     };
+
+    export type CSAResidue = MoleConfigResidue;
+    export type CSAResidues = CSAResidue[][];
 
     export class ApiService{
         private static DEBUG_MODE = Config.CommonOptions.DEBUG_MODE;
@@ -265,6 +268,14 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
 
         public static deleteProject(computationId:string){
             let url = `${this.baseUrl}/Delete/${computationId}`;
+            if(this.DEBUG_MODE){
+                console.log(url);
+            }
+            return this.sendGET(url);
+        }
+
+        public static getCSAResidues(computationId:string):Promise<CSAResidues>{
+            let url = `${this.baseUrl}/CSA/${computationId}`;
             if(this.DEBUG_MODE){
                 console.log(url);
             }
