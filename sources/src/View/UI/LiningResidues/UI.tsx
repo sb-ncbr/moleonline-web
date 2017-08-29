@@ -49,14 +49,18 @@ namespace LiningResidues.UI{
 
         componentDidMount() {
             CommonUtils.Selection.SelectionHelper.attachOnChannelSelectHandler((data)=>{
-                this.setState({data:CommonUtils.Residues.sort(data.ResidueFlow,void 0, true, true)});
+                let state = this.state;
+                state.data = CommonUtils.Residues.sort(data.ResidueFlow,void 0, true, true);
+                this.setState(state);
                 setTimeout(function(){
                     $( window ).trigger('contentResize');
                 },1);
             });
 
             CommonUtils.Selection.SelectionHelper.attachOnChannelDeselectHandler(()=>{
-                this.setState({data:null});
+                let state = this.state;
+                state.data = null;
+                this.setState(state);
             });
         }
         /*

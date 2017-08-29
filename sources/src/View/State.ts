@@ -336,7 +336,7 @@ namespace LiteMol.Example.Channels.State {
             if((idxCounter-1)%idxFilter!==0){
                 continue;
             }
-            s.add({ type: 'Sphere', id: 0/*id++*/, radius: sphere.Radius, center: { x: sphere.X, y: sphere.Y, z: sphere.Z }, tessalation: 2 });
+            s.add({ type: 'Sphere', id: 0/*id++*/, radius: sphere.Radius, center: [ sphere.X, sphere.Y, sphere.Z ], tessalation: 2 });
         }
         return s.buildSurface().run();
     }
@@ -366,7 +366,7 @@ namespace LiteMol.Example.Channels.State {
     function buildRingSurface(s: Visualization.Primitive.Builder,spheres:DataInterface.Profile[],id:number,parts:number=8){
         let sphere = spheres[id];
         if(id === 0 || id === spheres.length-1){
-            s.add({ type: 'Sphere', id, radius: sphere.Radius, center: { x: sphere.X, y: sphere.Y, z: sphere.Z }, tessalation: 2 });            
+            s.add({ type: 'Sphere', id, radius: sphere.Radius, center: [ sphere.X, sphere.Y, sphere.Z ], tessalation: 2 });            
             return;
         }
         interface vector3{x:number,y:number,z:number};
@@ -510,11 +510,11 @@ namespace LiteMol.Example.Channels.State {
                     break;
             }
             u = normalize(u);
-            let center = {
-                x: sphere.X+u.x*sphere.Radius,
-                y: sphere.Y+u.y*sphere.Radius,
-                z: sphere.Z+u.z*sphere.Radius
-            };
+            let center = [
+                sphere.X+u.x*sphere.Radius,
+                sphere.Y+u.y*sphere.Radius,
+                sphere.Z+u.z*sphere.Radius
+            ];
 
             s.add({ type: 'Sphere', id, radius:1, center, tessalation: 2 });
         }
@@ -686,7 +686,7 @@ namespace LiteMol.Example.Channels.State {
         let s = Visualization.Primitive.Builder.create();
         let id = 0;
         for (let p of origins.Points) {
-            s.add({ type: 'Sphere', id: id++, radius: 1.69, center: { x: p.X, y: p.Y, z: p.Z } });
+            s.add({ type: 'Sphere', id: id++, radius: 1.69, center: [ p.X, p.Y, p.Z ] });
         }
         return s.buildSurface().run();        
     }

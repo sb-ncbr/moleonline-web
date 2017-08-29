@@ -1,74 +1,6 @@
+/// <reference types='react' />
+/// <reference types='react-dom' />
 
-
-
-// Project: https://github.com/jakearchibald/ES6-Promise
-// Definitions by: François de Campredon <https://github.com/fdecampredon/>, vvakame <https://github.com/vvakame>
-// Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
-
-declare namespace __Promise {
-    interface Thenable<T> {
-        then<U>(onFulfilled?: (value: T) => U | Thenable<U>, onRejected?: (error: any) => U | Thenable<U>): Thenable<U>;
-        then<U>(onFulfilled?: (value: T) => U | Thenable<U>, onRejected?: (error: any) => void): Thenable<U>;
-        catch<U>(onRejected?: (error: any) => U | Thenable<U>): Thenable<U>;
-    }
-
-    class Promise<T> implements Thenable<T> {
-        /**
-         * If you call resolve in the body of the callback passed to the constructor,
-         * your promise is fulfilled with result object passed to resolve.
-         * If you call reject your promise is rejected with the object passed to reject.
-         * For consistency and debugging (eg stack traces), obj should be an instanceof Error.
-         * Any errors thrown in the constructor callback will be implicitly passed to reject().
-         */
-        constructor(callback: (resolve: (value?: T | Thenable<T>) => void, reject: (error?: any) => void) => void);
-
-        /**
-         * onFulfilled is called when/if "promise" resolves. onRejected is called when/if "promise" rejects.
-         * Both are optional, if either/both are omitted the next onFulfilled/onRejected in the chain is called.
-         * Both callbacks have a single parameter , the fulfillment value or rejection reason.
-         * "then" returns a new promise equivalent to the value you return from onFulfilled/onRejected after being passed through Promise.resolve.
-         * If an error is thrown in the callback, the returned promise rejects with that error.
-         *
-         * @param onFulfilled called when/if "promise" resolves
-         * @param onRejected called when/if "promise" rejects
-         */
-        then<U>(onFulfilled?: (value: T) => U | Thenable<U>, onRejected?: (error: any) => U | Thenable<U>): Promise<U>;
-        then<U>(onFulfilled?: (value: T) => U | Thenable<U>, onRejected?: (error: any) => void): Promise<U>;
-
-        /**
-         * Sugar for promise.then(undefined, onRejected)
-         *
-         * @param onRejected called when/if "promise" rejects
-         */
-        catch<U>(onRejected?: (error: any) => U | Thenable<U>): Promise<U>;
-    }
-
-    namespace Promise {
-        /**
-         * Make a new promise from the thenable.
-         * A thenable is promise-like in as far as it has a "then" method.
-         */
-        function resolve<T>(value?: T | Thenable<T>): Promise<T>;
-
-        /**
-         * Make a promise that rejects to obj. For consistency and debugging (eg stack traces), obj should be an instanceof Error
-         */
-        function reject(error: any): Promise<any>;
-        function reject<T>(error: T): Promise<T>;
-
-        /**
-         * Make a promise that fulfills when every item in the array fulfills, and rejects if (and when) any item rejects.
-         * the array passed to all can be a mixture of promise-like objects and other objects.
-         * The fulfillment value is an array (in order) of fulfillment values. The rejection value is the first rejection value.
-         */
-        function all<T>(promises: (T | Thenable<T>)[]): Promise<T[]>;
-
-        /**
-         * Make a Promise that fulfills when any item fulfills, and rejects if any item rejects.
-         */
-        function race<T>(promises: (T | Thenable<T>)[]): Promise<T>;
-    }
-}
 // DefinitelyTyped: partial
 
 // This file contains common part of defintions for rx.d.ts and rx.lite.d.ts
@@ -886,13 +818,13 @@ declare namespace __LiteMolRx {
         shareReplay(bufferSize?: number, window?: number, scheduler?: IScheduler): Observable<T>;
     }
 }
-declare namespace CIFTools {
+declare namespace LiteMolCIFTools {
     var VERSION: {
         number: string;
         date: string;
     };
 }
-declare namespace CIFTools.Utils {
+declare namespace LiteMolCIFTools.Utils {
     /**
      * A generic chunked array builder.
      *
@@ -932,13 +864,13 @@ declare namespace CIFTools.Utils {
  * For the purposes of parsing numbers from the mmCIF data representations,
  * up to 4 times faster than JS parseInt/parseFloat.
  */
-declare namespace CIFTools.Utils.FastNumberParsers {
+declare namespace LiteMolCIFTools.Utils.FastNumberParsers {
     function parseIntSkipTrailingWhitespace(str: string, start: number, end: number): number;
     function parseInt(str: string, start: number, end: number): number;
     function parseFloatSkipTrailingWhitespace(str: string, start: number, end: number): number;
     function parseFloat(str: string, start: number, end: number): number;
 }
-declare namespace CIFTools.Utils {
+declare namespace LiteMolCIFTools.Utils {
     interface StringWriter {
         chunkData: string[];
         chunkOffset: number;
@@ -966,7 +898,7 @@ declare namespace CIFTools.Utils {
         function writeFloatPadRight(writer: StringWriter, val: number, precisionMultiplier: number, totalWidth: number): void;
     }
 }
-declare namespace CIFTools {
+declare namespace LiteMolCIFTools {
     /**
      * Represents a "CIF FILE" with one or more data blocks.
      */
@@ -1063,7 +995,7 @@ declare namespace CIFTools {
         function getVector(category: Category, field: string, rows: number, cols: number, rowIndex: number): number[];
     }
 }
-declare namespace CIFTools {
+declare namespace LiteMolCIFTools {
     type ParserResult<T> = ParserSuccess<T> | ParserError;
     namespace ParserResult {
         function error<T>(message: string, line?: number): ParserResult<T>;
@@ -1083,7 +1015,7 @@ declare namespace CIFTools {
         constructor(result: T, warnings: string[]);
     }
 }
-declare namespace CIFTools {
+declare namespace LiteMolCIFTools {
     interface FieldDesc<Data> {
         name: string;
         string?: (data: Data, i: number) => string | null;
@@ -1113,11 +1045,11 @@ declare namespace CIFTools {
         flush(stream: OutputStream): void;
     }
 }
-declare namespace CIFTools.Text {
+declare namespace LiteMolCIFTools.Text {
     /**
      * Represents the input file.
      */
-    class File implements CIFTools.File {
+    class File implements LiteMolCIFTools.File {
         /**
          * The input string.
          *
@@ -1150,7 +1082,7 @@ declare namespace CIFTools.Text {
     /**
      * Represents a single data block.
      */
-    class DataBlock implements CIFTools.DataBlock {
+    class DataBlock implements LiteMolCIFTools.DataBlock {
         private categoryMap;
         private categoryList;
         /**
@@ -1196,7 +1128,7 @@ declare namespace CIFTools.Text {
     /**
      * Represents a single CIF category.
      */
-    class Category implements CIFTools.Category {
+    class Category implements LiteMolCIFTools.Category {
         private data;
         private columnIndices;
         private columnNameList;
@@ -1233,7 +1165,7 @@ declare namespace CIFTools.Text {
          * Get a column object that makes accessing data easier.
          * @returns undefined if the column isn't present, the Column object otherwise.
          */
-        getColumn(name: string): CIFTools.Column;
+        getColumn(name: string): LiteMolCIFTools.Column;
         constructor(data: string, name: string, startIndex: number, endIndex: number, columns: string[], tokens: number[], tokenCount: number);
         toJSON(): {
             name: string;
@@ -1244,7 +1176,7 @@ declare namespace CIFTools.Text {
     /**
      * Represents a single column of a CIF category.
      */
-    class Column implements CIFTools.Column {
+    class Column implements LiteMolCIFTools.Column {
         private data;
         name: string;
         index: number;
@@ -1280,11 +1212,11 @@ declare namespace CIFTools.Text {
         constructor(category: Category, data: string, name: string, index: number);
     }
 }
-declare namespace CIFTools.Text {
-    function parse(data: string): ParserResult<CIFTools.File>;
+declare namespace LiteMolCIFTools.Text {
+    function parse(data: string): ParserResult<LiteMolCIFTools.File>;
 }
-declare namespace CIFTools.Text {
-    class Writer<Context> implements CIFTools.Writer<Context> {
+declare namespace LiteMolCIFTools.Text {
+    class Writer<Context> implements LiteMolCIFTools.Writer<Context> {
         private writer;
         private encoded;
         private dataBlockCreated;
@@ -1295,26 +1227,26 @@ declare namespace CIFTools.Text {
         constructor();
     }
 }
-declare namespace CIFTools.Binary.MessagePack {
+declare namespace LiteMolCIFTools.Binary.MessagePack {
     function decode(buffer: Uint8Array): any;
 }
-declare namespace CIFTools.Binary.MessagePack {
+declare namespace LiteMolCIFTools.Binary.MessagePack {
     function encode(value: any): Uint8Array;
 }
-declare namespace CIFTools.Binary.MessagePack {
+declare namespace LiteMolCIFTools.Binary.MessagePack {
     function utf8Write(data: Uint8Array, offset: number, str: string): void;
     function utf8Read(data: Uint8Array, offset: number, length: number): string;
     function utf8ByteCount(str: string): number;
 }
-declare namespace CIFTools.Binary {
+declare namespace LiteMolCIFTools.Binary {
     /**
      * Fixed point, delta, RLE, integer packing adopted from https://github.com/rcsb/mmtf-javascript/
      * by Alexander Rose <alexander.rose@weirdbyte.de>, MIT License, Copyright (c) 2016
      */
     function decode(data: EncodedData): any;
 }
-declare namespace CIFTools.Binary {
-    class File implements CIFTools.File {
+declare namespace LiteMolCIFTools.Binary {
+    class File implements LiteMolCIFTools.File {
         dataBlocks: DataBlock[];
         toJSON(): {
             id: string;
@@ -1329,7 +1261,7 @@ declare namespace CIFTools.Binary {
         }[];
         constructor(data: EncodedFile);
     }
-    class DataBlock implements CIFTools.DataBlock {
+    class DataBlock implements LiteMolCIFTools.DataBlock {
         private categoryMap;
         private categoryList;
         header: string;
@@ -1351,14 +1283,14 @@ declare namespace CIFTools.Binary {
         };
         constructor(data: EncodedDataBlock);
     }
-    class Category implements CIFTools.Category {
+    class Category implements LiteMolCIFTools.Category {
         private encodedColumns;
         private columnNameList;
         name: string;
         columnCount: number;
         rowCount: number;
         readonly columnNames: string[];
-        getColumn(name: string): CIFTools.Column;
+        getColumn(name: string): LiteMolCIFTools.Column;
         toJSON(): {
             name: string;
             columns: string[];
@@ -1367,7 +1299,7 @@ declare namespace CIFTools.Binary {
         constructor(data: EncodedCategory);
     }
 }
-declare namespace CIFTools.Binary {
+declare namespace LiteMolCIFTools.Binary {
     /**
      * Fixed point, delta, RLE, integer packing adopted from https://github.com/rcsb/mmtf-javascript/
      * by Alexander Rose <alexander.rose@weirdbyte.de>, MIT License, Copyright (c) 2016
@@ -1397,8 +1329,8 @@ declare namespace CIFTools.Binary {
         function stringArray(data: string[]): Result;
     }
 }
-declare namespace CIFTools.Binary {
-    const VERSION: string;
+declare namespace LiteMolCIFTools.Binary {
+    const VERSION = "0.3.0";
     type Encoding = Encoding.ByteArray | Encoding.FixedPoint | Encoding.RunLength | Encoding.Delta | Encoding.IntervalQuantization | Encoding.IntegerPacking | Encoding.StringArray;
     interface EncodedFile {
         version: string;
@@ -1490,11 +1422,11 @@ declare namespace CIFTools.Binary {
         }
     }
 }
-declare namespace CIFTools.Binary {
-    function parse(data: ArrayBuffer): ParserResult<CIFTools.File>;
+declare namespace LiteMolCIFTools.Binary {
+    function parse(data: ArrayBuffer): ParserResult<LiteMolCIFTools.File>;
 }
-declare namespace CIFTools.Binary {
-    class Writer<Context> implements CIFTools.Writer<Context> {
+declare namespace LiteMolCIFTools.Binary {
+    class Writer<Context> implements LiteMolCIFTools.Writer<Context> {
         private data;
         private dataBlocks;
         private encodedData;
@@ -1505,11 +1437,6 @@ declare namespace CIFTools.Binary {
         constructor(encoder: string);
     }
 }
-declare module 'CIFTools' {
-    import __Tools = CIFTools;
-    export = __Tools;
-}
-
 // Type definitions for three.js r71
 // Project: http://mrdoob.github.com/three.js/
 // Definitions by: Kon <http://phyzkit.net/>, Satoru Kimura <https://github.com/gyohk>
@@ -9893,2921 +9820,8 @@ declare namespace LiteMolZlib {
         constructor(data: number[] | Uint8Array);
     }
 }
-// Type definitions for React v15.0
-// Project: http://facebook.github.io/react/
-// Definitions by: Asana <https://asana.com>, AssureSign <http://www.assuresign.com>, Microsoft <https://microsoft.com>, John Reilly <https://github.com/johnnyreilly/>, Benoit Benezech <https://github.com/bbenezech>, Patricio Zavolinsky <https://github.com/pzavolinsky>
-// Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
-// TypeScript Version: 2.1
 
-//export = React;
-//export as namespace React;
 
-declare namespace __LiteMolReact {
-
-    //
-    // React Elements
-    // ----------------------------------------------------------------------
-
-    type ReactType = string | ComponentClass<any> | StatelessComponent<any>;
-
-    type Key = string | number;
-    type Ref<T> = string | ((instance: T) => any);
-    type ComponentState = {} | void;
-
-    interface Attributes {
-        key?: Key;
-    }
-    interface ClassAttributes<T> extends Attributes {
-        ref?: Ref<T>;
-    }
-
-    interface ReactElement<P> {
-        type: string | ComponentClass<P> | SFC<P>;
-        props: P;
-        key: Key | null;
-    }
-
-    interface SFCElement<P> extends ReactElement<P> {
-        type: SFC<P>;
-    }
-
-    type CElement<P, T extends Component<P, ComponentState>> = ComponentElement<P, T>;
-    interface ComponentElement<P, T extends Component<P, ComponentState>> extends ReactElement<P> {
-        type: ComponentClass<P>;
-        ref?: Ref<T>;
-    }
-
-    type ClassicElement<P> = CElement<P, ClassicComponent<P, ComponentState>>;
-
-    interface DOMElement<P extends DOMAttributes<T>, T extends Element> extends ReactElement<P> {
-        type: string;
-        ref: Ref<T>;
-    }
-
-    interface ReactHTMLElement<T extends HTMLElement> extends DOMElement<HTMLAttributes<T>, T> {
-    }
-
-    interface ReactSVGElement extends DOMElement<SVGAttributes<SVGElement>, SVGElement> {
-    }
-
-    //
-    // Factories
-    // ----------------------------------------------------------------------
-
-    interface Factory<P> {
-        (props?: Attributes & P, ...children: ReactNode[]): ReactElement<P>;
-    }
-
-    interface SFCFactory<P> {
-        (props?: Attributes & P, ...children: ReactNode[]): SFCElement<P>;
-    }
-
-    interface ComponentFactory<P, T extends Component<P, ComponentState>> {
-        (props?: ClassAttributes<T> & P, ...children: ReactNode[]): CElement<P, T>;
-    }
-
-    type CFactory<P, T extends Component<P, ComponentState>> = ComponentFactory<P, T>;
-    type ClassicFactory<P> = CFactory<P, ClassicComponent<P, ComponentState>>;
-
-    interface DOMFactory<P extends DOMAttributes<T>, T extends Element> {
-        (props?: ClassAttributes<T> & P | null, ...children: ReactNode[]): DOMElement<P, T>;
-    }
-
-    interface HTMLFactory<T extends HTMLElement> extends DOMFactory<HTMLAttributes<T>, T> {
-    }
-
-    interface ChangeTargetHTMLFactory<T extends HTMLElement> extends DOMFactory<ChangeTargetHTMLAttributes<T>, T> {
-    }
-
-    interface SVGFactory extends DOMFactory<SVGAttributes<SVGElement>, SVGElement> {
-    }
-
-    //
-    // React Nodes
-    // http://facebook.github.io/react/docs/glossary.html
-    // ----------------------------------------------------------------------
-
-    type ReactText = string | number;
-    type ReactChild = ReactElement<any> | ReactText;
-
-    // Should be Array<ReactNode> but type aliases cannot be recursive
-    type ReactFragment = {} | Array<ReactChild | any[] | boolean>;
-    type ReactNode = ReactChild | ReactFragment | boolean | null | undefined;
-
-    //
-    // Top Level API
-    // ----------------------------------------------------------------------
-
-    function createClass<P, S>(spec: ComponentSpec<P, S>): ClassicComponentClass<P>;
-
-    function createFactory<P extends DOMAttributes<T>, T extends Element>(
-        type: string): DOMFactory<P, T>;
-    function createFactory<P>(type: SFC<P>): SFCFactory<P>;
-    function createFactory<P>(
-        type: ClassType<P, ClassicComponent<P, ComponentState>, ClassicComponentClass<P>>): CFactory<P, ClassicComponent<P, ComponentState>>;
-    function createFactory<P, T extends Component<P, ComponentState>, C extends ComponentClass<P>>(
-        type: ClassType<P, T, C>): CFactory<P, T>;
-    function createFactory<P>(type: ComponentClass<P>): Factory<P>;
-
-    function createElement<P extends DOMAttributes<T>, T extends Element>(
-        type: string,
-        props?: ClassAttributes<T> & P,
-        ...children: ReactNode[]): DOMElement<P, T>;
-    function createElement<P>(
-        type: SFC<P>,
-        props?: Attributes & P,
-        ...children: ReactNode[]): SFCElement<P>;
-    function createElement<P>(
-        type: ClassType<P, ClassicComponent<P, ComponentState>, ClassicComponentClass<P>>,
-        props?: ClassAttributes<ClassicComponent<P, ComponentState>> & P,
-        ...children: ReactNode[]): CElement<P, ClassicComponent<P, ComponentState>>;
-    function createElement<P, T extends Component<P, ComponentState>, C extends ComponentClass<P>>(
-        type: ClassType<P, T, C>,
-        props?: ClassAttributes<T> & P,
-        ...children: ReactNode[]): CElement<P, T>;
-    function createElement<P>(
-        type: ComponentClass<P>,
-        props?: Attributes & P,
-        ...children: ReactNode[]): ReactElement<P>;
-
-    function cloneElement<P extends DOMAttributes<T>, T extends Element>(
-        element: DOMElement<P, T>,
-        props?: ClassAttributes<T> & P,
-        ...children: ReactNode[]): DOMElement<P, T>;
-    function cloneElement<P extends Q, Q>(
-        element: SFCElement<P>,
-        props?: Q, // should be Q & Attributes, but then Q is inferred as {}
-        ...children: ReactNode[]): SFCElement<P>;
-    function cloneElement<P extends Q, Q, T extends Component<P, ComponentState>>(
-        element: CElement<P, T>,
-        props?: Q, // should be Q & ClassAttributes<T>
-        ...children: ReactNode[]): CElement<P, T>;
-    function cloneElement<P extends Q, Q>(
-        element: ReactElement<P>,
-        props?: Q, // should be Q & Attributes
-        ...children: ReactNode[]): ReactElement<P>;
-
-    function isValidElement<P>(object: {}): object is ReactElement<P>;
-
-    var DOM: ReactDOM;
-    var PropTypes: ReactPropTypes;
-    var Children: ReactChildren;
-    var version: string;
-
-    //
-    // Component API
-    // ----------------------------------------------------------------------
-
-    type ReactInstance = Component<any, any> | Element;
-
-    // Base component for plain JS classes
-    class Component<P, S> implements ComponentLifecycle<P, S> {
-        constructor(props?: P, context?: any);
-        setState<K extends keyof S>(f: (prevState: S, props: P) => Pick<S, K>, callback?: () => any): void;
-        setState<K extends keyof S>(state: Pick<S, K>, callback?: () => any): void;
-        forceUpdate(callBack?: () => any): void;
-        render(): JSX.Element | null;
-
-        // React.Props<T> is now deprecated, which means that the `children`
-        // property is not available on `P` by default, even though you can
-        // always pass children as variadic arguments to `createElement`.
-        // In the future, if we can define its call signature conditionally
-        // on the existence of `children` in `P`, then we should remove this.
-        props: Readonly<{ children?: ReactNode }> & Readonly<P>;
-        state: Readonly<S>;
-        context: any;
-        refs: {
-            [key: string]: ReactInstance
-        };
-    }
-
-    class PureComponent<P, S> extends Component<P, S> { }
-
-    interface ClassicComponent<P, S> extends Component<P, S> {
-        replaceState(nextState: S, callback?: () => any): void;
-        isMounted(): boolean;
-        getInitialState?(): S;
-    }
-
-    interface ChildContextProvider<CC> {
-        getChildContext(): CC;
-    }
-
-    //
-    // Class Interfaces
-    // ----------------------------------------------------------------------
-
-    type SFC<P> = StatelessComponent<P>;
-    interface StatelessComponent<P> {
-        (props: P & { children?: ReactNode }, context?: any): ReactElement<any>;
-        propTypes?: ValidationMap<P>;
-        contextTypes?: ValidationMap<any>;
-        defaultProps?: Partial<P>;
-        displayName?: string;
-    }
-
-    interface ComponentClass<P> {
-        new (props?: P, context?: any): Component<P, ComponentState>;
-        propTypes?: ValidationMap<P>;
-        contextTypes?: ValidationMap<any>;
-        childContextTypes?: ValidationMap<any>;
-        defaultProps?: Partial<P>;
-        displayName?: string;
-    }
-
-    interface ClassicComponentClass<P> extends ComponentClass<P> {
-        new (props?: P, context?: any): ClassicComponent<P, ComponentState>;
-        getDefaultProps?(): P;
-    }
-
-    /**
-     * We use an intersection type to infer multiple type parameters from
-     * a single argument, which is useful for many top-level API defs.
-     * See https://github.com/Microsoft/TypeScript/issues/7234 for more info.
-     */
-    type ClassType<P, T extends Component<P, ComponentState>, C extends ComponentClass<P>> =
-        C &
-        (new (props?: P, context?: any) => T) &
-        (new (props?: P, context?: any) => { props: P });
-
-    //
-    // Component Specs and Lifecycle
-    // ----------------------------------------------------------------------
-
-    interface ComponentLifecycle<P, S> {
-        componentWillMount?(): void;
-        componentDidMount?(): void;
-        componentWillReceiveProps?(nextProps: P, nextContext: any): void;
-        shouldComponentUpdate?(nextProps: P, nextState: S, nextContext: any): boolean;
-        componentWillUpdate?(nextProps: P, nextState: S, nextContext: any): void;
-        componentDidUpdate?(prevProps: P, prevState: S, prevContext: any): void;
-        componentWillUnmount?(): void;
-    }
-
-    interface Mixin<P, S> extends ComponentLifecycle<P, S> {
-        mixins?: Mixin<P, S>;
-        statics?: {
-            [key: string]: any;
-        };
-
-        displayName?: string;
-        propTypes?: ValidationMap<any>;
-        contextTypes?: ValidationMap<any>;
-        childContextTypes?: ValidationMap<any>;
-
-        getDefaultProps?(): P;
-        getInitialState?(): S;
-    }
-
-    interface ComponentSpec<P, S> extends Mixin<P, S> {
-        render(): ReactElement<any> | null;
-
-        [propertyName: string]: any;
-    }
-
-    //
-    // Event System
-    // ----------------------------------------------------------------------
-
-    interface SyntheticEvent<T> {
-        bubbles: boolean;
-        currentTarget: EventTarget & T;
-        cancelable: boolean;
-        defaultPrevented: boolean;
-        eventPhase: number;
-        isTrusted: boolean;
-        nativeEvent: Event;
-        preventDefault(): void;
-        isDefaultPrevented(): boolean;
-        stopPropagation(): void;
-        isPropagationStopped(): boolean;
-        persist(): void;
-        // If you thought this should be `EventTarget & T`, see https://github.com/DefinitelyTyped/DefinitelyTyped/pull/12239
-        target: EventTarget;
-        timeStamp: Date;
-        type: string;
-    }
-
-    interface ClipboardEvent<T> extends SyntheticEvent<T> {
-        clipboardData: DataTransfer;
-    }
-
-    interface CompositionEvent<T> extends SyntheticEvent<T> {
-        data: string;
-    }
-
-    interface DragEvent<T> extends MouseEvent<T> {
-        dataTransfer: DataTransfer;
-    }
-
-    interface FocusEvent<T> extends SyntheticEvent<T> {
-        relatedTarget: EventTarget;
-    }
-
-    interface FormEvent<T> extends SyntheticEvent<T> {
-    }
-
-    interface ChangeEvent<T> extends SyntheticEvent<T> {
-        target: EventTarget & T;
-    }
-
-    interface KeyboardEvent<T> extends SyntheticEvent<T> {
-        altKey: boolean;
-        charCode: number;
-        ctrlKey: boolean;
-        getModifierState(key: string): boolean;
-        key: string;
-        keyCode: number;
-        locale: string;
-        location: number;
-        metaKey: boolean;
-        repeat: boolean;
-        shiftKey: boolean;
-        which: number;
-    }
-
-    interface MouseEvent<T> extends SyntheticEvent<T> {
-        altKey: boolean;
-        button: number;
-        buttons: number;
-        clientX: number;
-        clientY: number;
-        ctrlKey: boolean;
-        getModifierState(key: string): boolean;
-        metaKey: boolean;
-        pageX: number;
-        pageY: number;
-        relatedTarget: EventTarget;
-        screenX: number;
-        screenY: number;
-        shiftKey: boolean;
-    }
-
-    interface TouchEvent<T> extends SyntheticEvent<T> {
-        altKey: boolean;
-        changedTouches: TouchList;
-        ctrlKey: boolean;
-        getModifierState(key: string): boolean;
-        metaKey: boolean;
-        shiftKey: boolean;
-        targetTouches: TouchList;
-        touches: TouchList;
-    }
-
-    interface UIEvent<T> extends SyntheticEvent<T> {
-        detail: number;
-        view: AbstractView;
-    }
-
-    interface WheelEvent<T> extends MouseEvent<T> {
-        deltaMode: number;
-        deltaX: number;
-        deltaY: number;
-        deltaZ: number;
-    }
-
-    interface AnimationEvent<T> extends SyntheticEvent<T> {
-        animationName: string;
-        pseudoElement: string;
-        elapsedTime: number;
-    }
-
-    interface TransitionEvent<T> extends SyntheticEvent<T> {
-        propertyName: string;
-        pseudoElement: string;
-        elapsedTime: number;
-    }
-
-    //
-    // Event Handler Types
-    // ----------------------------------------------------------------------
-
-    interface EventHandler<E extends SyntheticEvent<any>> {
-        (event: E): void;
-    }
-
-    type ReactEventHandler<T> = EventHandler<SyntheticEvent<T>>;
-
-    type ClipboardEventHandler<T> = EventHandler<ClipboardEvent<T>>;
-    type CompositionEventHandler<T> = EventHandler<CompositionEvent<T>>;
-    type DragEventHandler<T> = EventHandler<DragEvent<T>>;
-    type FocusEventHandler<T> = EventHandler<FocusEvent<T>>;
-    type FormEventHandler<T> = EventHandler<FormEvent<T>>;
-    type ChangeEventHandler<T> = EventHandler<ChangeEvent<T>>;
-    type KeyboardEventHandler<T> = EventHandler<KeyboardEvent<T>>;
-    type MouseEventHandler<T> = EventHandler<MouseEvent<T>>;
-    type TouchEventHandler<T> = EventHandler<TouchEvent<T>>;
-    type UIEventHandler<T> = EventHandler<UIEvent<T>>;
-    type WheelEventHandler<T> = EventHandler<WheelEvent<T>>;
-    type AnimationEventHandler<T> = EventHandler<AnimationEvent<T>>;
-    type TransitionEventHandler<T> = EventHandler<TransitionEvent<T>>;
-
-    //
-    // Props / DOM Attributes
-    // ----------------------------------------------------------------------
-
-    /**
-     * @deprecated. This was used to allow clients to pass `ref` and `key`
-     * to `createElement`, which is no longer necessary due to intersection
-     * types. If you need to declare a props object before passing it to
-     * `createElement` or a factory, use `ClassAttributes<T>`:
-     *
-     * ```ts
-     * var b: Button;
-     * var props: ButtonProps & ClassAttributes<Button> = {
-     *     ref: b => button = b, // ok!
-     *     label: "I'm a Button"
-     * };
-     * ```
-     */
-    interface Props<T> {
-        children?: ReactNode;
-        key?: Key;
-        ref?: Ref<T>;
-    }
-
-    interface HTMLProps<T> extends HTMLAttributes<T>, ClassAttributes<T> {
-    }
-
-    interface ChangeTargetHTMLProps<T extends HTMLElement> extends ChangeTargetHTMLAttributes<T>, ClassAttributes<T> {
-    }
-
-    interface SVGProps extends SVGAttributes<SVGElement>, ClassAttributes<SVGElement> {
-    }
-
-    interface DOMAttributes<T> {
-        children?: ReactNode;
-        dangerouslySetInnerHTML?: {
-            __html: string;
-        };
-
-        // Clipboard Events
-        onCopy?: ClipboardEventHandler<T>;
-        onCopyCapture?: ClipboardEventHandler<T>;
-        onCut?: ClipboardEventHandler<T>;
-        onCutCapture?: ClipboardEventHandler<T>;
-        onPaste?: ClipboardEventHandler<T>;
-        onPasteCapture?: ClipboardEventHandler<T>;
-
-        // Composition Events
-        onCompositionEnd?: CompositionEventHandler<T>;
-        onCompositionEndCapture?: CompositionEventHandler<T>;
-        onCompositionStart?: CompositionEventHandler<T>;
-        onCompositionStartCapture?: CompositionEventHandler<T>;
-        onCompositionUpdate?: CompositionEventHandler<T>;
-        onCompositionUpdateCapture?: CompositionEventHandler<T>;
-
-        // Focus Events
-        onFocus?: FocusEventHandler<T>;
-        onFocusCapture?: FocusEventHandler<T>;
-        onBlur?: FocusEventHandler<T>;
-        onBlurCapture?: FocusEventHandler<T>;
-
-        // Form Events
-        onChange?: FormEventHandler<T>;
-        onChangeCapture?: FormEventHandler<T>;
-        onInput?: FormEventHandler<T>;
-        onInputCapture?: FormEventHandler<T>;
-        onReset?: FormEventHandler<T>;
-        onResetCapture?: FormEventHandler<T>;
-        onSubmit?: FormEventHandler<T>;
-        onSubmitCapture?: FormEventHandler<T>;
-
-        // Image Events
-        onLoad?: ReactEventHandler<T>;
-        onLoadCapture?: ReactEventHandler<T>;
-        onError?: ReactEventHandler<T>; // also a Media Event
-        onErrorCapture?: ReactEventHandler<T>; // also a Media Event
-
-        // Keyboard Events
-        onKeyDown?: KeyboardEventHandler<T>;
-        onKeyDownCapture?: KeyboardEventHandler<T>;
-        onKeyPress?: KeyboardEventHandler<T>;
-        onKeyPressCapture?: KeyboardEventHandler<T>;
-        onKeyUp?: KeyboardEventHandler<T>;
-        onKeyUpCapture?: KeyboardEventHandler<T>;
-
-        // Media Events
-        onAbort?: ReactEventHandler<T>;
-        onAbortCapture?: ReactEventHandler<T>;
-        onCanPlay?: ReactEventHandler<T>;
-        onCanPlayCapture?: ReactEventHandler<T>;
-        onCanPlayThrough?: ReactEventHandler<T>;
-        onCanPlayThroughCapture?: ReactEventHandler<T>;
-        onDurationChange?: ReactEventHandler<T>;
-        onDurationChangeCapture?: ReactEventHandler<T>;
-        onEmptied?: ReactEventHandler<T>;
-        onEmptiedCapture?: ReactEventHandler<T>;
-        onEncrypted?: ReactEventHandler<T>;
-        onEncryptedCapture?: ReactEventHandler<T>;
-        onEnded?: ReactEventHandler<T>;
-        onEndedCapture?: ReactEventHandler<T>;
-        onLoadedData?: ReactEventHandler<T>;
-        onLoadedDataCapture?: ReactEventHandler<T>;
-        onLoadedMetadata?: ReactEventHandler<T>;
-        onLoadedMetadataCapture?: ReactEventHandler<T>;
-        onLoadStart?: ReactEventHandler<T>;
-        onLoadStartCapture?: ReactEventHandler<T>;
-        onPause?: ReactEventHandler<T>;
-        onPauseCapture?: ReactEventHandler<T>;
-        onPlay?: ReactEventHandler<T>;
-        onPlayCapture?: ReactEventHandler<T>;
-        onPlaying?: ReactEventHandler<T>;
-        onPlayingCapture?: ReactEventHandler<T>;
-        onProgress?: ReactEventHandler<T>;
-        onProgressCapture?: ReactEventHandler<T>;
-        onRateChange?: ReactEventHandler<T>;
-        onRateChangeCapture?: ReactEventHandler<T>;
-        onSeeked?: ReactEventHandler<T>;
-        onSeekedCapture?: ReactEventHandler<T>;
-        onSeeking?: ReactEventHandler<T>;
-        onSeekingCapture?: ReactEventHandler<T>;
-        onStalled?: ReactEventHandler<T>;
-        onStalledCapture?: ReactEventHandler<T>;
-        onSuspend?: ReactEventHandler<T>;
-        onSuspendCapture?: ReactEventHandler<T>;
-        onTimeUpdate?: ReactEventHandler<T>;
-        onTimeUpdateCapture?: ReactEventHandler<T>;
-        onVolumeChange?: ReactEventHandler<T>;
-        onVolumeChangeCapture?: ReactEventHandler<T>;
-        onWaiting?: ReactEventHandler<T>;
-        onWaitingCapture?: ReactEventHandler<T>;
-
-        // MouseEvents
-        onClick?: MouseEventHandler<T>;
-        onClickCapture?: MouseEventHandler<T>;
-        onContextMenu?: MouseEventHandler<T>;
-        onContextMenuCapture?: MouseEventHandler<T>;
-        onDoubleClick?: MouseEventHandler<T>;
-        onDoubleClickCapture?: MouseEventHandler<T>;
-        onDrag?: DragEventHandler<T>;
-        onDragCapture?: DragEventHandler<T>;
-        onDragEnd?: DragEventHandler<T>;
-        onDragEndCapture?: DragEventHandler<T>;
-        onDragEnter?: DragEventHandler<T>;
-        onDragEnterCapture?: DragEventHandler<T>;
-        onDragExit?: DragEventHandler<T>;
-        onDragExitCapture?: DragEventHandler<T>;
-        onDragLeave?: DragEventHandler<T>;
-        onDragLeaveCapture?: DragEventHandler<T>;
-        onDragOver?: DragEventHandler<T>;
-        onDragOverCapture?: DragEventHandler<T>;
-        onDragStart?: DragEventHandler<T>;
-        onDragStartCapture?: DragEventHandler<T>;
-        onDrop?: DragEventHandler<T>;
-        onDropCapture?: DragEventHandler<T>;
-        onMouseDown?: MouseEventHandler<T>;
-        onMouseDownCapture?: MouseEventHandler<T>;
-        onMouseEnter?: MouseEventHandler<T>;
-        onMouseLeave?: MouseEventHandler<T>;
-        onMouseMove?: MouseEventHandler<T>;
-        onMouseMoveCapture?: MouseEventHandler<T>;
-        onMouseOut?: MouseEventHandler<T>;
-        onMouseOutCapture?: MouseEventHandler<T>;
-        onMouseOver?: MouseEventHandler<T>;
-        onMouseOverCapture?: MouseEventHandler<T>;
-        onMouseUp?: MouseEventHandler<T>;
-        onMouseUpCapture?: MouseEventHandler<T>;
-
-        // Selection Events
-        onSelect?: ReactEventHandler<T>;
-        onSelectCapture?: ReactEventHandler<T>;
-
-        // Touch Events
-        onTouchCancel?: TouchEventHandler<T>;
-        onTouchCancelCapture?: TouchEventHandler<T>;
-        onTouchEnd?: TouchEventHandler<T>;
-        onTouchEndCapture?: TouchEventHandler<T>;
-        onTouchMove?: TouchEventHandler<T>;
-        onTouchMoveCapture?: TouchEventHandler<T>;
-        onTouchStart?: TouchEventHandler<T>;
-        onTouchStartCapture?: TouchEventHandler<T>;
-
-        // UI Events
-        onScroll?: UIEventHandler<T>;
-        onScrollCapture?: UIEventHandler<T>;
-
-        // Wheel Events
-        onWheel?: WheelEventHandler<T>;
-        onWheelCapture?: WheelEventHandler<T>;
-
-        // Animation Events
-        onAnimationStart?: AnimationEventHandler<T>;
-        onAnimationStartCapture?: AnimationEventHandler<T>;
-        onAnimationEnd?: AnimationEventHandler<T>;
-        onAnimationEndCapture?: AnimationEventHandler<T>;
-        onAnimationIteration?: AnimationEventHandler<T>;
-        onAnimationIterationCapture?: AnimationEventHandler<T>;
-
-        // Transition Events
-        onTransitionEnd?: TransitionEventHandler<T>;
-        onTransitionEndCapture?: TransitionEventHandler<T>;
-    }
-
-    // See CSS 3 CSS-wide keywords https://www.w3.org/TR/css3-values/#common-keywords
-    // See CSS 3 Explicit Defaulting https://www.w3.org/TR/css-cascade-3/#defaulting-keywords
-    // "all CSS properties can accept these values"
-    type CSSWideKeyword = "initial" | "inherit" | "unset";
-
-    // See CSS 3 <percentage> type https://drafts.csswg.org/css-values-3/#percentages
-    type CSSPercentage = string;
-
-    // See CSS 3 <length> type https://drafts.csswg.org/css-values-3/#lengths
-    type CSSLength = number | string;
-
-    // This interface is not complete. Only properties accepting
-    // unitless numbers are listed here (see CSSProperty.js in React)
-    interface CSSProperties {
-
-        /**
-         * Aligns a flex container's lines within the flex container when there is extra space in the cross-axis, similar to how justify-content aligns individual items within the main-axis.
-         */
-        alignContent?: CSSWideKeyword | any;
-
-        /**
-         * Sets the default alignment in the cross axis for all of the flex container's items, including anonymous flex items, similarly to how justify-content aligns items along the main axis.
-         */
-        alignItems?: CSSWideKeyword | any;
-
-        /**
-         * Allows the default alignment to be overridden for individual flex items.
-         */
-        alignSelf?: CSSWideKeyword | any;
-
-        /**
-         * This property allows precise alignment of elements, such as graphics, that do not have a baseline-table or lack the desired baseline in their baseline-table. With the alignment-adjust property, the position of the baseline identified by the alignment-baseline can be explicitly determined. It also determines precisely the alignment point for each glyph within a textual element.
-         */
-        alignmentAdjust?: CSSWideKeyword | any;
-
-        alignmentBaseline?: CSSWideKeyword | any;
-
-        /**
-         * Defines a length of time to elapse before an animation starts, allowing an animation to begin execution some time after it is applied.
-         */
-        animationDelay?: CSSWideKeyword | any;
-
-        /**
-         * Defines whether an animation should run in reverse on some or all cycles.
-         */
-        animationDirection?: CSSWideKeyword | any;
-
-        /**
-         * Specifies how many times an animation cycle should play.
-         */
-        animationIterationCount?: CSSWideKeyword | any;
-
-        /**
-         * Defines the list of animations that apply to the element.
-         */
-        animationName?: CSSWideKeyword | any;
-
-        /**
-         * Defines whether an animation is running or paused.
-         */
-        animationPlayState?: CSSWideKeyword | any;
-
-        /**
-         * Allows changing the style of any element to platform-based interface elements or vice versa.
-         */
-        appearance?: CSSWideKeyword | any;
-
-        /**
-         * Determines whether or not the “back” side of a transformed element is visible when facing the viewer.
-         */
-        backfaceVisibility?: CSSWideKeyword | any;
-
-        /**
-         * Shorthand property to set the values for one or more of:
-         * background-clip, background-color, background-image,
-         * background-origin, background-position, background-repeat,
-         * background-size, and background-attachment.
-         */
-        background?: CSSWideKeyword | any;
-
-        /**
-         * If a background-image is specified, this property determines
-         * whether that image's position is fixed within the viewport,
-         * or scrolls along with its containing block.
-         * See CSS 3 background-attachment property https://drafts.csswg.org/css-backgrounds-3/#the-background-attachment
-         */
-        backgroundAttachment?: CSSWideKeyword | "scroll" | "fixed" | "local";
-
-        /**
-         * This property describes how the element's background images should blend with each other and the element's background color.
-         * The value is a list of blend modes that corresponds to each background image. Each element in the list will apply to the corresponding element of background-image. If a property doesn’t have enough comma-separated values to match the number of layers, the UA must calculate its used value by repeating the list of values until there are enough.
-         */
-        backgroundBlendMode?: CSSWideKeyword | any;
-
-        /**
-         * Sets the background color of an element.
-         */
-        backgroundColor?: CSSWideKeyword | any;
-
-        backgroundComposite?: CSSWideKeyword | any;
-
-        /**
-         * Applies one or more background images to an element. These can be any valid CSS image, including url() paths to image files or CSS gradients.
-         */
-        backgroundImage?: CSSWideKeyword | any;
-
-        /**
-         * Specifies what the background-position property is relative to.
-         */
-        backgroundOrigin?: CSSWideKeyword | any;
-
-        /**
-         * Sets the position of a background image.
-         */
-        backgroundPosition?: CSSWideKeyword | any;
-
-        /**
-         * Background-repeat defines if and how background images will be repeated after they have been sized and positioned
-         */
-        backgroundRepeat?: CSSWideKeyword | any;
-
-        /**
-         * Obsolete - spec retired, not implemented.
-         */
-        baselineShift?: CSSWideKeyword | any;
-
-        /**
-         * Non standard. Sets or retrieves the location of the Dynamic HTML (DHTML) behavior.
-         */
-        behavior?: CSSWideKeyword | any;
-
-        /**
-         * Shorthand property that defines the different properties of all four sides of an element's border in a single declaration. It can be used to set border-width, border-style and border-color, or a subset of these.
-         */
-        border?: CSSWideKeyword | any;
-
-        /**
-         * Shorthand that sets the values of border-bottom-color,
-         * border-bottom-style, and border-bottom-width.
-         */
-        borderBottom?: CSSWideKeyword | any;
-
-        /**
-         * Sets the color of the bottom border of an element.
-         */
-        borderBottomColor?: CSSWideKeyword | any;
-
-        /**
-         * Defines the shape of the border of the bottom-left corner.
-         */
-        borderBottomLeftRadius?: CSSWideKeyword | any;
-
-        /**
-         * Defines the shape of the border of the bottom-right corner.
-         */
-        borderBottomRightRadius?: CSSWideKeyword | any;
-
-        /**
-         * Sets the line style of the bottom border of a box.
-         */
-        borderBottomStyle?: CSSWideKeyword | any;
-
-        /**
-         * Sets the width of an element's bottom border. To set all four borders, use the border-width shorthand property which sets the values simultaneously for border-top-width, border-right-width, border-bottom-width, and border-left-width.
-         */
-        borderBottomWidth?: CSSWideKeyword | any;
-
-        /**
-         * Border-collapse can be used for collapsing the borders between table cells
-         */
-        borderCollapse?: CSSWideKeyword | any;
-
-        /**
-         * The CSS border-color property sets the color of an element's four borders. This property can have from one to four values, made up of the elementary properties:
-         *      •       border-top-color
-         *      •       border-right-color
-         *      •       border-bottom-color
-         *      •       border-left-color The default color is the currentColor of each of these values.
-         * If you provide one value, it sets the color for the element. Two values set the horizontal and vertical values, respectively. Providing three values sets the top, vertical, and bottom values, in that order. Four values set all for sides: top, right, bottom, and left, in that order.
-         */
-        borderColor?: CSSWideKeyword | any;
-
-        /**
-         * Specifies different corner clipping effects, such as scoop (inner curves), bevel (straight cuts) or notch (cut-off rectangles). Works along with border-radius to specify the size of each corner effect.
-         */
-        borderCornerShape?: CSSWideKeyword | any;
-
-        /**
-         * The property border-image-source is used to set the image to be used instead of the border style. If this is set to none the border-style is used instead.
-         */
-        borderImageSource?: CSSWideKeyword | any;
-
-        /**
-         * The border-image-width CSS property defines the offset to use for dividing the border image in nine parts, the top-left corner, central top edge, top-right-corner, central right edge, bottom-right corner, central bottom edge, bottom-left corner, and central right edge. They represent inward distance from the top, right, bottom, and left edges.
-         */
-        borderImageWidth?: CSSWideKeyword | any;
-
-        /**
-         * Shorthand property that defines the border-width, border-style and border-color of an element's left border in a single declaration. Note that you can use the corresponding longhand properties to set specific individual properties of the left border — border-left-width, border-left-style and border-left-color.
-         */
-        borderLeft?: CSSWideKeyword | any;
-
-        /**
-         * The CSS border-left-color property sets the color of an element's left border. This page explains the border-left-color value, but often you will find it more convenient to fix the border's left color as part of a shorthand set, either border-left or border-color.
-         * Colors can be defined several ways. For more information, see Usage.
-         */
-        borderLeftColor?: CSSWideKeyword | any;
-
-        /**
-         * Sets the style of an element's left border. To set all four borders, use the shorthand property, border-style. Otherwise, you can set the borders individually with border-top-style, border-right-style, border-bottom-style, border-left-style.
-         */
-        borderLeftStyle?: CSSWideKeyword | any;
-
-        /**
-         * Sets the width of an element's left border. To set all four borders, use the border-width shorthand property which sets the values simultaneously for border-top-width, border-right-width, border-bottom-width, and border-left-width.
-         */
-        borderLeftWidth?: CSSWideKeyword | any;
-
-        /**
-         * Shorthand property that defines the border-width, border-style and border-color of an element's right border in a single declaration. Note that you can use the corresponding longhand properties to set specific individual properties of the right border — border-right-width, border-right-style and border-right-color.
-         */
-        borderRight?: CSSWideKeyword | any;
-
-        /**
-         * Sets the color of an element's right border. This page explains the border-right-color value, but often you will find it more convenient to fix the border's right color as part of a shorthand set, either border-right or border-color.
-         * Colors can be defined several ways. For more information, see Usage.
-         */
-        borderRightColor?: CSSWideKeyword | any;
-
-        /**
-         * Sets the style of an element's right border. To set all four borders, use the shorthand property, border-style. Otherwise, you can set the borders individually with border-top-style, border-right-style, border-bottom-style, border-left-style.
-         */
-        borderRightStyle?: CSSWideKeyword | any;
-
-        /**
-         * Sets the width of an element's right border. To set all four borders, use the border-width shorthand property which sets the values simultaneously for border-top-width, border-right-width, border-bottom-width, and border-left-width.
-         */
-        borderRightWidth?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the distance between the borders of adjacent cells.
-         */
-        borderSpacing?: CSSWideKeyword | any;
-
-        /**
-         * Sets the style of an element's four borders. This property can have from one to four values. With only one value, the value will be applied to all four borders; otherwise, this works as a shorthand property for each of border-top-style, border-right-style, border-bottom-style, border-left-style, where each border style may be assigned a separate value.
-         */
-        borderStyle?: CSSWideKeyword | any;
-
-        /**
-         * Shorthand property that defines the border-width, border-style and border-color of an element's top border in a single declaration. Note that you can use the corresponding longhand properties to set specific individual properties of the top border — border-top-width, border-top-style and border-top-color.
-         */
-        borderTop?: CSSWideKeyword | any;
-
-        /**
-         * Sets the color of an element's top border. This page explains the border-top-color value, but often you will find it more convenient to fix the border's top color as part of a shorthand set, either border-top or border-color.
-         * Colors can be defined several ways. For more information, see Usage.
-         */
-        borderTopColor?: CSSWideKeyword | any;
-
-        /**
-         * Sets the rounding of the top-left corner of the element.
-         */
-        borderTopLeftRadius?: CSSWideKeyword | any;
-
-        /**
-         * Sets the rounding of the top-right corner of the element.
-         */
-        borderTopRightRadius?: CSSWideKeyword | any;
-
-        /**
-         * Sets the style of an element's top border. To set all four borders, use the shorthand property, border-style. Otherwise, you can set the borders individually with border-top-style, border-right-style, border-bottom-style, border-left-style.
-         */
-        borderTopStyle?: CSSWideKeyword | any;
-
-        /**
-         * Sets the width of an element's top border. To set all four borders, use the border-width shorthand property which sets the values simultaneously for border-top-width, border-right-width, border-bottom-width, and border-left-width.
-         */
-        borderTopWidth?: CSSWideKeyword | any;
-
-        /**
-         * Sets the width of an element's four borders. This property can have from one to four values. This is a shorthand property for setting values simultaneously for border-top-width, border-right-width, border-bottom-width, and border-left-width.
-         */
-        borderWidth?: CSSWideKeyword | any;
-
-        /**
-         * This property specifies how far an absolutely positioned box's bottom margin edge is offset above the bottom edge of the box's containing block. For relatively positioned boxes, the offset is with respect to the bottom edges of the box itself (i.e., the box is given a position in the normal flow, then offset from that position according to these properties).
-         */
-        bottom?: CSSWideKeyword | any;
-
-        /**
-         * Obsolete.
-         */
-        boxAlign?: CSSWideKeyword | any;
-
-        /**
-         * Breaks a box into fragments creating new borders, padding and repeating backgrounds or lets it stay as a continuous box on a page break, column break, or, for inline elements, at a line break.
-         */
-        boxDecorationBreak?: CSSWideKeyword | any;
-
-        /**
-         * Deprecated
-         */
-        boxDirection?: CSSWideKeyword | any;
-
-        /**
-         * Do not use. This property has been replaced by the flex-wrap property.
-         * Gets or sets a value that specifies the direction to add successive rows or columns when the value of box-lines is set to multiple.
-         */
-        boxLineProgression?: CSSWideKeyword | any;
-
-        /**
-         * Do not use. This property has been replaced by the flex-wrap property.
-         * Gets or sets a value that specifies whether child elements wrap onto multiple lines or columns based on the space available in the object.
-         */
-        boxLines?: CSSWideKeyword | any;
-
-        /**
-         * Do not use. This property has been replaced by flex-order.
-         * Specifies the ordinal group that a child element of the object belongs to. This ordinal value identifies the display order (along the axis defined by the box-orient property) for the group.
-         */
-        boxOrdinalGroup?: CSSWideKeyword | any;
-
-        /**
-         * Deprecated.
-         */
-        boxFlex?: CSSWideKeyword | number;
-
-        /**
-         * Deprecated.
-         */
-        boxFlexGroup?: CSSWideKeyword | number;
-
-        /**
-         * The CSS break-after property allows you to force a break on multi-column layouts. More specifically, it allows you to force a break after an element. It allows you to determine if a break should occur, and what type of break it should be. The break-after CSS property describes how the page, column or region break behaves after the generated box. If there is no generated box, the property is ignored.
-         */
-        breakAfter?: CSSWideKeyword | any;
-
-        /**
-         * Control page/column/region breaks that fall above a block of content
-         */
-        breakBefore?: CSSWideKeyword | any;
-
-        /**
-         * Control page/column/region breaks that fall within a block of content
-         */
-        breakInside?: CSSWideKeyword | any;
-
-        /**
-         * The clear CSS property specifies if an element can be positioned next to or must be positioned below the floating elements that precede it in the markup.
-         */
-        clear?: CSSWideKeyword | any;
-
-        /**
-         * Deprecated; see clip-path.
-         * Lets you specify the dimensions of an absolutely positioned element that should be visible, and the element is clipped into this shape, and displayed.
-         */
-        clip?: CSSWideKeyword | any;
-
-        /**
-         * Clipping crops an graphic, so that only a portion of the graphic is rendered, or filled. This clip-rule property, when used with the clip-path property, defines which clip rule, or algorithm, to use when filling the different parts of a graphics.
-         */
-        clipRule?: CSSWideKeyword | any;
-
-        /**
-         * The color property sets the color of an element's foreground content (usually text), accepting any standard CSS color from keywords and hex values to RGB(a) and HSL(a).
-         */
-        color?: CSSWideKeyword | any;
-
-        /**
-         * Describes the number of columns of the element.
-         * See CSS 3 column-count property https://www.w3.org/TR/css3-multicol/#cc
-         */
-        columnCount?: CSSWideKeyword | number | "auto";
-
-        /**
-         * Specifies how to fill columns (balanced or sequential).
-         */
-        columnFill?: CSSWideKeyword | any;
-
-        /**
-         * The column-gap property controls the width of the gap between columns in multi-column elements.
-         */
-        columnGap?: CSSWideKeyword | any;
-
-        /**
-         * Sets the width, style, and color of the rule between columns.
-         */
-        columnRule?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the color of the rule between columns.
-         */
-        columnRuleColor?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the width of the rule between columns.
-         */
-        columnRuleWidth?: CSSWideKeyword | any;
-
-        /**
-         * The column-span CSS property makes it possible for an element to span across all columns when its value is set to all. An element that spans more than one column is called a spanning element.
-         */
-        columnSpan?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the width of columns in multi-column elements.
-         */
-        columnWidth?: CSSWideKeyword | any;
-
-        /**
-         * This property is a shorthand property for setting column-width and/or column-count.
-         */
-        columns?: CSSWideKeyword | any;
-
-        /**
-         * The counter-increment property accepts one or more names of counters (identifiers), each one optionally followed by an integer which specifies the value by which the counter should be incremented (e.g. if the value is 2, the counter increases by 2 each time it is invoked).
-         */
-        counterIncrement?: CSSWideKeyword | any;
-
-        /**
-         * The counter-reset property contains a list of one or more names of counters, each one optionally followed by an integer (otherwise, the integer defaults to 0.) Each time the given element is invoked, the counters specified by the property are set to the given integer.
-         */
-        counterReset?: CSSWideKeyword | any;
-
-        /**
-         * The cue property specifies sound files (known as an "auditory icon") to be played by speech media agents before and after presenting an element's content; if only one file is specified, it is played both before and after. The volume at which the file(s) should be played, relative to the volume of the main element, may also be specified. The icon files may also be set separately with the cue-before and cue-after properties.
-         */
-        cue?: CSSWideKeyword | any;
-
-        /**
-         * The cue-after property specifies a sound file (known as an "auditory icon") to be played by speech media agents after presenting an element's content; the volume at which the file should be played may also be specified. The shorthand property cue sets cue sounds for both before and after the element is presented.
-         */
-        cueAfter?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the mouse cursor displayed when the mouse pointer is over an element.
-         */
-        cursor?: CSSWideKeyword | any;
-
-        /**
-         * The direction CSS property specifies the text direction/writing direction. The rtl is used for Hebrew or Arabic text, the ltr is for other languages.
-         */
-        direction?: CSSWideKeyword | any;
-
-        /**
-         * This property specifies the type of rendering box used for an element. It is a shorthand property for many other display properties.
-         */
-        display?: CSSWideKeyword | any;
-
-        /**
-         * The ‘fill’ property paints the interior of the given graphical element. The area to be painted consists of any areas inside the outline of the shape. To determine the inside of the shape, all subpaths are considered, and the interior is determined according to the rules associated with the current value of the ‘fill-rule’ property. The zero-width geometric outline of a shape is included in the area to be painted.
-         */
-        fill?: CSSWideKeyword | any;
-
-        /**
-         * SVG: Specifies the opacity of the color or the content the current object is filled with.
-         * See SVG 1.1 https://www.w3.org/TR/SVG/painting.html#FillOpacityProperty
-         */
-        fillOpacity?: CSSWideKeyword | number;
-
-        /**
-         * The ‘fill-rule’ property indicates the algorithm which is to be used to determine what parts of the canvas are included inside the shape. For a simple, non-intersecting path, it is intuitively clear what region lies "inside"; however, for a more complex path, such as a path that intersects itself or where one subpath encloses another, the interpretation of "inside" is not so obvious.
-         * The ‘fill-rule’ property provides two options for how the inside of a shape is determined:
-         */
-        fillRule?: CSSWideKeyword | any;
-
-        /**
-         * Applies various image processing effects. This property is largely unsupported. See Compatibility section for more information.
-         */
-        filter?: CSSWideKeyword | any;
-
-        /**
-         * Shorthand for `flex-grow`, `flex-shrink`, and `flex-basis`.
-         */
-        flex?: CSSWideKeyword | number | string;
-
-        /**
-         * Obsolete, do not use. This property has been renamed to align-items.
-         * Specifies the alignment (perpendicular to the layout axis defined by the flex-direction property) of child elements of the object.
-         */
-        flexAlign?: CSSWideKeyword | any;
-
-        /**
-         * The flex-basis CSS property describes the initial main size of the flex item before any free space is distributed according to the flex factors described in the flex property (flex-grow and flex-shrink).
-         */
-        flexBasis?: CSSWideKeyword | any;
-
-        /**
-         * The flex-direction CSS property describes how flex items are placed in the flex container, by setting the direction of the flex container's main axis.
-         */
-        flexDirection?: CSSWideKeyword | any;
-
-        /**
-         * The flex-flow CSS property defines the flex container's main and cross axis. It is a shorthand property for the flex-direction and flex-wrap properties.
-         */
-        flexFlow?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the flex grow factor of a flex item.
-         * See CSS flex-grow property https://drafts.csswg.org/css-flexbox-1/#flex-grow-property
-         */
-        flexGrow?: CSSWideKeyword | number;
-
-        /**
-         * Do not use. This property has been renamed to align-self
-         * Specifies the alignment (perpendicular to the layout axis defined by flex-direction) of child elements of the object.
-         */
-        flexItemAlign?: CSSWideKeyword | any;
-
-        /**
-         * Do not use. This property has been renamed to align-content.
-         * Specifies how a flexbox's lines align within the flexbox when there is extra space along the axis that is perpendicular to the axis defined by the flex-direction property.
-         */
-        flexLinePack?: CSSWideKeyword | any;
-
-        /**
-         * Gets or sets a value that specifies the ordinal group that a flexbox element belongs to. This ordinal value identifies the display order for the group.
-         */
-        flexOrder?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the flex shrink factor of a flex item.
-         * See CSS flex-shrink property https://drafts.csswg.org/css-flexbox-1/#flex-shrink-property
-         */
-        flexShrink?: CSSWideKeyword | number;
-
-        /**
-         * Elements which have the style float are floated horizontally. These elements can move as far to the left or right of the containing element. All elements after the floating element will flow around it, but elements before the floating element are not impacted. If several floating elements are placed after each other, they will float next to each other as long as there is room.
-         */
-        float?: CSSWideKeyword | any;
-
-        /**
-         * Flows content from a named flow (specified by a corresponding flow-into) through selected elements to form a dynamic chain of layout regions.
-         */
-        flowFrom?: CSSWideKeyword | any;
-
-        /**
-         * The font property is shorthand that allows you to do one of two things: you can either set up six of the most mature font properties in one line, or you can set one of a choice of keywords to adopt a system font setting.
-         */
-        font?: CSSWideKeyword | any;
-
-        /**
-         * The font-family property allows one or more font family names and/or generic family names to be specified for usage on the selected element(s)' text. The browser then goes through the list; for each character in the selection it applies the first font family that has an available glyph for that character.
-         */
-        fontFamily?: CSSWideKeyword | any;
-
-        /**
-         * The font-kerning property allows contextual adjustment of inter-glyph spacing, i.e. the spaces between the characters in text. This property controls <bold>metric kerning</bold> - that utilizes adjustment data contained in the font. Optical Kerning is not supported as yet.
-         */
-        fontKerning?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the size of the font. Used to compute em and ex units.
-         * See CSS 3 font-size property https://www.w3.org/TR/css-fonts-3/#propdef-font-size
-         */
-        fontSize?: CSSWideKeyword |
-                   "xx-small" | "x-small" | "small" | "medium" | "large" | "x-large" | "xx-large" |
-                   "larger" | "smaller" |
-                   CSSLength | CSSPercentage;
-
-        /**
-         * The font-size-adjust property adjusts the font-size of the fallback fonts defined with font-family, so that the x-height is the same no matter what font is used. This preserves the readability of the text when fallback happens.
-         * See CSS 3 font-size-adjust property https://www.w3.org/TR/css-fonts-3/#propdef-font-size-adjust
-         */
-        fontSizeAdjust?: CSSWideKeyword | "none" | number;
-
-        /**
-         * Allows you to expand or condense the widths for a normal, condensed, or expanded font face.
-         * See CSS 3 font-stretch property https://drafts.csswg.org/css-fonts-3/#propdef-font-stretch
-         */
-        fontStretch?: CSSWideKeyword |
-                      "normal" | "ultra-condensed" | "extra-condensed" | "condensed" | "semi-condensed" |
-                      "semi-expanded" | "expanded" | "extra-expanded" | "ultra-expanded";
-
-        /**
-         * The font-style property allows normal, italic, or oblique faces to be selected. Italic forms are generally cursive in nature while oblique faces are typically sloped versions of the regular face. Oblique faces can be simulated by artificially sloping the glyphs of the regular face.
-         * See CSS 3 font-style property https://www.w3.org/TR/css-fonts-3/#propdef-font-style
-         */
-        fontStyle?: CSSWideKeyword | "normal" | "italic" | "oblique";
-
-        /**
-         * This value specifies whether the user agent is allowed to synthesize bold or oblique font faces when a font family lacks bold or italic faces.
-         */
-        fontSynthesis?: CSSWideKeyword | any;
-
-        /**
-         * The font-variant property enables you to select the small-caps font within a font family.
-         */
-        fontVariant?: CSSWideKeyword | any;
-
-        /**
-         * Fonts can provide alternate glyphs in addition to default glyph for a character. This property provides control over the selection of these alternate glyphs.
-         */
-        fontVariantAlternates?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the weight or boldness of the font.
-         * See CSS 3 'font-weight' property https://www.w3.org/TR/css-fonts-3/#propdef-font-weight
-         */
-        fontWeight?: CSSWideKeyword | "normal" | "bold" | "bolder" | "lighter" | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
-
-        /**
-         * Lays out one or more grid items bound by 4 grid lines. Shorthand for setting grid-column-start, grid-column-end, grid-row-start, and grid-row-end in a single declaration.
-         */
-        gridArea?: CSSWideKeyword | any;
-
-        /**
-         * Controls a grid item's placement in a grid area, particularly grid position and a grid span. Shorthand for setting grid-column-start and grid-column-end in a single declaration.
-         */
-        gridColumn?: CSSWideKeyword | any;
-
-        /**
-         * Controls a grid item's placement in a grid area as well as grid position and a grid span. The grid-column-end property (with grid-row-start, grid-row-end, and grid-column-start) determines a grid item's placement by specifying the grid lines of a grid item's grid area.
-         */
-        gridColumnEnd?: CSSWideKeyword | any;
-
-        /**
-         * Determines a grid item's placement by specifying the starting grid lines of a grid item's grid area . A grid item's placement in a grid area consists of a grid position and a grid span. See also ( grid-row-start, grid-row-end, and grid-column-end)
-         */
-        gridColumnStart?: CSSWideKeyword | any;
-
-        /**
-         * Gets or sets a value that indicates which row an element within a Grid should appear in. Shorthand for setting grid-row-start and grid-row-end in a single declaration.
-         */
-        gridRow?: CSSWideKeyword | any;
-
-        /**
-         * Determines a grid item’s placement by specifying the block-end. A grid item's placement in a grid area consists of a grid position and a grid span. The grid-row-end property (with grid-row-start, grid-column-start, and grid-column-end) determines a grid item's placement by specifying the grid lines of a grid item's grid area.
-         */
-        gridRowEnd?: CSSWideKeyword | any;
-
-        /**
-         * Specifies a row position based upon an integer location, string value, or desired row size.
-         * css/properties/grid-row is used as short-hand for grid-row-position and grid-row-position
-         */
-        gridRowPosition?: CSSWideKeyword | any;
-
-        gridRowSpan?: CSSWideKeyword | any;
-
-        /**
-         * Specifies named grid areas which are not associated with any particular grid item, but can be referenced from the grid-placement properties. The syntax of the grid-template-areas property also provides a visualization of the structure of the grid, making the overall layout of the grid container easier to understand.
-         */
-        gridTemplateAreas?: CSSWideKeyword | any;
-
-        /**
-         * Specifies (with grid-template-rows) the line names and track sizing functions of the grid. Each sizing function can be specified as a length, a percentage of the grid container’s size, a measurement of the contents occupying the column or row, or a fraction of the free space in the grid.
-         */
-        gridTemplateColumns?: CSSWideKeyword | any;
-
-        /**
-         * Specifies (with grid-template-columns) the line names and track sizing functions of the grid. Each sizing function can be specified as a length, a percentage of the grid container’s size, a measurement of the contents occupying the column or row, or a fraction of the free space in the grid.
-         */
-        gridTemplateRows?: CSSWideKeyword | any;
-
-        /**
-         * Sets the height of an element. The content area of the element height does not include the padding, border, and margin of the element.
-         */
-        height?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the minimum number of characters in a hyphenated word
-         */
-        hyphenateLimitChars?: CSSWideKeyword | any;
-
-        /**
-         * Indicates the maximum number of successive hyphenated lines in an element. The ‘no-limit’ value means that there is no limit.
-         */
-        hyphenateLimitLines?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the maximum amount of trailing whitespace (before justification) that may be left in a line before hyphenation is triggered to pull part of a word from the next line back up into the current one.
-         */
-        hyphenateLimitZone?: CSSWideKeyword | any;
-
-        /**
-         * Specifies whether or not words in a sentence can be split by the use of a manual or automatic hyphenation mechanism.
-         */
-        hyphens?: CSSWideKeyword | any;
-
-        imeMode?: CSSWideKeyword | any;
-
-        /**
-         * Defines how the browser distributes space between and around flex items
-         * along the main-axis of their container.
-         * See CSS justify-content property https://www.w3.org/TR/css-flexbox-1/#justify-content-property
-         */
-        justifyContent?: CSSWideKeyword | "flex-start" | "flex-end" | "center" | "space-between" | "space-around";
-
-        layoutGrid?: CSSWideKeyword | any;
-
-        layoutGridChar?: CSSWideKeyword | any;
-
-        layoutGridLine?: CSSWideKeyword | any;
-
-        layoutGridMode?: CSSWideKeyword | any;
-
-        layoutGridType?: CSSWideKeyword | any;
-
-        /**
-         * Sets the left edge of an element
-         */
-        left?: CSSWideKeyword | any;
-
-        /**
-         * The letter-spacing CSS property specifies the spacing behavior between text characters.
-         */
-        letterSpacing?: CSSWideKeyword | any;
-
-        /**
-         * Deprecated. Gets or sets line-breaking rules for text in selected languages such as Japanese, Chinese, and Korean.
-         */
-        lineBreak?: CSSWideKeyword | any;
-
-        lineClamp?: CSSWideKeyword | number;
-
-        /**
-         * Specifies the height of an inline block level element.
-         * See CSS 2.1 line-height property https://www.w3.org/TR/CSS21/visudet.html#propdef-line-height
-         */
-        lineHeight?: CSSWideKeyword | "normal" | number | CSSLength | CSSPercentage;
-
-        /**
-         * Shorthand property that sets the list-style-type, list-style-position and list-style-image properties in one declaration.
-         */
-        listStyle?: CSSWideKeyword | any;
-
-        /**
-         * This property sets the image that will be used as the list item marker. When the image is available, it will replace the marker set with the 'list-style-type' marker. That also means that if the image is not available, it will show the style specified by list-style-property
-         */
-        listStyleImage?: CSSWideKeyword | any;
-
-        /**
-         * Specifies if the list-item markers should appear inside or outside the content flow.
-         */
-        listStylePosition?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the type of list-item marker in a list.
-         */
-        listStyleType?: CSSWideKeyword | any;
-
-        /**
-         * The margin property is shorthand to allow you to set all four margins of an element at once. Its equivalent longhand properties are margin-top, margin-right, margin-bottom and margin-left. Negative values are also allowed.
-         */
-        margin?: CSSWideKeyword | any;
-
-        /**
-         * margin-bottom sets the bottom margin of an element.
-         */
-        marginBottom?: CSSWideKeyword | any;
-
-        /**
-         * margin-left sets the left margin of an element.
-         */
-        marginLeft?: CSSWideKeyword | any;
-
-        /**
-         * margin-right sets the right margin of an element.
-         */
-        marginRight?: CSSWideKeyword | any;
-
-        /**
-         * margin-top sets the top margin of an element.
-         */
-        marginTop?: CSSWideKeyword | any;
-
-        /**
-         * The marquee-direction determines the initial direction in which the marquee content moves.
-         */
-        marqueeDirection?: CSSWideKeyword | any;
-
-        /**
-         * The 'marquee-style' property determines a marquee's scrolling behavior.
-         */
-        marqueeStyle?: CSSWideKeyword | any;
-
-        /**
-         * This property is shorthand for setting mask-image, mask-mode, mask-repeat, mask-position, mask-clip, mask-origin, mask-composite and mask-size. Omitted values are set to their original properties' initial values.
-         */
-        mask?: CSSWideKeyword | any;
-
-        /**
-         * This property is shorthand for setting mask-border-source, mask-border-slice, mask-border-width, mask-border-outset, and mask-border-repeat. Omitted values are set to their original properties' initial values.
-         */
-        maskBorder?: CSSWideKeyword | any;
-
-        /**
-         * This property specifies how the images for the sides and the middle part of the mask image are scaled and tiled. The first keyword applies to the horizontal sides, the second one applies to the vertical ones. If the second keyword is absent, it is assumed to be the same as the first, similar to the CSS border-image-repeat property.
-         */
-        maskBorderRepeat?: CSSWideKeyword | any;
-
-        /**
-         * This property specifies inward offsets from the top, right, bottom, and left edges of the mask image, dividing it into nine regions: four corners, four edges, and a middle. The middle image part is discarded and treated as fully transparent black unless the fill keyword is present. The four values set the top, right, bottom and left offsets in that order, similar to the CSS border-image-slice property.
-         */
-        maskBorderSlice?: CSSWideKeyword | any;
-
-        /**
-         * Specifies an image to be used as a mask. An image that is empty, fails to download, is non-existent, or cannot be displayed is ignored and does not mask the element.
-         */
-        maskBorderSource?: CSSWideKeyword | any;
-
-        /**
-         * This property sets the width of the mask box image, similar to the CSS border-image-width property.
-         */
-        maskBorderWidth?: CSSWideKeyword | any;
-
-        /**
-         * Determines the mask painting area, which defines the area that is affected by the mask. The painted content of an element may be restricted to this area.
-         */
-        maskClip?: CSSWideKeyword | any;
-
-        /**
-         * For elements rendered as a single box, specifies the mask positioning area. For elements rendered as multiple boxes (e.g., inline boxes on several lines, boxes on several pages) specifies which boxes box-decoration-break operates on to determine the mask positioning area(s).
-         */
-        maskOrigin?: CSSWideKeyword | any;
-
-        /**
-         * This property must not be used. It is no longer included in any standard or standard track specification, nor is it implemented in any browser. It is only used when the text-align-last property is set to size. It controls allowed adjustments of font-size to fit line content.
-         */
-        maxFontSize?: CSSWideKeyword | any;
-
-        /**
-         * Sets the maximum height for an element. It prevents the height of the element to exceed the specified value. If min-height is specified and is greater than max-height, max-height is overridden.
-         */
-        maxHeight?: CSSWideKeyword | any;
-
-        /**
-         * Sets the maximum width for an element. It limits the width property to be larger than the value specified in max-width.
-         */
-        maxWidth?: CSSWideKeyword | any;
-
-        /**
-         * Sets the minimum height for an element. It prevents the height of the element to be smaller than the specified value. The value of min-height overrides both max-height and height.
-         */
-        minHeight?: CSSWideKeyword | any;
-
-        /**
-         * Sets the minimum width of an element. It limits the width property to be not smaller than the value specified in min-width.
-         */
-        minWidth?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the transparency of an element.
-         * See CSS 3 opacity property https://drafts.csswg.org/css-color-3/#opacity
-         */
-        opacity?: CSSWideKeyword | number;
-
-        /**
-         * Specifies the order used to lay out flex items in their flex container.
-         * Elements are laid out in the ascending order of the order value.
-         * See CSS order property https://drafts.csswg.org/css-flexbox-1/#order-property
-         */
-        order?: CSSWideKeyword | number;
-
-        /**
-         * In paged media, this property defines the minimum number of lines in
-         * a block container that must be left at the bottom of the page.
-         * See CSS 3 orphans, widows properties https://drafts.csswg.org/css-break-3/#widows-orphans
-         */
-        orphans?: CSSWideKeyword | number;
-
-        /**
-         * The CSS outline property is a shorthand property for setting one or more of the individual outline properties outline-style, outline-width and outline-color in a single rule. In most cases the use of this shortcut is preferable and more convenient.
-         * Outlines differ from borders in the following ways:
-         *      •       Outlines do not take up space, they are drawn above the content.
-         *      •       Outlines may be non-rectangular. They are rectangular in Gecko/Firefox. Internet Explorer attempts to place the smallest contiguous outline around all elements or shapes that are indicated to have an outline. Opera draws a non-rectangular shape around a construct.
-         */
-        outline?: CSSWideKeyword | any;
-
-        /**
-         * The outline-color property sets the color of the outline of an element. An outline is a line that is drawn around elements, outside the border edge, to make the element stand out.
-         */
-        outlineColor?: CSSWideKeyword | any;
-
-        /**
-         * The outline-offset property offsets the outline and draw it beyond the border edge.
-         */
-        outlineOffset?: CSSWideKeyword | any;
-
-        /**
-         * The overflow property controls how extra content exceeding the bounding box of an element is rendered. It can be used in conjunction with an element that has a fixed width and height, to eliminate text-induced page distortion.
-         */
-        overflow?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the preferred scrolling methods for elements that overflow.
-         */
-        overflowStyle?: CSSWideKeyword | any;
-
-        /**
-         * Controls how extra content exceeding the x-axis of the bounding box of an element is rendered.
-         */
-        overflowX?: CSSWideKeyword | any;
-
-        /**
-         * Controls how extra content exceeding the y-axis of the bounding box of an element is rendered.
-         */
-        overflowY?: CSSWideKeyword | any;
-
-        /**
-         * The padding optional CSS property sets the required padding space on one to four sides of an element. The padding area is the space between an element and its border. Negative values are not allowed but decimal values are permitted. The element size is treated as fixed, and the content of the element shifts toward the center as padding is increased.
-         * The padding property is a shorthand to avoid setting each side separately (padding-top, padding-right, padding-bottom, padding-left).
-         */
-        padding?: CSSWideKeyword | any;
-
-        /**
-         * The padding-bottom CSS property of an element sets the padding space required on the bottom of an element. The padding area is the space between the content of the element and its border. Contrary to margin-bottom values, negative values of padding-bottom are invalid.
-         */
-        paddingBottom?: CSSWideKeyword | any;
-
-        /**
-         * The padding-left CSS property of an element sets the padding space required on the left side of an element. The padding area is the space between the content of the element and its border. Contrary to margin-left values, negative values of padding-left are invalid.
-         */
-        paddingLeft?: CSSWideKeyword | any;
-
-        /**
-         * The padding-right CSS property of an element sets the padding space required on the right side of an element. The padding area is the space between the content of the element and its border. Contrary to margin-right values, negative values of padding-right are invalid.
-         */
-        paddingRight?: CSSWideKeyword | any;
-
-        /**
-         * The padding-top CSS property of an element sets the padding space required on the top of an element. The padding area is the space between the content of the element and its border. Contrary to margin-top values, negative values of padding-top are invalid.
-         */
-        paddingTop?: CSSWideKeyword | any;
-
-        /**
-         * The page-break-after property is supported in all major browsers. With CSS3, page-break-* properties are only aliases of the break-* properties. The CSS3 Fragmentation spec defines breaks for all CSS box fragmentation.
-         */
-        pageBreakAfter?: CSSWideKeyword | any;
-
-        /**
-         * The page-break-before property sets the page-breaking behavior before an element. With CSS3, page-break-* properties are only aliases of the break-* properties. The CSS3 Fragmentation spec defines breaks for all CSS box fragmentation.
-         */
-        pageBreakBefore?: CSSWideKeyword | any;
-
-        /**
-         * Sets the page-breaking behavior inside an element. With CSS3, page-break-* properties are only aliases of the break-* properties. The CSS3 Fragmentation spec defines breaks for all CSS box fragmentation.
-         */
-        pageBreakInside?: CSSWideKeyword | any;
-
-        /**
-         * The pause property determines how long a speech media agent should pause before and after presenting an element. It is a shorthand for the pause-before and pause-after properties.
-         */
-        pause?: CSSWideKeyword | any;
-
-        /**
-         * The pause-after property determines how long a speech media agent should pause after presenting an element. It may be replaced by the shorthand property pause, which sets pause time before and after.
-         */
-        pauseAfter?: CSSWideKeyword | any;
-
-        /**
-         * The pause-before property determines how long a speech media agent should pause before presenting an element. It may be replaced by the shorthand property pause, which sets pause time before and after.
-         */
-        pauseBefore?: CSSWideKeyword | any;
-
-        /**
-         * The perspective property defines how far an element is placed from the view on the z-axis, from the screen to the viewer.
-         * Perspective defines how an object is viewed. In graphic arts, perspective is the representation on a flat surface of what the viewer's eye would see in a 3D space. (See Wikipedia for more information about graphical perspective and for related illustrations.)
-         * The illusion of perspective on a flat surface, such as a computer screen, is created by projecting points on the flat surface as they would appear if the flat surface were a window through which the viewer was looking at the object. In discussion of virtual environments, this flat surface is called a projection plane.
-         */
-        perspective?: CSSWideKeyword | any;
-
-        /**
-         * The perspective-origin property establishes the origin for the perspective property. It effectively sets the X and Y position at which the viewer appears to be looking at the children of the element.
-         * When used with perspective, perspective-origin changes the appearance of an object, as if a viewer were looking at it from a different origin. An object appears differently if a viewer is looking directly at it versus looking at it from below, above, or from the side. Thus, the perspective-origin is like a vanishing point.
-         * The default value of perspective-origin is 50% 50%. This displays an object as if the viewer's eye were positioned directly at the center of the screen, both top-to-bottom and left-to-right. A value of 0% 0% changes the object as if the viewer was looking toward the top left angle. A value of 100% 100% changes the appearance as if viewed toward the bottom right angle.
-         */
-        perspectiveOrigin?: CSSWideKeyword | any;
-
-        /**
-         * The pointer-events property allows you to control whether an element can be the target for the pointing device (e.g, mouse, pen) events.
-         */
-        pointerEvents?: CSSWideKeyword | any;
-
-        /**
-         * The position property controls the type of positioning used by an element within its parent elements. The effect of the position property depends on a lot of factors, for example the position property of parent elements.
-         */
-        position?: CSSWideKeyword | any;
-
-        /**
-         * Obsolete: unsupported.
-         * This property determines whether or not a full-width punctuation mark character should be trimmed if it appears at the beginning of a line, so that its "ink" lines up with the first glyph in the line above and below.
-         */
-        punctuationTrim?: CSSWideKeyword | any;
-
-        /**
-         * Sets the type of quotation marks for embedded quotations.
-         */
-        quotes?: CSSWideKeyword | any;
-
-        /**
-         * Controls whether the last region in a chain displays additional 'overset' content according its default overflow property, or if it displays a fragment of content as if it were flowing into a subsequent region.
-         */
-        regionFragment?: CSSWideKeyword | any;
-
-        /**
-         * The rest-after property determines how long a speech media agent should pause after presenting an element's main content, before presenting that element's exit cue sound. It may be replaced by the shorthand property rest, which sets rest time before and after.
-         */
-        restAfter?: CSSWideKeyword | any;
-
-        /**
-         * The rest-before property determines how long a speech media agent should pause after presenting an intro cue sound for an element, before presenting that element's main content. It may be replaced by the shorthand property rest, which sets rest time before and after.
-         */
-        restBefore?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the position an element in relation to the right side of the containing element.
-         */
-        right?: CSSWideKeyword | any;
-
-        rubyAlign?: CSSWideKeyword | any;
-
-        rubyPosition?: CSSWideKeyword | any;
-
-        /**
-         * Defines the alpha channel threshold used to extract a shape from an image. Can be thought of as a "minimum opacity" threshold; that is, a value of 0.5 means that the shape will enclose all the pixels that are more than 50% opaque.
-         */
-        shapeImageThreshold?: CSSWideKeyword | any;
-
-        /**
-         * A future level of CSS Shapes will define a shape-inside property, which will define a shape to wrap content within the element. See Editor's Draft <http://dev.w3.org/csswg/css-shapes/> and CSSWG wiki page on next-level plans <http://wiki.csswg.org/spec/css-shapes>
-         */
-        shapeInside?: CSSWideKeyword | any;
-
-        /**
-         * Adds a margin to a shape-outside. In effect, defines a new shape that is the smallest contour around all the points that are the shape-margin distance outward perpendicular to each point on the underlying shape. For points where a perpendicular direction is not defined (e.g., a triangle corner), takes all points on a circle centered at the point and with a radius of the shape-margin distance. This property accepts only non-negative values.
-         */
-        shapeMargin?: CSSWideKeyword | any;
-
-        /**
-         * Declares a shape around which text should be wrapped, with possible modifications from the shape-margin property. The shape defined by shape-outside and shape-margin changes the geometry of a float element's float area.
-         */
-        shapeOutside?: CSSWideKeyword | any;
-
-        /**
-         * The speak property determines whether or not a speech synthesizer will read aloud the contents of an element.
-         */
-        speak?: CSSWideKeyword | any;
-
-        /**
-         * The speak-as property determines how the speech synthesizer interprets the content: words as whole words or as a sequence of letters, numbers as a numerical value or a sequence of digits, punctuation as pauses in speech or named punctuation characters.
-         */
-        speakAs?: CSSWideKeyword | any;
-
-        /**
-         * SVG: Specifies the opacity of the outline on the current object.
-         * See SVG 1.1 https://www.w3.org/TR/SVG/painting.html#StrokeOpacityProperty
-         */
-        strokeOpacity?: CSSWideKeyword | number;
-
-        /**
-         * SVG: Specifies the width of the outline on the current object.
-         * See SVG 1.1 https://www.w3.org/TR/SVG/painting.html#StrokeWidthProperty
-         */
-        strokeWidth?: CSSWideKeyword | CSSPercentage | CSSLength;
-
-        /**
-         * The tab-size CSS property is used to customise the width of a tab (U+0009) character.
-         */
-        tabSize?: CSSWideKeyword | any;
-
-        /**
-         * The 'table-layout' property controls the algorithm used to lay out the table cells, rows, and columns.
-         */
-        tableLayout?: CSSWideKeyword | any;
-
-        /**
-         * The text-align CSS property describes how inline content like text is aligned in its parent block element. text-align does not control the alignment of block elements itself, only their inline content.
-         */
-        textAlign?: CSSWideKeyword | any;
-
-        /**
-         * The text-align-last CSS property describes how the last line of a block element or a line before line break is aligned in its parent block element.
-         */
-        textAlignLast?: CSSWideKeyword | any;
-
-        /**
-         * The text-decoration CSS property is used to set the text formatting to underline, overline, line-through or blink.
-         * underline and overline decorations are positioned under the text, line-through over it.
-         */
-        textDecoration?: CSSWideKeyword | any;
-
-        /**
-         * Sets the color of any text decoration, such as underlines, overlines, and strike throughs.
-         */
-        textDecorationColor?: CSSWideKeyword | any;
-
-        /**
-         * Sets what kind of line decorations are added to an element, such as underlines, overlines, etc.
-         */
-        textDecorationLine?: CSSWideKeyword | any;
-
-        textDecorationLineThrough?: CSSWideKeyword | any;
-
-        textDecorationNone?: CSSWideKeyword | any;
-
-        textDecorationOverline?: CSSWideKeyword | any;
-
-        /**
-         * Specifies what parts of an element’s content are skipped over when applying any text decoration.
-         */
-        textDecorationSkip?: CSSWideKeyword | any;
-
-        /**
-         * This property specifies the style of the text decoration line drawn on the specified element. The intended meaning for the values are the same as those of the border-style-properties.
-         */
-        textDecorationStyle?: CSSWideKeyword | any;
-
-        textDecorationUnderline?: CSSWideKeyword | any;
-
-        /**
-         * The text-emphasis property will apply special emphasis marks to the elements text. Slightly similar to the text-decoration property only that this property can have affect on the line-height. It also is noted that this is shorthand for text-emphasis-style and for text-emphasis-color.
-         */
-        textEmphasis?: CSSWideKeyword | any;
-
-        /**
-         * The text-emphasis-color property specifies the foreground color of the emphasis marks.
-         */
-        textEmphasisColor?: CSSWideKeyword | any;
-
-        /**
-         * The text-emphasis-style property applies special emphasis marks to an element's text.
-         */
-        textEmphasisStyle?: CSSWideKeyword | any;
-
-        /**
-         * This property helps determine an inline box's block-progression dimension, derived from the text-height and font-size properties for non-replaced elements, the height or the width for replaced elements, and the stacked block-progression dimension for inline-block elements. The block-progression dimension determines the position of the padding, border and margin for the element.
-         */
-        textHeight?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the amount of space horizontally that should be left on the first line of the text of an element. This horizontal spacing is at the beginning of the first line and is in respect to the left edge of the containing block box.
-         */
-        textIndent?: CSSWideKeyword | any;
-
-        textJustifyTrim?: CSSWideKeyword | any;
-
-        textKashidaSpace?: CSSWideKeyword | any;
-
-        /**
-         * The text-line-through property is a shorthand property for text-line-through-style, text-line-through-color and text-line-through-mode. (Considered obsolete; use text-decoration instead.)
-         */
-        textLineThrough?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the line colors for the line-through text decoration.
-         * (Considered obsolete; use text-decoration-color instead.)
-         */
-        textLineThroughColor?: CSSWideKeyword | any;
-
-        /**
-         * Sets the mode for the line-through text decoration, determining whether the text decoration affects the space characters or not.
-         * (Considered obsolete; use text-decoration-skip instead.)
-         */
-        textLineThroughMode?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the line style for line-through text decoration.
-         * (Considered obsolete; use text-decoration-style instead.)
-         */
-        textLineThroughStyle?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the line width for the line-through text decoration.
-         */
-        textLineThroughWidth?: CSSWideKeyword | any;
-
-        /**
-         * The text-overflow shorthand CSS property determines how overflowed content that is not displayed is signaled to the users. It can be clipped, display an ellipsis ('…', U+2026 HORIZONTAL ELLIPSIS) or a Web author-defined string. It covers the two long-hand properties text-overflow-mode and text-overflow-ellipsis
-         */
-        textOverflow?: CSSWideKeyword | any;
-
-        /**
-         * The text-overline property is the shorthand for the text-overline-style, text-overline-width, text-overline-color, and text-overline-mode properties.
-         */
-        textOverline?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the line color for the overline text decoration.
-         */
-        textOverlineColor?: CSSWideKeyword | any;
-
-        /**
-         * Sets the mode for the overline text decoration, determining whether the text decoration affects the space characters or not.
-         */
-        textOverlineMode?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the line style for overline text decoration.
-         */
-        textOverlineStyle?: CSSWideKeyword | any;
-
-        /**
-         * Specifies the line width for the overline text decoration.
-         */
-        textOverlineWidth?: CSSWideKeyword | any;
-
-        /**
-         * The text-rendering CSS property provides information to the browser about how to optimize when rendering text. Options are: legibility, speed or geometric precision.
-         */
-        textRendering?: CSSWideKeyword | any;
-
-        /**
-         * Obsolete: unsupported.
-         */
-        textScript?: CSSWideKeyword | any;
-
-        /**
-         * The CSS text-shadow property applies one or more drop shadows to the text and <text-decorations> of an element. Each shadow is specified as an offset from the text, along with optional color and blur radius values.
-         */
-        textShadow?: CSSWideKeyword | any;
-
-        /**
-         * This property transforms text for styling purposes. (It has no effect on the underlying content.)
-         */
-        textTransform?: CSSWideKeyword | any;
-
-        /**
-         * Unsupported.
-         * This property will add a underline position value to the element that has an underline defined.
-         */
-        textUnderlinePosition?: CSSWideKeyword | any;
-
-        /**
-         * After review this should be replaced by text-decoration should it not?
-         * This property will set the underline style for text with a line value for underline, overline, and line-through.
-         */
-        textUnderlineStyle?: CSSWideKeyword | any;
-
-        /**
-         * This property specifies how far an absolutely positioned box's top margin edge is offset below the top edge of the box's containing block. For relatively positioned boxes, the offset is with respect to the top edges of the box itself (i.e., the box is given a position in the normal flow, then offset from that position according to these properties).
-         */
-        top?: CSSWideKeyword | any;
-
-        /**
-         * Determines whether touch input may trigger default behavior supplied by the user agent, such as panning or zooming.
-         */
-        touchAction?: CSSWideKeyword | any;
-
-        /**
-         * CSS transforms allow elements styled with CSS to be transformed in two-dimensional or three-dimensional space. Using this property, elements can be translated, rotated, scaled, and skewed. The value list may consist of 2D and/or 3D transform values.
-         */
-        transform?: CSSWideKeyword | any;
-
-        /**
-         * This property defines the origin of the transformation axes relative to the element to which the transformation is applied.
-         */
-        transformOrigin?: CSSWideKeyword | any;
-
-        /**
-         * This property allows you to define the relative position of the origin of the transformation grid along the z-axis.
-         */
-        transformOriginZ?: CSSWideKeyword | any;
-
-        /**
-         * This property specifies how nested elements are rendered in 3D space relative to their parent.
-         */
-        transformStyle?: CSSWideKeyword | any;
-
-        /**
-         * The transition CSS property is a shorthand property for transition-property, transition-duration, transition-timing-function, and transition-delay. It allows to define the transition between two states of an element.
-         */
-        transition?: CSSWideKeyword | any;
-
-        /**
-         * Defines when the transition will start. A value of ‘0s’ means the transition will execute as soon as the property is changed. Otherwise, the value specifies an offset from the moment the property is changed, and the transition will delay execution by that offset.
-         */
-        transitionDelay?: CSSWideKeyword | any;
-
-        /**
-         * The 'transition-duration' property specifies the length of time a transition animation takes to complete.
-         */
-        transitionDuration?: CSSWideKeyword | any;
-
-        /**
-         * The 'transition-property' property specifies the name of the CSS property to which the transition is applied.
-         */
-        transitionProperty?: CSSWideKeyword | any;
-
-        /**
-         * Sets the pace of action within a transition
-         */
-        transitionTimingFunction?: CSSWideKeyword | any;
-
-        /**
-         * The unicode-bidi CSS property specifies the level of embedding with respect to the bidirectional algorithm.
-         */
-        unicodeBidi?: CSSWideKeyword | any;
-
-        /**
-         * unicode-range allows you to set a specific range of characters to be downloaded from a font (embedded using @font-face) and made available for use on the current page.
-         */
-        unicodeRange?: CSSWideKeyword | any;
-
-        /**
-         * This is for all the high level UX stuff.
-         */
-        userFocus?: CSSWideKeyword | any;
-
-        /**
-         * For inputing user content
-         */
-        userInput?: CSSWideKeyword | any;
-
-        /**
-         * The vertical-align property controls how inline elements or text are vertically aligned compared to the baseline. If this property is used on table-cells it controls the vertical alignment of content of the table cell.
-         */
-        verticalAlign?: CSSWideKeyword | any;
-
-        /**
-         * The visibility property specifies whether the boxes generated by an element are rendered.
-         */
-        visibility?: CSSWideKeyword | any;
-
-        /**
-         * The voice-balance property sets the apparent position (in stereo sound) of the synthesized voice for spoken media.
-         */
-        voiceBalance?: CSSWideKeyword | any;
-
-        /**
-         * The voice-duration property allows the author to explicitly set the amount of time it should take a speech synthesizer to read an element's content, for example to allow the speech to be synchronized with other media. With a value of auto (the default) the length of time it takes to read the content is determined by the content itself and the voice-rate property.
-         */
-        voiceDuration?: CSSWideKeyword | any;
-
-        /**
-         * The voice-family property sets the speaker's voice used by a speech media agent to read an element. The speaker may be specified as a named character (to match a voice option in the speech reading software) or as a generic description of the age and gender of the voice. Similar to the font-family property for visual media, a comma-separated list of fallback options may be given in case the speech reader does not recognize the character name or cannot synthesize the requested combination of generic properties.
-         */
-        voiceFamily?: CSSWideKeyword | any;
-
-        /**
-         * The voice-pitch property sets pitch or tone (high or low) for the synthesized speech when reading an element; the pitch may be specified absolutely or relative to the normal pitch for the voice-family used to read the text.
-         */
-        voicePitch?: CSSWideKeyword | any;
-
-        /**
-         * The voice-range property determines how much variation in pitch or tone will be created by the speech synthesize when reading an element. Emphasized text, grammatical structures and punctuation may all be rendered as changes in pitch, this property determines how strong or obvious those changes are; large ranges are associated with enthusiastic or emotional speech, while small ranges are associated with flat or mechanical speech.
-         */
-        voiceRange?: CSSWideKeyword | any;
-
-        /**
-         * The voice-rate property sets the speed at which the voice synthesized by a speech media agent will read content.
-         */
-        voiceRate?: CSSWideKeyword | any;
-
-        /**
-         * The voice-stress property sets the level of vocal emphasis to be used for synthesized speech reading the element.
-         */
-        voiceStress?: CSSWideKeyword | any;
-
-        /**
-         * The voice-volume property sets the volume for spoken content in speech media. It replaces the deprecated volume property.
-         */
-        voiceVolume?: CSSWideKeyword | any;
-
-        /**
-         * The white-space property controls whether and how white space inside the element is collapsed, and whether lines may wrap at unforced "soft wrap" opportunities.
-         */
-        whiteSpace?: CSSWideKeyword | any;
-
-        /**
-         * Obsolete: unsupported.
-         */
-        whiteSpaceTreatment?: CSSWideKeyword | any;
-
-        /**
-         * In paged media, this property defines the mimimum number of lines
-         * that must be left at the top of the second page.
-         * See CSS 3 orphans, widows properties https://drafts.csswg.org/css-break-3/#widows-orphans
-         */
-        widows?: CSSWideKeyword | number;
-
-        /**
-         * Specifies the width of the content area of an element. The content area of the element width does not include the padding, border, and margin of the element.
-         */
-        width?: CSSWideKeyword | any;
-
-        /**
-         * The word-break property is often used when there is long generated content that is strung together without and spaces or hyphens to beak apart. A common case of this is when there is a long URL that does not have any hyphens. This case could potentially cause the breaking of the layout as it could extend past the parent element.
-         */
-        wordBreak?: CSSWideKeyword | any;
-
-        /**
-         * The word-spacing CSS property specifies the spacing behavior between "words".
-         */
-        wordSpacing?: CSSWideKeyword | any;
-
-        /**
-         * An alias of css/properties/overflow-wrap, word-wrap defines whether to break words when the content exceeds the boundaries of its container.
-         */
-        wordWrap?: CSSWideKeyword | any;
-
-        /**
-         * Specifies how exclusions affect inline content within block-level elements. Elements lay out their inline content in their content area but wrap around exclusion areas.
-         */
-        wrapFlow?: CSSWideKeyword | any;
-
-        /**
-         * Set the value that is used to offset the inner wrap shape from other shapes. Inline content that intersects a shape with this property will be pushed by this shape's margin.
-         */
-        wrapMargin?: CSSWideKeyword | any;
-
-        /**
-         * Obsolete and unsupported. Do not use.
-         * This CSS property controls the text when it reaches the end of the block in which it is enclosed.
-         */
-        wrapOption?: CSSWideKeyword | any;
-
-        /**
-         * writing-mode specifies if lines of text are laid out horizontally or vertically, and the direction which lines of text and blocks progress.
-         */
-        writingMode?: CSSWideKeyword | any;
-
-        /**
-         * The z-index property specifies the z-order of an element and its descendants.
-         * When elements overlap, z-order determines which one covers the other.
-         * See CSS 2 z-index property https://www.w3.org/TR/CSS2/visuren.html#z-index
-         */
-        zIndex?: CSSWideKeyword | "auto" | number;
-
-        /**
-         * Sets the initial zoom factor of a document defined by @viewport.
-         * See CSS zoom descriptor https://drafts.csswg.org/css-device-adapt/#zoom-desc
-         */
-        zoom?: CSSWideKeyword | "auto" | number | CSSPercentage;
-
-        [propertyName: string]: any;
-    }
-
-    interface HTMLAttributes<T> extends DOMAttributes<T> {
-        // React-specific Attributes
-        defaultChecked?: boolean;
-        defaultValue?: string | string[];
-
-        // Standard HTML Attributes
-        accept?: string;
-        acceptCharset?: string;
-        accessKey?: string;
-        action?: string;
-        allowFullScreen?: boolean;
-        allowTransparency?: boolean;
-        alt?: string;
-        async?: boolean;
-        autoComplete?: string;
-        autoFocus?: boolean;
-        autoPlay?: boolean;
-        capture?: boolean;
-        cellPadding?: number | string;
-        cellSpacing?: number | string;
-        charSet?: string;
-        challenge?: string;
-        checked?: boolean;
-        classID?: string;
-        className?: string;
-        cols?: number;
-        colSpan?: number;
-        content?: string;
-        contentEditable?: boolean;
-        contextMenu?: string;
-        controls?: boolean;
-        coords?: string;
-        crossOrigin?: string;
-        data?: string;
-        dateTime?: string;
-        default?: boolean;
-        defer?: boolean;
-        dir?: string;
-        disabled?: boolean;
-        download?: any;
-        draggable?: boolean;
-        encType?: string;
-        form?: string;
-        formAction?: string;
-        formEncType?: string;
-        formMethod?: string;
-        formNoValidate?: boolean;
-        formTarget?: string;
-        frameBorder?: number | string;
-        headers?: string;
-        height?: number | string;
-        hidden?: boolean;
-        high?: number;
-        href?: string;
-        hrefLang?: string;
-        htmlFor?: string;
-        httpEquiv?: string;
-        id?: string;
-        inputMode?: string;
-        integrity?: string;
-        is?: string;
-        keyParams?: string;
-        keyType?: string;
-        kind?: string;
-        label?: string;
-        lang?: string;
-        list?: string;
-        loop?: boolean;
-        low?: number;
-        manifest?: string;
-        marginHeight?: number;
-        marginWidth?: number;
-        max?: number | string;
-        maxLength?: number;
-        media?: string;
-        mediaGroup?: string;
-        method?: string;
-        min?: number | string;
-        minLength?: number;
-        multiple?: boolean;
-        muted?: boolean;
-        name?: string;
-        nonce?: string;
-        noValidate?: boolean;
-        open?: boolean;
-        optimum?: number;
-        pattern?: string;
-        placeholder?: string;
-        playsInline?: boolean;
-        poster?: string;
-        preload?: string;
-        radioGroup?: string;
-        readOnly?: boolean;
-        rel?: string;
-        required?: boolean;
-        reversed?: boolean;
-        role?: string;
-        rows?: number;
-        rowSpan?: number;
-        sandbox?: string;
-        scope?: string;
-        scoped?: boolean;
-        scrolling?: string;
-        seamless?: boolean;
-        selected?: boolean;
-        shape?: string;
-        size?: number;
-        sizes?: string;
-        span?: number;
-        spellCheck?: boolean;
-        src?: string;
-        srcDoc?: string;
-        srcLang?: string;
-        srcSet?: string;
-        start?: number;
-        step?: number | string;
-        style?: CSSProperties;
-        summary?: string;
-        tabIndex?: number;
-        target?: string;
-        title?: string;
-        type?: string;
-        useMap?: string;
-        value?: string | string[] | number;
-        width?: number | string;
-        wmode?: string;
-        wrap?: string;
-
-        // RDFa Attributes
-        about?: string;
-        datatype?: string;
-        inlist?: any;
-        prefix?: string;
-        property?: string;
-        resource?: string;
-        typeof?: string;
-        vocab?: string;
-
-        // Non-standard Attributes
-        autoCapitalize?: string;
-        autoCorrect?: string;
-        autoSave?: string;
-        color?: string;
-        itemProp?: string;
-        itemScope?: boolean;
-        itemType?: string;
-        itemID?: string;
-        itemRef?: string;
-        results?: number;
-        security?: string;
-        unselectable?: boolean;
-    }
-
-    interface ChangeTargetHTMLAttributes<T extends HTMLElement> extends HTMLAttributes<T> {
-        onChange?: ChangeEventHandler<T>;
-    }
-
-    // this list is "complete" in that it contains every SVG attribute
-    // that React supports, but the types can be improved.
-    // Full list here: https://facebook.github.io/react/docs/dom-elements.html
-    //
-    // The three broad type categories are (in order of restrictiveness):
-    //   - "number | string"
-    //   - "string"
-    //   - union of string literals
-    interface SVGAttributes<T> extends HTMLAttributes<T> {
-        accentHeight?: number | string;
-        accumulate?: "none" | "sum";
-        additive?: "replace" | "sum";
-        alignmentBaseline?: "auto" | "baseline" | "before-edge" | "text-before-edge" | "middle" | "central" | "after-edge" | "text-after-edge" | "ideographic" | "alphabetic" | "hanging" | "mathematical" | "inherit";
-        allowReorder?: "no" | "yes";
-        alphabetic?: number | string;
-        amplitude?: number | string;
-        arabicForm?: "initial" | "medial" | "terminal" | "isolated";
-        ascent?: number | string;
-        attributeName?: string;
-        attributeType?: string;
-        autoReverse?: number | string;
-        azimuth?: number | string;
-        baseFrequency?: number | string;
-        baselineShift?: number | string;
-        baseProfile?: number | string;
-        bbox?: number | string;
-        begin?: number | string;
-        bias?: number | string;
-        by?: number | string;
-        calcMode?: number | string;
-        capHeight?: number | string;
-        clip?: number | string;
-        clipPath?: string;
-        clipPathUnits?: number | string;
-        clipRule?: number | string;
-        colorInterpolation?: number | string;
-        colorInterpolationFilters?: "auto" | "sRGB" | "linearRGB" | "inherit";
-        colorProfile?: number | string;
-        colorRendering?: number | string;
-        contentScriptType?: number | string;
-        contentStyleType?: number | string;
-        cursor?: number | string;
-        cx?: number | string;
-        cy?: number | string;
-        d?: string;
-        decelerate?: number | string;
-        descent?: number | string;
-        diffuseConstant?: number | string;
-        direction?: number | string;
-        display?: number | string;
-        divisor?: number | string;
-        dominantBaseline?: number | string;
-        dur?: number | string;
-        dx?: number | string;
-        dy?: number | string;
-        edgeMode?: number | string;
-        elevation?: number | string;
-        enableBackground?: number | string;
-        end?: number | string;
-        exponent?: number | string;
-        externalResourcesRequired?: number | string;
-        fill?: string;
-        fillOpacity?: number | string;
-        fillRule?: "nonzero" | "evenodd" | "inherit";
-        filter?: string;
-        filterRes?: number | string;
-        filterUnits?: number | string;
-        floodColor?: number | string;
-        floodOpacity?: number | string;
-        focusable?: number | string;
-        fontFamily?: string;
-        fontSize?: number | string;
-        fontSizeAdjust?: number | string;
-        fontStretch?: number | string;
-        fontStyle?: number | string;
-        fontVariant?: number | string;
-        fontWeight?: number | string;
-        format?: number | string;
-        from?: number | string;
-        fx?: number | string;
-        fy?: number | string;
-        g1?: number | string;
-        g2?: number | string;
-        glyphName?: number | string;
-        glyphOrientationHorizontal?: number | string;
-        glyphOrientationVertical?: number | string;
-        glyphRef?: number | string;
-        gradientTransform?: string;
-        gradientUnits?: string;
-        hanging?: number | string;
-        horizAdvX?: number | string;
-        horizOriginX?: number | string;
-        ideographic?: number | string;
-        imageRendering?: number | string;
-        in2?: number | string;
-        in?: string;
-        intercept?: number | string;
-        k1?: number | string;
-        k2?: number | string;
-        k3?: number | string;
-        k4?: number | string;
-        k?: number | string;
-        kernelMatrix?: number | string;
-        kernelUnitLength?: number | string;
-        kerning?: number | string;
-        keyPoints?: number | string;
-        keySplines?: number | string;
-        keyTimes?: number | string;
-        lengthAdjust?: number | string;
-        letterSpacing?: number | string;
-        lightingColor?: number | string;
-        limitingConeAngle?: number | string;
-        local?: number | string;
-        markerEnd?: string;
-        markerHeight?: number | string;
-        markerMid?: string;
-        markerStart?: string;
-        markerUnits?: number | string;
-        markerWidth?: number | string;
-        mask?: string;
-        maskContentUnits?: number | string;
-        maskUnits?: number | string;
-        mathematical?: number | string;
-        mode?: number | string;
-        numOctaves?: number | string;
-        offset?: number | string;
-        opacity?: number | string;
-        operator?: number | string;
-        order?: number | string;
-        orient?: number | string;
-        orientation?: number | string;
-        origin?: number | string;
-        overflow?: number | string;
-        overlinePosition?: number | string;
-        overlineThickness?: number | string;
-        paintOrder?: number | string;
-        panose1?: number | string;
-        pathLength?: number | string;
-        patternContentUnits?: string;
-        patternTransform?: number | string;
-        patternUnits?: string;
-        pointerEvents?: number | string;
-        points?: string;
-        pointsAtX?: number | string;
-        pointsAtY?: number | string;
-        pointsAtZ?: number | string;
-        preserveAlpha?: number | string;
-        preserveAspectRatio?: string;
-        primitiveUnits?: number | string;
-        r?: number | string;
-        radius?: number | string;
-        refX?: number | string;
-        refY?: number | string;
-        renderingIntent?: number | string;
-        repeatCount?: number | string;
-        repeatDur?: number | string;
-        requiredExtensions?: number | string;
-        requiredFeatures?: number | string;
-        restart?: number | string;
-        result?: string;
-        rotate?: number | string;
-        rx?: number | string;
-        ry?: number | string;
-        scale?: number | string;
-        seed?: number | string;
-        shapeRendering?: number | string;
-        slope?: number | string;
-        spacing?: number | string;
-        specularConstant?: number | string;
-        specularExponent?: number | string;
-        speed?: number | string;
-        spreadMethod?: string;
-        startOffset?: number | string;
-        stdDeviation?: number | string;
-        stemh?: number | string;
-        stemv?: number | string;
-        stitchTiles?: number | string;
-        stopColor?: string;
-        stopOpacity?: number | string;
-        strikethroughPosition?: number | string;
-        strikethroughThickness?: number | string;
-        string?: number | string;
-        stroke?: string;
-        strokeDasharray?: string | number;
-        strokeDashoffset?: string | number;
-        strokeLinecap?: "butt" | "round" | "square" | "inherit";
-        strokeLinejoin?: "miter" | "round" | "bevel" | "inherit";
-        strokeMiterlimit?: string;
-        strokeOpacity?: number | string;
-        strokeWidth?: number | string;
-        surfaceScale?: number | string;
-        systemLanguage?: number | string;
-        tableValues?: number | string;
-        targetX?: number | string;
-        targetY?: number | string;
-        textAnchor?: string;
-        textDecoration?: number | string;
-        textLength?: number | string;
-        textRendering?: number | string;
-        to?: number | string;
-        transform?: string;
-        type?: string;
-        u1?: number | string;
-        u2?: number | string;
-        underlinePosition?: number | string;
-        underlineThickness?: number | string;
-        unicode?: number | string;
-        unicodeBidi?: number | string;
-        unicodeRange?: number | string;
-        unitsPerEm?: number | string;
-        vAlphabetic?: number | string;
-        values?: string;
-        vectorEffect?: number | string;
-        version?: string;
-        vertAdvY?: number | string;
-        vertOriginX?: number | string;
-        vertOriginY?: number | string;
-        vHanging?: number | string;
-        vIdeographic?: number | string;
-        viewBox?: string;
-        viewTarget?: number | string;
-        visibility?: number | string;
-        vMathematical?: number | string;
-        widths?: number | string;
-        wordSpacing?: number | string;
-        writingMode?: number | string;
-        x1?: number | string;
-        x2?: number | string;
-        x?: number | string;
-        xChannelSelector?: string;
-        xHeight?: number | string;
-        xlinkActuate?: string;
-        xlinkArcrole?: string;
-        xlinkHref?: string;
-        xlinkRole?: string;
-        xlinkShow?: string;
-        xlinkTitle?: string;
-        xlinkType?: string;
-        xmlBase?: string;
-        xmlLang?: string;
-        xmlns?: string;
-        xmlnsXlink?: string;
-        xmlSpace?: string;
-        y1?: number | string;
-        y2?: number | string;
-        y?: number | string;
-        yChannelSelector?: string;
-        z?: number | string;
-        zoomAndPan?: string;
-    }
-
-    //
-    // React.DOM
-    // ----------------------------------------------------------------------
-
-    interface ReactDOM {
-        // HTML
-        a: HTMLFactory<HTMLAnchorElement>;
-        abbr: HTMLFactory<HTMLElement>;
-        address: HTMLFactory<HTMLElement>;
-        area: HTMLFactory<HTMLAreaElement>;
-        article: HTMLFactory<HTMLElement>;
-        aside: HTMLFactory<HTMLElement>;
-        audio: HTMLFactory<HTMLAudioElement>;
-        b: HTMLFactory<HTMLElement>;
-        base: HTMLFactory<HTMLBaseElement>;
-        bdi: HTMLFactory<HTMLElement>;
-        bdo: HTMLFactory<HTMLElement>;
-        big: HTMLFactory<HTMLElement>;
-        blockquote: HTMLFactory<HTMLElement>;
-        body: HTMLFactory<HTMLBodyElement>;
-        br: HTMLFactory<HTMLBRElement>;
-        button: HTMLFactory<HTMLButtonElement>;
-        canvas: HTMLFactory<HTMLCanvasElement>;
-        caption: HTMLFactory<HTMLElement>;
-        cite: HTMLFactory<HTMLElement>;
-        code: HTMLFactory<HTMLElement>;
-        col: HTMLFactory<HTMLTableColElement>;
-        colgroup: HTMLFactory<HTMLTableColElement>;
-        data: HTMLFactory<HTMLElement>;
-        datalist: HTMLFactory<HTMLDataListElement>;
-        dd: HTMLFactory<HTMLElement>;
-        del: HTMLFactory<HTMLElement>;
-        details: HTMLFactory<HTMLElement>;
-        dfn: HTMLFactory<HTMLElement>;
-        dialog: HTMLFactory<HTMLElement>;
-        div: HTMLFactory<HTMLDivElement>;
-        dl: HTMLFactory<HTMLDListElement>;
-        dt: HTMLFactory<HTMLElement>;
-        em: HTMLFactory<HTMLElement>;
-        embed: HTMLFactory<HTMLEmbedElement>;
-        fieldset: HTMLFactory<HTMLFieldSetElement>;
-        figcaption: HTMLFactory<HTMLElement>;
-        figure: HTMLFactory<HTMLElement>;
-        footer: HTMLFactory<HTMLElement>;
-        form: HTMLFactory<HTMLFormElement>;
-        h1: HTMLFactory<HTMLHeadingElement>;
-        h2: HTMLFactory<HTMLHeadingElement>;
-        h3: HTMLFactory<HTMLHeadingElement>;
-        h4: HTMLFactory<HTMLHeadingElement>;
-        h5: HTMLFactory<HTMLHeadingElement>;
-        h6: HTMLFactory<HTMLHeadingElement>;
-        head: HTMLFactory<HTMLHeadElement>;
-        header: HTMLFactory<HTMLElement>;
-        hgroup: HTMLFactory<HTMLElement>;
-        hr: HTMLFactory<HTMLHRElement>;
-        html: HTMLFactory<HTMLHtmlElement>;
-        i: HTMLFactory<HTMLElement>;
-        iframe: HTMLFactory<HTMLIFrameElement>;
-        img: HTMLFactory<HTMLImageElement>;
-        input: ChangeTargetHTMLFactory<HTMLInputElement>;
-        ins: HTMLFactory<HTMLModElement>;
-        kbd: HTMLFactory<HTMLElement>;
-        keygen: HTMLFactory<HTMLElement>;
-        label: HTMLFactory<HTMLLabelElement>;
-        legend: HTMLFactory<HTMLLegendElement>;
-        li: HTMLFactory<HTMLLIElement>;
-        link: HTMLFactory<HTMLLinkElement>;
-        main: HTMLFactory<HTMLElement>;
-        map: HTMLFactory<HTMLMapElement>;
-        mark: HTMLFactory<HTMLElement>;
-        menu: HTMLFactory<HTMLElement>;
-        menuitem: HTMLFactory<HTMLElement>;
-        meta: HTMLFactory<HTMLMetaElement>;
-        meter: HTMLFactory<HTMLElement>;
-        nav: HTMLFactory<HTMLElement>;
-        noscript: HTMLFactory<HTMLElement>;
-        object: HTMLFactory<HTMLObjectElement>;
-        ol: HTMLFactory<HTMLOListElement>;
-        optgroup: HTMLFactory<HTMLOptGroupElement>;
-        option: HTMLFactory<HTMLOptionElement>;
-        output: HTMLFactory<HTMLElement>;
-        p: HTMLFactory<HTMLParagraphElement>;
-        param: HTMLFactory<HTMLParamElement>;
-        picture: HTMLFactory<HTMLElement>;
-        pre: HTMLFactory<HTMLPreElement>;
-        progress: HTMLFactory<HTMLProgressElement>;
-        q: HTMLFactory<HTMLQuoteElement>;
-        rp: HTMLFactory<HTMLElement>;
-        rt: HTMLFactory<HTMLElement>;
-        ruby: HTMLFactory<HTMLElement>;
-        s: HTMLFactory<HTMLElement>;
-        samp: HTMLFactory<HTMLElement>;
-        script: HTMLFactory<HTMLElement>;
-        section: HTMLFactory<HTMLElement>;
-        select: ChangeTargetHTMLFactory<HTMLSelectElement>;
-        small: HTMLFactory<HTMLElement>;
-        source: HTMLFactory<HTMLSourceElement>;
-        span: HTMLFactory<HTMLSpanElement>;
-        strong: HTMLFactory<HTMLElement>;
-        style: HTMLFactory<HTMLStyleElement>;
-        sub: HTMLFactory<HTMLElement>;
-        summary: HTMLFactory<HTMLElement>;
-        sup: HTMLFactory<HTMLElement>;
-        table: HTMLFactory<HTMLTableElement>;
-        tbody: HTMLFactory<HTMLTableSectionElement>;
-        td: HTMLFactory<HTMLTableDataCellElement>;
-        textarea: ChangeTargetHTMLFactory<HTMLTextAreaElement>;
-        tfoot: HTMLFactory<HTMLTableSectionElement>;
-        th: HTMLFactory<HTMLTableHeaderCellElement>;
-        thead: HTMLFactory<HTMLTableSectionElement>;
-        time: HTMLFactory<HTMLElement>;
-        title: HTMLFactory<HTMLTitleElement>;
-        tr: HTMLFactory<HTMLTableRowElement>;
-        track: HTMLFactory<HTMLTrackElement>;
-        u: HTMLFactory<HTMLElement>;
-        ul: HTMLFactory<HTMLUListElement>;
-        "var": HTMLFactory<HTMLElement>;
-        video: HTMLFactory<HTMLVideoElement>;
-        wbr: HTMLFactory<HTMLElement>;
-
-        // SVG
-        svg: SVGFactory;
-        circle: SVGFactory;
-        defs: SVGFactory;
-        ellipse: SVGFactory;
-        g: SVGFactory;
-        image: SVGFactory;
-        line: SVGFactory;
-        linearGradient: SVGFactory;
-        mask: SVGFactory;
-        path: SVGFactory;
-        pattern: SVGFactory;
-        polygon: SVGFactory;
-        polyline: SVGFactory;
-        radialGradient: SVGFactory;
-        rect: SVGFactory;
-        stop: SVGFactory;
-        symbol: SVGFactory;
-        text: SVGFactory;
-        tspan: SVGFactory;
-        use: SVGFactory;
-    }
-
-    //
-    // React.PropTypes
-    // ----------------------------------------------------------------------
-
-    interface Validator<T> {
-        (object: T, key: string, componentName: string, ...rest: any[]): Error | null;
-    }
-
-    interface Requireable<T> extends Validator<T> {
-        isRequired: Validator<T>;
-    }
-
-    interface ValidationMap<T> {
-        [key: string]: Validator<T>;
-    }
-
-    interface ReactPropTypes {
-        any: Requireable<any>;
-        array: Requireable<any>;
-        bool: Requireable<any>;
-        func: Requireable<any>;
-        number: Requireable<any>;
-        object: Requireable<any>;
-        string: Requireable<any>;
-        node: Requireable<any>;
-        element: Requireable<any>;
-        instanceOf(expectedClass: {}): Requireable<any>;
-        oneOf(types: any[]): Requireable<any>;
-        oneOfType(types: Validator<any>[]): Requireable<any>;
-        arrayOf(type: Validator<any>): Requireable<any>;
-        objectOf(type: Validator<any>): Requireable<any>;
-        shape(type: ValidationMap<any>): Requireable<any>;
-    }
-
-    //
-    // React.Children
-    // ----------------------------------------------------------------------
-
-    interface ReactChildren {
-        map<T>(children: ReactNode, fn: (child: ReactChild, index: number) => T): T[];
-        forEach(children: ReactNode, fn: (child: ReactChild, index: number) => any): void;
-        count(children: ReactNode): number;
-        only(children: ReactNode): ReactElement<any>;
-        toArray(children: ReactNode): ReactChild[];
-    }
-
-    //
-    // Browser Interfaces
-    // https://github.com/nikeee/2048-typescript/blob/master/2048/js/touch.d.ts
-    // ----------------------------------------------------------------------
-
-    interface AbstractView {
-        styleMedia: StyleMedia;
-        document: Document;
-    }
-
-    interface Touch {
-        identifier: number;
-        target: EventTarget;
-        screenX: number;
-        screenY: number;
-        clientX: number;
-        clientY: number;
-        pageX: number;
-        pageY: number;
-    }
-
-    interface TouchList {
-        [index: number]: Touch;
-        length: number;
-        item(index: number): Touch;
-        identifiedTouch(identifier: number): Touch;
-    }
-}
-
-declare namespace JSX {
-    import React = __LiteMolReact
-
-    interface Element extends React.ReactElement<any> { }
-    interface ElementClass extends React.Component<any, any> {
-        render(): JSX.Element | null;
-    }
-    interface ElementAttributesProperty { props: {}; }
-
-    interface IntrinsicAttributes extends React.Attributes { }
-    interface IntrinsicClassAttributes<T> extends React.ClassAttributes<T> { }
-
-    interface IntrinsicElements {
-        // HTML
-        a: React.HTMLProps<HTMLAnchorElement>;
-        abbr: React.HTMLProps<HTMLElement>;
-        address: React.HTMLProps<HTMLElement>;
-        area: React.HTMLProps<HTMLAreaElement>;
-        article: React.HTMLProps<HTMLElement>;
-        aside: React.HTMLProps<HTMLElement>;
-        audio: React.HTMLProps<HTMLAudioElement>;
-        b: React.HTMLProps<HTMLElement>;
-        base: React.HTMLProps<HTMLBaseElement>;
-        bdi: React.HTMLProps<HTMLElement>;
-        bdo: React.HTMLProps<HTMLElement>;
-        big: React.HTMLProps<HTMLElement>;
-        blockquote: React.HTMLProps<HTMLElement>;
-        body: React.HTMLProps<HTMLBodyElement>;
-        br: React.HTMLProps<HTMLBRElement>;
-        button: React.HTMLProps<HTMLButtonElement>;
-        canvas: React.HTMLProps<HTMLCanvasElement>;
-        caption: React.HTMLProps<HTMLElement>;
-        cite: React.HTMLProps<HTMLElement>;
-        code: React.HTMLProps<HTMLElement>;
-        col: React.HTMLProps<HTMLTableColElement>;
-        colgroup: React.HTMLProps<HTMLTableColElement>;
-        data: React.HTMLProps<HTMLElement>;
-        datalist: React.HTMLProps<HTMLDataListElement>;
-        dd: React.HTMLProps<HTMLElement>;
-        del: React.HTMLProps<HTMLElement>;
-        details: React.HTMLProps<HTMLElement>;
-        dfn: React.HTMLProps<HTMLElement>;
-        dialog: React.HTMLProps<HTMLElement>;
-        div: React.HTMLProps<HTMLDivElement>;
-        dl: React.HTMLProps<HTMLDListElement>;
-        dt: React.HTMLProps<HTMLElement>;
-        em: React.HTMLProps<HTMLElement>;
-        embed: React.HTMLProps<HTMLEmbedElement>;
-        fieldset: React.HTMLProps<HTMLFieldSetElement>;
-        figcaption: React.HTMLProps<HTMLElement>;
-        figure: React.HTMLProps<HTMLElement>;
-        footer: React.HTMLProps<HTMLElement>;
-        form: React.HTMLProps<HTMLFormElement>;
-        h1: React.HTMLProps<HTMLHeadingElement>;
-        h2: React.HTMLProps<HTMLHeadingElement>;
-        h3: React.HTMLProps<HTMLHeadingElement>;
-        h4: React.HTMLProps<HTMLHeadingElement>;
-        h5: React.HTMLProps<HTMLHeadingElement>;
-        h6: React.HTMLProps<HTMLHeadingElement>;
-        head: React.HTMLProps<HTMLHeadElement>;
-        header: React.HTMLProps<HTMLElement>;
-        hgroup: React.HTMLProps<HTMLElement>;
-        hr: React.HTMLProps<HTMLHRElement>;
-        html: React.HTMLProps<HTMLHtmlElement>;
-        i: React.HTMLProps<HTMLElement>;
-        iframe: React.HTMLProps<HTMLIFrameElement>;
-        img: React.HTMLProps<HTMLImageElement>;
-        input: React.ChangeTargetHTMLProps<HTMLInputElement>;
-        ins: React.HTMLProps<HTMLModElement>;
-        kbd: React.HTMLProps<HTMLElement>;
-        keygen: React.HTMLProps<HTMLElement>;
-        label: React.HTMLProps<HTMLLabelElement>;
-        legend: React.HTMLProps<HTMLLegendElement>;
-        li: React.HTMLProps<HTMLLIElement>;
-        link: React.HTMLProps<HTMLLinkElement>;
-        main: React.HTMLProps<HTMLElement>;
-        map: React.HTMLProps<HTMLMapElement>;
-        mark: React.HTMLProps<HTMLElement>;
-        menu: React.HTMLProps<HTMLElement>;
-        menuitem: React.HTMLProps<HTMLElement>;
-        meta: React.HTMLProps<HTMLMetaElement>;
-        meter: React.HTMLProps<HTMLElement>;
-        nav: React.HTMLProps<HTMLElement>;
-        noindex: React.HTMLProps<HTMLElement>;
-        noscript: React.HTMLProps<HTMLElement>;
-        object: React.HTMLProps<HTMLObjectElement>;
-        ol: React.HTMLProps<HTMLOListElement>;
-        optgroup: React.HTMLProps<HTMLOptGroupElement>;
-        option: React.HTMLProps<HTMLOptionElement>;
-        output: React.HTMLProps<HTMLElement>;
-        p: React.HTMLProps<HTMLParagraphElement>;
-        param: React.HTMLProps<HTMLParamElement>;
-        picture: React.HTMLProps<HTMLElement>;
-        pre: React.HTMLProps<HTMLPreElement>;
-        progress: React.HTMLProps<HTMLProgressElement>;
-        q: React.HTMLProps<HTMLQuoteElement>;
-        rp: React.HTMLProps<HTMLElement>;
-        rt: React.HTMLProps<HTMLElement>;
-        ruby: React.HTMLProps<HTMLElement>;
-        s: React.HTMLProps<HTMLElement>;
-        samp: React.HTMLProps<HTMLElement>;
-        script: React.HTMLProps<HTMLElement>;
-        section: React.HTMLProps<HTMLElement>;
-        select: React.ChangeTargetHTMLProps<HTMLSelectElement>;
-        small: React.HTMLProps<HTMLElement>;
-        source: React.HTMLProps<HTMLSourceElement>;
-        span: React.HTMLProps<HTMLSpanElement>;
-        strong: React.HTMLProps<HTMLElement>;
-        style: React.HTMLProps<HTMLStyleElement>;
-        sub: React.HTMLProps<HTMLElement>;
-        summary: React.HTMLProps<HTMLElement>;
-        sup: React.HTMLProps<HTMLElement>;
-        table: React.HTMLProps<HTMLTableElement>;
-        tbody: React.HTMLProps<HTMLTableSectionElement>;
-        td: React.HTMLProps<HTMLTableDataCellElement>;
-        textarea: React.ChangeTargetHTMLProps<HTMLTextAreaElement>;
-        tfoot: React.HTMLProps<HTMLTableSectionElement>;
-        th: React.HTMLProps<HTMLTableHeaderCellElement>;
-        thead: React.HTMLProps<HTMLTableSectionElement>;
-        time: React.HTMLProps<HTMLElement>;
-        title: React.HTMLProps<HTMLTitleElement>;
-        tr: React.HTMLProps<HTMLTableRowElement>;
-        track: React.HTMLProps<HTMLTrackElement>;
-        u: React.HTMLProps<HTMLElement>;
-        ul: React.HTMLProps<HTMLUListElement>;
-        "var": React.HTMLProps<HTMLElement>;
-        video: React.HTMLProps<HTMLVideoElement>;
-        wbr: React.HTMLProps<HTMLElement>;
-
-        // SVG
-        svg: React.SVGProps;
-
-        circle: React.SVGProps;
-        clipPath: React.SVGProps;
-        defs: React.SVGProps;
-        desc: React.SVGProps;
-        ellipse: React.SVGProps;
-        feBlend: React.SVGProps;
-        feColorMatrix: React.SVGProps;
-        feComponentTransfer: React.SVGProps;
-        feComposite: React.SVGProps;
-        feConvolveMatrix: React.SVGProps;
-        feDiffuseLighting: React.SVGProps;
-        feDisplacementMap: React.SVGProps;
-        feDistantLight: React.SVGProps;
-        feFlood: React.SVGProps;
-        feFuncA: React.SVGProps;
-        feFuncB: React.SVGProps;
-        feFuncG: React.SVGProps;
-        feFuncR: React.SVGProps;
-        feGaussianBlur: React.SVGProps;
-        feImage: React.SVGProps;
-        feMerge: React.SVGProps;
-        feMergeNode: React.SVGProps;
-        feMorphology: React.SVGProps;
-        feOffset: React.SVGProps;
-        fePointLight: React.SVGProps;
-        feSpecularLighting: React.SVGProps;
-        feSpotLight: React.SVGProps;
-        feTile: React.SVGProps;
-        feTurbulence: React.SVGProps;
-        filter: React.SVGProps;
-        foreignObject: React.SVGProps;
-        g: React.SVGProps;
-        image: React.SVGProps;
-        line: React.SVGProps;
-        linearGradient: React.SVGProps;
-        marker: React.SVGProps;
-        mask: React.SVGProps;
-        metadata: React.SVGProps;
-        path: React.SVGProps;
-        pattern: React.SVGProps;
-        polygon: React.SVGProps;
-        polyline: React.SVGProps;
-        radialGradient: React.SVGProps;
-        rect: React.SVGProps;
-        stop: React.SVGProps;
-        switch: React.SVGProps;
-        symbol: React.SVGProps;
-        text: React.SVGProps;
-        textPath: React.SVGProps;
-        tspan: React.SVGProps;
-        use: React.SVGProps;
-        view: React.SVGProps;
-    }
-}
-// Type definitions for React v0.14 (react-dom)
-// Project: http://facebook.github.io/react/
-// Definitions by: Asana <https://asana.com>, AssureSign <http://www.assuresign.com>, Microsoft <https://microsoft.com>
-// Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
-
-declare namespace __LiteMolReact {
-    namespace __DOM {
-        function findDOMNode<E extends Element>(instance: ReactInstance): E;
-        function findDOMNode(instance: ReactInstance): Element;
-
-        function render<P extends DOMAttributes<T>, T extends Element>(
-            element: DOMElement<P, T>,
-            container: Element,
-            callback?: (element: T) => any): T;
-        function render<P>(
-            element: SFCElement<P>,
-            container: Element,
-            callback?: () => any): void;
-        function render<P, T extends Component<P, {}>>(
-            element: CElement<P, T>,
-            container: Element,
-            callback?: (component: T) => any): T;
-        function render<P>(
-            element: ReactElement<P>,
-            container: Element,
-            callback?: (component?: Component<P, {}> | Element) => any): Component<P, {}> | Element | void;
-
-        function unmountComponentAtNode(container: Element): boolean;
-
-        var version: string;
-
-        function unstable_batchedUpdates<A, B>(callback: (a: A, b: B) => any, a: A, b: B): void;
-        function unstable_batchedUpdates<A>(callback: (a: A) => any, a: A): void;
-        function unstable_batchedUpdates(callback: () => any): void;
-
-        function unstable_renderSubtreeIntoContainer<P extends DOMAttributes<T>, T extends Element>(
-            parentComponent: Component<any, any>,
-            element: DOMElement<P, T>,
-            container: Element,
-            callback?: (element: T) => any): T;
-        function unstable_renderSubtreeIntoContainer<P, T extends Component<P, {}>>(
-            parentComponent: Component<any, any>,
-            element: CElement<P, T>,
-            container: Element,
-            callback?: (component: T) => any): T;
-        function render<P>(
-            parentComponent: Component<any, any>,
-            element: SFCElement<P>,
-            container: Element,
-            callback?: () => any): void;
-        function unstable_renderSubtreeIntoContainer<P>(
-            parentComponent: Component<any, any>,
-            element: ReactElement<P>,
-            container: Element,
-            callback?: (component?: Component<P, {}> | Element) => any): Component<P, {}> | Element | void;
-    }
-
-    namespace __DOMServer {
-        function renderToString(element: ReactElement<any>): string;
-        function renderToStaticMarkup(element: ReactElement<any>): string;
-        var version: string;
-    }
-}
 
 declare namespace __LiteMolColorPicker {
     
@@ -12852,15 +9866,15 @@ declare namespace __LiteMolColorPicker {
         
     // }
 }
+/// <reference types="react" />
 declare namespace LiteMol {
-    type Promise<T> = __Promise.Promise<T>;
-    const Promise: typeof __Promise.Promise;
+    const Promise: PromiseConstructor;
 }
 declare namespace LiteMol.Core {
     export import Rx = __LiteMolRx;
     export import Promise = LiteMol.Promise;
     namespace Formats {
-        export import CIF = CIFTools;
+        export import CIF = LiteMolCIFTools;
     }
 }
 declare namespace LiteMol.Core {
@@ -12873,11 +9887,12 @@ declare namespace LiteMol.Core {
     function computation<A>(c: (ctx: Computation.Context) => Promise<A>): Computation<A>;
     class Computation<A> {
         private computation;
-        run(ctx?: Computation.Context): __Promise.Promise<A>;
+        run(ctx?: Computation.Context): Promise<A>;
         runWithContext(ctx?: Computation.Context): Computation.Running<A>;
         constructor(computation: (ctx: Computation.Context) => Promise<A>);
     }
     module Computation {
+        let PRINT_CONSOLE_ERROR: boolean;
         function resolve<A>(a: A): Computation<A>;
         function reject<A>(reason: any): Computation<A>;
         function createContext(): Computation.Context;
@@ -12897,7 +9912,7 @@ declare namespace LiteMol.Core {
              * Checks if the computation was aborted. If so, throws.
              * Otherwise, updates the progress.
              */
-            updateProgress(msg: string, abort?: boolean | (() => void), current?: number, max?: number): void;
+            updateProgress(msg: string, abort?: boolean | (() => void), current?: number, max?: number): Promise<void>;
         }
         interface Running<A> {
             progress: Rx.Observable<Progress>;
@@ -12955,7 +9970,7 @@ declare namespace LiteMol.Core.Utils {
         /**
          * Create a map from an array of the form [[key, value], ...]
          */
-        function ofArray<K extends string | number, V>(data: (K | V)[][]): FastMap<K, V>;
+        function ofArray<K extends string | number, V>(data: [K, V][]): FastMap<K, V>;
         /**
          * Create a map from an object of the form { key: value, ... }
          */
@@ -12972,6 +9987,18 @@ declare namespace LiteMol.Core.Utils {
          * Create a set of an "array like" sequence.
          */
         function ofArray<T extends string | number>(xs: ArrayLike<T>): FastSet<T>;
+    }
+    /**
+     * An optimized set-like structure.
+     */
+    interface Mask {
+        size: number;
+        has(i: number): boolean;
+    }
+    namespace Mask {
+        function ofStructure(structure: Structure.Molecule.Model): Mask;
+        function ofIndices(totalCount: number, indices: number[]): Mask;
+        function ofFragments(seq: Structure.Query.FragmentSeq): Mask;
     }
 }
 declare namespace LiteMol.Core.Utils {
@@ -13013,6 +10040,7 @@ declare namespace LiteMol.Core.Utils {
             count: number;
             columns: ColumnDescriptor<Schema>[];
             addColumn<T>(name: keyof Schema, creator: (size: number) => T): T;
+            addRawColumn<T>(name: keyof Schema, creator: (size: number) => T, data: T): T;
             getRawData(): any[][];
             /**
              * This functions clones the table and defines all its column inside the constructor, hopefully making the JS engine
@@ -13086,6 +10114,14 @@ declare namespace LiteMol.Core.Utils {
         function forFloat32(count: number): ArrayBuilder<number>;
         function forArray<T>(count: number): ArrayBuilder<T>;
         function create<T>(creator: (size: number) => any, chunkElementCount: number, elementSize: number): ArrayBuilder<T>;
+    }
+    interface UniqueArray<T extends number | string> {
+        _set: FastSet<T>;
+        array: T[];
+    }
+    function UniqueArray<T extends number | string>(): UniqueArray<T>;
+    namespace UniqueArray {
+        function add<T extends number | string>({_set, array}: UniqueArray<T>, e: T): void;
     }
 }
 declare namespace LiteMol.Core.Utils {
@@ -13162,6 +10198,7 @@ declare namespace LiteMol.Core.Formats {
     }
 }
 declare namespace LiteMol.Core.Formats.Molecule.mmCIF {
+    type StructConnType = 'covale' | 'covale_base' | 'covale_phosphate' | 'covale_sugar' | 'disulf' | 'hydrog' | 'metalc' | 'mismat' | 'modres' | 'saltbr';
     function ofDataBlock(data: CIF.DataBlock): Structure.Molecule;
 }
 declare namespace LiteMol.Core.Formats.Molecule.PDB {
@@ -13258,6 +10295,9 @@ declare namespace LiteMol.Core.Formats.Density {
         set(i: number, j: number, k: number, v: number): void;
         fill(v: number): void;
     }
+    /**
+     * A field with the Z axis being the slowest and the X being the fastest.
+     */
     class Field3DZYX implements Field3D {
         data: number[];
         dimensions: number[];
@@ -13272,46 +10312,34 @@ declare namespace LiteMol.Core.Formats.Density {
         fill(v: number): void;
         constructor(data: number[], dimensions: number[]);
     }
-    /**
-     * Represents electron density data.
-     */
-    interface Data {
-        /**
-         * Crystal cell size.
-         */
-        cellSize: number[];
-        /**
-         * Crystal cell angles.
-         */
-        cellAngles: number[];
-        /**
-         * Origin of the cell
-         */
-        origin: number[];
-        /**
-         * 3D volumetric data.
-         */
-        data: Field3D;
-        /**
-         * X, Y, Z dimensions of the data matrix.
-         */
-        dataDimensions: number[];
-        /**
-         * The basis of the space.
-         */
+    interface Spacegroup {
+        number: number;
+        size: number[];
+        angles: number[];
         basis: {
             x: number[];
             y: number[];
             z: number[];
         };
+    }
+    /**
+     * Represents electron density data.
+     */
+    interface Data {
+        name?: string;
+        spacegroup: Spacegroup;
+        box: {
+            /** Origin of the data block in fractional coords. */
+            origin: number[];
+            /** Dimensions oft he data block in fractional coords. */
+            dimensions: number[];
+            /** X, Y, Z dimensions of the data matrix. */
+            sampleCount: number[];
+        };
         /**
-         * Was the skew matrix present in the input?
+         * 3D volumetric data.
          */
-        hasSkewMatrix: boolean;
-        /**
-         * Column major ordered skew matrix.
-         */
-        skewMatrix: number[];
+        data: Field3D;
         /**
          * Information about the min/max/mean/sigma values.
          */
@@ -13321,33 +10349,8 @@ declare namespace LiteMol.Core.Formats.Density {
             mean: number;
             sigma: number;
         };
-        /**
-         * Additional attributes.
-         */
-        attributes: {
-            [key: string]: any;
-        };
-        /**
-         * Are the data normalized?
-         */
-        isNormalized: boolean;
     }
-    namespace Data {
-        function create(cellSize: number[], cellAngles: number[], origin: number[], hasSkewMatrix: boolean, skewMatrix: number[], data: Field3D, dataDimensions: number[], basis: {
-            x: number[];
-            y: number[];
-            z: number[];
-        }, valuesInfo: {
-            min: number;
-            max: number;
-            mean: number;
-            sigma: number;
-        }, attributes?: {
-            [key: string]: any;
-        }): Data;
-        function normalize(densityData: Data): void;
-        function denormalize(densityData: Data): void;
-    }
+    function createSpacegroup(number: number, size: number[], angles: number[]): Spacegroup;
 }
 declare namespace LiteMol.Core.Formats.Density.CCP4 {
     function parse(buffer: ArrayBuffer): ParserResult<Data>;
@@ -13355,55 +10358,77 @@ declare namespace LiteMol.Core.Formats.Density.CCP4 {
 declare namespace LiteMol.Core.Formats.Density.CIF {
     function parse(block: Formats.CIF.DataBlock): ParserResult<Data>;
 }
-declare namespace LiteMol.Core.Formats.Density.DSN6 {
-    function parse(buffer: ArrayBuffer): ParserResult<Data>;
-}
 declare namespace LiteMol.Core.Formats.Density {
     namespace SupportedFormats {
         const CCP4: FormatInfo;
-        const DSN6: FormatInfo;
         const All: FormatInfo[];
     }
 }
 declare namespace LiteMol.Core.Geometry.LinearAlgebra {
-    type ObjectVec3 = {
-        x: number;
-        y: number;
-        z: number;
-    };
+    type Matrix4 = number[];
+    type Vector3 = number[];
+    type Vector4 = number[];
+    function Matrix4(): number[];
     /**
      * Stores a 4x4 matrix in a column major (j * 4 + i indexing) format.
      */
     namespace Matrix4 {
-        function empty(): number[];
+        function zero(): number[];
         function identity(): number[];
+        function fromIdentity(mat: number[]): number[];
         function ofRows(rows: number[][]): number[];
         function areEqual(a: number[], b: number[], eps: number): boolean;
         function setValue(a: number[], i: number, j: number, value: number): void;
-        function copy(out: number[], a: any): number[];
+        function copy(out: number[], a: number[]): number[];
         function clone(a: number[]): number[];
         function invert(out: number[], a: number[]): number[] | null;
         function mul(out: number[], a: number[], b: number[]): number[];
+        function mul3(out: number[], a: number[], b: number[], c: number[]): number[];
         function translate(out: number[], a: number[], v: number[]): number[];
         function fromTranslation(out: number[], v: number[]): number[];
-        function transformVector3(out: {
+        function rotate(out: number[], a: number[], rad: number, axis: number[]): number[] | null;
+        function fromRotation(out: number[], rad: number, axis: number[]): number[];
+        function scale(out: number[], a: number[], v: number[]): number[];
+        function fromScaling(out: number[], v: number[]): number[];
+        function makeTable(m: number[]): string;
+        function determinant(a: number[]): number;
+    }
+    function Vector3(x?: number, y?: number, z?: number): number[];
+    namespace Vector3 {
+        function zero(): number[];
+        function clone(a: number[]): number[];
+        function fromObj(v: {
             x: number;
             y: number;
             z: number;
-        }, a: {
-            x: number;
-            y: number;
-            z: number;
-        }, m: number[]): {
+        }): number[];
+        function toObj(v: number[]): {
             x: number;
             y: number;
             z: number;
         };
-        function makeTable(m: number[]): string;
-        function determinant(a: number[]): number;
+        function fromValues(x: number, y: number, z: number): number[];
+        function set(out: number[], x: number, y: number, z: number): number[];
+        function copy(out: number[], a: number[]): number[];
+        function add(out: number[], a: number[], b: number[]): number[];
+        function sub(out: number[], a: number[], b: number[]): number[];
+        function scale(out: number[], a: number[], b: number): number[];
+        function scaleAndAdd(out: number[], a: number[], b: number[], scale: number): number[];
+        function distance(a: number[], b: number[]): number;
+        function squaredDistance(a: number[], b: number[]): number;
+        function magnitude(a: number[]): number;
+        function squaredMagnitude(a: number[]): number;
+        function normalize(out: number[], a: number[]): number[];
+        function dot(a: number[], b: number[]): number;
+        function cross(out: number[], a: number[], b: number[]): number[];
+        function lerp(out: number[], a: number[], b: number[], t: number): number[];
+        function transformMat4(out: number[], a: number[], m: number[]): number[];
+        function angle(a: number[], b: number[]): number;
+        function makeRotation(mat: Matrix4, a: Vector3, b: Vector3): Matrix4;
     }
+    function Vector4(x?: number, y?: number, z?: number, w?: number): number[];
     namespace Vector4 {
-        function create(): number[];
+        function zero(): number[];
         function clone(a: number[]): number[];
         function fromValues(x: number, y: number, z: number, w: number): number[];
         function set(out: number[], x: number, y: number, z: number, w: number): number[];
@@ -13412,90 +10437,6 @@ declare namespace LiteMol.Core.Geometry.LinearAlgebra {
         function norm(a: number[]): number;
         function squaredNorm(a: number[]): number;
         function transform(out: number[], a: number[], m: number[]): number[];
-    }
-}
-declare namespace LiteMol.Core.Geometry {
-    /**
-     * Basic shape of the result buffer for range queries.
-     */
-    interface SubdivisionTree3DResultBuffer {
-        count: number;
-        indices: number[];
-        hasPriorities: boolean;
-        priorities: number[] | undefined;
-        add(distSq: number, index: number): void;
-        reset(): void;
-    }
-    /**
-     * A buffer that only remembers the values.
-     */
-    namespace SubdivisionTree3DResultIndexBuffer {
-        function create(initialCapacity: number): SubdivisionTree3DResultBuffer;
-    }
-    /**
-     * A buffer that remembers values and priorities.
-     */
-    namespace SubdivisionTree3DResultPriorityBuffer {
-        function create(initialCapacity: number): SubdivisionTree3DResultBuffer;
-    }
-    /**
-     * Query context. Handles the actual querying.
-     */
-    interface SubdivisionTree3DQueryContext<T> {
-        tree: SubdivisionTree3D<T>;
-        pivot: number[];
-        radius: number;
-        radiusSq: number;
-        indices: number[];
-        positions: number[];
-        buffer: SubdivisionTree3DResultBuffer;
-        nearest(x: number, y: number, z: number, radius: number): void;
-    }
-    namespace SubdivisionTree3DQueryContext {
-        function create<T>(tree: SubdivisionTree3D<T>, buffer: SubdivisionTree3DResultBuffer): SubdivisionTree3DQueryContext<T>;
-    }
-    /**
-     * A kd-like tree to query 3D data.
-     */
-    interface SubdivisionTree3D<T> {
-        data: T[];
-        indices: number[];
-        positions: number[];
-        root: SubdivisionTree3DNode;
-    }
-    namespace SubdivisionTree3D {
-        /**
-         * Create a context used for querying the data.
-         */
-        function createContextRadius<T>(tree: SubdivisionTree3D<T>, radiusEstimate: number, includePriorities?: boolean): SubdivisionTree3DQueryContext<T>;
-        /**
-         * Takes data and a function that calls SubdivisionTree3DPositionBuilder.add(x, y, z) on each data element.
-         */
-        function create<T>(data: T[], f: (e: T, add: (x: number, y: number, z: number) => void) => void, leafSize?: number): SubdivisionTree3D<T>;
-    }
-    /**
-     * A tree node.
-     */
-    interface SubdivisionTree3DNode {
-        splitValue: number;
-        startIndex: number;
-        endIndex: number;
-        left: SubdivisionTree3DNode;
-        right: SubdivisionTree3DNode;
-    }
-    namespace SubdivisionTree3DNode {
-        function nearest<T>(node: SubdivisionTree3DNode, ctx: SubdivisionTree3DQueryContext<T>, dim: number): void;
-        function create(splitValue: number, startIndex: number, endIndex: number, left: SubdivisionTree3DNode, right: SubdivisionTree3DNode): SubdivisionTree3DNode;
-    }
-    /**
-     * A helper to store boundary box.
-     */
-    interface Box3D {
-        min: number[];
-        max: number[];
-    }
-    namespace Box3D {
-        function createInfinite(): Box3D;
     }
 }
 declare namespace LiteMol.Core.Geometry {
@@ -13530,7 +10471,7 @@ declare namespace LiteMol.Core.Geometry {
          * Bounding sphere.
          */
         boundingSphere?: {
-            center: Geometry.LinearAlgebra.ObjectVec3;
+            center: Geometry.LinearAlgebra.Vector3;
             radius: number;
         };
     }
@@ -13542,6 +10483,65 @@ declare namespace LiteMol.Core.Geometry {
         function transformImmediate(surface: Surface, t: number[]): void;
         function transform(surface: Surface, t: number[]): Computation<Surface>;
     }
+}
+declare namespace LiteMol.Core.Geometry.Query3D {
+    /**
+     * Query context. Handles the actual querying.
+     */
+    type QueryFunc<T> = (x: number, y: number, z: number, radius: number) => Result<T>;
+    interface Result<T> {
+        readonly count: number;
+        readonly elements: T[];
+        readonly squaredDistances: number[];
+    }
+    interface InputData<T> {
+        elements: T[];
+        indices: Int32Array;
+        bounds: Box3D;
+        positions: number[];
+    }
+    type LookupStructure<T> = () => QueryFunc<T>;
+    /**
+     * A helper to store boundary box.
+     */
+    interface Box3D {
+        min: number[];
+        max: number[];
+    }
+    namespace Box3D {
+        function createInfinite(): Box3D;
+    }
+    /**
+    * Query context. Handles the actual querying.
+    */
+    interface QueryContext<T> {
+        structure: T;
+        pivot: number[];
+        radius: number;
+        radiusSq: number;
+        buffer: QueryContext.Buffer;
+    }
+    namespace QueryContext {
+        interface Buffer {
+            sourceElements: any[];
+            count: number;
+            elements: any[];
+            squaredDistances: number[];
+        }
+        function add<T>(ctx: QueryContext<T>, distSq: number, index: number): void;
+        /**
+         * Query the tree and store the result to this.buffer. Overwrites the old result.
+         */
+        function update<T>(ctx: QueryContext<T>, x: number, y: number, z: number, radius: number): void;
+        function create<T>(structure: T, sourceElements: any[]): QueryContext<T>;
+    }
+    function createInputData<T>(elements: T[], f: (e: T, add: (x: number, y: number, z: number) => void) => void): InputData<T>;
+}
+declare namespace LiteMol.Core.Geometry.Query3D {
+    function createSubdivisionTree<T>(data: InputData<T>, leafSize?: number): LookupStructure<T>;
+}
+declare namespace LiteMol.Core.Geometry.Query3D {
+    function createSpatialHash<T>(data: InputData<T>): LookupStructure<T>;
 }
 declare namespace LiteMol.Core.Geometry.MarchingCubes {
     /**
@@ -13598,8 +10598,8 @@ declare namespace LiteMol.Core.Geometry.MolecularSurface {
     }
     interface MolecularIsoField {
         data: Geometry.MarchingCubes.MarchingCubesParameters;
-        bottomLeft: Geometry.LinearAlgebra.ObjectVec3;
-        topRight: Geometry.LinearAlgebra.ObjectVec3;
+        bottomLeft: Geometry.LinearAlgebra.Vector3;
+        topRight: Geometry.LinearAlgebra.Vector3;
         transform: number[];
         inputParameters: MolecularSurfaceInputParameters;
         parameters: MolecularIsoSurfaceParameters;
@@ -13680,25 +10680,19 @@ declare namespace LiteMol.Core.Structure {
     interface Bond {
         atomAIndex: number;
         atomBIndex: number;
-        type: Bond.Type;
+        type: BondType;
     }
-    namespace Bond {
-        const enum Type {
-            Unknown = 0,
-            Single = 1,
-            Double = 2,
-            Triple = 3,
-            Aromatic = 4,
-            Metallic = 5,
-            Ion = 6,
-            Hydrogen = 7,
-            DisulfideBridge = 8,
-        }
+    interface ModifiedResidue {
+        asymId: string;
+        seqNumber: number;
+        insCode: string | null;
+        parent: string;
+        details: string | null;
     }
     class ComponentBondInfoEntry {
         id: string;
-        map: Utils.FastMap<string, Utils.FastMap<string, Bond.Type>>;
-        add(a: string, b: string, order: Bond.Type, swap?: boolean): void;
+        map: Utils.FastMap<string, Utils.FastMap<string, BondType>>;
+        add(a: string, b: string, order: BondType, swap?: boolean): void;
         constructor(id: string);
     }
     class ComponentBondInfo {
@@ -13744,6 +10738,32 @@ declare namespace LiteMol.Core.Structure {
         constructor(spacegroupName: string, cellSize: number[], cellAngles: number[], toFracTransform: number[], isNonStandardCrytalFrame: boolean);
     }
     /**
+     * Wraps _struct_conn mmCIF category.
+     */
+    class StructConn {
+        entries: StructConn.Entry[];
+        private _residuePairIndex;
+        private _atomIndex;
+        private static _resKey(rA, rB);
+        private getResiduePairIndex();
+        private getAtomIndex();
+        private static _emptyEntry;
+        getResidueEntries(residueAIndex: number, residueBIndex: number): ReadonlyArray<StructConn.Entry>;
+        getAtomEntries(atomIndex: number): ReadonlyArray<StructConn.Entry>;
+        constructor(entries: StructConn.Entry[]);
+    }
+    namespace StructConn {
+        interface Entry {
+            distance: number;
+            bondType: BondType;
+            partners: {
+                residueIndex: number;
+                atomIndex: number;
+                symmetry: string;
+            }[];
+        }
+    }
+    /**
      * Wraps an assembly operator.
      */
     class AssemblyOperator {
@@ -13786,6 +10806,7 @@ declare namespace LiteMol.Core.Structure {
     type ChainTable = DataTable<Chain>;
     type EntityTable = DataTable<Entity>;
     type BondTable = DataTable<Bond>;
+    type ModifiedResidueTable = DataTable<ModifiedResidue>;
     /**
      * Default Builders
      */
@@ -13796,12 +10817,13 @@ declare namespace LiteMol.Core.Structure {
         const Chains: DataTable.Definition<Chain>;
         const Entities: DataTable.Definition<Entity>;
         const Bonds: DataTable.Definition<Bond>;
+        const ModifiedResidues: DataTable.Definition<ModifiedResidue>;
     }
     class Operator {
         matrix: number[];
         id: string;
         isIdentity: boolean;
-        apply(v: Geometry.LinearAlgebra.ObjectVec3): void;
+        apply(v: Geometry.LinearAlgebra.Vector3): void;
         static applyToModelUnsafe(matrix: number[], m: Molecule.Model): void;
         constructor(matrix: number[], id: string, isIdentity: boolean);
     }
@@ -13816,9 +10838,8 @@ declare namespace LiteMol.Core.Structure {
             experimentMethod?: string;
         }
         interface Bonds {
-            covalent?: BondTable;
-            nonCovalent?: BondTable;
-            computed?: BondTable;
+            readonly structConn?: StructConn;
+            readonly input?: BondTable;
             readonly component?: ComponentBondInfo;
         }
         interface Model extends Model.Base {
@@ -13846,12 +10867,32 @@ declare namespace LiteMol.Core.Structure {
                 readonly entities: EntityTable;
                 readonly bonds: Bonds;
                 readonly secondaryStructure: SecondaryStructureElement[];
+                readonly modifiedResidues?: ModifiedResidueTable;
                 readonly symmetryInfo?: SymmetryInfo;
                 readonly assemblyInfo?: AssemblyInfo;
             }
-            function withTransformedXYZ<T>(model: Model, ctx: T, transform: (ctx: T, x: number, y: number, z: number, out: Geometry.LinearAlgebra.ObjectVec3) => void): Model;
+            function withTransformedXYZ<T>(model: Model, ctx: T, transform: (ctx: T, x: number, y: number, z: number, out: Geometry.LinearAlgebra.Vector3) => void): Model;
         }
     }
+}
+declare namespace LiteMol.Core.Structure {
+    const enum BondType {
+        Unknown = 0,
+        Single = 1,
+        Double = 2,
+        Triple = 3,
+        Aromatic = 4,
+        DisulfideBridge = 5,
+        Metallic = 6,
+        Ion = 7,
+        Hydrogen = 8,
+    }
+    function isBondTypeCovalent(t: BondType): boolean;
+    interface BondComputationParameters {
+        maxHbondLength: number;
+        forceCompute: boolean;
+    }
+    function computeBonds(model: Molecule.Model, atomIndices: number[], params?: Partial<BondComputationParameters>): Utils.DataTable<Bond>;
 }
 declare namespace LiteMol.Core.Structure {
     class Spacegroup {
@@ -13899,8 +10940,8 @@ declare namespace LiteMol.Core.Structure {
          *
          */
         class Context {
-            private mask;
-            private lazyTree;
+            readonly mask: Utils.Mask;
+            private lazyLoopup3d;
             /**
              * Number of atoms in the current context.
              */
@@ -13914,9 +10955,9 @@ declare namespace LiteMol.Core.Structure {
              */
             structure: Molecule.Model;
             /**
-             * Get a kd-tree for the atoms in the current context.
+             * Get a 3d loopup structure for the atoms in the current context.
              */
-            readonly tree: Geometry.SubdivisionTree3D<number>;
+            readonly lookup3d: Geometry.Query3D.LookupStructure<number>;
             /**
              * Checks if an atom is included in the current context.
              */
@@ -13937,22 +10978,8 @@ declare namespace LiteMol.Core.Structure {
              * Create a new context from a sequence of fragments.
              */
             static ofAtomIndices(structure: Molecule.Model, atomIndices: number[]): Context;
-            constructor(structure: Molecule.Model, mask: Context.Mask);
-            private makeTree();
-        }
-        namespace Context {
-            /**
-             * Represents the atoms in the context.
-             */
-            interface Mask {
-                size: number;
-                has(i: number): boolean;
-            }
-            module Mask {
-                function ofStructure(structure: Molecule.Model): Mask;
-                function ofIndices(structure: Molecule.Model, atomIndices: number[]): Mask;
-                function ofFragments(seq: FragmentSeq): Mask;
-            }
+            constructor(structure: Molecule.Model, mask: Utils.Mask);
+            private makeLookup3d();
         }
         /**
          * The basic element of the query language.
@@ -14030,7 +11057,7 @@ declare namespace LiteMol.Core.Structure {
              * Assumes the set is in the given context's mask.
              * Assumes the array is sorted.
              */
-            static ofArray(context: Context, tag: number, atomIndices: Int32Array): Fragment;
+            static ofArray(context: Context, tag: number, atomIndices: Int32Array | number[]): Fragment;
             /**
              * Create a fragment from a single index.
              * Assumes the index is in the given context's mask.
@@ -14097,6 +11124,7 @@ declare namespace LiteMol.Core.Structure.Query {
         inside(where: Source): Builder;
         intersectWith(where: Source): Builder;
         flatten(selector: (f: Fragment) => FragmentSeq): Builder;
+        except(toRemove: Source): Builder;
     }
     namespace Builder {
         const BuilderPrototype: any;
@@ -14120,6 +11148,7 @@ declare namespace LiteMol.Core.Structure.Query {
         authSeqNumber?: number;
         insCode?: string | null;
     }
+    function allAtoms(): Builder;
     function atomsByElement(...elements: string[]): Builder;
     function atomsByName(...names: string[]): Builder;
     function atomsById(...ids: number[]): Builder;
@@ -14156,6 +11185,7 @@ declare namespace LiteMol.Core.Structure.Query {
     function inside(q: Source, where: Source): Builder;
     function intersectWith(what: Source, where: Source): Builder;
     function flatten(what: Source, selector: (f: Fragment) => FragmentSeq): Builder;
+    function except(what: Source, toRemove: Source): Builder;
     /**
      * Shortcuts
      */
@@ -14167,6 +11197,7 @@ declare namespace LiteMol.Core.Structure.Query {
      */
     namespace Compiler {
         function compileEverything(): (ctx: Context) => FragmentSeq;
+        function compileAllAtoms(): (ctx: Context) => FragmentSeq;
         function compileAtoms(elements: string[] | number[], sel: (model: Structure.Molecule.Model) => string[] | number[]): (ctx: Context) => FragmentSeq;
         function compileAtomIndices(indices: number[]): (ctx: Context) => FragmentSeq;
         function compileFromIndices(complement: boolean, indices: number[], tableProvider: (molecule: Structure.Molecule.Model) => {
@@ -14199,6 +11230,7 @@ declare namespace LiteMol.Core.Structure.Query {
         function compileAmbientResidues(where: Source, radius: number): (ctx: Context) => FragmentSeq;
         function compileWholeResidues(where: Source): (ctx: Context) => FragmentSeq;
         function compileFlatten(what: Source, selector: (f: Fragment) => FragmentSeq): (ctx: Context) => FragmentSeq;
+        function compileExcept(what: Source, toRemove: Source): (ctx: Context) => FragmentSeq;
     }
 }
 declare namespace LiteMol.Core.Structure.Query.Algebraic {
@@ -14239,6 +11271,21 @@ declare namespace LiteMol.Visualization {
 declare namespace LiteMol.Visualization {
     export import THREE = LiteMolTHREE;
 }
+declare namespace LiteMol.Visualization.Utils {
+    class Palette {
+        static getRandomColor(amountOfGrey?: number): Visualization.Color;
+        static randomMix(color1: Visualization.Color, color2: Visualization.Color, color3: Visualization.Color, greyControl: number): Visualization.Color;
+        private static previous;
+        /**
+         *
+         * @example
+         *   let min = Palette.getRandomColor(0.3);
+         *   let max = Palette.getRandomColor(0.3);
+         *   let color = Palette.interpolate(0.1, min, 0.6, max, 0.354);
+         */
+        static interpolate(min: number, minColor: Visualization.Color, max: number, maxColor: Visualization.Color, value: number, target?: Visualization.Color): Color;
+    }
+}
 declare namespace LiteMol.Visualization {
     function checkWebGL(): boolean;
     interface IDisposable {
@@ -14252,6 +11299,7 @@ declare namespace LiteMol.Visualization {
         }): void;
         static setPickColor(objectId: number, objectIdWidth: number, elementId: number, buffer: Float32Array, offset: number): void;
         static toSurface(source: THREE.Geometry): Core.Geometry.Surface;
+        static toRawGeometry(source: THREE.Geometry): Geometry.RawGeometry;
         static getIndexedBufferGeometry(source: THREE.Geometry): THREE.BufferGeometry;
     }
 }
@@ -14284,17 +11332,21 @@ declare namespace LiteMol.Visualization {
     }
     interface Theme {
         colors: Theme.ColorMap;
+        variables: Theme.VariableMap;
         transparency: Theme.Transparency;
         interactive: boolean;
         disableFog: boolean;
+        isSticky: boolean;
         setElementColor(index: number, target: Color): void;
     }
     namespace Theme {
         interface Props {
             colors?: ColorMap;
+            variables?: VariableMap;
             transparency?: Theme.Transparency;
             interactive?: boolean;
             disableFog?: boolean;
+            isSticky?: boolean;
         }
         interface Transparency {
             alpha?: number;
@@ -14303,6 +11355,10 @@ declare namespace LiteMol.Visualization {
         interface ColorMap {
             get(key: any): Color | undefined;
             forEach(f: (value: Color, key: any) => void): void;
+        }
+        interface VariableMap {
+            get(key: any): any | undefined;
+            forEach(f: (value: any, key: any) => void): void;
         }
         namespace Default {
             const HighlightColor: Color;
@@ -14320,6 +11376,7 @@ declare namespace LiteMol.Visualization {
         function createMapping(mapping: ElementMapping, props?: Props): Theme;
         function createColorMapMapping(getProperty: (index: number) => any, map: ColorMap, fallbackColor: Color): ElementMapping;
         function createPalleteMapping(getProperty: (index: number) => any, pallete: Color[]): ElementMapping;
+        function createPalleteIndexMapping(getProperty: (index: number) => number, pallete: Color[]): ElementMapping;
     }
 }
 declare namespace LiteMol.Visualization {
@@ -14340,7 +11397,8 @@ declare namespace LiteMol.Visualization {
         static getMeshMaterial(shading?: THREE.Shading, isWireframe?: boolean): THREE.ShaderMaterial;
         static getPhongVertexColorMaterial(): THREE.MeshPhongMaterial;
         static getDefaultHighlightMaterial(): THREE.MeshPhongMaterial;
-        static applyColorToMap(map: Selection.VertexMap, indices: number[], bufferAttribute: THREE.BufferAttribute, getter: (i: number, c: Color) => void): void;
+        static applyColorToBuffer(bufferAttribute: THREE.BufferAttribute, color: Color): void;
+        static applyColorToMap(map: Selection.VertexMap, bufferAttribute: THREE.BufferAttribute, getter: (i: number, c: Color) => void): void;
     }
 }
 declare namespace LiteMol.Visualization {
@@ -14371,7 +11429,7 @@ declare namespace LiteMol.Visualization {
         applySelection(indices: number[], action: Selection.Action): boolean;
         getBoundingSphereOfSelection(indices: number[]): {
             radius: number;
-            center: Core.Geometry.LinearAlgebra.ObjectVec3;
+            center: Core.Geometry.LinearAlgebra.Vector3;
         } | undefined;
         abstract highlightElement(pickId: number, highlight: boolean): boolean;
         abstract getPickElements(pickId: number): number[];
@@ -14419,6 +11477,9 @@ declare namespace LiteMol.Visualization {
         private slabWheelRate;
         private _planeDelta;
         private subs;
+        private enableWheel;
+        private mouseMoveDelta;
+        private lastMousePosition;
         readonly planeDelta: LiteMol.Core.Rx.IObservable<number>;
         updateSize(w: number, h: number): void;
         updateRadius(r: number): void;
@@ -14427,13 +11488,15 @@ declare namespace LiteMol.Visualization {
         private touchstart(event);
         private touchend(event);
         private touchmove(event);
+        private mousemove(e);
+        private mouseOut();
         constructor(element: HTMLElement);
     }
     class Camera {
         private scene;
         private domElement;
         private camera;
-        private controls;
+        controls: CameraControls;
         private slabControls;
         fog: THREE.Fog;
         focusPoint: THREE.Vector3;
@@ -14493,6 +11556,7 @@ declare namespace LiteMol.Visualization {
             b: number;
         };
         cameraFOV?: number;
+        cameraSpeed?: number;
         cameraType?: CameraType;
         enableFog?: boolean;
         enableFrontClip?: boolean;
@@ -14574,7 +11638,7 @@ declare namespace LiteMol.Visualization {
         resized(): void;
         forceRender(): void;
         clear(): void;
-        screenshotAsDataURL(): string;
+        downloadScreenshot(): void;
         destroy(): void;
     }
 }
@@ -14738,9 +11802,56 @@ declare namespace LiteMol.Visualization.Selection {
     function applyActionToRange(array: Float32Array, start: number, end: number, action: Action): boolean;
     function applyActionToBuffer(buffer: THREE.BufferAttribute, action: Action): boolean;
 }
+declare namespace LiteMol.Visualization.Geometry {
+    interface RawGeometry {
+        vertices: Float32Array;
+        vertexCount: number;
+        indices: Uint32Array;
+        indexCount: number;
+        normals?: Float32Array;
+        elementSize: 2 | 3;
+    }
+    function toBufferGeometry(raw: RawGeometry): THREE.BufferGeometry;
+    function addAttribute(geom: THREE.BufferGeometry, name: string, a: ArrayLike<number>, elementSize: number): void;
+    import CoreUtils = Core.Utils;
+    import ChunkedArray = CoreUtils.ChunkedArray;
+    import ArrayBuilder = CoreUtils.ArrayBuilder;
+    type Builder = Builder.Static | Builder.Dynamic;
+    namespace Builder {
+        interface Static {
+            type: 'Static';
+            vertices: ArrayBuilder<number>;
+            indices: ArrayBuilder<number>;
+            normals?: ArrayBuilder<number>;
+            elementSize: 2 | 3;
+        }
+        interface Dynamic {
+            type: 'Dynamic';
+            vertices: ChunkedArray<number>;
+            indices: ChunkedArray<number>;
+            normals?: ChunkedArray<number>;
+            elementSize: 2 | 3;
+        }
+        function createStatic(vertexCount: number, indexCount: number, elementSize?: 2 | 3): Static;
+        function createDynamic(vertexChunkSize: number, indexChunkSize: number, elementSize?: 2 | 3): Dynamic;
+        import Geom = Core.Geometry;
+        import Vec3 = Geom.LinearAlgebra.Vector3;
+        import Mat4 = Geom.LinearAlgebra.Matrix4;
+        function addRawTransformed(builder: Builder, geom: RawGeometry, scale: number[] | undefined, translation: number[] | undefined, rotation: Mat4 | undefined): void;
+        function addVertex3s(builder: Static, x: number, y: number, z: number): void;
+        function addNormal3s(builder: Static, x: number, y: number, z: number): void;
+        function addIndex3s(builder: Static, i: number, j: number, k: number): void;
+        function addVertex3d(builder: Dynamic, x: number, y: number, z: number): void;
+        function addNormal3d(builder: Dynamic, x: number, y: number, z: number): void;
+        function addIndex3d(builder: Dynamic, i: number, j: number, k: number): void;
+        function getDashTemplate(): RawGeometry;
+        function addDashedLine(builder: Builder, a: Vec3, b: Vec3, size: number, gap: number, r: number): void;
+        function toBufferGeometry(builder: Builder): THREE.BufferGeometry;
+    }
+}
 declare namespace LiteMol.Visualization.Surface {
     import Data = Core.Geometry.Surface;
-    function buildGeometry(data: Data, computation: Core.Computation.Context, isWireframe: boolean): LiteMol.Promise<Geometry>;
+    function buildGeometry(data: Data, computation: Core.Computation.Context, isWireframe: boolean): Promise<Geometry>;
     class Geometry extends GeometryBase {
         geometry: THREE.BufferGeometry;
         vertexToElementMap: number[];
@@ -14748,8 +11859,6 @@ declare namespace LiteMol.Visualization.Surface {
         pickGeometry: THREE.BufferGeometry;
         pickPlatesGeometry: THREE.BufferGeometry;
         vertexStateBuffer: THREE.BufferAttribute;
-        center: THREE.Vector3;
-        radius: number;
         dispose(): void;
         constructor();
     }
@@ -14770,7 +11879,7 @@ declare namespace LiteMol.Visualization.Surface {
         getPickElements(pickId: number): number[];
         getBoundingSphereOfSelection(indices: number[]): {
             radius: number;
-            center: Core.Geometry.LinearAlgebra.ObjectVec3;
+            center: Core.Geometry.LinearAlgebra.Vector3;
         } | undefined;
         applyThemeInternal(theme: Theme): void;
         protected getPickObjectVisibility(visible: boolean): boolean;
@@ -14811,12 +11920,111 @@ declare namespace LiteMol.Visualization.Lines {
         }): Core.Computation<Model>;
     }
 }
+declare namespace LiteMol.Visualization.Labels {
+    /**
+     * Adapted from https://github.com/arose/ngl
+     * MIT License Copyright (C) 2014+ Alexander Rose
+     */
+    interface TextAtlasParams {
+        font: string[];
+        size: number;
+        style: string;
+        variant: string;
+        weight: string;
+        outline: number;
+        width: number;
+        height: number;
+    }
+    const DefaultTextAtlasParams: TextAtlasParams;
+    function getTextAtlas(params: Partial<TextAtlasParams>): TextAtlas;
+    interface MappedMetrics {
+        x: number;
+        y: number;
+        w: number;
+        h: number;
+    }
+    class TextAtlas {
+        params: TextAtlasParams;
+        private gamma;
+        private mapped;
+        private state;
+        private placeholder;
+        lineHeight: number;
+        private canvas;
+        texture: THREE.Texture;
+        constructor(params: Partial<TextAtlasParams>);
+        private build();
+        private map(text);
+        getTextMetrics(text: string): MappedMetrics;
+        private draw(text);
+        private populate();
+    }
+}
+declare namespace LiteMol.Visualization.Labels.Geometry {
+    /**
+     * Adapted from https://github.com/arose/ngl
+     * MIT License Copyright (C) 2014+ Alexander Rose
+     */
+    function create(params: LabelsParams): {
+        geometry: THREE.BufferGeometry;
+        texture: THREE.Texture;
+        options: LabelsOptions;
+    };
+}
+declare namespace LiteMol.Visualization.Labels.Material {
+    /**
+     * Adapted from https://github.com/arose/ngl
+     * MIT License Copyright (C) 2014+ Alexander Rose
+     */
+    const VERTEX_SHADER: string;
+    const FRAGMENT_SHADER: string;
+}
+declare namespace LiteMol.Visualization.Labels.Material {
+    function create(texture: THREE.Texture): THREE.ShaderMaterial;
+}
+declare namespace LiteMol.Visualization.Labels {
+    interface LabelsOptions {
+        fontFamily: "sans-serif" | "monospace" | "serif";
+        fontSize: number;
+        fontStyle: "normal" | "italic";
+        fontWeight: "normal" | "bold";
+        useSDF: boolean;
+        attachment: "bottom-left" | "bottom-center" | "bottom-right" | "middle-left" | "middle-center" | "middle-right" | "top-left" | "top-center" | "top-right";
+        backgroundMargin: number;
+    }
+    const DefaultLabelsOptions: LabelsOptions;
+    interface LabelsParams {
+        positions: Core.Structure.PositionTable;
+        sizes: number[];
+        labels: string[];
+        options?: Partial<LabelsOptions>;
+        theme: Theme;
+    }
+    class Model extends Visualization.Model {
+        private geometry;
+        private material;
+        private labels;
+        private options;
+        protected applySelectionInternal(indices: number[], action: Selection.Action): boolean;
+        getPickElements(pickId: number): number[];
+        highlightElement(pickId: number, highlight: boolean): boolean;
+        protected highlightInternal(isOn: boolean): boolean;
+        private applyColoring(theme);
+        protected applyThemeInternal(theme: Theme): void;
+        static create(entity: any, params: LabelsParams): Core.Computation<Model>;
+    }
+}
 declare namespace LiteMol.Visualization.Molecule.BallsAndSticks {
     interface Parameters {
         tessalation?: number;
         atomRadius?: (i: number) => number;
         hideBonds?: boolean;
+        hideHydrogens?: boolean;
         bondRadius?: number;
+        customMaxBondLengths?: {
+            get(e: string): number | undefined;
+            has(e: string): boolean;
+        };
     }
     const DefaultBallsAndSticksModelParameters: Parameters;
     class Model extends Visualization.Model {
@@ -14841,13 +12049,12 @@ declare namespace LiteMol.Visualization.Molecule.BallsAndSticks {
     }
 }
 declare namespace LiteMol.Visualization.Molecule.BallsAndSticks {
-    function buildGeometry(model: Core.Structure.Molecule.Model, parameters: Parameters, atomIndices: number[], ctx: Core.Computation.Context): LiteMol.Promise<BallsAndSticksGeometry>;
+    function buildGeometry(model: Core.Structure.Molecule.Model, parameters: Parameters, atomIndices: number[], ctx: Core.Computation.Context): Promise<BallsAndSticksGeometry>;
     class BallsAndSticksGeometry extends GeometryBase {
         atomsGeometry: THREE.BufferGeometry;
         bondsGeometry: THREE.BufferGeometry;
         pickGeometry: THREE.BufferGeometry;
         atomVertexMap: Selection.VertexMap;
-        bondVertexMap: Selection.VertexMap;
         vertexStateBuffer: THREE.BufferAttribute;
         dispose(): void;
     }
@@ -14856,6 +12063,7 @@ declare namespace LiteMol.Visualization.Molecule.Cartoons.Geometry {
     class Data extends GeometryBase {
         geometry: THREE.BufferGeometry;
         pickGeometry: THREE.BufferGeometry;
+        gapsGeometry: THREE.BufferGeometry | undefined;
         vertexMap: Selection.VertexMap;
         vertexStateBuffer: THREE.BufferAttribute;
         dispose(): void;
@@ -14887,55 +12095,13 @@ declare namespace LiteMol.Visualization.Molecule.Cartoons.Geometry {
         builder: Builder;
         geom: Data;
     }
-    function create(model: Core.Structure.Molecule.Model, atomIndices: number[], linearSegments: number, parameters: any, isTrace: boolean, computation: Core.Computation.Context): LiteMol.Promise<Data>;
+    function create(model: Core.Structure.Molecule.Model, atomIndices: number[], linearSegments: number, parameters: any, isTrace: boolean, computation: Core.Computation.Context): Promise<Data>;
 }
 declare namespace LiteMol.Visualization.Molecule.Cartoons.Geometry {
-    import ChunkedArray = Core.Utils.ChunkedArray;
-    class CartoonAsymUnitState {
-        private typeBuilder;
-        private uPositionsBuilder;
-        private vPositionsBuilder;
-        private pPositionsBuilder;
-        private dPositionsBuilder;
-        residueType: Core.Structure.SecondaryStructureType[];
-        uPositions: number[];
-        vPositions: number[];
-        pPositions: number[];
-        dPositions: number[];
-        uvLength: number;
-        residueCount: number;
-        constructor(residueCount: number);
-        addResidue(rIndex: number, arrays: {
-            atomStartIndex: number[];
-            atomEndIndex: number[];
-            name: string[];
-            x: number[];
-            y: number[];
-            z: number[];
-        }, sType: Core.Structure.SecondaryStructureType): boolean;
-        finishResidues(): void;
-        addControlPoint(p: THREE.Vector3, d: THREE.Vector3): void;
-        finishContols(): void;
-    }
     class CartoonAsymUnit {
         private model;
         private elements;
         linearSegmentCount: number;
-        private static maskSplit(element, mask, target);
-        static isCartoonLike(atomIndices: number[], start: number, end: number, name: string[], a: string, b: string, isAmk: boolean): boolean;
-        static createMask(model: Core.Structure.Molecule.Model, atomIndices: number[]): boolean[];
-        private static isUnknownSecondaryStructure(model);
-        private static approximateSecondaryStructure(model, parent);
-        private static ZhangHelixDistance;
-        private static ZhangHelixDelta;
-        private static ZhangSheetDistance;
-        private static ZhangSheetDelta;
-        private static ZhangP1;
-        private static ZhangP2;
-        private static zhangSkolnickSStrace(model, trace, parent, elements);
-        private static zhangSkolnickSSresidue(model, trace, i, distances, delta);
-        private static throwIfEmpty(ss);
-        static buildUnits(model: Core.Structure.Molecule.Model, atomIndices: number[], linearSegmentCount: number): CartoonAsymUnit[];
         private controlPointsBuilder;
         private torsionVectorsBuilder;
         private normalVectorsBuilder;
@@ -14951,16 +12117,26 @@ declare namespace LiteMol.Visualization.Molecule.Cartoons.Geometry {
         residueType: Core.Structure.SecondaryStructureType[];
         residueIndex: Int32Array;
         backboneOnly: boolean;
+        startResidueIndex: number;
+        endResidueIndex: number;
         constructor(model: Core.Structure.Molecule.Model, elements: Core.Structure.SecondaryStructureElement[], linearSegmentCount: number);
-        private createControlPoints(state);
-        private initPositions(state);
-        private initControlsPoints(state);
-        private computeSplines(state);
+        private createControlPoints(builder);
+        private initPositions(builder);
+        private initControlsPoints(builder);
+        private computeSplines(builder);
         private addSplineNode(previousControlPoint, controlPoint, torsionPoint);
         private reflectPositions(xs, u, v, a, b, c, d, r1, r2);
-        private static reflect(target, p1, p2, amount);
-        private static spline(target, p1, p2, p3, t);
     }
+    namespace CartoonAsymUnit {
+        function reflect(target: THREE.Vector3, p1: THREE.Vector3, p2: THREE.Vector3, amount: number): void;
+        function spline(target: THREE.Vector3, p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3, t: number): void;
+        function maskSplit(element: Core.Structure.SecondaryStructureElement, mask: boolean[], target: Core.Structure.SecondaryStructureElement[]): void;
+        function isCartoonLike(atomIndices: number[], start: number, end: number, name: string[], a: string, b: string, isAmk: boolean): boolean;
+        function createMask(model: Core.Structure.Molecule.Model, atomIndices: number[]): boolean[];
+        function buildUnits(model: Core.Structure.Molecule.Model, atomIndices: number[], linearSegmentCount: number): CartoonAsymUnit[];
+    }
+}
+declare namespace LiteMol.Visualization.Molecule.Cartoons.Geometry {
     class CartoonsGeometryParams {
         radialSegmentCount: number;
         turnWidth: number;
@@ -14974,14 +12150,17 @@ declare namespace LiteMol.Visualization.Molecule.Cartoons.Geometry {
         tessalation: number;
         static Default: CartoonsGeometryParams;
     }
+    import GB = Visualization.Geometry.Builder;
     class CartoonsGeometryState {
         params: CartoonsGeometryParams;
+        private residueCount;
         residueIndex: number;
-        verticesDone: number;
-        trianglesDone: number;
-        vertexBuffer: ChunkedArray<number>;
-        normalBuffer: ChunkedArray<number>;
-        indexBuffer: ChunkedArray<number>;
+        readonly verticesDone: number;
+        readonly trianglesDone: number;
+        builder: GB.Dynamic;
+        private vs;
+        private is;
+        gapsBuilder: GB.Dynamic;
         translationMatrix: THREE.Matrix4;
         scaleMatrix: THREE.Matrix4;
         rotationMatrix: THREE.Matrix4;
@@ -14993,7 +12172,7 @@ declare namespace LiteMol.Visualization.Molecule.Cartoons.Geometry {
         constructor(params: CartoonsGeometryParams, residueCount: number);
     }
     function buildUnit(unit: CartoonAsymUnit, ctx: Context): void;
-    function buildUnitsAsync(ctx: Context): LiteMol.Promise<void>;
+    function buildUnitsAsync(ctx: Context): Promise<void>;
     function createGeometry(ctx: Context): void;
     class Builder {
         constructor();
@@ -15033,6 +12212,7 @@ declare namespace LiteMol.Visualization.Molecule.Cartoons {
     class Model extends Visualization.Model {
         private model;
         private material;
+        private gapMaterial;
         private pickMaterial;
         private queryContext;
         private cartoons;
@@ -15064,43 +12244,73 @@ declare namespace LiteMol.Visualization.Molecule.Colors {
     const DefaultPallete: Color[];
 }
 declare namespace LiteMol.Visualization.Primitive {
-    function createSphereSurface(center: Core.Geometry.LinearAlgebra.ObjectVec3, radius: number, tessalation: number): Core.Geometry.Surface;
+    function createSphereSurface(sphere: Shape.Sphere): Core.Geometry.Surface;
+    function createTubeSurface(tube: Shape.Tube): Core.Geometry.Surface;
+    function createCone(cone: Shape.Cone): Core.Geometry.Surface;
+    function createArrow(arrow: Shape.Arrow): Shape[];
+    function createDashes(line: Shape.DashedLine): Shape.Surface[];
 }
 declare namespace LiteMol.Visualization.Primitive {
     import LA = Core.Geometry.LinearAlgebra;
     import Surface = Core.Geometry.Surface;
-    type ShapeType = 'Sphere' | 'Surface';
-    type Shape = {
-        type: 'Sphere';
-        center: LA.ObjectVec3;
-        radius: number;
-        id: number;
-        tessalation?: number;
-    } | {
-        type: 'Surface';
-        surface: Surface;
-        id: number;
-    };
+    type Shape = Shape.Sphere | Shape.Tube | Shape.Surface | Shape.DashedLine | Shape.Cone | Shape.Arrow;
+    namespace Shape {
+        type Sphere = {
+            type: 'Sphere';
+            center: LA.Vector3;
+            radius: number;
+            id: number;
+            tessalation?: number;
+        };
+        type Tube = {
+            type: 'Tube';
+            a: LA.Vector3;
+            b: LA.Vector3;
+            radius: number;
+            id: number;
+            slices?: number;
+        };
+        type DashedLine = {
+            type: 'DashedLine';
+            a: LA.Vector3;
+            b: LA.Vector3;
+            width: number;
+            dashSize: number;
+            spaceSize?: number;
+            id: number;
+        };
+        type Arrow = {
+            type: 'Arrow';
+            a: LA.Vector3;
+            b: LA.Vector3;
+            radius: number;
+            id: number;
+            coneRadius: number;
+            coneHeight: number;
+            slices?: number;
+        };
+        type Cone = {
+            type: 'Cone';
+            a: LA.Vector3;
+            b: LA.Vector3;
+            radius: number;
+            id: number;
+            slices?: number;
+        };
+        type Surface = {
+            type: 'Surface';
+            surface: Core.Geometry.Surface;
+            id: number;
+            scale?: number[];
+            translation?: number[];
+            rotation?: LA.Matrix4;
+        };
+    }
     class Builder {
         private shapes;
         add(shape: Shape): this;
         buildSurface(): Core.Computation<Surface>;
         static create(): Builder;
-    }
-}
-declare namespace LiteMol.Visualization.Utils {
-    class Palette {
-        static getRandomColor(amountOfGrey?: number): Visualization.Color;
-        static randomMix(color1: Visualization.Color, color2: Visualization.Color, color3: Visualization.Color, greyControl: number): Visualization.Color;
-        private static previous;
-        /**
-         *
-         * @example
-         *   let min = Palette.getRandomColor(0.3);
-         *   let max = Palette.getRandomColor(0.3);
-         *   let color = Palette.interpolate(0.1, min, 0.6, max, 0.354);
-         */
-        static interpolate(min: number, minColor: Visualization.Color, max: number, maxColor: Visualization.Color, value: number, target?: Visualization.Color): Color;
     }
 }
 declare namespace LiteMol.Bootstrap {
@@ -15113,6 +12323,23 @@ declare namespace LiteMol.Bootstrap {
     export import Immutable = __LiteMolImmutable;
     export import Rx = Core.Rx;
     export import Zlib = LiteMolZlib;
+}
+declare namespace LiteMol.Bootstrap.Utils {
+    /** Last recently used cache */
+    interface LRUCache<T> {
+        entries: LinkedList<LRUCache.Entry<T>>;
+        capacity: number;
+    }
+    namespace LRUCache {
+        interface Entry<T> extends LinkedElement<Entry<T>> {
+            key: string;
+            data: T;
+        }
+        function entry<T>(key: string, data: T): Entry<T>;
+        function create<T>(capacity: number): LRUCache<T>;
+        function get<T>(cache: LRUCache<T>, key: string): T | undefined;
+        function set<T>(cache: LRUCache<T>, key: string, data: T): T;
+    }
 }
 declare namespace LiteMol.Bootstrap.Utils {
     enum DataCompressionMethod {
@@ -15138,10 +12365,10 @@ declare namespace LiteMol.Bootstrap.Utils.Query {
 declare namespace LiteMol.Bootstrap.Utils.Query {
     class ValueOrError<A> {
         isError: boolean;
-        value: A;
+        value: A | undefined;
         error: any;
         bind<B>(f: (v: A) => ValueOrError<B>): ValueOrError<B>;
-        constructor(isError: boolean, value?: A, error?: any);
+        constructor(isError: boolean, value?: A | undefined, error?: any);
     }
     module ValueOrError {
         function error(err: any): ValueOrError<undefined>;
@@ -15155,6 +12382,7 @@ declare namespace LiteMol.Bootstrap.Utils {
         inList: boolean;
     }
     class LinkedList<T extends LinkedElement<T>> {
+        count: number;
         first: T | null;
         private last;
         addFirst(item: T): void;
@@ -15247,7 +12475,7 @@ declare namespace LiteMol.Bootstrap {
         private info;
         readonly id: number;
         readonly reportTime: boolean;
-        run(context: Context): __Promise.Promise<A>;
+        run(context: Context): Promise<A>;
         runWithContext(context: Context): Task.Running<A>;
         setReportTime(report: boolean): this;
         constructor(name: string, type: Task.Type, computation: Computation<A>);
@@ -15731,23 +12959,17 @@ declare namespace LiteMol.Bootstrap.Visualization {
             name: string;
             description?: string;
             colors?: Immutable.Map<string, LiteMol.Visualization.Color>;
+            variables?: Immutable.Map<string, any>;
             provider: (e: Entity.Any, props?: LiteMol.Visualization.Theme.Props) => LiteMol.Visualization.Theme;
         }
         interface Instance {
             template: Template;
             colors?: Immutable.Map<string, LiteMol.Visualization.Color>;
+            variables?: Immutable.Map<string, any>;
             transparency?: TransparencyDescription;
             interactive?: boolean;
             disableFog?: boolean;
         }
-        interface Props {
-            colors?: {
-                [name: string]: LiteMol.Visualization.Color;
-            };
-            transparency?: TransparencyDescription;
-            interactive?: boolean;
-        }
-        function mergeProps(theme: Instance, props: Props): Instance;
         function getProps(theme: Instance): LiteMol.Visualization.Theme.Props;
     }
 }
@@ -15759,17 +12981,27 @@ declare namespace LiteMol.Bootstrap.Visualization.Molecule {
         index: number[];
         property: any[];
     }, pallete: LiteMol.Visualization.Color[]): (e: Entity.Any, props?: Vis.Theme.Props | undefined) => Vis.Theme;
+    function createCachedPaletteThemeProvider(name: string, provider: (m: Core.Structure.Molecule.Model) => {
+        index: number[];
+        property: any[];
+    }, pallete: LiteMol.Visualization.Color[]): (e: Entity.Any, props?: Vis.Theme.Props | undefined) => Vis.Theme;
     function uniformThemeProvider(e: Entity.Any, props?: LiteMol.Visualization.Theme.Props): Vis.Theme;
     function createColorMapThemeProvider(provider: (m: Core.Structure.Molecule.Model) => {
         index: number[];
         property: any[];
     }, colorMap: LiteMol.Visualization.Theme.ColorMap, fallbackColor: LiteMol.Visualization.Color): (e: Entity.Any, props?: Vis.Theme.Props | undefined) => Vis.Theme;
+    function createCachedColorMapThemeProvider(name: string, provider: (m: Core.Structure.Molecule.Model) => {
+        index: number[];
+        property: any[];
+    }, colorMap: LiteMol.Visualization.Theme.ColorMap, fallbackColor: LiteMol.Visualization.Color): (e: Entity.Any, props?: Vis.Theme.Props | undefined) => Vis.Theme;
+    const RainbowPalette: Vis.Color[];
     namespace Default {
         const Themes: Theme.Template[];
         const CartoonThemeTemplate: Theme.Template;
         const ElementSymbolThemeTemplate: Theme.Template;
         const SurfaceThemeTemplate: Theme.Template;
         const UniformThemeTemplate: Theme.Template;
+        const RainbowEntityThemeTemplate: Theme.Template;
     }
 }
 declare namespace LiteMol.Bootstrap.Visualization.Molecule {
@@ -15794,6 +13026,10 @@ declare namespace LiteMol.Bootstrap.Visualization.Molecule {
         vdwScaling?: number;
         atomRadius?: number;
         bondRadius: number;
+        hideHydrogens?: boolean;
+        customMaxBondLengths?: {
+            [e: string]: number;
+        };
     }
     interface SurfaceParams {
         probeRadius: number;
@@ -15813,6 +13049,27 @@ declare namespace LiteMol.Bootstrap.Visualization.Molecule {
 declare namespace LiteMol.Bootstrap.Visualization.Molecule {
     function create(source: Source, transform: Tree.Transform<Entity.Molecule.Model | Entity.Molecule.Selection, Entity.Molecule.Visual, any>, style: Style<any>): Task<Entity.Molecule.Visual>;
 }
+declare namespace LiteMol.Bootstrap.Visualization.Labels {
+    function createMoleculeLabels(parent: Entity.Any, transform: Tree.Transform<Entity.Any, Entity.Visual.Labels, any>, style: Style<Utils.Molecule.Labels3DOptions>): Task<Entity.Visual.Labels>;
+    function createGenericLabels(parent: Entity.Any, transform: Tree.Transform<Entity.Any, Entity.Visual.Labels, any>, params: Bootstrap.Entity.Transformer.Labels.CreateParams): Task<Entity.Visual.Labels>;
+}
+declare namespace LiteMol.Bootstrap.Visualization.Labels {
+    type Style<P> = Visualization.Style<'Labels', P>;
+    namespace Style {
+        function moleculeHasOnlyThemeChanged(oldS: Style<Utils.Molecule.Labels3DOptions>, newS: Style<Utils.Molecule.Labels3DOptions>): boolean;
+        function createMoleculeStyle(params: {
+            kind: Utils.Molecule.Labels3DOptions['kind'];
+            labelsOptions?: LiteMol.Visualization.Labels.LabelsOptions;
+            theme?: Theme.Instance;
+        }): Style<Utils.Molecule.Labels3DOptions>;
+    }
+    namespace Default {
+        import Vis = LiteMol.Visualization;
+        const Theme: Theme.Template;
+        const MoleculeLabels: Style<Utils.Molecule.Labels3DOptions>;
+        const GenericLabels: Style<Vis.Labels.LabelsOptions>;
+    }
+}
 declare namespace LiteMol.Bootstrap.Visualization.Density {
     function create(parent: Entity.Density.Data, transform: Tree.Transform<Entity.Density.Data, Entity.Density.Visual, any>, style: Style): Task<Entity.Density.Visual>;
 }
@@ -15829,6 +13086,7 @@ declare namespace LiteMol.Bootstrap.Visualization.Density {
         smoothing: number;
         isWireframe: boolean;
     }
+    function areNonIsoParamsSame(a: Params, b: Params): boolean;
     type Style = Visualization.Style<'Density', Params>;
     namespace Style {
         function create(params: {
@@ -15953,7 +13211,7 @@ declare namespace LiteMol.Bootstrap.Entity {
         }> {
         }
         const CifDictionary: Entity.Type<{
-            dictionary: CIFTools.File;
+            dictionary: LiteMolCIFTools.File;
         }>;
         interface Json extends Entity<{
             data: any;
@@ -15971,13 +13229,16 @@ declare namespace LiteMol.Bootstrap.Entity {
         }
         interface Any extends Entity<Props<any>> {
         }
-        interface Surface extends Entity<Props<"Surface"> & {
+        interface Surface extends Entity<Props<'Surface'> & {
             tag: any;
         }> {
         }
         const Surface: Type<Props<"Surface"> & {
             tag: any;
         }>;
+        interface Labels extends Entity<Visual.Props<'Labels'>> {
+        }
+        const Labels: Type<Props<"Labels">>;
     }
     namespace Molecule {
         interface Molecule extends Entity<{
@@ -16050,6 +13311,19 @@ declare namespace LiteMol.Bootstrap.Entity.Transformer.Basic {
         isCollapsed?: boolean;
     }
     const CreateGroup: Transformer<Any, Root, CreateGroupParams>;
+    const Delay: Transformer<Root, Action, {
+        timeoutMs: number;
+    }>;
+    interface CreateSurfaceVisualParams {
+        surface: Core.Geometry.Surface;
+        theme: LiteMol.Visualization.Theme;
+        label?: string;
+        tag?: any;
+        isWireframe?: boolean;
+        isNotInteractive?: boolean;
+        taskType?: Task.Type;
+    }
+    const CreateSurfaceVisual: Transformer<Root, Visual.Surface, CreateSurfaceVisualParams>;
 }
 declare namespace LiteMol.Bootstrap.Entity.Transformer.Molecule {
     interface DownloadMoleculeSourceParams {
@@ -16095,7 +13369,7 @@ declare namespace LiteMol.Bootstrap.Entity.Transformer.Molecule {
         silent?: boolean;
         inFullContext?: boolean;
     }
-    const CreateSelectionFromQuery: Tree.Transformer<Entity.Molecule.Model | Entity.Molecule.Visual, Entity.Molecule.Selection, CreateSelectionFromQueryParams>;
+    const CreateSelectionFromQuery: Tree.Transformer<Entity.Molecule.Model | Entity.Molecule.Selection | Entity.Molecule.Visual, Entity.Molecule.Selection, CreateSelectionFromQueryParams>;
     interface CreateAssemblyParams {
         name: string;
     }
@@ -16128,7 +13402,21 @@ declare namespace LiteMol.Bootstrap.Entity.Transformer.Molecule {
         water?: boolean;
         waterRef?: string;
     }
-    const CreateMacromoleculeVisual: Tree.Transformer<Entity.Molecule.Model, Action, CreateMacromoleculeVisualParams>;
+    const CreateMacromoleculeVisual: Tree.Transformer<Entity.Molecule.Model | Entity.Molecule.Selection, Action, CreateMacromoleculeVisualParams>;
+    interface CreateLabelsParams {
+        style: Visualization.Labels.Style<Utils.Molecule.Labels3DOptions>;
+    }
+    const CreateLabels: Tree.Transformer<Entity.Molecule.Model | Entity.Molecule.Selection | Entity.Molecule.Visual, Visual.Labels, CreateLabelsParams>;
+}
+declare namespace LiteMol.Bootstrap.Entity.Transformer.Labels {
+    interface CreateParams {
+        positions: Core.Structure.PositionTable;
+        sizes: number[];
+        labels: string[];
+        options: LiteMol.Visualization.Labels.LabelsOptions;
+        style: Visualization.Labels.Style<LiteMol.Visualization.Labels.LabelsOptions>;
+    }
+    const Create: Tree.Transformer<Root, Visual.Labels, CreateParams>;
 }
 declare namespace LiteMol.Bootstrap.Entity.Transformer.Data {
     interface DownloadParams {
@@ -16173,7 +13461,6 @@ declare namespace LiteMol.Bootstrap.Entity.Transformer.Density {
     interface ParseDataParams {
         id?: string;
         format: LiteMol.Core.Formats.FormatInfo;
-        normalize: boolean;
     }
     const ParseData: Tree.Transformer<Entity.Data.String | Entity.Data.Binary, Entity.Density.Data, ParseDataParams>;
     interface CreateFromCifParams {
@@ -16223,6 +13510,7 @@ declare namespace LiteMol.Bootstrap.Entity.Transformer.Molecule.CoordinateStream
 declare namespace LiteMol.Bootstrap.Utils.Molecule {
     import Structure = LiteMol.Core.Structure;
     import Geometry = LiteMol.Core.Geometry;
+    import LA = Geometry.LinearAlgebra;
     function findModel(entity: Entity.Any): Entity.Molecule.Model | undefined;
     function findModelOrSelection(entity: Entity.Any): Entity.Molecule.Model | Entity.Molecule.Selection | undefined;
     function findMolecule(entity: Entity.Any): Entity.Molecule.Molecule | undefined;
@@ -16255,7 +13543,16 @@ declare namespace LiteMol.Bootstrap.Utils.Molecule {
         radiusVisit(i: number): void;
         constructor(model: LiteMol.Core.Structure.Molecule.Model);
     }
-    function getCentroidAndRadius(m: Structure.Molecule.Model, indices: number[], into: Geometry.LinearAlgebra.ObjectVec3): number;
+    function getCentroidAndRadius(m: Structure.Molecule.Model, indices: number[], into: LA.Vector3): number;
+    interface Labels3DOptions {
+        kind: 'Residue-Name' | 'Residue-Full-Id' | 'Atom-Name' | 'Atom-Element';
+        labelsOptions: LiteMol.Visualization.Labels.LabelsOptions;
+    }
+    const Labels3DKinds: Labels3DOptions['kind'][];
+    const Labels3DKindLabels: {
+        [kind: string]: string;
+    };
+    function create3DLabelsParams(entity: Entity.Any, options: Labels3DOptions, theme: LiteMol.Visualization.Theme): LiteMol.Visualization.Labels.LabelsParams;
 }
 declare namespace LiteMol.Bootstrap.Behaviour {
     class Streams {
@@ -16274,6 +13571,8 @@ declare namespace LiteMol.Bootstrap.Behaviour {
         register(behaviour: Entity.Behaviour.Any): void;
     }
     function SetEntityToCurrentWhenAdded(context: Context): void;
+    /** An ugly hack that will be removed when the time comes */
+    let SuppressCreateVisualWhenModelIsAdded: boolean;
     function CreateVisualWhenModelIsAdded(context: Context): void;
     function ApplySelectionToVisual(context: Context): void;
     function ApplyInteractivitySelection(context: Context): void;
@@ -16281,6 +13580,8 @@ declare namespace LiteMol.Bootstrap.Behaviour {
     function FocusCameraOnSelect(context: Context): void;
 }
 declare namespace LiteMol.Bootstrap.Behaviour.Molecule {
+    /** An ugly hack that will be removed when the time comes */
+    let SuppressShowInteractionOnSelect: boolean;
     function ShowInteractionOnSelect(radius: number): (context: Context) => void;
     function HighlightElementInfo(context: Context): void;
     function DistanceToLastClickedElement(context: Context): void;
@@ -16329,22 +13630,6 @@ declare namespace LiteMol.Bootstrap.Behaviour.Molecule {
     namespace CoordinateStreaming {
         function normalizeServerName(s: string): string;
         function getBaseUrl(id: string, server: string): string;
-        class CacheEntry implements Utils.LinkedElement<CacheEntry> {
-            key: string;
-            data: ArrayBuffer;
-            previous: CacheEntry | null;
-            next: CacheEntry | null;
-            inList: boolean;
-            constructor(key: string, data: ArrayBuffer);
-        }
-        class Cache {
-            size: number;
-            private count;
-            entries: Utils.LinkedList<CacheEntry>;
-            get(key: string): ArrayBuffer | undefined;
-            add(key: string, data: ArrayBuffer): ArrayBuffer;
-            constructor(size: number);
-        }
     }
 }
 declare namespace LiteMol.Bootstrap.Behaviour {
@@ -16431,7 +13716,7 @@ declare namespace LiteMol.Bootstrap.Components.Transform {
         updateParams(params: Partial<P>): void;
         autoUpdateParams(params: Partial<P>): void;
         readonly isUpdate: boolean;
-        apply(): Core.Computation<{}> | __Promise.Promise<Tree.Node.Any> | undefined;
+        apply(): Promise<Tree.Node.Any> | Core.Computation<{}> | undefined;
         setParams(params: P): void;
         constructor(context: Context, transformer: Tree.Transformer.Any, entity: Entity.Any);
     }
@@ -16447,14 +13732,23 @@ declare namespace LiteMol.Bootstrap.Components.Transform {
 }
 declare namespace LiteMol.Bootstrap.Components.Transform {
     import Vis = Bootstrap.Visualization;
-    class MoleculeVisual extends Controller<Bootstrap.Entity.Transformer.Molecule.CreateVisualParams> {
+    class VisualStyle<Params extends {
+        style: Bootstrap.Visualization.Style<any, any>;
+    }> extends Controller<Params> {
         updateTemplate(key: string, all: Map<string, Bootstrap.Visualization.Style.Any>): void;
         updateStyleParams(params: any): void;
         updateStyleTheme(theme: Partial<Vis.Theme.Instance>): void;
         updateThemeColor(name: string, value: LiteMol.Visualization.Color): void;
+        updateThemeVariable(name: string, value: any): void;
         updateThemeTransparency(transparency: LiteMol.Visualization.Theme.Transparency): void;
         private getThemeInstance(template);
         updateThemeDefinition(definition: Bootstrap.Visualization.Theme.Template): void;
+    }
+    class MoleculeVisual extends VisualStyle<Bootstrap.Entity.Transformer.Molecule.CreateVisualParams> {
+    }
+    class MoleculeLabels extends VisualStyle<Bootstrap.Entity.Transformer.Molecule.CreateLabelsParams> {
+    }
+    class GenericLabels extends VisualStyle<Bootstrap.Entity.Transformer.Labels.CreateParams> {
     }
     class DensityVisual<T, Styles> extends Controller<T> {
         private cloneStyle(prop?);
@@ -16567,7 +13861,7 @@ declare namespace LiteMol.Bootstrap {
         get(key: string): any;
     }
     class Context {
-        plugin: Plugin.Instance;
+        plugin: Plugin.Instance | undefined;
         id: string;
         dispatcher: Service.Dispatcher;
         logger: Service.Logger;
@@ -16584,7 +13878,7 @@ declare namespace LiteMol.Bootstrap {
         settings: Settings;
         createLayout(targets: Components.LayoutTarget[], target: HTMLElement): void;
         select(selector: Tree.Selector<Entity.Any>): Entity.Any[];
-        constructor(plugin?: Plugin.Instance);
+        constructor(plugin?: Plugin.Instance | undefined);
     }
 }
 declare namespace LiteMol.Bootstrap.Plugin {
@@ -16595,6 +13889,8 @@ declare namespace LiteMol.Bootstrap.Plugin {
     }
     interface Instance {
         getTransformerInfo(transformer: Bootstrap.Tree.Transformer.Any): TransformerInfo;
+        readonly context: Context;
+        destroy(): void;
     }
 }
 declare namespace LiteMol.Bootstrap {
@@ -16629,9 +13925,15 @@ declare namespace LiteMol.Plugin {
         date: string;
     };
 }
+declare type RD = typeof ReactDOM;
+declare type R = typeof React;
+declare var __LiteMolReact: R;
+declare var __LiteMolReactDOM: RD;
 declare namespace LiteMol.Plugin {
-    export import React = __LiteMolReact;
-    const ReactDOM: typeof React.__DOM;
+    type React = R;
+    const React: R;
+    type ReactDOM = RD;
+    const ReactDOM: RD;
     namespace Controls {
         class ChromePickerHelper extends __LiteMolColorPicker.ChromePicker {
         }
@@ -16802,6 +14104,8 @@ declare namespace LiteMol.Plugin.Controls {
         bounds: number[];
     }
     class SliderBase extends React.Component<SliderBaseProps, SliderBaseState> {
+        private sliderElement;
+        private handleElements;
         constructor(props: SliderBaseProps);
         static defaultProps: SliderBaseProps;
         private dragOffset;
@@ -16908,7 +14212,7 @@ declare namespace LiteMol.Plugin.Views {
 }
 declare namespace LiteMol.Plugin.Views {
     class Layout extends View<Bootstrap.Components.Layout, {}, {}> {
-        private renderTarget(target);
+        private renderTarget(name, target);
         private updateTarget(name, regionType, layout);
         render(): JSX.Element;
     }
@@ -17008,6 +14312,9 @@ declare namespace LiteMol.Plugin.Views.Transform.Molecule {
         private createColors();
         protected renderControls(): JSX.Element;
     }
+    class CreateLabels extends Transform.ControllerBase<Bootstrap.Components.Transform.MoleculeLabels> {
+        renderControls(): JSX.Element;
+    }
 }
 declare namespace LiteMol.Plugin.Views.Transform.Density {
     import Transformer = Bootstrap.Entity.Transformer;
@@ -17026,8 +14333,12 @@ declare namespace LiteMol.Plugin.Views.Transform.Density {
         protected renderControls(): JSX.Element;
     }
 }
+declare namespace LiteMol.Plugin.Views.Transform.Labels {
+    function optionsControls(controller: Bootstrap.Components.Transform.MoleculeLabels): JSX.Element[];
+}
 declare namespace LiteMol.Plugin.Views.Context {
     class Log extends View<Bootstrap.Components.Context.Log, {}, {}> {
+        private wrapper;
         componentWillMount(): void;
         componentDidUpdate(): void;
         private scrollToBottom();
@@ -17054,6 +14365,7 @@ declare namespace LiteMol.Plugin.Views.Entity {
     }) => JSX.Element;
     class Tree extends View<Bootstrap.Components.Component<{}>, {}, {}> {
         private renderedVersion;
+        private root;
         scrollIntoView(element: Element): void;
         componentWillMount(): void;
         private splash;
@@ -17071,8 +14383,6 @@ declare namespace LiteMol.Plugin.Views.Entity {
         shouldComponentUpdate(nextProps: {
             type: Bootstrap.Entity.TypeInfo;
         }, nextState: {}, nextContext: any): boolean;
-        private part(name, i, t, ret);
-        private split(name, type, ret);
         private createBadge(name);
         render(): JSX.Element;
     }
@@ -17110,6 +14420,8 @@ declare namespace LiteMol.Plugin.Views.Visualization {
         noWebGl?: boolean;
         showLogo?: boolean;
     }> {
+        private host3d;
+        private defaultBg;
         state: {
             noWebGl: boolean;
             showLogo: boolean;
@@ -17235,7 +14547,7 @@ declare namespace LiteMol.Plugin {
         private target;
         private componentMap;
         private transformersInfo;
-        context: Context;
+        context: Bootstrap.Context;
         private compose();
         getTransformerInfo(transformer: Bootstrap.Tree.Transformer.Any): TransformerInfo;
         destroy(): void;
@@ -17292,11 +14604,12 @@ declare namespace LiteMol.Plugin {
         format?: string | Core.Formats.FormatInfo;
         onLoad?: () => void;
         onError?: (e: any) => void;
+        doNotCreateVisual?: boolean;
     }
     import Entity = Bootstrap.Entity;
     class Controller {
         private _instance;
-        readonly instance: Instance;
+        readonly instance: Bootstrap.Plugin.Instance;
         readonly context: Context;
         readonly root: Entity.Any;
         /**
@@ -17331,7 +14644,7 @@ declare namespace LiteMol.Plugin {
         /**
          * Applies a state trasnform.
          */
-        applyTransform(transform: Bootstrap.Tree.Transform.Source): __Promise.Promise<void>;
+        applyTransform(transform: Bootstrap.Tree.Transform.Source): Promise<void>;
         /**
          * Remove all entities.
          */
@@ -17354,13 +14667,15 @@ declare namespace LiteMol.Plugin {
          *
          * Default format is mmCIF.
          */
-        loadMolecule(source: ControllerLoadMoleculeInfo): __Promise.Promise<void>;
+        loadMolecule(source: ControllerLoadMoleculeInfo): Promise<void>;
         /**
          * Destroys the the plugin instance.
          * The controller becomes unusable as a result.
          */
         destroy(): void;
-        constructor(options: PluginControllerOptions);
+        private ofOptions(options);
+        private ofInstace(instance);
+        constructor(optionsOrInstance: PluginControllerOptions | Bootstrap.Plugin.Instance);
     }
     function create(options: PluginControllerOptions): Controller;
 }

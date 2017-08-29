@@ -8069,7 +8069,7 @@ var __LiteMolRx = __LiteMolRxTemp.Rx;
  */
 var CIFTools;
 (function (CIFTools) {
-    CIFTools.VERSION = { number: "1.1.4", date: "Jan 18 2017" };
+    CIFTools.VERSION = { number: "1.1.6", date: "June 26 2017" };
 })(CIFTools || (CIFTools = {}));
 /*
  * Copyright (c) 2016 - now David Sehnal, licensed under MIT License, See LICENSE file for more info.
@@ -9160,9 +9160,11 @@ var CIFTools;
                     // escaped is always Value
                     if (state.isEscaped) {
                         state.currentTokenType = 3 /* Value */;
+                        // _ always means column name
                     }
                     else if (state.data.charCodeAt(state.currentTokenStart) === 95) {
                         state.currentTokenType = 4 /* ColumnName */;
+                        // 5th char needs to be _ for data_ or loop_
                     }
                     else if (state.currentTokenEnd - state.currentTokenStart >= 5 && state.data.charCodeAt(state.currentTokenStart + 4) === 95) {
                         if (isData(state))
@@ -9173,6 +9175,7 @@ var CIFTools;
                             state.currentTokenType = 2 /* Loop */;
                         else
                             state.currentTokenType = 3 /* Value */;
+                        // all other tests failed, we are at Value token.
                     }
                     else {
                         state.currentTokenType = 3 /* Value */;
@@ -9293,6 +9296,7 @@ var CIFTools;
                     }
                     block = new Text.DataBlock(data, data.substring(tokenizer.currentTokenStart + 5, tokenizer.currentTokenEnd));
                     moveNext(tokenizer);
+                    // Save frame
                 }
                 else if (token === 1 /* Save */) {
                     id = data.substring(tokenizer.currentTokenStart + 5, tokenizer.currentTokenEnd);
@@ -9315,18 +9319,21 @@ var CIFTools;
                         saveFrame = new Text.DataBlock(data, id);
                     }
                     moveNext(tokenizer);
+                    // Loop
                 }
                 else if (token === 2 /* Loop */) {
                     cat = handleLoop(tokenizer, inSaveFrame ? saveFrame : block);
                     if (cat.hasError) {
                         return error(cat.errorLine, cat.errorMessage);
                     }
+                    // Single row
                 }
                 else if (token === 4 /* ColumnName */) {
                     cat = handleSingle(tokenizer, inSaveFrame ? saveFrame : block);
                     if (cat.hasError) {
                         return error(cat.errorLine, cat.errorMessage);
                     }
+                    // Out of options
                 }
                 else {
                     return error(tokenizer.currentLineNumber, "Unexpected token. Expected data_, loop_, or data name.");
@@ -9407,8 +9414,8 @@ var CIFTools;
                 var f = fields_1[_i];
                 StringWriter.writePadRight(writer, category.desc.name + "." + f.name, width);
                 var presence = f.presence;
-                var p = void 0;
-                if (presence && (p = presence(data, 0)) !== 0 /* Present */) {
+                var p = presence ? presence(data, 0) : 0 /* Present */;
+                if (p !== 0 /* Present */) {
                     if (p === 1 /* NotSpecified */)
                         writeNotSpecified(writer);
                     else
@@ -9444,8 +9451,8 @@ var CIFTools;
                     for (var _b = 0, fields_3 = fields; _b < fields_3.length; _b++) {
                         var f = fields_3[_b];
                         var presence = f.presence;
-                        var p = void 0;
-                        if (presence && (p = presence(data, i)) !== 0 /* Present */) {
+                        var p = presence ? presence(data, i) : 0 /* Present */;
+                        if (p !== 0 /* Present */) {
                             if (p === 1 /* NotSpecified */)
                                 writeNotSpecified(writer);
                             else
@@ -9602,6 +9609,10 @@ var CIFTools;
     (function (Binary) {
         var MessagePack;
         (function (MessagePack) {
+            /*
+             * Adapted from https://github.com/rcsb/mmtf-javascript
+             * by Alexander Rose <alexander.rose@weirdbyte.de>, MIT License, Copyright (c) 2016
+             */
             /**
              * decode all key-value pairs of a map into an object
              * @param  {Integer} length - number of key-value pairs
@@ -10643,7 +10654,6 @@ var CIFTools;
             return Encoder;
         }());
         Binary.Encoder = Encoder;
-        var Encoder;
         (function (Encoder) {
             function by(f) {
                 return new Encoder([f]);
@@ -10668,8 +10678,7 @@ var CIFTools;
                 _a[6 /* Uint32 */] = function (v, i, a) { v.setUint32(4 * i, a, true); },
                 _a[32 /* Float32 */] = function (v, i, a) { v.setFloat32(4 * i, a, true); },
                 _a[33 /* Float64 */] = function (v, i, a) { v.setFloat64(8 * i, a, true); },
-                _a
-            );
+                _a);
             var byteSizes = (_b = {},
                 _b[2 /* Int16 */] = 2,
                 _b[5 /* Uint16 */] = 2,
@@ -10677,8 +10686,7 @@ var CIFTools;
                 _b[6 /* Uint32 */] = 4,
                 _b[32 /* Float32 */] = 4,
                 _b[33 /* Float64 */] = 8,
-                _b
-            );
+                _b);
             function byteArray(data) {
                 var type = Binary.Encoding.getDataType(data);
                 if (type === 1 /* Int8 */)
@@ -10828,14 +10836,15 @@ var CIFTools;
                     if (value === 0) {
                         size += 1;
                     }
-                    else if (value === upperLimit || value === lowerLimit) {
-                        size += 2;
-                    }
                     else if (value > 0) {
                         size += Math.ceil(value / upperLimit);
+                        if (value % upperLimit === 0)
+                            size += 1;
                     }
                     else {
                         size += Math.ceil(value / lowerLimit);
+                        if (value % lowerLimit === 0)
+                            size += 1;
                     }
                 }
                 return size;
@@ -11067,8 +11076,8 @@ var CIFTools;
                 var _d = data_2[_i];
                 var d = _d.data;
                 for (var i = 0, _b = _d.count; i < _b; i++) {
-                    var p = void 0;
-                    if (presence && (p = presence(d, i)) !== 0 /* Present */) {
+                    var p = presence ? presence(d, i) : 0 /* Present */;
+                    if (p !== 0 /* Present */) {
                         mask[offset] = p;
                         if (isNative)
                             array[offset] = null;
@@ -11150,12 +11159,14 @@ var CIFTools;
         Binary.Writer = Writer;
     })(Binary = CIFTools.Binary || (CIFTools.Binary = {}));
 })(CIFTools || (CIFTools = {}));
-
+var LiteMolCIFTools = CIFTools;
+"use strict";
 /*
  * Copyright (c) 2016 - now David Sehnal, licensed under Apache 2.0, See LICENSE file for more info.
  */
 var LiteMol;
 (function (LiteMol) {
+    //export type Promise<T> = GlobalPromise<T>;// __Promise.Promise<T>;
     LiteMol.Promise = __LiteMolPromise;
 })(LiteMol || (LiteMol = {}));
 (function (LiteMol) {
@@ -11166,7 +11177,7 @@ var LiteMol;
         Core.Promise = LiteMol.Promise;
         var Formats;
         (function (Formats) {
-            Formats.CIF = CIFTools;
+            Formats.CIF = LiteMolCIFTools;
         })(Formats = Core.Formats || (Core.Formats = {}));
     })(Core = LiteMol.Core || (LiteMol.Core = {}));
 })(LiteMol || (LiteMol = {}));
@@ -11177,7 +11188,7 @@ var LiteMol;
 (function (LiteMol) {
     var Core;
     (function (Core) {
-        Core.VERSION = { number: "3.0.4", date: "Feb 17 2017" };
+        Core.VERSION = { number: "3.2.1", date: "July 5 2017" };
     })(Core = LiteMol.Core || (LiteMol.Core = {}));
 })(LiteMol || (LiteMol = {}));
 /*
@@ -11192,8 +11203,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t;
-    return { next: verb(0), "throw": verb(1), "return": verb(2) };
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -11253,6 +11264,8 @@ var LiteMol;
                                     return [3 /*break*/, 4];
                                 case 2:
                                     e_1 = _a.sent();
+                                    if (Computation.PRINT_CONSOLE_ERROR)
+                                        console.error(e_1);
                                     reject(e_1);
                                     return [3 /*break*/, 4];
                                 case 3:
@@ -11268,6 +11281,7 @@ var LiteMol;
         }());
         Core.Computation = Computation;
         (function (Computation) {
+            Computation.PRINT_CONSOLE_ERROR = false;
             function resolve(a) {
                 return computation(function () { return Core.Promise.resolve(a); });
             }
@@ -11387,11 +11401,8 @@ var LiteMol;
             var FastMap;
             (function (FastMap) {
                 function forEach(data, f, ctx) {
-                    var hasOwn = Object.prototype.hasOwnProperty;
                     for (var _i = 0, _a = Object.keys(data); _i < _a.length; _i++) {
                         var key = _a[_i];
-                        if (!hasOwn.call(data, key))
-                            continue;
                         var v = data[key];
                         if (v === void 0)
                             continue;
@@ -11453,11 +11464,8 @@ var LiteMol;
                  */
                 function ofObject(data) {
                     var ret = create();
-                    var hasOwn = Object.prototype.hasOwnProperty;
                     for (var _i = 0, _a = Object.keys(data); _i < _a.length; _i++) {
                         var key = _a[_i];
-                        if (!hasOwn.call(data, key))
-                            continue;
                         var v = data[key];
                         ret.set(key, v);
                     }
@@ -11468,10 +11476,9 @@ var LiteMol;
             var FastSet;
             (function (FastSet) {
                 function forEach(data, f, ctx) {
-                    var hasOwn = Object.prototype.hasOwnProperty;
                     for (var _i = 0, _a = Object.keys(data); _i < _a.length; _i++) {
                         var p = _a[_i];
-                        if (!hasOwn.call(data, p) || data[p] !== null)
+                        if (data[p] !== null)
                             continue;
                         f(p, ctx);
                     }
@@ -11527,6 +11534,103 @@ var LiteMol;
                 }
                 FastSet.ofArray = ofArray;
             })(FastSet = Utils.FastSet || (Utils.FastSet = {}));
+            var Mask;
+            (function (Mask) {
+                var EmptyMask = (function () {
+                    function EmptyMask(size) {
+                        this.size = size;
+                    }
+                    EmptyMask.prototype.has = function (i) { return false; };
+                    return EmptyMask;
+                }());
+                var SingletonMask = (function () {
+                    function SingletonMask(idx, size) {
+                        this.idx = idx;
+                        this.size = size;
+                    }
+                    SingletonMask.prototype.has = function (i) { return i === this.idx; };
+                    return SingletonMask;
+                }());
+                var BitMask = (function () {
+                    function BitMask(mask, size) {
+                        this.mask = mask;
+                        this.size = size;
+                    }
+                    BitMask.prototype.has = function (i) { return this.mask[i]; };
+                    return BitMask;
+                }());
+                var AllMask = (function () {
+                    function AllMask(size) {
+                        this.size = size;
+                    }
+                    AllMask.prototype.has = function (i) { return true; };
+                    return AllMask;
+                }());
+                function ofStructure(structure) {
+                    return new AllMask(structure.data.atoms.count);
+                }
+                Mask.ofStructure = ofStructure;
+                function ofIndices(totalCount, indices) {
+                    var len = indices.length;
+                    if (len === 0)
+                        return new EmptyMask(totalCount);
+                    if (len === 1)
+                        return new SingletonMask(indices[0], totalCount);
+                    var f = len / totalCount;
+                    if (f < 1 / 12) {
+                        var set = Utils.FastSet.create();
+                        for (var _i = 0, indices_1 = indices; _i < indices_1.length; _i++) {
+                            var i = indices_1[_i];
+                            set.add(i);
+                        }
+                        return set;
+                    }
+                    var mask = new Int8Array(totalCount);
+                    for (var _a = 0, indices_2 = indices; _a < indices_2.length; _a++) {
+                        var i = indices_2[_a];
+                        mask[i] = 1;
+                    }
+                    return new BitMask(mask, len);
+                }
+                Mask.ofIndices = ofIndices;
+                function ofFragments(seq) {
+                    var sizeEstimate = 0;
+                    for (var _i = 0, _a = seq.fragments; _i < _a.length; _i++) {
+                        var f = _a[_i];
+                        sizeEstimate += f.atomCount;
+                    }
+                    var count = seq.context.structure.data.atoms.count;
+                    if (sizeEstimate / count < 1 / 12) {
+                        // create set;
+                        var mask = Utils.FastSet.create();
+                        for (var _b = 0, _c = seq.fragments; _b < _c.length; _b++) {
+                            var f = _c[_b];
+                            for (var _d = 0, _e = f.atomIndices; _d < _e.length; _d++) {
+                                var i = _e[_d];
+                                mask.add(i);
+                            }
+                        }
+                        return mask;
+                    }
+                    else {
+                        var mask = new Int8Array(count);
+                        for (var _f = 0, _g = seq.fragments; _f < _g.length; _f++) {
+                            var f = _g[_f];
+                            for (var _h = 0, _j = f.atomIndices; _h < _j.length; _h++) {
+                                var i = _j[_h];
+                                mask[i] = 1;
+                            }
+                        }
+                        var size = 0;
+                        for (var i = 0; i < count; i++) {
+                            if (mask[i] !== 0)
+                                size++;
+                        }
+                        return new BitMask(mask, size);
+                    }
+                }
+                Mask.ofFragments = ofFragments;
+            })(Mask = Utils.Mask || (Utils.Mask = {}));
         })(Utils = Core.Utils || (Core.Utils = {}));
     })(Core = LiteMol.Core || (LiteMol.Core = {}));
 })(LiteMol || (LiteMol = {}));
@@ -11747,6 +11851,12 @@ var LiteMol;
                         this.columns[this.columns.length] = { name: name, creator: creator };
                         return c;
                     };
+                    BuilderImpl.prototype.addRawColumn = function (name, creator, data) {
+                        var c = data;
+                        Object.defineProperty(this, name, { enumerable: true, configurable: false, writable: false, value: c });
+                        this.columns[this.columns.length] = { name: name, creator: creator };
+                        return c;
+                    };
                     BuilderImpl.prototype.getRawData = function () {
                         var _this = this;
                         return this.columns.map(function (c) { return _this[c.name]; });
@@ -11858,6 +11968,9 @@ var LiteMol;
                 ChunkedArray.add = add;
                 function compact(array) {
                     var ret = array.creator(array.elementSize * array.elementCount), offset = (array.parts.length - 1) * array.chunkSize, offsetInner = 0, part;
+                    if (array.parts.length === 1 && array.chunkSize === array.elementCount) {
+                        return array.parts[0];
+                    }
                     if (array.parts.length > 1) {
                         if (array.parts[0].buffer) {
                             for (var i = 0; i < array.parts.length - 1; i++) {
@@ -11998,6 +12111,20 @@ var LiteMol;
                 }
                 ArrayBuilder.create = create;
             })(ArrayBuilder = Utils.ArrayBuilder || (Utils.ArrayBuilder = {}));
+            function UniqueArray() {
+                return { _set: Utils.FastSet.create(), array: [] };
+            }
+            Utils.UniqueArray = UniqueArray;
+            (function (UniqueArray) {
+                function add(_a, e) {
+                    var _set = _a._set, array = _a.array;
+                    if (!_set.has(e)) {
+                        _set.add(e);
+                        array[array.length] = e;
+                    }
+                }
+                UniqueArray.add = add;
+            })(UniqueArray = Utils.UniqueArray || (Utils.UniqueArray = {}));
         })(Utils = Core.Utils || (Core.Utils = {}));
     })(Core = LiteMol.Core || (LiteMol.Core = {}));
 })(LiteMol || (LiteMol = {}));
@@ -12180,10 +12307,10 @@ var LiteMol;
             (function (TokenIndexBuilder) {
                 function resize(builder) {
                     // scale the size using golden ratio, because why not.
-                    var newBuffer = new Int32Array((1.61 * builder.tokens.length) | 0);
+                    var newBuffer = new Int32Array(Math.round(1.61 * builder.tokens.length));
                     newBuffer.set(builder.tokens);
                     builder.tokens = newBuffer;
-                    builder.tokensLenMinus2 = (newBuffer.length - 2) | 0;
+                    builder.tokensLenMinus2 = newBuffer.length - 2;
                 }
                 function addToken(builder, start, end) {
                     if (builder.count >= builder.tokensLenMinus2) {
@@ -12195,7 +12322,7 @@ var LiteMol;
                 TokenIndexBuilder.addToken = addToken;
                 function create(size) {
                     return {
-                        tokensLenMinus2: (size - 2) | 0,
+                        tokensLenMinus2: Math.round(size) - 2,
                         count: 0,
                         tokens: new Int32Array(size)
                     };
@@ -12287,8 +12414,8 @@ var LiteMol;
                     ];
                     function getAtomSiteColumns(category) {
                         var ret = Core.Utils.FastMap.create();
-                        for (var _i = 0, AtomSiteColumns_1 = AtomSiteColumns; _i < AtomSiteColumns_1.length; _i++) {
-                            var c = AtomSiteColumns_1[_i];
+                        for (var _a = 0, AtomSiteColumns_1 = AtomSiteColumns; _a < AtomSiteColumns_1.length; _a++) {
+                            var c = AtomSiteColumns_1[_a];
                             ret.set(c, category.getColumn(c));
                         }
                         return ret;
@@ -12476,7 +12603,7 @@ var LiteMol;
                     function isResidueNucleotide(atoms, residues, entities, index) {
                         if (aminoAcidNames[residues.name[index]] || entities.type[residues.entityIndex[index]] !== 'polymer')
                             return false;
-                        var o5 = false, c3 = false, n3 = false, p = false, names = atoms.name, assigned = 0;
+                        var names = atoms.name, assigned = 0;
                         var start = residues.atomStartIndex[index], end = residues.atomEndIndex[index];
                         // test for single atom instances
                         if (end - start === 1 && !residues.isHet[start] && names[start] === 'P') {
@@ -12484,26 +12611,14 @@ var LiteMol;
                         }
                         for (var i = start; i < end; i++) {
                             var n = names[i];
-                            if (!o5 && n === "O5'") {
-                                o5 = true;
+                            if (n === "O5'" || n === "C3'" || n === "N3" || n === "P") {
                                 assigned++;
                             }
-                            else if (!c3 && n === "C3'") {
-                                c3 = true;
-                                assigned++;
+                            if (assigned >= 3) {
+                                return true;
                             }
-                            else if (!n3 && n === 'N3') {
-                                n3 = true;
-                                assigned++;
-                            }
-                            else if (!p && n === 'P') {
-                                p = true;
-                                assigned++;
-                            }
-                            if (assigned === 4)
-                                break;
                         }
-                        return o5 && c3 && n3 && p;
+                        return false;
                     }
                     function analyzeSecondaryStructure(atoms, residues, entities, start, end, elements) {
                         var asymId = residues.asymId, entityIndex = residues.entityIndex, currentType = 0 /* None */, currentElementStartIndex = start, currentResidueIndex = start, residueCount = end;
@@ -12549,8 +12664,8 @@ var LiteMol;
                     function splitNonconsecutiveSecondaryStructure(residues, elements) {
                         var ret = [];
                         var authSeqNumber = residues.authSeqNumber;
-                        for (var _i = 0, elements_1 = elements; _i < elements_1.length; _i++) {
-                            var s = elements_1[_i];
+                        for (var _a = 0, elements_1 = elements; _a < elements_1.length; _a++) {
+                            var s = elements_1[_a];
                             var partStart = s.startResidueIndex;
                             var end = s.endResidueIndex - 1;
                             for (var i = s.startResidueIndex; i < end; i++) {
@@ -12576,8 +12691,8 @@ var LiteMol;
                     }
                     function updateSSIndicesAndFilterEmpty(elements, structure) {
                         var residues = structure.residues, count = residues.count, asymId = residues.asymId, seqNumber = residues.seqNumber, insCode = residues.insCode, currentElement = void 0, key = '', starts = Core.Utils.FastMap.create(), ends = Core.Utils.FastMap.create();
-                        for (var _i = 0, elements_2 = elements; _i < elements_2.length; _i++) {
-                            var e = elements_2[_i];
+                        for (var _a = 0, elements_2 = elements; _a < elements_2.length; _a++) {
+                            var e = elements_2[_a];
                             key = e.startResidueId.asymId + ' ' + e.startResidueId.seqNumber;
                             if (e.startResidueId.insCode)
                                 key += ' ' + e.startResidueId.insCode;
@@ -12607,8 +12722,8 @@ var LiteMol;
                             currentElement.endResidueIndex = count;
                         }
                         var nonEmpty = [];
-                        for (var _a = 0, elements_3 = elements; _a < elements_3.length; _a++) {
-                            var e = elements_3[_a];
+                        for (var _b = 0, elements_3 = elements; _b < elements_3.length; _b++) {
+                            var e = elements_3[_b];
                             if (e.startResidueIndex < 0 || e.endResidueIndex < 0)
                                 continue;
                             if (e.type === 3 /* Sheet */ && e.length < 3)
@@ -12683,11 +12798,12 @@ var LiteMol;
                             var pdbx_end_PDB_ins_code = _struct_sheet_range.getColumn('pdbx_end_PDB_ins_code');
                             var symmetry = _struct_sheet_range.getColumn('symmetry');
                             var sheet_id = _struct_sheet_range.getColumn('sheet_id');
+                            var id = _struct_sheet_range.getColumn('id');
                             for (i = 0; i < _struct_sheet_range.rowCount; i++) {
                                 input[input.length] = new Core.Structure.SecondaryStructureElement(3 /* Sheet */, residueIdfromColumns(i, beg_label_asym_id, beg_label_seq_id, pdbx_beg_PDB_ins_code), residueIdfromColumns(i, end_label_asym_id, end_label_seq_id, pdbx_end_PDB_ins_code), {
                                     symmetry: symmetry.getString(i),
                                     sheetId: sheet_id.getString(i),
-                                    id: sheet_id.getString(i)
+                                    id: id.getString(i)
                                 });
                             }
                         }
@@ -12716,14 +12832,143 @@ var LiteMol;
                     function assignSecondaryStructureIndex(residues, ss) {
                         var ssIndex = residues.secondaryStructureIndex;
                         var index = 0;
-                        for (var _i = 0, ss_1 = ss; _i < ss_1.length; _i++) {
-                            var s = ss_1[_i];
+                        for (var _a = 0, ss_1 = ss; _a < ss_1.length; _a++) {
+                            var s = ss_1[_a];
                             for (var i = s.startResidueIndex; i < s.endResidueIndex; i++) {
                                 ssIndex[i] = index;
                             }
                             index++;
                         }
                         return ssIndex;
+                    }
+                    function findResidueIndexByLabel(structure, asymId, seqNumber, insCode) {
+                        var _a = structure.chains, _asymId = _a.asymId, residueStartIndex = _a.residueStartIndex, residueEndIndex = _a.residueEndIndex, cCount = _a.count;
+                        var _b = structure.residues, _seqNumber = _b.seqNumber, _insCode = _b.insCode;
+                        for (var cI = 0; cI < cCount; cI++) {
+                            if (_asymId[cI] !== asymId)
+                                continue;
+                            for (var rI = residueStartIndex[cI], _r = residueEndIndex[cI]; rI < _r; rI++) {
+                                if (_seqNumber[rI] === seqNumber && _insCode[rI] === insCode)
+                                    return rI;
+                            }
+                        }
+                        return -1;
+                    }
+                    function findAtomIndexByLabelName(atoms, structure, residueIndex, atomName, altLoc) {
+                        var _a = structure.residues, atomStartIndex = _a.atomStartIndex, atomEndIndex = _a.atomEndIndex;
+                        var _atomName = atoms.name, _altLoc = atoms.altLoc;
+                        for (var i = atomStartIndex[residueIndex], _i = atomEndIndex[residueIndex]; i <= _i; i++) {
+                            if (_atomName[i] === atomName && _altLoc[i] === altLoc)
+                                return i;
+                        }
+                        return -1;
+                    }
+                    function getModRes(data) {
+                        var cat = data.getCategory('_pdbx_struct_mod_residue');
+                        if (!cat)
+                            return void 0;
+                        var table = Core.Utils.DataTable.ofDefinition(Core.Structure.Tables.ModifiedResidues, cat.rowCount);
+                        var label_asym_id = cat.getColumn('label_asym_id');
+                        var label_seq_id = cat.getColumn('label_seq_id');
+                        var PDB_ins_code = cat.getColumn('PDB_ins_code');
+                        var parent_comp_id = cat.getColumn('parent_comp_id');
+                        var _details = cat.getColumn('details');
+                        var asymId = table.asymId, seqNumber = table.seqNumber, insCode = table.insCode, parent = table.parent, details = table.details;
+                        for (var i = 0, __i = cat.rowCount; i < __i; i++) {
+                            asymId[i] = label_asym_id.getString(i);
+                            seqNumber[i] = label_seq_id.getInteger(i);
+                            insCode[i] = PDB_ins_code.getString(i);
+                            parent[i] = parent_comp_id.getString(i);
+                            details[i] = _details.getString(i);
+                        }
+                        return table;
+                    }
+                    function getStructConn(data, atoms, structure) {
+                        var cat = data.getCategory('_struct_conn');
+                        if (!cat)
+                            return void 0;
+                        var _idCols = function (i) { return ({
+                            label_asym_id: cat.getColumn('ptnr' + i + '_label_asym_id'),
+                            label_seq_id: cat.getColumn('ptnr' + i + '_label_seq_id'),
+                            label_atom_id: cat.getColumn('ptnr' + i + '_label_atom_id'),
+                            label_alt_id: cat.getColumn('pdbx_ptnr' + i + '_label_alt_id'),
+                            ins_code: cat.getColumn('pdbx_ptnr' + i + '_PDB_ins_code'),
+                            symmetry: cat.getColumn('ptnr' + i + '_symmetry')
+                        }); };
+                        var conn_type_id = cat.getColumn('conn_type_id');
+                        var pdbx_dist_value = cat.getColumn('pdbx_dist_value');
+                        var pdbx_value_order = cat.getColumn('pdbx_value_order');
+                        var p1 = _idCols(1);
+                        var p2 = _idCols(2);
+                        var p3 = _idCols(3);
+                        var _p = function (row, ps) {
+                            if (ps.label_asym_id.getValuePresence(row) !== 0 /* Present */)
+                                return void 0;
+                            var residueIndex = findResidueIndexByLabel(structure, ps.label_asym_id.getString(row), ps.label_seq_id.getInteger(row), ps.ins_code.getString(row));
+                            if (residueIndex < 0)
+                                return void 0;
+                            var atomIndex = findAtomIndexByLabelName(atoms, structure, residueIndex, ps.label_atom_id.getString(row), ps.label_alt_id.getString(row));
+                            if (atomIndex < 0)
+                                return void 0;
+                            return { residueIndex: residueIndex, atomIndex: atomIndex, symmetry: ps.symmetry.getString(row) || '1_555' };
+                        };
+                        var _ps = function (row) {
+                            var ret = [];
+                            var p = _p(row, p1);
+                            if (p)
+                                ret.push(p);
+                            p = _p(row, p2);
+                            if (p)
+                                ret.push(p);
+                            p = _p(row, p3);
+                            if (p)
+                                ret.push(p);
+                            return ret;
+                        };
+                        var entries = [];
+                        for (var i = 0; i < cat.rowCount; i++) {
+                            var partners = _ps(i);
+                            if (partners.length < 2)
+                                continue;
+                            var type = conn_type_id.getString(i);
+                            var orderType = (pdbx_value_order.getString(i) || '').toLowerCase();
+                            var bondType = 0 /* Unknown */;
+                            switch (orderType) {
+                                case 'sing':
+                                    bondType = 1 /* Single */;
+                                    break;
+                                case 'doub':
+                                    bondType = 2 /* Double */;
+                                    break;
+                                case 'trip':
+                                    bondType = 3 /* Triple */;
+                                    break;
+                                case 'quad':
+                                    bondType = 4 /* Aromatic */;
+                                    break;
+                            }
+                            switch (type) {
+                                case 'disulf':
+                                    bondType = 5 /* DisulfideBridge */;
+                                    break;
+                                case 'hydrog':
+                                    bondType = 8 /* Hydrogen */;
+                                    break;
+                                case 'metalc':
+                                    bondType = 6 /* Metallic */;
+                                    break;
+                                //case 'mismat': bondType = Structure.BondType.Single; break; 
+                                case 'saltbr':
+                                    bondType = 7 /* Ion */;
+                                    break;
+                            }
+                            entries.push({
+                                bondType: bondType,
+                                distance: pdbx_dist_value.getFloat(i),
+                                partners: partners
+                            });
+                        }
+                        return new Core.Structure.StructConn(entries);
                     }
                     function parseOperatorList(value) {
                         // '(X0)(1-5)' becomes [['X0']['1', '2', '3', '4', '5']]
@@ -12872,8 +13117,10 @@ var LiteMol;
                                     chains: structure.chains,
                                     entities: structure.entities,
                                     bonds: {
+                                        structConn: getStructConn(data, atoms, structure),
                                         component: getComponentBonds(data.getCategory('_chem_comp_bond'))
                                     },
+                                    modifiedResidues: getModRes(data),
                                     secondaryStructure: ss,
                                     symmetryInfo: getSymmetryInfo(data),
                                     assemblyInfo: getAssemblyInfo(data),
@@ -13186,36 +13433,36 @@ var LiteMol;
                                 this.writeRange(modelToken, cifTokens);
                             }
                         };
+                        ModelData.COLUMNS = [
+                            "_atom_site.group_PDB",
+                            "_atom_site.id",
+                            "_atom_site.type_symbol",
+                            "_atom_site.label_atom_id",
+                            "_atom_site.label_alt_id",
+                            "_atom_site.label_comp_id",
+                            "_atom_site.label_asym_id",
+                            "_atom_site.label_entity_id",
+                            "_atom_site.label_seq_id",
+                            "_atom_site.pdbx_PDB_ins_code",
+                            "_atom_site.Cartn_x",
+                            "_atom_site.Cartn_y",
+                            "_atom_site.Cartn_z",
+                            "_atom_site.occupancy",
+                            "_atom_site.B_iso_or_equiv",
+                            "_atom_site.Cartn_x_esd",
+                            "_atom_site.Cartn_y_esd",
+                            "_atom_site.Cartn_z_esd",
+                            "_atom_site.occupancy_esd",
+                            "_atom_site.B_iso_or_equiv_esd",
+                            "_atom_site.pdbx_formal_charge",
+                            "_atom_site.auth_seq_id",
+                            "_atom_site.auth_comp_id",
+                            "_atom_site.auth_asym_id",
+                            "_atom_site.auth_atom_id",
+                            "_atom_site.pdbx_PDB_model_num"
+                        ];
                         return ModelData;
                     }());
-                    ModelData.COLUMNS = [
-                        "_atom_site.group_PDB",
-                        "_atom_site.id",
-                        "_atom_site.type_symbol",
-                        "_atom_site.label_atom_id",
-                        "_atom_site.label_alt_id",
-                        "_atom_site.label_comp_id",
-                        "_atom_site.label_asym_id",
-                        "_atom_site.label_entity_id",
-                        "_atom_site.label_seq_id",
-                        "_atom_site.pdbx_PDB_ins_code",
-                        "_atom_site.Cartn_x",
-                        "_atom_site.Cartn_y",
-                        "_atom_site.Cartn_z",
-                        "_atom_site.occupancy",
-                        "_atom_site.B_iso_or_equiv",
-                        "_atom_site.Cartn_x_esd",
-                        "_atom_site.Cartn_y_esd",
-                        "_atom_site.Cartn_z_esd",
-                        "_atom_site.occupancy_esd",
-                        "_atom_site.B_iso_or_equiv_esd",
-                        "_atom_site.pdbx_formal_charge",
-                        "_atom_site.auth_seq_id",
-                        "_atom_site.auth_comp_id",
-                        "_atom_site.auth_asym_id",
-                        "_atom_site.auth_atom_id",
-                        "_atom_site.pdbx_PDB_model_num"
-                    ];
                     PDB.ModelData = ModelData;
                     var ModelsData = (function () {
                         function ModelsData(models) {
@@ -13305,7 +13552,7 @@ var LiteMol;
                             var end = this.moveToEndOfLine();
                             var length = end - start;
                             // invalid atom record
-                            if (length < 66)
+                            if (length < 60)
                                 return false;
                             //COLUMNS        DATA TYPE       CONTENTS                            
                             //--------------------------------------------------------------------------------
@@ -13361,9 +13608,14 @@ var LiteMol;
                             this.trim(start, start + 6);
                             Formats.TokenIndexBuilder.addToken(tokens, this.trimmedToken.start, this.trimmedToken.end);
                             //61 - 66        Real(6.2)       Temperature factor (Default = 0.0).                   
-                            start = startPos + 60;
-                            this.trim(start, start + 6);
-                            Formats.TokenIndexBuilder.addToken(tokens, this.trimmedToken.start, this.trimmedToken.end);
+                            if (length >= 66) {
+                                start = startPos + 60;
+                                this.trim(start, start + 6);
+                                Formats.TokenIndexBuilder.addToken(tokens, this.trimmedToken.start, this.trimmedToken.end);
+                            }
+                            else {
+                                Formats.TokenIndexBuilder.addToken(tokens, 0, 0);
+                            }
                             //73 - 76        LString(4)      Segment identifier, left-justified.   
                             // ignored
                             //77 - 78        LString(2)      Element symbol, right-justified.   
@@ -13406,7 +13658,7 @@ var LiteMol;
                             while (tokenizer.position < length) {
                                 var cont = true;
                                 switch (data.charCodeAt(tokenizer.position)) {
-                                    case 65:
+                                    case 65:// A 
                                         if (tokenizer.startsWith(tokenizer.position, "ATOM")) {
                                             if (!modelAtomTokens) {
                                                 modelAtomTokens = Formats.TokenIndexBuilder.create(4096);
@@ -13417,14 +13669,14 @@ var LiteMol;
                                                 return err;
                                         }
                                         break;
-                                    case 67:
+                                    case 67:// C
                                         if (tokenizer.startsWith(tokenizer.position, "CRYST1")) {
                                             var start = tokenizer.position;
                                             var end = tokenizer.moveToEndOfLine();
                                             cryst = new PDB.CrystStructureInfo(data.substring(start, end));
                                         }
                                         break;
-                                    case 69:
+                                    case 69:// E 
                                         if (tokenizer.startsWith(tokenizer.position, "ENDMDL") && atomCount > 0) {
                                             if (models.length === 0) {
                                                 modelIdToken = { start: data.length + 3, end: data.length + 4 };
@@ -13444,7 +13696,7 @@ var LiteMol;
                                             }
                                         }
                                         break;
-                                    case 72:
+                                    case 72:// H 
                                         if (tokenizer.startsWith(tokenizer.position, "HETATM")) {
                                             if (!modelAtomTokens) {
                                                 modelAtomTokens = Formats.TokenIndexBuilder.create(4096);
@@ -13455,7 +13707,7 @@ var LiteMol;
                                                 return err;
                                         }
                                         break;
-                                    case 77:
+                                    case 77://M
                                         if (tokenizer.startsWith(tokenizer.position, "MODEL")) {
                                             if (atomCount > 0) {
                                                 if (models.length === 0) {
@@ -13648,7 +13900,7 @@ var LiteMol;
                                 chains: chains,
                                 entities: entities,
                                 bonds: {
-                                    covalent: state.bonds,
+                                    input: state.bonds,
                                 },
                                 secondaryStructure: ss,
                                 symmetryInfo: void 0,
@@ -13784,6 +14036,9 @@ var LiteMol;
                         data[i] = value;
                     }
                 }
+                /**
+                 * A field with the Z axis being the slowest and the X being the fastest.
+                 */
                 var Field3DZYX = (function () {
                     function Field3DZYX(data, dimensions) {
                         this.data = data;
@@ -13817,61 +14072,21 @@ var LiteMol;
                     return Field3DZYX;
                 }());
                 Density.Field3DZYX = Field3DZYX;
-                var Data;
-                (function (Data) {
-                    function create(cellSize, cellAngles, origin, hasSkewMatrix, skewMatrix, data, dataDimensions, basis, valuesInfo, attributes) {
-                        return {
-                            cellSize: cellSize,
-                            cellAngles: cellAngles,
-                            origin: origin,
-                            hasSkewMatrix: hasSkewMatrix,
-                            skewMatrix: skewMatrix,
-                            data: data,
-                            basis: basis,
-                            dataDimensions: dataDimensions,
-                            valuesInfo: valuesInfo,
-                            attributes: attributes ? attributes : {},
-                            isNormalized: false
-                        };
-                    }
-                    Data.create = create;
-                    function normalize(densityData) {
-                        if (densityData.isNormalized)
-                            return;
-                        var data = densityData.data, _a = densityData.valuesInfo, mean = _a.mean, sigma = _a.sigma;
-                        var min = Number.POSITIVE_INFINITY, max = Number.NEGATIVE_INFINITY;
-                        for (var i = 0, _l = data.length; i < _l; i++) {
-                            var v = (data.getAt(i) - mean) / sigma;
-                            data.setAt(i, v);
-                            if (v < min)
-                                min = v;
-                            if (v > max)
-                                max = v;
-                        }
-                        densityData.valuesInfo.min = min;
-                        densityData.valuesInfo.max = max;
-                        densityData.isNormalized = true;
-                    }
-                    Data.normalize = normalize;
-                    function denormalize(densityData) {
-                        if (!densityData.isNormalized)
-                            return;
-                        var data = densityData.data, _a = densityData.valuesInfo, mean = _a.mean, sigma = _a.sigma;
-                        var min = Number.POSITIVE_INFINITY, max = Number.NEGATIVE_INFINITY;
-                        for (var i = 0, _l = data.length; i < _l; i++) {
-                            var v = sigma * data.getAt(i) + mean;
-                            data.setAt(i, v);
-                            if (v < min)
-                                min = v;
-                            if (v > max)
-                                max = v;
-                        }
-                        densityData.valuesInfo.min = min;
-                        densityData.valuesInfo.max = max;
-                        densityData.isNormalized = false;
-                    }
-                    Data.denormalize = denormalize;
-                })(Data = Density.Data || (Density.Data = {}));
+                function createSpacegroup(number, size, angles) {
+                    var alpha = (Math.PI / 180.0) * angles[0], beta = (Math.PI / 180.0) * angles[1], gamma = (Math.PI / 180.0) * angles[2];
+                    var xScale = size[0], yScale = size[1], zScale = size[2];
+                    var z1 = Math.cos(beta), z2 = (Math.cos(alpha) - Math.cos(beta) * Math.cos(gamma)) / Math.sin(gamma), z3 = Math.sqrt(1.0 - z1 * z1 - z2 * z2);
+                    var x = [xScale, 0.0, 0.0];
+                    var y = [Math.cos(gamma) * yScale, Math.sin(gamma) * yScale, 0.0];
+                    var z = [z1 * zScale, z2 * zScale, z3 * zScale];
+                    return {
+                        number: number,
+                        size: size,
+                        angles: angles,
+                        basis: { x: x, y: y, z: z }
+                    };
+                }
+                Density.createSpacegroup = createSpacegroup;
             })(Density = Formats.Density || (Formats.Density = {}));
         })(Formats = Core.Formats || (Core.Formats = {}));
     })(Core = LiteMol.Core || (LiteMol.Core = {}));
@@ -13910,13 +14125,14 @@ var LiteMol;
                          * Inspired by PyMOL implementation of the parser.
                          */
                         function parse(buffer) {
-                            var headerSize = 1024, endian = false, headerView = new DataView(buffer, 0, headerSize), warnings = [];
+                            var headerSize = 1024, headerView = new DataView(buffer, 0, headerSize), warnings = [];
+                            var endian = false;
                             var mode = headerView.getInt32(3 * 4, false);
                             if (mode !== 2) {
                                 endian = true;
                                 mode = headerView.getInt32(3 * 4, true);
                                 if (mode !== 2) {
-                                    return Formats.ParserResult.error("Only CCP4 modes 0 and 2 are supported.");
+                                    return Formats.ParserResult.error("Only CCP4 mode 2 is supported.");
                                 }
                             }
                             var readInt = function (o) { return headerView.getInt32(o * 4, endian); }, readFloat = function (o) { return headerView.getFloat32(o * 4, endian); };
@@ -13925,7 +14141,7 @@ var LiteMol;
                                 mode: mode,
                                 nxyzStart: getArray(readInt, 4, 3),
                                 grid: getArray(readInt, 7, 3),
-                                cellDimensions: getArray(readFloat, 10, 3),
+                                cellSize: getArray(readFloat, 10, 3),
                                 cellAngles: getArray(readFloat, 13, 3),
                                 crs2xyz: getArray(readInt, 16, 3),
                                 min: readFloat(19),
@@ -13956,8 +14172,8 @@ var LiteMol;
                                     return Formats.ParserResult.error("File is MUCH larger than expected and doesn't match header.");
                                 }
                             }
-                            //let mapp = readInt(52);
-                            //let mapStr = String.fromCharCode((mapp & 0xFF)) + String.fromCharCode(((mapp >> 8) & 0xFF)) + String.fromCharCode(((mapp >> 16) & 0xFF)) + String.fromCharCode(((mapp >> 24) & 0xFF));
+                            //const mapp = readInt(52);
+                            //const mapStr = String.fromCharCode((mapp & 0xFF)) + String.fromCharCode(((mapp >> 8) & 0xFF)) + String.fromCharCode(((mapp >> 16) & 0xFF)) + String.fromCharCode(((mapp >> 24) & 0xFF));
                             // pretend we've checked the MAP string at offset 52
                             // pretend we've read the symmetry data
                             if (header.grid[0] === 0 && header.extent[0] > 0) {
@@ -13976,29 +14192,21 @@ var LiteMol;
                                 warnings.push("All crs2xyz records are zero. Setting crs2xyz to 1, 2, 3.");
                                 header.crs2xyz = [1, 2, 3];
                             }
-                            if (header.cellDimensions[0] === 0.0 &&
-                                header.cellDimensions[1] === 0.0 &&
-                                header.cellDimensions[2] === 0.0) {
+                            if (header.cellSize[0] === 0.0 &&
+                                header.cellSize[1] === 0.0 &&
+                                header.cellSize[2] === 0.0) {
                                 warnings.push("Cell dimensions are all zero. Setting to 1.0, 1.0, 1.0. Map file will not align with other structures.");
-                                header.cellDimensions[0] = 1.0;
-                                header.cellDimensions[1] = 1.0;
-                                header.cellDimensions[2] = 1.0;
+                                header.cellSize[0] = 1.0;
+                                header.cellSize[1] = 1.0;
+                                header.cellSize[2] = 1.0;
                             }
-                            var alpha = (Math.PI / 180.0) * header.cellAngles[0], beta = (Math.PI / 180.0) * header.cellAngles[1], gamma = (Math.PI / 180.0) * header.cellAngles[2];
-                            var xScale = header.cellDimensions[0] / header.grid[0], yScale = header.cellDimensions[1] / header.grid[1], zScale = header.cellDimensions[2] / header.grid[2];
-                            var z1 = Math.cos(beta), z2 = (Math.cos(alpha) - Math.cos(beta) * Math.cos(gamma)) / Math.sin(gamma), z3 = Math.sqrt(1.0 - z1 * z1 - z2 * z2);
-                            var xAxis = [xScale, 0.0, 0.0], yAxis = [Math.cos(gamma) * yScale, Math.sin(gamma) * yScale, 0.0], zAxis = [z1 * zScale, z2 * zScale, z3 * zScale];
                             var indices = [0, 0, 0];
                             indices[header.crs2xyz[0] - 1] = 0;
                             indices[header.crs2xyz[1] - 1] = 1;
                             indices[header.crs2xyz[2] - 1] = 2;
-                            var origin;
+                            var originGrid;
                             if (header.origin2k[0] === 0.0 && header.origin2k[1] === 0.0 && header.origin2k[2] === 0.0) {
-                                origin = [
-                                    xAxis[0] * header.nxyzStart[indices[0]] + yAxis[0] * header.nxyzStart[indices[1]] + zAxis[0] * header.nxyzStart[indices[2]],
-                                    yAxis[1] * header.nxyzStart[indices[1]] + zAxis[1] * header.nxyzStart[indices[2]],
-                                    zAxis[2] * header.nxyzStart[indices[2]]
-                                ];
+                                originGrid = [header.nxyzStart[indices[0]], header.nxyzStart[indices[1]], header.nxyzStart[indices[2]]];
                             }
                             else {
                                 // Use ORIGIN records rather than old n[xyz]start records
@@ -14006,32 +14214,29 @@ var LiteMol;
                                 // XXX the ORIGIN field is only used by the EM community, and
                                 //     has undefined meaning for non-orthogonal maps and/or
                                 //     non-cubic voxels, etc.
-                                origin = [header.origin2k[indices[0]], header.origin2k[indices[1]], header.origin2k[indices[2]]];
+                                originGrid = [header.origin2k[indices[0]], header.origin2k[indices[1]], header.origin2k[indices[2]]];
                             }
                             var extent = [header.extent[indices[0]], header.extent[indices[1]], header.extent[indices[2]]];
-                            var skewMatrix = new Float32Array(16), i, j;
-                            for (i = 0; i < 3; i++) {
-                                for (j = 0; j < 3; j++) {
-                                    skewMatrix[4 * j + i] = header.skewMatrix[3 * i + j];
-                                }
-                                skewMatrix[12 + i] = header.skewTranslation[i];
-                            }
                             var nativeEndian = new Uint16Array(new Uint8Array([0x12, 0x34]).buffer)[0] === 0x3412;
                             var rawData = endian === nativeEndian
                                 ? readRawData1(new Float32Array(buffer, headerSize + header.symBytes, extent[0] * extent[1] * extent[2]), endian, extent, header.extent, indices, header.mean)
                                 : readRawData(new DataView(buffer, headerSize + header.symBytes), endian, extent, header.extent, indices, header.mean);
                             var field = new Density.Field3DZYX(rawData.data, extent);
-                            var data = Density.Data.create(header.cellDimensions, header.cellAngles, origin, header.skewFlag !== 0, skewMatrix, field, extent, { x: xAxis, y: yAxis, z: zAxis }, 
-                            //[header.nxyzStart[indices[0]], header.nxyzStart[indices[1]], header.nxyzStart[indices[2]]],
-                            { min: header.min, max: header.max, mean: header.mean, sigma: rawData.sigma }, { spacegroupIndex: header.spacegroupNumber - 1 });
+                            var data = {
+                                spacegroup: Density.createSpacegroup(header.spacegroupNumber, header.cellSize, header.cellAngles),
+                                box: {
+                                    origin: [originGrid[0] / header.grid[0], originGrid[1] / header.grid[1], originGrid[2] / header.grid[2]],
+                                    dimensions: [extent[0] / header.grid[0], extent[1] / header.grid[1], extent[2] / header.grid[2]],
+                                    sampleCount: extent
+                                },
+                                data: field,
+                                valuesInfo: { min: header.min, max: header.max, mean: header.mean, sigma: rawData.sigma }
+                            };
                             return Formats.ParserResult.success(data, warnings);
                         }
                         Parser.parse = parse;
                         function readRawData1(view, endian, extent, headerExtent, indices, mean) {
                             var data = new Float32Array(extent[0] * extent[1] * extent[2]), coord = [0, 0, 0], mX, mY, mZ, cX, cY, cZ, xSize, xySize, offset = 0, v = 0.1, sigma = 0.0, t = 0.1, iX = indices[0], iY = indices[1], iZ = indices[2];
-                            //mX = extent[indices[0]];
-                            //mY = extent[indices[1]];  
-                            //mZ = extent[indices[2]];
                             mX = headerExtent[0];
                             mY = headerExtent[1];
                             mZ = headerExtent[2];
@@ -14106,12 +14311,66 @@ var LiteMol;
                 var CIF;
                 (function (CIF) {
                     function parse(block) {
-                        return Parser.parse(block);
+                        if (block.getCategory('_density_info'))
+                            return Parser.parseLegacy(block);
+                        else if (block.getCategory('_volume_data_3d_info'))
+                            return Parser.parse(block);
+                        return Formats.ParserResult.error('Invalid data format.');
                     }
                     CIF.parse = parse;
                     var Parser;
                     (function (Parser) {
                         function parse(block) {
+                            var info = block.getCategory('_volume_data_3d_info');
+                            if (!info)
+                                return Formats.ParserResult.error('_volume_data_3d_info category is missing.');
+                            if (!block.getCategory('_volume_data_3d'))
+                                return Formats.ParserResult.error('_volume_data_3d category is missing.');
+                            function getVector3(name) {
+                                var ret = [0, 0, 0];
+                                for (var i = 0; i < 3; i++) {
+                                    ret[i] = info.getColumn(name + "[" + i + "]").getFloat(0);
+                                }
+                                return ret;
+                            }
+                            function getNum(name) { return info.getColumn(name).getFloat(0); }
+                            var header = {
+                                name: info.getColumn('name').getString(0),
+                                axisOrder: getVector3('axis_order'),
+                                origin: getVector3('origin'),
+                                dimensions: getVector3('dimensions'),
+                                sampleCount: getVector3('sample_count'),
+                                spacegroupNumber: getNum('spacegroup_number') | 0,
+                                cellSize: getVector3('spacegroup_cell_size'),
+                                cellAngles: getVector3('spacegroup_cell_angles'),
+                                mean: getNum('mean_sampled'),
+                                sigma: getNum('sigma_sampled')
+                            };
+                            var indices = [0, 0, 0];
+                            indices[header.axisOrder[0]] = 0;
+                            indices[header.axisOrder[1]] = 1;
+                            indices[header.axisOrder[2]] = 2;
+                            function normalizeOrder(xs) {
+                                return [xs[indices[0]], xs[indices[1]], xs[indices[2]]];
+                            }
+                            var sampleCount = normalizeOrder(header.sampleCount);
+                            var rawData = readValues(block.getCategory('_volume_data_3d').getColumn('values'), sampleCount, header.sampleCount, indices);
+                            var field = new Density.Field3DZYX(rawData.data, sampleCount);
+                            var data = {
+                                name: header.name,
+                                spacegroup: Density.createSpacegroup(header.spacegroupNumber, header.cellSize, header.cellAngles),
+                                box: {
+                                    origin: normalizeOrder(header.origin),
+                                    dimensions: normalizeOrder(header.dimensions),
+                                    sampleCount: sampleCount
+                                },
+                                data: field,
+                                valuesInfo: { min: rawData.min, max: rawData.max, mean: header.mean, sigma: header.sigma }
+                            };
+                            return Formats.ParserResult.success(data);
+                        }
+                        Parser.parse = parse;
+                        function parseLegacy(block) {
                             var info = block.getCategory('_density_info');
                             if (!info)
                                 return Formats.ParserResult.error('_density_info category is missing.');
@@ -14137,49 +14396,50 @@ var LiteMol;
                                 sigma: getNum('sigma'),
                                 spacegroupNumber: getNum('spacegroup_number') | 0,
                             };
-                            var alpha = (Math.PI / 180.0) * header.cellAngles[0], beta = (Math.PI / 180.0) * header.cellAngles[1], gamma = (Math.PI / 180.0) * header.cellAngles[2];
-                            var xScale = header.cellSize[0] / header.grid[0], yScale = header.cellSize[1] / header.grid[1], zScale = header.cellSize[2] / header.grid[2];
-                            var z1 = Math.cos(beta), z2 = (Math.cos(alpha) - Math.cos(beta) * Math.cos(gamma)) / Math.sin(gamma), z3 = Math.sqrt(1.0 - z1 * z1 - z2 * z2);
-                            var xAxis = [xScale, 0.0, 0.0], yAxis = [Math.cos(gamma) * yScale, Math.sin(gamma) * yScale, 0.0], zAxis = [z1 * zScale, z2 * zScale, z3 * zScale];
                             var indices = [0, 0, 0];
                             indices[header.axisOrder[0]] = 0;
                             indices[header.axisOrder[1]] = 1;
                             indices[header.axisOrder[2]] = 2;
-                            var d = [header.origin[indices[0]], header.origin[indices[1]], header.origin[indices[2]]];
-                            var origin = [
-                                xAxis[0] * d[0] + yAxis[0] * d[1] + zAxis[0] * d[2],
-                                yAxis[1] * d[1] + zAxis[1] * d[2],
-                                zAxis[2] * d[2]
-                            ];
-                            var extent = [header.extent[indices[0]], header.extent[indices[1]], header.extent[indices[2]]];
-                            var rawData = readRawData1(block.getCategory('_density_data').getColumn('values'), extent, header.extent, indices, header.mean);
-                            var field = new Density.Field3DZYX(rawData.data, extent);
-                            var data = Density.Data.create(header.cellSize, header.cellAngles, origin, false, void 0, field, extent, { x: xAxis, y: yAxis, z: zAxis }, 
-                            //[header.axisOrder[indices[0]], header.axisOrder[indices[1]], header.axisOrder[indices[2]]],
-                            { min: rawData.min, max: rawData.max, mean: header.mean, sigma: header.sigma }, { spacegroupIndex: header.spacegroupNumber - 1, name: header.name });
+                            var originGrid = [header.origin[indices[0]], header.origin[indices[1]], header.origin[indices[2]]];
+                            var xyzSampleCount = [header.extent[indices[0]], header.extent[indices[1]], header.extent[indices[2]]];
+                            var rawData = readValues(block.getCategory('_density_data').getColumn('values'), xyzSampleCount, header.extent, indices);
+                            var field = new Density.Field3DZYX(rawData.data, xyzSampleCount);
+                            var data = {
+                                name: header.name,
+                                spacegroup: Density.createSpacegroup(header.spacegroupNumber, header.cellSize, header.cellAngles),
+                                box: {
+                                    origin: [originGrid[0] / header.grid[0], originGrid[1] / header.grid[1], originGrid[2] / header.grid[2]],
+                                    dimensions: [xyzSampleCount[0] / header.grid[0], xyzSampleCount[1] / header.grid[1], xyzSampleCount[2] / header.grid[2]],
+                                    sampleCount: xyzSampleCount
+                                },
+                                data: field,
+                                valuesInfo: { min: rawData.min, max: rawData.max, mean: header.mean, sigma: header.sigma }
+                            };
                             return Formats.ParserResult.success(data);
                         }
-                        Parser.parse = parse;
-                        function readRawData1(col, extent, headerExtent, indices, mean) {
-                            var data = new Float32Array(extent[0] * extent[1] * extent[2]), coord = [0, 0, 0], mX, mY, mZ, cX, cY, cZ, xSize, xySize, offset = 0, v = 0.1, min = Number.POSITIVE_INFINITY, max = Number.NEGATIVE_INFINITY, iX = indices[0], iY = indices[1], iZ = indices[2];
-                            mX = headerExtent[0];
-                            mY = headerExtent[1];
-                            mZ = headerExtent[2];
-                            xSize = extent[0];
-                            xySize = extent[0] * extent[1];
-                            for (cZ = 0; cZ < mZ; cZ++) {
+                        Parser.parseLegacy = parseLegacy;
+                        function readValues(col, xyzSampleCount, sampleCount, axisIndices) {
+                            var data = new Float32Array(xyzSampleCount[0] * xyzSampleCount[1] * xyzSampleCount[2]);
+                            var coord = [0, 0, 0];
+                            var iX = axisIndices[0], iY = axisIndices[1], iZ = axisIndices[2];
+                            var mX = sampleCount[0], mY = sampleCount[1], mZ = sampleCount[2];
+                            var xSize = xyzSampleCount[0];
+                            var xySize = xyzSampleCount[0] * xyzSampleCount[1];
+                            var offset = 0;
+                            var min = col.getFloat(0), max = min;
+                            for (var cZ = 0; cZ < mZ; cZ++) {
                                 coord[2] = cZ;
-                                for (cY = 0; cY < mY; cY++) {
+                                for (var cY = 0; cY < mY; cY++) {
                                     coord[1] = cY;
-                                    for (cX = 0; cX < mX; cX++) {
+                                    for (var cX = 0; cX < mX; cX++) {
                                         coord[0] = cX;
-                                        v = col.getFloat(offset);
+                                        var v = col.getFloat(offset);
+                                        offset += 1;
+                                        data[coord[iX] + coord[iY] * xSize + coord[iZ] * xySize] = v;
                                         if (v < min)
                                             min = v;
                                         else if (v > max)
                                             max = v;
-                                        data[coord[iX] + coord[iY] * xSize + coord[iZ] * xySize] = v;
-                                        offset += 1;
                                     }
                                 }
                             }
@@ -14187,229 +14447,6 @@ var LiteMol;
                         }
                     })(Parser || (Parser = {}));
                 })(CIF = Density.CIF || (Density.CIF = {}));
-            })(Density = Formats.Density || (Formats.Density = {}));
-        })(Formats = Core.Formats || (Core.Formats = {}));
-    })(Core = LiteMol.Core || (LiteMol.Core = {}));
-})(LiteMol || (LiteMol = {}));
-/*
- * Copyright (c) 2016 - now David Sehnal, licensed under Apache 2.0, See LICENSE file for more info.
- */
-var LiteMol;
-(function (LiteMol) {
-    var Core;
-    (function (Core) {
-        var Formats;
-        (function (Formats) {
-            var Density;
-            (function (Density) {
-                var DSN6;
-                (function (DSN6) {
-                    function parse(buffer) {
-                        return Parser.parse(buffer);
-                    }
-                    DSN6.parse = parse;
-                    function remove(arrOriginal, elementToRemove) {
-                        return arrOriginal.filter(function (el) { return el !== elementToRemove; });
-                    }
-                    /**
-                     * Parses DSN6 files.
-                     */
-                    var Parser;
-                    (function (Parser) {
-                        /**
-                         * Parse DNS6 file.
-                         */
-                        function parse(buffer) {
-                            var headerSize = 512, endian = false, 
-                            //headerView = new DataView(buffer, 0, headerSize),
-                            headerView = new Uint8Array(buffer, 0, headerSize), 
-                            //sheaderView = String.fromCharCode.apply(null, new Uint8Array(headerView)),
-                            sheaderView = String.fromCharCode.apply(null, headerView), n1 = sheaderView.search('origin'), n2 = sheaderView.search('extent'), n3 = sheaderView.search('grid'), n4 = sheaderView.search('cell'), n5 = sheaderView.search('prod'), n6 = sheaderView.search('plus'), n7 = sheaderView.search('sigma'), sn1 = sheaderView.substring(n1 + 'origin'.length, n2).replace(' ', '').split(' '), sn1xx = remove(sn1, ''), sn2 = sheaderView.substring(n2 + 'extent'.length, n3).split(' '), sn2xx = remove(sn2, ''), sn3 = sheaderView.substring(n3 + 'grid'.length, n4).split(' '), sn3xx = remove(sn3, ''), sn4 = sheaderView.substring(n4 + 'cell'.length, n5).split(' '), sn4xx = remove(sn4, ''), sn5 = sheaderView.substring(n5 + 'prod'.length, n6).split(' '), sn5xx = remove(sn5, ''), sn6 = sheaderView.substring(n6 + 'plus'.length, n7).split(' '), sn6xx = remove(sn6, ''), warnings = [];
-                            var mode = 0;
-                            var header = {
-                                extent: sn2xx.map(function (v) { return parseInt(v); }),
-                                mode: mode,
-                                nxyzStart: [0, 0, 0],
-                                grid: sn3xx.map(function (v) { return parseInt(v); }),
-                                cellDimensions: sn4xx.slice(0, 3).map(function (v) { return parseFloat(v); }),
-                                cellAngles: sn4xx.slice(3, 6).map(function (v) { return parseFloat(v); }),
-                                crs2xyz: [1, 2, 3],
-                                min: 0.0,
-                                max: 0.0,
-                                mean: 0.0,
-                                symBytes: 0,
-                                skewFlag: 0,
-                                skewMatrix: 0,
-                                skewTranslation: 0,
-                                origin2k: sn1xx.map(function (v) { return parseFloat(v); }),
-                                prod: sn5xx.map(function (v) { return parseFloat(v); })[0],
-                                plus: sn6xx.map(function (v) { return parseFloat(v); })[0]
-                            };
-                            var dataOffset = 512;
-                            if (dataOffset !== headerSize + header.symBytes) {
-                                if (dataOffset === headerSize) {
-                                    warnings.push("File contains bogus symmetry record.");
-                                }
-                                else if (dataOffset < headerSize) {
-                                    return Formats.ParserResult.error("File appears truncated and doesn't match header.");
-                                }
-                                else if ((dataOffset > headerSize) && (dataOffset < (1024 * 1024))) {
-                                    // Fix for loading SPIDER files which are larger than usual
-                                    // In this specific case, we must absolutely trust the symBytes record
-                                    dataOffset = headerSize + header.symBytes;
-                                    warnings.push("File is larger than expected and doesn't match header. Continuing file load, good luck!");
-                                }
-                                else {
-                                    return Formats.ParserResult.error("File is MUCH larger than expected and doesn't match header.");
-                                }
-                            }
-                            // pretend we've checked the MAP string at offset 52
-                            // pretend we've read the symmetry data
-                            if (header.grid[0] === 0 && header.extent[0] > 0) {
-                                header.grid[0] = header.extent[0] - 1;
-                                warnings.push("Fixed X interval count.");
-                            }
-                            if (header.grid[1] === 0 && header.extent[1] > 0) {
-                                header.grid[1] = header.extent[1] - 1;
-                                warnings.push("Fixed Y interval count.");
-                            }
-                            if (header.grid[2] === 0 && header.extent[2] > 0) {
-                                header.grid[2] = header.extent[2] - 1;
-                                warnings.push("Fixed Z interval count.");
-                            }
-                            if (header.crs2xyz[0] === 0 && header.crs2xyz[1] === 0 && header.crs2xyz[2] === 0) {
-                                warnings.push("All crs2xyz records are zero. Setting crs2xyz to 1, 2, 3.");
-                                header.crs2xyz = [1, 2, 3];
-                            }
-                            if (header.cellDimensions[0] === 0.0 &&
-                                header.cellDimensions[1] === 0.0 &&
-                                header.cellDimensions[2] === 0.0) {
-                                warnings.push("Cell dimensions are all zero. Setting to 1.0, 1.0, 1.0. Map file will not align with other structures.");
-                                header.cellDimensions[0] = 1.0;
-                                header.cellDimensions[1] = 1.0;
-                                header.cellDimensions[2] = 1.0;
-                            }
-                            var alpha = (Math.PI / 180.0) * header.cellAngles[0], beta = (Math.PI / 180.0) * header.cellAngles[1], gamma = (Math.PI / 180.0) * header.cellAngles[2];
-                            var xScale = header.cellDimensions[0] / header.grid[0], yScale = header.cellDimensions[1] / header.grid[1], zScale = header.cellDimensions[2] / header.grid[2];
-                            var z1 = Math.cos(beta), z2 = (Math.cos(alpha) - Math.cos(beta) * Math.cos(gamma)) / Math.sin(gamma), z3 = Math.sqrt(1.0 - z1 * z1 - z2 * z2);
-                            var xAxis = [xScale, 0.0, 0.0], yAxis = [Math.cos(gamma) * yScale, Math.sin(gamma) * yScale, 0.0], zAxis = [z1 * zScale, z2 * zScale, z3 * zScale];
-                            var indices = [0, 0, 0];
-                            indices[header.crs2xyz[0] - 1] = 0;
-                            indices[header.crs2xyz[1] - 1] = 1;
-                            indices[header.crs2xyz[2] - 1] = 2;
-                            var origin;
-                            if (header.origin2k[0] === 0.0 && header.origin2k[1] === 0.0 && header.origin2k[2] === 0.0) {
-                                origin = [
-                                    xAxis[0] * header.nxyzStart[indices[0]] + yAxis[0] * header.nxyzStart[indices[1]] + zAxis[0] * header.nxyzStart[indices[2]],
-                                    yAxis[1] * header.nxyzStart[indices[1]] + zAxis[1] * header.nxyzStart[indices[2]],
-                                    zAxis[2] * header.nxyzStart[indices[2]]
-                                ];
-                            }
-                            else {
-                                // Use ORIGIN records rather than old n[xyz]start records
-                                //   http://www2.mrc-lmb.cam.ac.uk/image2000.html
-                                // XXX the ORIGIN field is only used by the EM community, and
-                                //     has undefined meaning for non-orthogonal maps and/or
-                                //     non-cubic voxels, etc.
-                                origin = [header.origin2k[indices[0]], header.origin2k[indices[1]], header.origin2k[indices[2]]];
-                            }
-                            var extent = [header.extent[indices[0]], header.extent[indices[1]], header.extent[indices[2]]];
-                            var skewMatrix = new Float32Array(16), i, j;
-                            for (i = 0; i < 3; i++) {
-                                for (j = 0; j < 3; j++) {
-                                    skewMatrix[4 * j + i] = 0.0; //header.skewMatrix[3 * i + j];
-                                }
-                                skewMatrix[12 + i] = 0.0; //header.skewTranslation[i];
-                            }
-                            var nativeEndian = new Uint16Array(new Uint8Array([0x12, 0x34]).buffer)[0] === 0x3412;
-                            endian = nativeEndian;
-                            var rawData = readRawData(new Uint8Array(buffer, headerSize + header.symBytes), endian, extent, header.extent, indices, header.mean, header.prod, header.plus);
-                            var field = new Density.Field3DZYX(rawData.data, extent);
-                            var data = Density.Data.create(header.cellDimensions, header.cellAngles, origin, header.skewFlag !== 0, skewMatrix, field, extent, { x: xAxis, y: yAxis, z: zAxis }, 
-                            //[header.nxyzStart[indices[0]], header.nxyzStart[indices[1]], header.nxyzStart[indices[2]]],
-                            { min: rawData.minj, max: rawData.maxj, mean: rawData.meanj, sigma: rawData.sigma }, { prod: header.prod, plus: header.plus }); //! added attributes property to store additional information
-                            return Formats.ParserResult.success(data, warnings);
-                        }
-                        Parser.parse = parse;
-                        //////////////////////////////////////////////////////////////////////////////////////////
-                        function readRawData(bytes, endian, extent, headerExtent, indices, mean, prod, plus) {
-                            //! DataView is generally a LOT slower than Uint8Array. For performance reasons I think it would be better to use that.
-                            //! Endian has no effect on individual bytes anyway to my knowledge.
-                            var mX, mY, mZ, cX, cY, cZ, xSize, xySize, offset = 0, v = 0.1, sigma = 0.0, t = 0.1, mi, mj, mk, x, y, z, minj = 0, maxj = 0, meanj = 0, block_size = 8, block_sizez = 8, block_sizey = 8, block_sizex = 8, bsize3 = block_size * block_size * block_size;
-                            //! I think this will need some fixing, because the values are non-integer
-                            //! A small perf trick: use 'value | 0' to tell the runtime the value is an integer.
-                            mX = headerExtent[0] / 8;
-                            mY = headerExtent[1] / 8;
-                            mZ = headerExtent[2] / 8;
-                            //In case of extra cubes
-                            /*
-                            if (headerExtent[0]%8>0) mX++;
-                            if (headerExtent[1]%8>0) mY++;
-                            if (headerExtent[2]%8>0) mZ++;
-                            xxtra=(headerExtent[0]%8);
-                            yxtra=(headerExtent[1]%8);
-                            zxtra=(headerExtent[2]%8);
-                            */
-                            var data = new Float32Array(8 * mX * 8 * mY * 8 * mZ);
-                            xSize = 8 * mX;
-                            xySize = 8 * 8 * mX * mY; //extent[0] * extent[1];
-                            minj = 0.0;
-                            maxj = 0.0;
-                            meanj = 0.0;
-                            //////////////////////////////////////////////////////////////
-                            for (mi = 0; mi < (bsize3 * mX * mY * mZ); mi++) {
-                                v = (bytes[mi] - plus) / prod;
-                                meanj += v;
-                                if (v < minj)
-                                    minj = v;
-                                if (v > maxj)
-                                    maxj = v;
-                            }
-                            //meanj/=(mX*mY*mZ*bsize3);
-                            meanj /= (bsize3 * mX * mY * mZ);
-                            for (cZ = 0; cZ < mZ; cZ++) {
-                                for (cY = 0; cY < mY; cY++) {
-                                    for (cX = 0; cX < mX; cX++) {
-                                        //! cX is suppoed to change the fastest because of the memory layout of the 1D array 
-                                        //if(xxtra>0 && mZ-cZ<=1.0) block_sizez=zxtra;
-                                        //if(xxtra>0 && mY-cY<=1.0) block_sizey=yxtra;
-                                        //if(xxtra>0 && mX-cX<=1.0) block_sizex=xxtra;
-                                        //! changed the ordering mi == X coord, was Z; mk == Z coord, was X
-                                        for (mk = 0; mk < block_sizez; mk++) {
-                                            for (mj = 0; mj < block_sizey; mj++) {
-                                                for (mi = 0; mi < block_sizex; mi++) {
-                                                    v = (bytes[offset + mi + 8 * mj + 8 * 8 * mk] - plus) / prod;
-                                                    //offset+=1;
-                                                    x = (block_sizex * cX + mi);
-                                                    y = (block_sizey * cY + mj);
-                                                    z = (block_sizez * cZ + mk);
-                                                    //! swapped x and z here.
-                                                    data[x + xSize * y + xySize * z] = v;
-                                                    t = v - meanj;
-                                                    sigma += t * t;
-                                                }
-                                            }
-                                        }
-                                        offset += bsize3;
-                                    }
-                                }
-                            }
-                            sigma /= (bsize3 * mX * mY * mZ);
-                            sigma = Math.sqrt(sigma);
-                            //  console.log(sigma);
-                            //  console.log(minj);
-                            //  console.log(maxj);
-                            //  console.log(meanj);
-                            return {
-                                data: data,
-                                sigma: sigma,
-                                minj: minj,
-                                maxj: maxj,
-                                meanj: meanj
-                            };
-                        }
-                    })(Parser || (Parser = {}));
-                })(DSN6 = Density.DSN6 || (Density.DSN6 = {}));
             })(Density = Formats.Density || (Formats.Density = {}));
         })(Formats = Core.Formats || (Core.Formats = {}));
     })(Core = LiteMol.Core || (LiteMol.Core = {}));
@@ -14441,8 +14478,7 @@ var LiteMol;
                 var SupportedFormats;
                 (function (SupportedFormats) {
                     SupportedFormats.CCP4 = { name: 'CCP4', shortcuts: ['ccp4', 'map'], extensions: ['.ccp4', '.map'], isBinary: true, parse: function (data) { return parse(data, 'CCP4', function (d) { return Density.CCP4.parse(d); }); } };
-                    SupportedFormats.DSN6 = { name: 'DSN6', shortcuts: ['dsn6'], extensions: ['.dsn6'], isBinary: true, parse: function (data) { return parse(data, 'DSN6', function (d) { return Density.DSN6.parse(d); }); } };
-                    SupportedFormats.All = [SupportedFormats.CCP4, SupportedFormats.DSN6];
+                    SupportedFormats.All = [SupportedFormats.CCP4];
                 })(SupportedFormats = Density.SupportedFormats || (Density.SupportedFormats = {}));
             })(Density = Formats.Density || (Formats.Density = {}));
         })(Formats = Core.Formats || (Core.Formats = {}));
@@ -14470,20 +14506,23 @@ var LiteMol;
                  * copies of the Software, and to permit persons to whom the Software is
                  * furnished to do so, subject to the following conditions:
                  */
-                var makeArray = (typeof Float64Array !== 'undefined')
-                    ? function (size) { return (new Float64Array(size)); }
-                    : function (size) { return []; };
+                function Matrix4() {
+                    return Matrix4.zero();
+                }
+                LinearAlgebra.Matrix4 = Matrix4;
                 /**
                  * Stores a 4x4 matrix in a column major (j * 4 + i indexing) format.
                  */
-                var Matrix4;
                 (function (Matrix4) {
-                    function empty() {
-                        return makeArray(16);
+                    function zero() {
+                        // force double backing array by 0.1.
+                        var ret = [0.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                        ret[0] = 0.0;
+                        return ret;
                     }
-                    Matrix4.empty = empty;
+                    Matrix4.zero = zero;
                     function identity() {
-                        var out = makeArray(16);
+                        var out = zero();
                         out[0] = 1;
                         out[1] = 0;
                         out[2] = 0;
@@ -14503,8 +14542,28 @@ var LiteMol;
                         return out;
                     }
                     Matrix4.identity = identity;
+                    function fromIdentity(mat) {
+                        mat[0] = 1;
+                        mat[1] = 0;
+                        mat[2] = 0;
+                        mat[3] = 0;
+                        mat[4] = 0;
+                        mat[5] = 1;
+                        mat[6] = 0;
+                        mat[7] = 0;
+                        mat[8] = 0;
+                        mat[9] = 0;
+                        mat[10] = 1;
+                        mat[11] = 0;
+                        mat[12] = 0;
+                        mat[13] = 0;
+                        mat[14] = 0;
+                        mat[15] = 1;
+                        return mat;
+                    }
+                    Matrix4.fromIdentity = fromIdentity;
                     function ofRows(rows) {
-                        var out = makeArray(16), i, j, r;
+                        var out = zero(), i, j, r;
                         for (i = 0; i < 4; i++) {
                             r = rows[i];
                             for (j = 0; j < 4; j++) {
@@ -14548,7 +14607,7 @@ var LiteMol;
                     }
                     Matrix4.copy = copy;
                     function clone(a) {
-                        return Matrix4.copy(Matrix4.empty(), a);
+                        return Matrix4.copy(Matrix4.zero(), a);
                     }
                     Matrix4.clone = clone;
                     function invert(out, a) {
@@ -14613,6 +14672,10 @@ var LiteMol;
                         return out;
                     }
                     Matrix4.mul = mul;
+                    function mul3(out, a, b, c) {
+                        return mul(out, mul(out, a, b), c);
+                    }
+                    Matrix4.mul3 = mul3;
                     function translate(out, a, v) {
                         var x = v[0], y = v[1], z = v[2], a00, a01, a02, a03, a10, a11, a12, a13, a20, a21, a22, a23;
                         if (a === out) {
@@ -14674,15 +14737,135 @@ var LiteMol;
                         return out;
                     }
                     Matrix4.fromTranslation = fromTranslation;
-                    function transformVector3(out, a, m) {
-                        var x = a.x, y = a.y, z = a.z;
-                        out.x = m[0] * x + m[4] * y + m[8] * z + m[12];
-                        out.y = m[1] * x + m[5] * y + m[9] * z + m[13];
-                        out.z = m[2] * x + m[6] * y + m[10] * z + m[14];
-                        //out[3] = m[3] * x + m[7] * y + m[11] * z + m[15] * w;
+                    function rotate(out, a, rad, axis) {
+                        var x = axis[0], y = axis[1], z = axis[2], len = Math.sqrt(x * x + y * y + z * z), s, c, t, a00, a01, a02, a03, a10, a11, a12, a13, a20, a21, a22, a23, b00, b01, b02, b10, b11, b12, b20, b21, b22;
+                        if (Math.abs(len) < 0.000001 /* Value */) {
+                            return null;
+                        }
+                        len = 1 / len;
+                        x *= len;
+                        y *= len;
+                        z *= len;
+                        s = Math.sin(rad);
+                        c = Math.cos(rad);
+                        t = 1 - c;
+                        a00 = a[0];
+                        a01 = a[1];
+                        a02 = a[2];
+                        a03 = a[3];
+                        a10 = a[4];
+                        a11 = a[5];
+                        a12 = a[6];
+                        a13 = a[7];
+                        a20 = a[8];
+                        a21 = a[9];
+                        a22 = a[10];
+                        a23 = a[11];
+                        // Construct the elements of the rotation matrix
+                        b00 = x * x * t + c;
+                        b01 = y * x * t + z * s;
+                        b02 = z * x * t - y * s;
+                        b10 = x * y * t - z * s;
+                        b11 = y * y * t + c;
+                        b12 = z * y * t + x * s;
+                        b20 = x * z * t + y * s;
+                        b21 = y * z * t - x * s;
+                        b22 = z * z * t + c;
+                        // Perform rotation-specific matrix multiplication
+                        out[0] = a00 * b00 + a10 * b01 + a20 * b02;
+                        out[1] = a01 * b00 + a11 * b01 + a21 * b02;
+                        out[2] = a02 * b00 + a12 * b01 + a22 * b02;
+                        out[3] = a03 * b00 + a13 * b01 + a23 * b02;
+                        out[4] = a00 * b10 + a10 * b11 + a20 * b12;
+                        out[5] = a01 * b10 + a11 * b11 + a21 * b12;
+                        out[6] = a02 * b10 + a12 * b11 + a22 * b12;
+                        out[7] = a03 * b10 + a13 * b11 + a23 * b12;
+                        out[8] = a00 * b20 + a10 * b21 + a20 * b22;
+                        out[9] = a01 * b20 + a11 * b21 + a21 * b22;
+                        out[10] = a02 * b20 + a12 * b21 + a22 * b22;
+                        out[11] = a03 * b20 + a13 * b21 + a23 * b22;
+                        if (a !== out) {
+                            out[12] = a[12];
+                            out[13] = a[13];
+                            out[14] = a[14];
+                            out[15] = a[15];
+                        }
                         return out;
                     }
-                    Matrix4.transformVector3 = transformVector3;
+                    Matrix4.rotate = rotate;
+                    function fromRotation(out, rad, axis) {
+                        var x = axis[0], y = axis[1], z = axis[2], len = Math.sqrt(x * x + y * y + z * z), s, c, t;
+                        if (Math.abs(len) < 0.000001 /* Value */) {
+                            return fromIdentity(out);
+                        }
+                        len = 1 / len;
+                        x *= len;
+                        y *= len;
+                        z *= len;
+                        s = Math.sin(rad);
+                        c = Math.cos(rad);
+                        t = 1 - c;
+                        // Perform rotation-specific matrix multiplication
+                        out[0] = x * x * t + c;
+                        out[1] = y * x * t + z * s;
+                        out[2] = z * x * t - y * s;
+                        out[3] = 0;
+                        out[4] = x * y * t - z * s;
+                        out[5] = y * y * t + c;
+                        out[6] = z * y * t + x * s;
+                        out[7] = 0;
+                        out[8] = x * z * t + y * s;
+                        out[9] = y * z * t - x * s;
+                        out[10] = z * z * t + c;
+                        out[11] = 0;
+                        out[12] = 0;
+                        out[13] = 0;
+                        out[14] = 0;
+                        out[15] = 1;
+                        return out;
+                    }
+                    Matrix4.fromRotation = fromRotation;
+                    function scale(out, a, v) {
+                        var x = v[0], y = v[1], z = v[2];
+                        out[0] = a[0] * x;
+                        out[1] = a[1] * x;
+                        out[2] = a[2] * x;
+                        out[3] = a[3] * x;
+                        out[4] = a[4] * y;
+                        out[5] = a[5] * y;
+                        out[6] = a[6] * y;
+                        out[7] = a[7] * y;
+                        out[8] = a[8] * z;
+                        out[9] = a[9] * z;
+                        out[10] = a[10] * z;
+                        out[11] = a[11] * z;
+                        out[12] = a[12];
+                        out[13] = a[13];
+                        out[14] = a[14];
+                        out[15] = a[15];
+                        return out;
+                    }
+                    Matrix4.scale = scale;
+                    function fromScaling(out, v) {
+                        out[0] = v[0];
+                        out[1] = 0;
+                        out[2] = 0;
+                        out[3] = 0;
+                        out[4] = 0;
+                        out[5] = v[1];
+                        out[6] = 0;
+                        out[7] = 0;
+                        out[8] = 0;
+                        out[9] = 0;
+                        out[10] = v[2];
+                        out[11] = 0;
+                        out[12] = 0;
+                        out[13] = 0;
+                        out[14] = 0;
+                        out[15] = 1;
+                        return out;
+                    }
+                    Matrix4.fromScaling = fromScaling;
                     function makeTable(m) {
                         var ret = '';
                         for (var i = 0; i < 4; i++) {
@@ -14704,19 +14887,186 @@ var LiteMol;
                     }
                     Matrix4.determinant = determinant;
                 })(Matrix4 = LinearAlgebra.Matrix4 || (LinearAlgebra.Matrix4 = {}));
-                var Vector4;
-                (function (Vector4) {
-                    function create() {
-                        var out = makeArray(4);
+                function Vector3(x, y, z) {
+                    return Vector3.fromValues(x || 0, y || 0, z || 0);
+                }
+                LinearAlgebra.Vector3 = Vector3;
+                (function (Vector3) {
+                    function zero() {
+                        var out = [0.1, 0.0, 0.0];
                         out[0] = 0;
-                        out[1] = 0;
-                        out[2] = 0;
-                        out[3] = 0;
                         return out;
                     }
-                    Vector4.create = create;
+                    Vector3.zero = zero;
                     function clone(a) {
-                        var out = makeArray(4);
+                        var out = zero();
+                        out[0] = a[0];
+                        out[1] = a[1];
+                        out[2] = a[2];
+                        return out;
+                    }
+                    Vector3.clone = clone;
+                    function fromObj(v) {
+                        return fromValues(v.x, v.y, v.z);
+                    }
+                    Vector3.fromObj = fromObj;
+                    function toObj(v) {
+                        return { x: v[0], y: v[1], z: v[2] };
+                    }
+                    Vector3.toObj = toObj;
+                    function fromValues(x, y, z) {
+                        var out = zero();
+                        out[0] = x;
+                        out[1] = y;
+                        out[2] = z;
+                        return out;
+                    }
+                    Vector3.fromValues = fromValues;
+                    function set(out, x, y, z) {
+                        out[0] = x;
+                        out[1] = y;
+                        out[2] = z;
+                        return out;
+                    }
+                    Vector3.set = set;
+                    function copy(out, a) {
+                        out[0] = a[0];
+                        out[1] = a[1];
+                        out[2] = a[2];
+                        return out;
+                    }
+                    Vector3.copy = copy;
+                    function add(out, a, b) {
+                        out[0] = a[0] + b[0];
+                        out[1] = a[1] + b[1];
+                        out[2] = a[2] + b[2];
+                        return out;
+                    }
+                    Vector3.add = add;
+                    function sub(out, a, b) {
+                        out[0] = a[0] - b[0];
+                        out[1] = a[1] - b[1];
+                        out[2] = a[2] - b[2];
+                        return out;
+                    }
+                    Vector3.sub = sub;
+                    function scale(out, a, b) {
+                        out[0] = a[0] * b;
+                        out[1] = a[1] * b;
+                        out[2] = a[2] * b;
+                        return out;
+                    }
+                    Vector3.scale = scale;
+                    function scaleAndAdd(out, a, b, scale) {
+                        out[0] = a[0] + (b[0] * scale);
+                        out[1] = a[1] + (b[1] * scale);
+                        out[2] = a[2] + (b[2] * scale);
+                        return out;
+                    }
+                    Vector3.scaleAndAdd = scaleAndAdd;
+                    function distance(a, b) {
+                        var x = b[0] - a[0], y = b[1] - a[1], z = b[2] - a[2];
+                        return Math.sqrt(x * x + y * y + z * z);
+                    }
+                    Vector3.distance = distance;
+                    function squaredDistance(a, b) {
+                        var x = b[0] - a[0], y = b[1] - a[1], z = b[2] - a[2];
+                        return x * x + y * y + z * z;
+                    }
+                    Vector3.squaredDistance = squaredDistance;
+                    function magnitude(a) {
+                        var x = a[0], y = a[1], z = a[2];
+                        return Math.sqrt(x * x + y * y + z * z);
+                    }
+                    Vector3.magnitude = magnitude;
+                    function squaredMagnitude(a) {
+                        var x = a[0], y = a[1], z = a[2];
+                        return x * x + y * y + z * z;
+                    }
+                    Vector3.squaredMagnitude = squaredMagnitude;
+                    function normalize(out, a) {
+                        var x = a[0], y = a[1], z = a[2];
+                        var len = x * x + y * y + z * z;
+                        if (len > 0) {
+                            len = 1 / Math.sqrt(len);
+                            out[0] = a[0] * len;
+                            out[1] = a[1] * len;
+                            out[2] = a[2] * len;
+                        }
+                        return out;
+                    }
+                    Vector3.normalize = normalize;
+                    function dot(a, b) {
+                        return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+                    }
+                    Vector3.dot = dot;
+                    function cross(out, a, b) {
+                        var ax = a[0], ay = a[1], az = a[2], bx = b[0], by = b[1], bz = b[2];
+                        out[0] = ay * bz - az * by;
+                        out[1] = az * bx - ax * bz;
+                        out[2] = ax * by - ay * bx;
+                        return out;
+                    }
+                    Vector3.cross = cross;
+                    function lerp(out, a, b, t) {
+                        var ax = a[0], ay = a[1], az = a[2];
+                        out[0] = ax + t * (b[0] - ax);
+                        out[1] = ay + t * (b[1] - ay);
+                        out[2] = az + t * (b[2] - az);
+                        return out;
+                    }
+                    Vector3.lerp = lerp;
+                    function transformMat4(out, a, m) {
+                        var x = a[0], y = a[1], z = a[2], w = m[3] * x + m[7] * y + m[11] * z + m[15];
+                        w = w || 1.0;
+                        out[0] = (m[0] * x + m[4] * y + m[8] * z + m[12]) / w;
+                        out[1] = (m[1] * x + m[5] * y + m[9] * z + m[13]) / w;
+                        out[2] = (m[2] * x + m[6] * y + m[10] * z + m[14]) / w;
+                        return out;
+                    }
+                    Vector3.transformMat4 = transformMat4;
+                    var angleTempA = zero(), angleTempB = zero();
+                    function angle(a, b) {
+                        copy(angleTempA, a);
+                        copy(angleTempB, b);
+                        normalize(angleTempA, angleTempA);
+                        normalize(angleTempB, angleTempB);
+                        var cosine = dot(angleTempA, angleTempB);
+                        if (cosine > 1.0) {
+                            return 0;
+                        }
+                        else if (cosine < -1.0) {
+                            return Math.PI;
+                        }
+                        else {
+                            return Math.acos(cosine);
+                        }
+                    }
+                    Vector3.angle = angle;
+                    var rotTemp = zero();
+                    function makeRotation(mat, a, b) {
+                        var by = angle(a, b);
+                        if (Math.abs(by) < 0.0001)
+                            return Matrix4.fromIdentity(mat);
+                        var axis = cross(rotTemp, a, b);
+                        return Matrix4.fromRotation(mat, by, axis);
+                    }
+                    Vector3.makeRotation = makeRotation;
+                })(Vector3 = LinearAlgebra.Vector3 || (LinearAlgebra.Vector3 = {}));
+                function Vector4(x, y, z, w) {
+                    return Vector4.fromValues(x || 0, y || 0, z || 0, w || 0);
+                }
+                LinearAlgebra.Vector4 = Vector4;
+                (function (Vector4) {
+                    function zero() {
+                        // force double backing array by 0.1.
+                        var ret = [0.1, 0, 0, 0];
+                        ret[0] = 0.0;
+                        return ret;
+                    }
+                    Vector4.zero = zero;
+                    function clone(a) {
+                        var out = zero();
                         out[0] = a[0];
                         out[1] = a[1];
                         out[2] = a[2];
@@ -14725,7 +15075,7 @@ var LiteMol;
                     }
                     Vector4.clone = clone;
                     function fromValues(x, y, z, w) {
-                        var out = makeArray(4);
+                        var out = zero();
                         out[0] = x;
                         out[1] = y;
                         out[2] = z;
@@ -14784,299 +15134,14 @@ var LiteMol;
     (function (Core) {
         var Geometry;
         (function (Geometry) {
-            /**
-             * A buffer that only remembers the values.
-             */
-            var SubdivisionTree3DResultIndexBuffer;
-            (function (SubdivisionTree3DResultIndexBuffer) {
-                function ensureCapacity(buffer) {
-                    var newCapacity = buffer.capacity * 2 + 1, newIdx = new Int32Array(newCapacity), i;
-                    if (buffer.count < 32) {
-                        for (i = 0; i < buffer.count; i++) {
-                            newIdx[i] = buffer.indices[i];
-                        }
-                    }
-                    else {
-                        newIdx.set(buffer.indices);
-                    }
-                    buffer.indices = newIdx;
-                    buffer.capacity = newCapacity;
-                }
-                function add(distSq, index) {
-                    if (this.count + 1 >= this.capacity) {
-                        ensureCapacity(this);
-                    }
-                    this.indices[this.count++] = index;
-                }
-                function reset() {
-                    this.count = 0;
-                }
-                function create(initialCapacity) {
-                    if (initialCapacity < 1)
-                        initialCapacity = 1;
-                    return {
-                        indices: new Int32Array(initialCapacity),
-                        count: 0,
-                        capacity: initialCapacity,
-                        hasPriorities: false,
-                        priorities: void 0,
-                        add: add,
-                        reset: reset
-                    };
-                }
-                SubdivisionTree3DResultIndexBuffer.create = create;
-            })(SubdivisionTree3DResultIndexBuffer = Geometry.SubdivisionTree3DResultIndexBuffer || (Geometry.SubdivisionTree3DResultIndexBuffer = {}));
-            /**
-             * A buffer that remembers values and priorities.
-             */
-            var SubdivisionTree3DResultPriorityBuffer;
-            (function (SubdivisionTree3DResultPriorityBuffer) {
-                function ensureCapacity(buffer) {
-                    var newCapacity = buffer.capacity * 2 + 1, newIdx = new Int32Array(newCapacity), newPrio = new Float32Array(newCapacity), i;
-                    if (buffer.count < 32) {
-                        for (i = 0; i < buffer.count; i++) {
-                            newIdx[i] = buffer.indices[i];
-                            newPrio[i] = buffer.priorities[i];
-                        }
-                    }
-                    else {
-                        newIdx.set(buffer.indices);
-                        newPrio.set(buffer.priorities);
-                    }
-                    buffer.indices = newIdx;
-                    buffer.priorities = newPrio;
-                    buffer.capacity = newCapacity;
-                }
-                function add(distSq, index) {
-                    if (this.count + 1 >= this.capacity)
-                        ensureCapacity(this);
-                    this.priorities[this.count] = distSq;
-                    this.indices[this.count++] = index;
-                }
-                function reset() {
-                    this.count = 0;
-                }
-                function create(initialCapacity) {
-                    if (initialCapacity < 1)
-                        initialCapacity = 1;
-                    return {
-                        indices: new Int32Array(initialCapacity),
-                        count: 0,
-                        capacity: initialCapacity,
-                        hasPriorities: true,
-                        priorities: new Float32Array(initialCapacity),
-                        add: add,
-                        reset: reset
-                    };
-                }
-                SubdivisionTree3DResultPriorityBuffer.create = create;
-            })(SubdivisionTree3DResultPriorityBuffer = Geometry.SubdivisionTree3DResultPriorityBuffer || (Geometry.SubdivisionTree3DResultPriorityBuffer = {}));
-            var SubdivisionTree3DQueryContext;
-            (function (SubdivisionTree3DQueryContext) {
-                /**
-                 * Query the tree and store the result to this.buffer. Overwrites the old result.
-                 */
-                function nearest(x, y, z, radius) {
-                    this.pivot[0] = x;
-                    this.pivot[1] = y;
-                    this.pivot[2] = z;
-                    this.radius = radius;
-                    this.radiusSq = radius * radius;
-                    this.buffer.reset();
-                    SubdivisionTree3DNode.nearest(this.tree.root, this, 0);
-                }
-                function create(tree, buffer) {
-                    return {
-                        tree: tree,
-                        indices: tree.indices,
-                        positions: tree.positions,
-                        buffer: buffer,
-                        pivot: [0.1, 0.1, 0.1],
-                        radius: 1.1,
-                        radiusSq: 1.1 * 1.1,
-                        nearest: nearest
-                    };
-                }
-                SubdivisionTree3DQueryContext.create = create;
-            })(SubdivisionTree3DQueryContext = Geometry.SubdivisionTree3DQueryContext || (Geometry.SubdivisionTree3DQueryContext = {}));
-            var SubdivisionTree3D;
-            (function (SubdivisionTree3D) {
-                /**
-                 * Create a context used for querying the data.
-                 */
-                function createContextRadius(tree, radiusEstimate, includePriorities) {
-                    if (includePriorities === void 0) { includePriorities = false; }
-                    return SubdivisionTree3DQueryContext.create(tree, includePriorities
-                        ? SubdivisionTree3DResultPriorityBuffer.create(Math.max((radiusEstimate * radiusEstimate) | 0, 8))
-                        : SubdivisionTree3DResultIndexBuffer.create(Math.max((radiusEstimate * radiusEstimate) | 0, 8)));
-                }
-                SubdivisionTree3D.createContextRadius = createContextRadius;
-                /**
-                 * Takes data and a function that calls SubdivisionTree3DPositionBuilder.add(x, y, z) on each data element.
-                 */
-                function create(data, f, leafSize) {
-                    if (leafSize === void 0) { leafSize = 32; }
-                    var _a = SubdivisionTree3DBuilder.build(data, f, leafSize), root = _a.root, indices = _a.indices, positions = _a.positions;
-                    return { data: data, root: root, indices: indices, positions: positions };
-                }
-                SubdivisionTree3D.create = create;
-            })(SubdivisionTree3D = Geometry.SubdivisionTree3D || (Geometry.SubdivisionTree3D = {}));
-            var PositionBuilder;
-            (function (PositionBuilder) {
-                function add(builder, x, y, z) {
-                    builder.data[builder._count++] = x;
-                    builder.data[builder._count++] = y;
-                    builder.data[builder._count++] = z;
-                    builder.boundsMin[0] = Math.min(x, builder.boundsMin[0]);
-                    builder.boundsMin[1] = Math.min(y, builder.boundsMin[1]);
-                    builder.boundsMin[2] = Math.min(z, builder.boundsMin[2]);
-                    builder.boundsMax[0] = Math.max(x, builder.boundsMax[0]);
-                    builder.boundsMax[1] = Math.max(y, builder.boundsMax[1]);
-                    builder.boundsMax[2] = Math.max(z, builder.boundsMax[2]);
-                }
-                PositionBuilder.add = add;
-                function create(size) {
-                    var data = new Float32Array((size * 3) | 0);
-                    var bounds = Box3D.createInfinite();
-                    var boundsMin = bounds.min;
-                    var boundsMax = bounds.max;
-                    return { _count: 0, data: data, bounds: bounds, boundsMin: boundsMin, boundsMax: boundsMax };
-                }
-                PositionBuilder.create = create;
-            })(PositionBuilder || (PositionBuilder = {}));
-            var SubdivisionTree3DNode;
-            (function (SubdivisionTree3DNode) {
-                function nearestLeaf(node, ctx) {
-                    var pivot = ctx.pivot, indices = ctx.indices, positions = ctx.positions, rSq = ctx.radiusSq, dx, dy, dz, o, m, i;
-                    for (i = node.startIndex; i < node.endIndex; i++) {
-                        o = 3 * indices[i];
-                        dx = pivot[0] - positions[o];
-                        dy = pivot[1] - positions[o + 1];
-                        dz = pivot[2] - positions[o + 2];
-                        m = dx * dx + dy * dy + dz * dz;
-                        if (m <= rSq)
-                            ctx.buffer.add(m, indices[i]);
-                    }
-                }
-                function nearestNode(node, ctx, dim) {
-                    var pivot = ctx.pivot[dim], left = pivot < node.splitValue;
-                    if (left ? pivot + ctx.radius > node.splitValue : pivot - ctx.radius < node.splitValue) {
-                        nearest(node.left, ctx, (dim + 1) % 3);
-                        nearest(node.right, ctx, (dim + 1) % 3);
-                    }
-                    else if (left) {
-                        nearest(node.left, ctx, (dim + 1) % 3);
-                    }
-                    else {
-                        nearest(node.right, ctx, (dim + 1) % 3);
-                    }
-                }
-                function nearest(node, ctx, dim) {
-                    // check for empty.
-                    if (node.startIndex === node.endIndex)
-                        return;
-                    // is leaf?
-                    if (isNaN(node.splitValue))
-                        nearestLeaf(node, ctx);
-                    else
-                        nearestNode(node, ctx, dim);
-                }
-                SubdivisionTree3DNode.nearest = nearest;
-                function create(splitValue, startIndex, endIndex, left, right) {
-                    return { splitValue: splitValue, startIndex: startIndex, endIndex: endIndex, left: left, right: right };
-                }
-                SubdivisionTree3DNode.create = create;
-            })(SubdivisionTree3DNode = Geometry.SubdivisionTree3DNode || (Geometry.SubdivisionTree3DNode = {}));
-            var Box3D;
-            (function (Box3D) {
-                function createInfinite() {
-                    return {
-                        min: [Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE],
-                        max: [-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE]
-                    };
-                }
-                Box3D.createInfinite = createInfinite;
-            })(Box3D = Geometry.Box3D || (Geometry.Box3D = {}));
-            /**
-             * A helper to build the tree.
-             */
-            var SubdivisionTree3DBuilder;
-            (function (SubdivisionTree3DBuilder) {
-                function split(state, startIndex, endIndex, coord) {
-                    var delta = endIndex - startIndex + 1;
-                    if (delta <= 0) {
-                        return state.emptyNode;
-                    }
-                    else if (delta <= state.leafSize) {
-                        return SubdivisionTree3DNode.create(NaN, startIndex, endIndex + 1, state.emptyNode, state.emptyNode);
-                    }
-                    var min = state.bounds.min[coord], max = state.bounds.max[coord], median = 0.5 * (min + max), midIndex = 0, l = startIndex, r = endIndex, t, left, right;
-                    while (l < r) {
-                        t = state.indices[r];
-                        state.indices[r] = state.indices[l];
-                        state.indices[l] = t;
-                        while (l <= endIndex && state.positions[3 * state.indices[l] + coord] <= median)
-                            l++;
-                        while (r >= startIndex && state.positions[3 * state.indices[r] + coord] > median)
-                            r--;
-                    }
-                    midIndex = l - 1;
-                    state.bounds.max[coord] = median;
-                    left = split(state, startIndex, midIndex, (coord + 1) % 3);
-                    state.bounds.max[coord] = max;
-                    state.bounds.min[coord] = median;
-                    right = split(state, midIndex + 1, endIndex, (coord + 1) % 3);
-                    state.bounds.min[coord] = min;
-                    return SubdivisionTree3DNode.create(median, startIndex, endIndex + 1, left, right);
-                }
-                function createAdder(builder) {
-                    var add = PositionBuilder.add;
-                    return function (x, y, z) {
-                        add(builder, x, y, z);
-                    };
-                }
-                function build(data, f, leafSize) {
-                    var positions = PositionBuilder.create(data.length), indices = new Int32Array(data.length);
-                    var add = createAdder(positions);
-                    for (var i = 0; i < data.length; i++) {
-                        indices[i] = i;
-                        f(data[i], add);
-                    }
-                    // help gc
-                    add = void 0;
-                    var state = {
-                        bounds: positions.bounds,
-                        positions: positions.data,
-                        leafSize: leafSize,
-                        indices: indices,
-                        emptyNode: SubdivisionTree3DNode.create(NaN, -1, -1, void 0, void 0),
-                    };
-                    var root = split(state, 0, indices.length - 1, 0);
-                    state = void 0;
-                    return { root: root, indices: indices, positions: positions.data };
-                }
-                SubdivisionTree3DBuilder.build = build;
-            })(SubdivisionTree3DBuilder || (SubdivisionTree3DBuilder = {}));
-        })(Geometry = Core.Geometry || (Core.Geometry = {}));
-    })(Core = LiteMol.Core || (LiteMol.Core = {}));
-})(LiteMol || (LiteMol = {}));
-/*
- * Copyright (c) 2016 - now David Sehnal, licensed under Apache 2.0, See LICENSE file for more info.
- */
-var LiteMol;
-(function (LiteMol) {
-    var Core;
-    (function (Core) {
-        var Geometry;
-        (function (Geometry) {
             "use strict";
             var Surface;
             (function (Surface) {
                 function computeNormalsImmediate(surface) {
                     if (surface.normals)
                         return;
-                    var normals = new Float32Array(surface.vertices.length), v = surface.vertices, triangles = surface.triangleIndices, f, i;
-                    for (i = 0; i < triangles.length; i += 3) {
+                    var normals = new Float32Array(surface.vertices.length), v = surface.vertices, triangles = surface.triangleIndices;
+                    for (var i = 0; i < triangles.length; i += 3) {
                         var a = 3 * triangles[i], b = 3 * triangles[i + 1], c = 3 * triangles[i + 2];
                         var nx = v[a + 2] * (v[b + 1] - v[c + 1]) + v[b + 2] * v[c + 1] - v[b + 1] * v[c + 2] + v[a + 1] * (-v[b + 2] + v[c + 2]), ny = -(v[b + 2] * v[c]) + v[a + 2] * (-v[b] + v[c]) + v[a] * (v[b + 2] - v[c + 2]) + v[b] * v[c + 2], nz = v[a + 1] * (v[b] - v[c]) + v[b + 1] * v[c] - v[b] * v[c + 1] + v[a] * (-v[b + 1] + v[b + 1]);
                         normals[a] += nx;
@@ -15089,11 +15154,11 @@ var LiteMol;
                         normals[c + 1] += ny;
                         normals[c + 2] += nz;
                     }
-                    for (i = 0; i < normals.length; i += 3) {
+                    for (var i = 0; i < normals.length; i += 3) {
                         var nx = normals[i];
                         var ny = normals[i + 1];
                         var nz = normals[i + 2];
-                        f = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+                        var f = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
                         normals[i] *= f;
                         normals[i + 1] *= f;
                         normals[i + 2] *= f;
@@ -15245,7 +15310,7 @@ var LiteMol;
                                         r = Math.max(r, dx * dx + dy * dy + dz * dz);
                                     }
                                     surface.boundingSphere = {
-                                        center: { x: x, y: y, z: z },
+                                        center: Geometry.LinearAlgebra.Vector3.fromValues(x, y, z),
                                         radius: Math.sqrt(r)
                                     };
                                     return [2 /*return*/, surface];
@@ -15255,17 +15320,17 @@ var LiteMol;
                 }
                 Surface.computeBoundingSphere = computeBoundingSphere;
                 function transformImmediate(surface, t) {
-                    var p = { x: 0.1, y: 0.1, z: 0.1 };
-                    var m = Geometry.LinearAlgebra.Matrix4.transformVector3;
+                    var p = Geometry.LinearAlgebra.Vector3.zero();
+                    var m = Geometry.LinearAlgebra.Vector3.transformMat4;
                     var vertices = surface.vertices;
                     for (var i = 0, _c = surface.vertices.length; i < _c; i += 3) {
-                        p.x = vertices[i];
-                        p.y = vertices[i + 1];
-                        p.z = vertices[i + 2];
+                        p[0] = vertices[i];
+                        p[1] = vertices[i + 1];
+                        p[2] = vertices[i + 2];
                         m(p, p, t);
-                        vertices[i] = p.x;
-                        vertices[i + 1] = p.y;
-                        vertices[i + 2] = p.z;
+                        vertices[i] = p[0];
+                        vertices[i + 1] = p[1];
+                        vertices[i + 2] = p[2];
                     }
                     surface.normals = void 0;
                     surface.boundingSphere = void 0;
@@ -15283,6 +15348,360 @@ var LiteMol;
                 }
                 Surface.transform = transform;
             })(Surface = Geometry.Surface || (Geometry.Surface = {}));
+        })(Geometry = Core.Geometry || (Core.Geometry = {}));
+    })(Core = LiteMol.Core || (LiteMol.Core = {}));
+})(LiteMol || (LiteMol = {}));
+/*
+ * Copyright (c) 2016 - now David Sehnal, licensed under Apache 2.0, See LICENSE file for more info.
+ */
+var LiteMol;
+(function (LiteMol) {
+    var Core;
+    (function (Core) {
+        var Geometry;
+        (function (Geometry) {
+            var Query3D;
+            (function (Query3D) {
+                var Box3D;
+                (function (Box3D) {
+                    function createInfinite() {
+                        return {
+                            min: [Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE],
+                            max: [-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE]
+                        };
+                    }
+                    Box3D.createInfinite = createInfinite;
+                })(Box3D = Query3D.Box3D || (Query3D.Box3D = {}));
+                var QueryContext;
+                (function (QueryContext) {
+                    function add(ctx, distSq, index) {
+                        var buffer = ctx.buffer;
+                        buffer.squaredDistances[buffer.count] = distSq;
+                        buffer.elements[buffer.count++] = buffer.sourceElements[index];
+                    }
+                    QueryContext.add = add;
+                    function resetBuffer(buffer) { buffer.count = 0; }
+                    function createBuffer(sourceElements) {
+                        return {
+                            sourceElements: sourceElements,
+                            elements: [],
+                            count: 0,
+                            squaredDistances: []
+                        };
+                    }
+                    /**
+                     * Query the tree and store the result to this.buffer. Overwrites the old result.
+                     */
+                    function update(ctx, x, y, z, radius) {
+                        ctx.pivot[0] = x;
+                        ctx.pivot[1] = y;
+                        ctx.pivot[2] = z;
+                        ctx.radius = radius;
+                        ctx.radiusSq = radius * radius;
+                        resetBuffer(ctx.buffer);
+                    }
+                    QueryContext.update = update;
+                    function create(structure, sourceElements) {
+                        return {
+                            structure: structure,
+                            buffer: createBuffer(sourceElements),
+                            pivot: [0.1, 0.1, 0.1],
+                            radius: 1.1,
+                            radiusSq: 1.1 * 1.1
+                        };
+                    }
+                    QueryContext.create = create;
+                })(QueryContext = Query3D.QueryContext || (Query3D.QueryContext = {}));
+                var PositionBuilder;
+                (function (PositionBuilder) {
+                    function add(builder, x, y, z) {
+                        builder.data[builder._count++] = x;
+                        builder.data[builder._count++] = y;
+                        builder.data[builder._count++] = z;
+                        builder.boundsMin[0] = Math.min(x, builder.boundsMin[0]);
+                        builder.boundsMin[1] = Math.min(y, builder.boundsMin[1]);
+                        builder.boundsMin[2] = Math.min(z, builder.boundsMin[2]);
+                        builder.boundsMax[0] = Math.max(x, builder.boundsMax[0]);
+                        builder.boundsMax[1] = Math.max(y, builder.boundsMax[1]);
+                        builder.boundsMax[2] = Math.max(z, builder.boundsMax[2]);
+                    }
+                    PositionBuilder.add = add;
+                    function create(size) {
+                        var data = new Float32Array((size * 3) | 0);
+                        var bounds = Box3D.createInfinite();
+                        var boundsMin = bounds.min;
+                        var boundsMax = bounds.max;
+                        return { _count: 0, data: data, bounds: bounds, boundsMin: boundsMin, boundsMax: boundsMax };
+                    }
+                    PositionBuilder.create = create;
+                    function createAdder(builder) {
+                        var add = PositionBuilder.add;
+                        return function (x, y, z) {
+                            add(builder, x, y, z);
+                        };
+                    }
+                    PositionBuilder.createAdder = createAdder;
+                })(PositionBuilder || (PositionBuilder = {}));
+                function createInputData(elements, f) {
+                    var positions = PositionBuilder.create(elements.length);
+                    var indices = new Int32Array(elements.length);
+                    var add = PositionBuilder.createAdder(positions);
+                    for (var i = 0; i < elements.length; i++) {
+                        indices[i] = i;
+                        f(elements[i], add);
+                    }
+                    return { elements: elements, positions: positions.data, bounds: positions.bounds, indices: indices };
+                }
+                Query3D.createInputData = createInputData;
+            })(Query3D = Geometry.Query3D || (Geometry.Query3D = {}));
+        })(Geometry = Core.Geometry || (Core.Geometry = {}));
+    })(Core = LiteMol.Core || (LiteMol.Core = {}));
+})(LiteMol || (LiteMol = {}));
+/*
+ * Copyright (c) 2016 - now David Sehnal, licensed under Apache 2.0, See LICENSE file for more info.
+ */
+var LiteMol;
+(function (LiteMol) {
+    var Core;
+    (function (Core) {
+        var Geometry;
+        (function (Geometry) {
+            var Query3D;
+            (function (Query3D) {
+                var SubdivisionTree3DNode;
+                (function (SubdivisionTree3DNode) {
+                    function nearestLeaf(node, ctx) {
+                        var pivot = ctx.pivot, _a = ctx.structure, indices = _a.indices, positions = _a.positions, rSq = ctx.radiusSq, dx, dy, dz, o, m, i;
+                        for (i = node.startIndex; i < node.endIndex; i++) {
+                            o = 3 * indices[i];
+                            dx = pivot[0] - positions[o];
+                            dy = pivot[1] - positions[o + 1];
+                            dz = pivot[2] - positions[o + 2];
+                            m = dx * dx + dy * dy + dz * dz;
+                            if (m <= rSq)
+                                Query3D.QueryContext.add(ctx, m, indices[i]);
+                        }
+                    }
+                    function nearestNode(node, ctx, dim) {
+                        var pivot = ctx.pivot[dim], left = pivot < node.splitValue;
+                        if (left ? pivot + ctx.radius > node.splitValue : pivot - ctx.radius < node.splitValue) {
+                            nearest(node.left, ctx, (dim + 1) % 3);
+                            nearest(node.right, ctx, (dim + 1) % 3);
+                        }
+                        else if (left) {
+                            nearest(node.left, ctx, (dim + 1) % 3);
+                        }
+                        else {
+                            nearest(node.right, ctx, (dim + 1) % 3);
+                        }
+                    }
+                    function nearest(node, ctx, dim) {
+                        // check for empty.
+                        if (node.startIndex === node.endIndex)
+                            return;
+                        // is leaf?
+                        if (isNaN(node.splitValue))
+                            nearestLeaf(node, ctx);
+                        else
+                            nearestNode(node, ctx, dim);
+                    }
+                    SubdivisionTree3DNode.nearest = nearest;
+                    function create(splitValue, startIndex, endIndex, left, right) {
+                        return { splitValue: splitValue, startIndex: startIndex, endIndex: endIndex, left: left, right: right };
+                    }
+                    SubdivisionTree3DNode.create = create;
+                })(SubdivisionTree3DNode || (SubdivisionTree3DNode = {}));
+                /**
+                 * A helper to build the tree.
+                 */
+                var SubdivisionTree3DBuilder;
+                (function (SubdivisionTree3DBuilder) {
+                    function split(state, startIndex, endIndex, coord) {
+                        var delta = endIndex - startIndex + 1;
+                        if (delta <= 0) {
+                            return state.emptyNode;
+                        }
+                        else if (delta <= state.leafSize) {
+                            return SubdivisionTree3DNode.create(NaN, startIndex, endIndex + 1, state.emptyNode, state.emptyNode);
+                        }
+                        var min = state.bounds.min[coord], max = state.bounds.max[coord], median = 0.5 * (min + max), midIndex = 0, l = startIndex, r = endIndex, t, left, right;
+                        while (l < r) {
+                            t = state.indices[r];
+                            state.indices[r] = state.indices[l];
+                            state.indices[l] = t;
+                            while (l <= endIndex && state.positions[3 * state.indices[l] + coord] <= median)
+                                l++;
+                            while (r >= startIndex && state.positions[3 * state.indices[r] + coord] > median)
+                                r--;
+                        }
+                        midIndex = l - 1;
+                        state.bounds.max[coord] = median;
+                        left = split(state, startIndex, midIndex, (coord + 1) % 3);
+                        state.bounds.max[coord] = max;
+                        state.bounds.min[coord] = median;
+                        right = split(state, midIndex + 1, endIndex, (coord + 1) % 3);
+                        state.bounds.min[coord] = min;
+                        return SubdivisionTree3DNode.create(median, startIndex, endIndex + 1, left, right);
+                    }
+                    function build(_a, leafSize) {
+                        var elements = _a.elements, positions = _a.positions, bounds = _a.bounds, indices = _a.indices;
+                        var state = {
+                            bounds: bounds,
+                            positions: positions,
+                            leafSize: leafSize,
+                            indices: indices,
+                            emptyNode: SubdivisionTree3DNode.create(NaN, -1, -1, void 0, void 0),
+                        };
+                        var root = split(state, 0, indices.length - 1, 0);
+                        return { root: root, indices: indices, positions: positions };
+                    }
+                    SubdivisionTree3DBuilder.build = build;
+                })(SubdivisionTree3DBuilder || (SubdivisionTree3DBuilder = {}));
+                function createSubdivisionTree(data, leafSize) {
+                    if (leafSize === void 0) { leafSize = 32; }
+                    var tree = SubdivisionTree3DBuilder.build(data, leafSize);
+                    return function () {
+                        var ctx = Query3D.QueryContext.create(tree, data.elements);
+                        return function (x, y, z, radius) {
+                            Query3D.QueryContext.update(ctx, x, y, z, radius);
+                            SubdivisionTree3DNode.nearest(tree.root, ctx, 0);
+                            return ctx.buffer;
+                        };
+                    };
+                }
+                Query3D.createSubdivisionTree = createSubdivisionTree;
+            })(Query3D = Geometry.Query3D || (Geometry.Query3D = {}));
+        })(Geometry = Core.Geometry || (Core.Geometry = {}));
+    })(Core = LiteMol.Core || (LiteMol.Core = {}));
+})(LiteMol || (LiteMol = {}));
+/*
+ * Copyright (c) 2017 - now David Sehnal, licensed under Apache 2.0, See LICENSE file for more info.
+ */
+var LiteMol;
+(function (LiteMol) {
+    var Core;
+    (function (Core) {
+        var Geometry;
+        (function (Geometry) {
+            var Query3D;
+            (function (Query3D) {
+                /**
+                 * Adapted from https://github.com/arose/ngl
+                 * MIT License Copyright (C) 2014+ Alexander Rose
+                 */
+                function nearest(ctx) {
+                    var _a = ctx.structure, _b = _a.min, minX = _b[0], minY = _b[1], minZ = _b[2], _c = _a.size, sX = _c[0], sY = _c[1], sZ = _c[2], bucketOffset = _a.bucketOffset, bucketCounts = _a.bucketCounts, bucketArray = _a.bucketArray, grid = _a.grid, positions = _a.positions;
+                    var r = ctx.radius, rSq = ctx.radiusSq, _d = ctx.pivot, x = _d[0], y = _d[1], z = _d[2];
+                    var loX = Math.max(0, (x - r - minX) >> 3 /* Exp */);
+                    var loY = Math.max(0, (y - r - minY) >> 3 /* Exp */);
+                    var loZ = Math.max(0, (z - r - minZ) >> 3 /* Exp */);
+                    var hiX = Math.min(sX, (x + r - minX) >> 3 /* Exp */);
+                    var hiY = Math.min(sY, (y + r - minY) >> 3 /* Exp */);
+                    var hiZ = Math.min(sZ, (z + r - minZ) >> 3 /* Exp */);
+                    for (var ix = loX; ix <= hiX; ix++) {
+                        for (var iy = loY; iy <= hiY; iy++) {
+                            for (var iz = loZ; iz <= hiZ; iz++) {
+                                var idx = (((ix * sY) + iy) * sZ) + iz;
+                                var bucketIdx = grid[idx];
+                                if (bucketIdx > 0) {
+                                    var k = bucketIdx - 1;
+                                    var offset = bucketOffset[k];
+                                    var count = bucketCounts[k];
+                                    var end = offset + count;
+                                    for (var i = offset; i < end; i++) {
+                                        var idx_1 = bucketArray[i];
+                                        var dx = positions[3 * idx_1 + 0] - x;
+                                        var dy = positions[3 * idx_1 + 1] - y;
+                                        var dz = positions[3 * idx_1 + 2] - z;
+                                        var distSq = dx * dx + dy * dy + dz * dz;
+                                        if (distSq <= rSq) {
+                                            Query3D.QueryContext.add(ctx, distSq, idx_1);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                function _build(state) {
+                    var bounds = state.bounds, _a = state.size, sX = _a[0], sY = _a[1], sZ = _a[2], positions = state.positions, indices = state.indices;
+                    var n = sX * sY * sZ;
+                    var count = indices.length;
+                    var _b = bounds.min, minX = _b[0], minY = _b[1], minZ = _b[2];
+                    var bucketCount = 0;
+                    var grid = new Uint32Array(n);
+                    var bucketIndex = new Int32Array(count);
+                    for (var i = 0; i < count; i++) {
+                        var x = (positions[3 * i + 0] - minX) >> 3 /* Exp */;
+                        var y = (positions[3 * i + 1] - minY) >> 3 /* Exp */;
+                        var z = (positions[3 * i + 2] - minZ) >> 3 /* Exp */;
+                        var idx = (((x * sY) + y) * sZ) + z;
+                        if ((grid[idx] += 1) === 1) {
+                            bucketCount += 1;
+                        }
+                        bucketIndex[i] = idx;
+                    }
+                    var bucketCounts = new Int32Array(bucketCount);
+                    for (var i = 0, j = 0; i < n; i++) {
+                        var c = grid[i];
+                        if (c > 0) {
+                            grid[i] = j + 1;
+                            bucketCounts[j] = c;
+                            j += 1;
+                        }
+                    }
+                    var bucketOffset = new Uint32Array(count);
+                    for (var i = 1; i < count; ++i) {
+                        bucketOffset[i] += bucketOffset[i - 1] + bucketCounts[i - 1];
+                    }
+                    var bucketFill = new Int32Array(bucketCount);
+                    var bucketArray = new Int32Array(count);
+                    for (var i = 0; i < count; i++) {
+                        var bucketIdx = grid[bucketIndex[i]];
+                        if (bucketIdx > 0) {
+                            var k = bucketIdx - 1;
+                            bucketArray[bucketOffset[k] + bucketFill[k]] = i;
+                            bucketFill[k] += 1;
+                        }
+                    }
+                    return {
+                        size: state.size,
+                        bucketArray: bucketArray,
+                        bucketCounts: bucketCounts,
+                        bucketOffset: bucketOffset,
+                        grid: grid,
+                        min: state.bounds.min,
+                        positions: positions
+                    };
+                }
+                function build(_a) {
+                    var elements = _a.elements, positions = _a.positions, bounds = _a.bounds, indices = _a.indices;
+                    var size = [
+                        ((bounds.max[0] - bounds.min[0]) >> 3 /* Exp */) + 1,
+                        ((bounds.max[1] - bounds.min[1]) >> 3 /* Exp */) + 1,
+                        ((bounds.max[2] - bounds.min[2]) >> 3 /* Exp */) + 1
+                    ];
+                    var state = {
+                        size: size,
+                        positions: positions,
+                        indices: indices,
+                        bounds: bounds
+                    };
+                    return _build(state);
+                }
+                function createSpatialHash(data) {
+                    var tree = build(data);
+                    return function () {
+                        var ctx = Query3D.QueryContext.create(tree, data.elements);
+                        return function (x, y, z, radius) {
+                            Query3D.QueryContext.update(ctx, x, y, z, radius);
+                            nearest(ctx);
+                            return ctx.buffer;
+                        };
+                    };
+                }
+                Query3D.createSpatialHash = createSpatialHash;
+            })(Query3D = Geometry.Query3D || (Geometry.Query3D = {}));
         })(Geometry = Core.Geometry || (Core.Geometry = {}));
     })(Core = LiteMol.Core || (LiteMol.Core = {}));
 })(LiteMol || (LiteMol = {}));
@@ -15430,14 +15849,15 @@ var LiteMol;
                         this.verticesOnEdges = new Int32Array(3 * this.nX * this.nY * 2);
                     }
                     MarchingCubesState.prototype.get3dOffsetFromEdgeInfo = function (index) {
-                        return (this.nX * (((this.k + index.k) % 2) * this.nY + this.j + index.j) + this.i + index.i) | 0;
+                        return (this.nX * (((this.k + index.k) % 2) * this.nY + this.j + index.j) + this.i + index.i);
                     };
                     /**
                      * This clears the "vertex index buffer" for the slice that will not be accessed anymore.
                      */
                     MarchingCubesState.prototype.clearEdgeVertexIndexSlice = function (k) {
-                        var start = 3 * (this.nX * ((k % 2) * this.nY)) | 0;
-                        var end = 3 * (this.nX * ((k % 2) * this.nY + this.nY - 1) + this.nX - 1) | 0;
+                        // clear either the top or bottom half of the buffer...
+                        var start = k % 2 === 0 ? 0 : 3 * this.nX * this.nY;
+                        var end = k % 2 === 0 ? 3 * this.nX * this.nY : this.verticesOnEdges.length;
                         for (var i = start; i < end; i++)
                             this.verticesOnEdges[i] = 0;
                     };
@@ -15447,11 +15867,18 @@ var LiteMol;
                         if (ret > 0)
                             return (ret - 1) | 0;
                         var edge = MarchingCubes.CubeEdges[edgeNum];
-                        var a = edge.a, b = edge.b, li = a.i + this.i, lj = a.j + this.j, lk = a.k + this.k, hi = b.i + this.i, hj = b.j + this.j, hk = b.k + this.k, v0 = this.scalarField.get(li, lj, lk), v1 = this.scalarField.get(hi, hj, hk), t = (this.isoLevel - v0) / (v0 - v1);
+                        var a = edge.a, b = edge.b;
+                        var li = a.i + this.i, lj = a.j + this.j, lk = a.k + this.k;
+                        var hi = b.i + this.i, hj = b.j + this.j, hk = b.k + this.k;
+                        var v0 = this.scalarField.get(li, lj, lk), v1 = this.scalarField.get(hi, hj, hk);
+                        var t = (this.isoLevel - v0) / (v0 - v1);
                         var id = Core.Utils.ChunkedArray.add3(this.vertexBuffer, li + t * (li - hi), lj + t * (lj - hj), lk + t * (lk - hk)) | 0;
                         this.verticesOnEdges[edgeId] = id + 1;
                         if (this.annotate) {
-                            Core.Utils.ChunkedArray.add(this.annotationBuffer, this.annotationField.get(this.i, this.j, this.k));
+                            var a_1 = t < 0.5 ? this.annotationField.get(li, lj, lk) : this.annotationField.get(hi, hj, hk);
+                            if (a_1 < 0)
+                                a_1 = t < 0.5 ? this.annotationField.get(hi, hj, hk) : this.annotationField.get(li, lj, lk);
+                            Core.Utils.ChunkedArray.add(this.annotationBuffer, a_1);
                         }
                         return id;
                     };
@@ -16082,14 +16509,10 @@ var LiteMol;
                                 for (var i = mini; i < maxi; i++) {
                                     var tX = cx + i * this.dX, xx = yy + tX * tX, offset = oY + i;
                                     var v = strSq / (0.000001 + xx) - 1;
-                                    //let offset = nX * (k * nY + j) + i;
                                     if (xx < this.distanceField[offset]) {
                                         this.proximityMap[offset] = aI;
                                         this.distanceField[offset] = xx;
                                     }
-                                    //if (xx >= maxRsq) continue;
-                                    //let v = strength / Math.sqrt(0.000001 + zz) - 1;
-                                    //v = Math.Exp(-((Dist/AtomRadius)*(Dist/AtomRadius)));
                                     if (v > 0) {
                                         this.field[offset] += v;
                                     }
@@ -16134,7 +16557,7 @@ var LiteMol;
                         });
                     };
                     MolecularIsoFieldComputation.prototype.finish = function () {
-                        var t = Geometry.LinearAlgebra.Matrix4.empty();
+                        var t = Geometry.LinearAlgebra.Matrix4.zero();
                         Geometry.LinearAlgebra.Matrix4.fromTranslation(t, [this.minX, this.minY, this.minZ]);
                         t[0] = this.dX;
                         t[5] = this.dY;
@@ -16145,8 +16568,8 @@ var LiteMol;
                                 annotationField: this.parameters.interactive ? new Core.Formats.Density.Field3DZYX(this.proximityMap, [this.nX, this.nY, this.nZ]) : void 0,
                                 isoLevel: 0.05
                             },
-                            bottomLeft: { x: this.minX, y: this.minY, z: this.minZ },
-                            topRight: { x: this.maxX, y: this.maxY, z: this.maxZ },
+                            bottomLeft: Geometry.LinearAlgebra.Vector3.fromValues(this.minX, this.minY, this.minZ),
+                            topRight: Geometry.LinearAlgebra.Vector3.fromValues(this.maxX, this.maxY, this.maxZ),
                             transform: t,
                             inputParameters: this.inputParameters,
                             parameters: this.parameters
@@ -16358,6 +16781,71 @@ var LiteMol;
             }());
             Structure.SymmetryInfo = SymmetryInfo;
             /**
+             * Wraps _struct_conn mmCIF category.
+             */
+            var StructConn = (function () {
+                function StructConn(entries) {
+                    this.entries = entries;
+                    this._residuePairIndex = void 0;
+                    this._atomIndex = void 0;
+                }
+                StructConn._resKey = function (rA, rB) {
+                    if (rA < rB)
+                        return rA + "-" + rB;
+                    return rB + "-" + rA;
+                };
+                StructConn.prototype.getResiduePairIndex = function () {
+                    if (this._residuePairIndex)
+                        return this._residuePairIndex;
+                    this._residuePairIndex = Core.Utils.FastMap.create();
+                    for (var _i = 0, _a = this.entries; _i < _a.length; _i++) {
+                        var e = _a[_i];
+                        var ps = e.partners;
+                        var l = ps.length;
+                        for (var i = 0; i < l - 1; i++) {
+                            for (var j = i + i; j < l; j++) {
+                                var key = StructConn._resKey(ps[i].residueIndex, ps[j].residueIndex);
+                                if (this._residuePairIndex.has(key)) {
+                                    this._residuePairIndex.get(key).push(e);
+                                }
+                                else {
+                                    this._residuePairIndex.set(key, [e]);
+                                }
+                            }
+                        }
+                    }
+                    return this._residuePairIndex;
+                };
+                StructConn.prototype.getAtomIndex = function () {
+                    if (this._atomIndex)
+                        return this._atomIndex;
+                    this._atomIndex = Core.Utils.FastMap.create();
+                    for (var _i = 0, _a = this.entries; _i < _a.length; _i++) {
+                        var e = _a[_i];
+                        for (var _c = 0, _d = e.partners; _c < _d.length; _c++) {
+                            var p = _d[_c];
+                            var key = p.atomIndex;
+                            if (this._atomIndex.has(key)) {
+                                this._atomIndex.get(key).push(e);
+                            }
+                            else {
+                                this._atomIndex.set(key, [e]);
+                            }
+                        }
+                    }
+                    return this._atomIndex;
+                };
+                StructConn.prototype.getResidueEntries = function (residueAIndex, residueBIndex) {
+                    return this.getResiduePairIndex().get(StructConn._resKey(residueAIndex, residueBIndex)) || StructConn._emptyEntry;
+                };
+                StructConn.prototype.getAtomEntries = function (atomIndex) {
+                    return this.getAtomIndex().get(atomIndex) || StructConn._emptyEntry;
+                };
+                StructConn._emptyEntry = [];
+                return StructConn;
+            }());
+            Structure.StructConn = StructConn;
+            /**
              * Wraps an assembly operator.
              */
             var AssemblyOperator = (function () {
@@ -16472,6 +16960,13 @@ var LiteMol;
                     atomBIndex: int32,
                     type: DataTable.typedColumn(Int8Array)
                 };
+                Tables.ModifiedResidues = {
+                    asymId: str,
+                    seqNumber: int32,
+                    insCode: nullStr,
+                    parent: str,
+                    details: nullStr
+                };
             })(Tables = Structure.Tables || (Structure.Tables = {}));
             var Operator = (function () {
                 function Operator(matrix, id, isIdentity) {
@@ -16480,19 +16975,19 @@ var LiteMol;
                     this.isIdentity = isIdentity;
                 }
                 Operator.prototype.apply = function (v) {
-                    Core.Geometry.LinearAlgebra.Matrix4.transformVector3(v, v, this.matrix);
+                    Core.Geometry.LinearAlgebra.Vector3.transformMat4(v, v, this.matrix);
                 };
                 Operator.applyToModelUnsafe = function (matrix, m) {
-                    var v = { x: 0.1, y: 0.1, z: 0.1 };
+                    var v = Core.Geometry.LinearAlgebra.Vector3.zero();
                     var _a = m.positions, x = _a.x, y = _a.y, z = _a.z;
                     for (var i = 0, _b = m.positions.count; i < _b; i++) {
-                        v.x = x[i];
-                        v.y = y[i];
-                        v.z = z[i];
-                        Core.Geometry.LinearAlgebra.Matrix4.transformVector3(v, v, matrix);
-                        x[i] = v.x;
-                        y[i] = v.y;
-                        z[i] = v.z;
+                        v[0] = x[i];
+                        v[1] = y[i];
+                        v[2] = z[i];
+                        Core.Geometry.LinearAlgebra.Vector3.transformMat4(v, v, matrix);
+                        x[i] = v[0];
+                        y[i] = v[1];
+                        z[i] = v[2];
                     }
                 };
                 return Operator;
@@ -16528,12 +17023,12 @@ var LiteMol;
                         var _a = model.positions, x = _a.x, y = _a.y, z = _a.z;
                         var tAtoms = model.positions.getBuilder(model.positions.count).seal();
                         var tX = tAtoms.x, tY = tAtoms.y, tZ = tAtoms.z;
-                        var t = { x: 0.0, y: 0.0, z: 0.0 };
+                        var t = Core.Geometry.LinearAlgebra.Vector3.zero();
                         for (var i = 0, _l = model.positions.count; i < _l; i++) {
                             transform(ctx, x[i], y[i], z[i], t);
-                            tX[i] = t.x;
-                            tY[i] = t.y;
-                            tZ[i] = t.z;
+                            tX[i] = t[0];
+                            tY[i] = t[1];
+                            tZ[i] = t[2];
                         }
                         return create({
                             id: model.id,
@@ -16552,6 +17047,238 @@ var LiteMol;
     })(Core = LiteMol.Core || (LiteMol.Core = {}));
 })(LiteMol || (LiteMol = {}));
 /*
+ * Copyright (c) 2017 - now David Sehnal, licensed under Apache 2.0, See LICENSE file for more info.
+ */
+var LiteMol;
+(function (LiteMol) {
+    var Core;
+    (function (Core) {
+        var Structure;
+        (function (Structure) {
+            'use strict';
+            function isBondTypeCovalent(t) {
+                return t >= 0 /* Unknown */ && t <= 5 /* DisulfideBridge */;
+            }
+            Structure.isBondTypeCovalent = isBondTypeCovalent;
+            // H,D,T are all mapped to H
+            var __ElementIndex = { 'H': 0, 'h': 0, 'D': 0, 'd': 0, 'T': 0, 't': 0, 'He': 2, 'HE': 2, 'he': 2, 'Li': 3, 'LI': 3, 'li': 3, 'Be': 4, 'BE': 4, 'be': 4, 'B': 5, 'b': 5, 'C': 6, 'c': 6, 'N': 7, 'n': 7, 'O': 8, 'o': 8, 'F': 9, 'f': 9, 'Ne': 10, 'NE': 10, 'ne': 10, 'Na': 11, 'NA': 11, 'na': 11, 'Mg': 12, 'MG': 12, 'mg': 12, 'Al': 13, 'AL': 13, 'al': 13, 'Si': 14, 'SI': 14, 'si': 14, 'P': 15, 'p': 15, 'S': 16, 's': 16, 'Cl': 17, 'CL': 17, 'cl': 17, 'Ar': 18, 'AR': 18, 'ar': 18, 'K': 19, 'k': 19, 'Ca': 20, 'CA': 20, 'ca': 20, 'Sc': 21, 'SC': 21, 'sc': 21, 'Ti': 22, 'TI': 22, 'ti': 22, 'V': 23, 'v': 23, 'Cr': 24, 'CR': 24, 'cr': 24, 'Mn': 25, 'MN': 25, 'mn': 25, 'Fe': 26, 'FE': 26, 'fe': 26, 'Co': 27, 'CO': 27, 'co': 27, 'Ni': 28, 'NI': 28, 'ni': 28, 'Cu': 29, 'CU': 29, 'cu': 29, 'Zn': 30, 'ZN': 30, 'zn': 30, 'Ga': 31, 'GA': 31, 'ga': 31, 'Ge': 32, 'GE': 32, 'ge': 32, 'As': 33, 'AS': 33, 'as': 33, 'Se': 34, 'SE': 34, 'se': 34, 'Br': 35, 'BR': 35, 'br': 35, 'Kr': 36, 'KR': 36, 'kr': 36, 'Rb': 37, 'RB': 37, 'rb': 37, 'Sr': 38, 'SR': 38, 'sr': 38, 'Y': 39, 'y': 39, 'Zr': 40, 'ZR': 40, 'zr': 40, 'Nb': 41, 'NB': 41, 'nb': 41, 'Mo': 42, 'MO': 42, 'mo': 42, 'Tc': 43, 'TC': 43, 'tc': 43, 'Ru': 44, 'RU': 44, 'ru': 44, 'Rh': 45, 'RH': 45, 'rh': 45, 'Pd': 46, 'PD': 46, 'pd': 46, 'Ag': 47, 'AG': 47, 'ag': 47, 'Cd': 48, 'CD': 48, 'cd': 48, 'In': 49, 'IN': 49, 'in': 49, 'Sn': 50, 'SN': 50, 'sn': 50, 'Sb': 51, 'SB': 51, 'sb': 51, 'Te': 52, 'TE': 52, 'te': 52, 'I': 53, 'i': 53, 'Xe': 54, 'XE': 54, 'xe': 54, 'Cs': 55, 'CS': 55, 'cs': 55, 'Ba': 56, 'BA': 56, 'ba': 56, 'La': 57, 'LA': 57, 'la': 57, 'Ce': 58, 'CE': 58, 'ce': 58, 'Pr': 59, 'PR': 59, 'pr': 59, 'Nd': 60, 'ND': 60, 'nd': 60, 'Pm': 61, 'PM': 61, 'pm': 61, 'Sm': 62, 'SM': 62, 'sm': 62, 'Eu': 63, 'EU': 63, 'eu': 63, 'Gd': 64, 'GD': 64, 'gd': 64, 'Tb': 65, 'TB': 65, 'tb': 65, 'Dy': 66, 'DY': 66, 'dy': 66, 'Ho': 67, 'HO': 67, 'ho': 67, 'Er': 68, 'ER': 68, 'er': 68, 'Tm': 69, 'TM': 69, 'tm': 69, 'Yb': 70, 'YB': 70, 'yb': 70, 'Lu': 71, 'LU': 71, 'lu': 71, 'Hf': 72, 'HF': 72, 'hf': 72, 'Ta': 73, 'TA': 73, 'ta': 73, 'W': 74, 'w': 74, 'Re': 75, 'RE': 75, 're': 75, 'Os': 76, 'OS': 76, 'os': 76, 'Ir': 77, 'IR': 77, 'ir': 77, 'Pt': 78, 'PT': 78, 'pt': 78, 'Au': 79, 'AU': 79, 'au': 79, 'Hg': 80, 'HG': 80, 'hg': 80, 'Tl': 81, 'TL': 81, 'tl': 81, 'Pb': 82, 'PB': 82, 'pb': 82, 'Bi': 83, 'BI': 83, 'bi': 83, 'Po': 84, 'PO': 84, 'po': 84, 'At': 85, 'AT': 85, 'at': 85, 'Rn': 86, 'RN': 86, 'rn': 86, 'Fr': 87, 'FR': 87, 'fr': 87, 'Ra': 88, 'RA': 88, 'ra': 88, 'Ac': 89, 'AC': 89, 'ac': 89, 'Th': 90, 'TH': 90, 'th': 90, 'Pa': 91, 'PA': 91, 'pa': 91, 'U': 92, 'u': 92, 'Np': 93, 'NP': 93, 'np': 93, 'Pu': 94, 'PU': 94, 'pu': 94, 'Am': 95, 'AM': 95, 'am': 95, 'Cm': 96, 'CM': 96, 'cm': 96, 'Bk': 97, 'BK': 97, 'bk': 97, 'Cf': 98, 'CF': 98, 'cf': 98, 'Es': 99, 'ES': 99, 'es': 99, 'Fm': 100, 'FM': 100, 'fm': 100, 'Md': 101, 'MD': 101, 'md': 101, 'No': 102, 'NO': 102, 'no': 102, 'Lr': 103, 'LR': 103, 'lr': 103, 'Rf': 104, 'RF': 104, 'rf': 104, 'Db': 105, 'DB': 105, 'db': 105, 'Sg': 106, 'SG': 106, 'sg': 106, 'Bh': 107, 'BH': 107, 'bh': 107, 'Hs': 108, 'HS': 108, 'hs': 108, 'Mt': 109, 'MT': 109, 'mt': 109 };
+            var __ElementBondThresholds = { 0: 1.42, 1: 1.42, 3: 2.7, 4: 2.7, 6: 1.75, 7: 1.6, 8: 1.52, 11: 2.7, 12: 2.7, 13: 2.7, 14: 1.9, 15: 1.9, 16: 1.9, 17: 1.8, 19: 2.7, 20: 2.7, 21: 2.7, 22: 2.7, 23: 2.7, 24: 2.7, 25: 2.7, 26: 2.7, 27: 2.7, 28: 2.7, 29: 2.7, 30: 2.7, 31: 2.7, 33: 2.68, 37: 2.7, 38: 2.7, 39: 2.7, 40: 2.7, 41: 2.7, 42: 2.7, 43: 2.7, 44: 2.7, 45: 2.7, 46: 2.7, 47: 2.7, 48: 2.7, 49: 2.7, 50: 2.7, 55: 2.7, 56: 2.7, 57: 2.7, 58: 2.7, 59: 2.7, 60: 2.7, 61: 2.7, 62: 2.7, 63: 2.7, 64: 2.7, 65: 2.7, 66: 2.7, 67: 2.7, 68: 2.7, 69: 2.7, 70: 2.7, 71: 2.7, 72: 2.7, 73: 2.7, 74: 2.7, 75: 2.7, 76: 2.7, 77: 2.7, 78: 2.7, 79: 2.7, 80: 2.7, 81: 2.7, 82: 2.7, 83: 2.7, 87: 2.7, 88: 2.7, 89: 2.7, 90: 2.7, 91: 2.7, 92: 2.7, 93: 2.7, 94: 2.7, 95: 2.7, 96: 2.7, 97: 2.7, 98: 2.7, 99: 2.7, 100: 2.7, 101: 2.7, 102: 2.7, 103: 2.7, 104: 2.7, 105: 2.7, 106: 2.7, 107: 2.7, 108: 2.7, 109: 2.88 };
+            var __ElementPairThresholds = { 0: 0.8, 20: 1.31, 27: 1.3, 35: 1.3, 44: 1.05, 54: 1, 60: 1.84, 72: 1.88, 84: 1.75, 85: 1.56, 86: 1.76, 98: 1.6, 99: 1.68, 100: 1.63, 112: 1.55, 113: 1.59, 114: 1.36, 129: 1.45, 144: 1.6, 170: 1.4, 180: 1.55, 202: 2.4, 222: 2.24, 224: 1.91, 225: 1.98, 243: 2.02, 269: 2, 293: 1.9, 480: 2.3, 512: 2.3, 544: 2.3, 612: 2.1, 629: 1.54, 665: 1, 813: 2.6, 854: 2.27, 894: 1.93, 896: 2.1, 937: 2.05, 938: 2.06, 981: 1.62, 1258: 2.68, 1309: 2.33, 1484: 1, 1763: 2.14, 1823: 2.48, 1882: 2.1, 1944: 1.72, 2380: 2.34, 3367: 2.44, 3733: 2.11, 3819: 2.6, 3821: 2.36, 4736: 2.75, 5724: 2.73, 5959: 2.63, 6519: 2.84, 6750: 2.87, 8991: 2.81 };
+            var DefaultBondingRadius = 2.001;
+            var MetalsSet = (function () {
+                var metals = ['LI', 'NA', 'K', 'RB', 'CS', 'FR', 'BE', 'MG', 'CA', 'SR', 'BA', 'RA', 'AL', 'GA', 'IN', 'SN', 'TL', 'PB', 'BI', 'SC', 'TI', 'V', 'CR', 'MN', 'FE', 'CO', 'NI', 'CU', 'ZN', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG', 'CD', 'LA', 'HF', 'TA', 'W', 'RE', 'OS', 'IR', 'PT', 'AU', 'HG', 'AC', 'RF', 'DB', 'SG', 'BH', 'HS', 'MT', 'CE', 'PR', 'ND', 'PM', 'SM', 'EU', 'GD', 'TB', 'DY', 'HO', 'ER', 'TM', 'YB', 'LU', 'TH', 'PA', 'U', 'NP', 'PU', 'AM', 'CM', 'BK', 'CF', 'ES', 'FM', 'MD', 'NO', 'LR'];
+                var set = Core.Utils.FastSet.create();
+                for (var _i = 0, metals_1 = metals; _i < metals_1.length; _i++) {
+                    var m = metals_1[_i];
+                    set.add(__ElementIndex[m]);
+                }
+                return set;
+            })();
+            function pair(a, b) {
+                if (a < b)
+                    return (a + b) * (a + b + 1) / 2 + b;
+                else
+                    return (a + b) * (a + b + 1) / 2 + a;
+            }
+            function idx(e) {
+                var i = __ElementIndex[e];
+                if (i === void 0)
+                    return -1;
+                return i;
+            }
+            function pairThreshold(i, j) {
+                if (i < 0 || j < 0)
+                    return -1;
+                var r = __ElementPairThresholds[pair(i, j)];
+                if (r === void 0)
+                    return -1;
+                return r;
+            }
+            function threshold(i) {
+                if (i < 0)
+                    return DefaultBondingRadius;
+                var r = __ElementBondThresholds[i];
+                if (r === void 0)
+                    return DefaultBondingRadius;
+                return r;
+            }
+            var H_ID = __ElementIndex['H'];
+            function isHydrogen(i) {
+                return i === H_ID;
+            }
+            function isMetal(e) {
+                var i = __ElementIndex[e];
+                if (i === void 0)
+                    return false;
+                return MetalsSet.has(i);
+            }
+            function bondsFromInput(model, atomIndices) {
+                var bonds = model.data.bonds.input;
+                if (atomIndices.length === model.data.atoms.count)
+                    return bonds;
+                var mask = Core.Utils.Mask.ofIndices(model.data.atoms.count, atomIndices);
+                var a = bonds.atomAIndex, b = bonds.atomBIndex, t = bonds.type;
+                var count = 0;
+                for (var i = 0, __i = bonds.count; i < __i; i++) {
+                    if (!mask.has(a[i]) || !mask.has(b[i]))
+                        continue;
+                    count++;
+                }
+                var ret = Core.Utils.DataTable.ofDefinition(Structure.Tables.Bonds, count);
+                var atomAIndex = ret.atomAIndex, atomBIndex = ret.atomBIndex, type = ret.type;
+                var elementSymbol = model.data.atoms.elementSymbol;
+                var offset = 0;
+                for (var i = 0, __i = bonds.count; i < __i; i++) {
+                    var u = a[i], v = b[i];
+                    if (!mask.has(u) || !mask.has(v))
+                        continue;
+                    atomAIndex[offset] = u;
+                    atomBIndex[offset] = v;
+                    var metal = isMetal(elementSymbol[u]) || isMetal(elementSymbol[v]);
+                    type[offset] = metal ? 6 /* Metallic */ : t[i];
+                    offset++;
+                }
+                return ret;
+            }
+            var ChunkedAdd = Core.Utils.ChunkedArray.add;
+            function addComponentBonds(_a, rI) {
+                var model = _a.model, mask = _a.mask, atomA = _a.atomA, atomB = _a.atomB, type = _a.type;
+                var _b = model.data.residues, atomStartIndex = _b.atomStartIndex, atomEndIndex = _b.atomEndIndex, residueName = _b.name;
+                var _c = model.data.atoms, atomName = _c.name, altLoc = _c.altLoc, elementSymbol = _c.elementSymbol;
+                var map = model.data.bonds.component.entries.get(residueName[rI]).map;
+                var start = atomStartIndex[rI], end = atomEndIndex[rI];
+                for (var i = start; i < end - 1; i++) {
+                    if (!mask.has(i))
+                        continue;
+                    var pairs = map.get(atomName[i]);
+                    if (!pairs)
+                        continue;
+                    var altA = altLoc[i];
+                    var isMetalA = isMetal(elementSymbol[i]);
+                    for (var j = i + 1; j < end; j++) {
+                        if (!mask.has(j))
+                            continue;
+                        var altB = altLoc[j];
+                        if (altA && altB && altA !== altB)
+                            continue;
+                        var order = pairs.get(atomName[j]);
+                        if (order === void 0)
+                            continue;
+                        var metal = isMetalA || isMetal(elementSymbol[j]);
+                        ChunkedAdd(atomA, i);
+                        ChunkedAdd(atomB, j);
+                        ChunkedAdd(type, metal ? 6 /* Metallic */ : order);
+                    }
+                }
+            }
+            function _computeBonds(model, atomIndices, params) {
+                var MAX_RADIUS = 3;
+                var _a = model.data.bonds, structConn = _a.structConn, component = _a.component;
+                var _b = model.positions, x = _b.x, y = _b.y, z = _b.z;
+                var _c = model.data.atoms, elementSymbol = _c.elementSymbol, residueIndex = _c.residueIndex, altLoc = _c.altLoc;
+                var residueName = model.data.residues.name;
+                var query3d = model.queryContext.lookup3d();
+                var atomA = Core.Utils.ChunkedArray.create(function (size) { return new Int32Array(size); }, (atomIndices.length * 1.33) | 0, 1);
+                var atomB = Core.Utils.ChunkedArray.create(function (size) { return new Int32Array(size); }, (atomIndices.length * 1.33) | 0, 1);
+                var type = Core.Utils.ChunkedArray.create(function (size) { return new Uint8Array(size); }, (atomIndices.length * 1.33) | 0, 1);
+                var mask = Core.Utils.Mask.ofIndices(model.data.atoms.count, atomIndices);
+                var state = { model: model, mask: mask, atomA: atomA, atomB: atomB, type: type };
+                var lastResidue = -1;
+                var hasComponent = false;
+                for (var _i = 0, atomIndices_1 = atomIndices; _i < atomIndices_1.length; _i++) {
+                    var aI = atomIndices_1[_i];
+                    var raI = residueIndex[aI];
+                    if (!params.forceCompute && raI !== lastResidue) {
+                        hasComponent = !!component && component.entries.has(residueName[raI]);
+                        if (hasComponent) {
+                            addComponentBonds(state, raI);
+                        }
+                    }
+                    lastResidue = raI;
+                    var aeI = idx(elementSymbol[aI]);
+                    var _d = query3d(x[aI], y[aI], z[aI], MAX_RADIUS), elements = _d.elements, count = _d.count, squaredDistances = _d.squaredDistances;
+                    var isHa = isHydrogen(aeI);
+                    var thresholdA = threshold(aeI);
+                    var altA = altLoc[aI];
+                    var metalA = MetalsSet.has(aeI);
+                    var structConnEntries = params.forceCompute ? void 0 : structConn && structConn.getAtomEntries(aI);
+                    for (var ni = 0; ni < count; ni++) {
+                        var bI = elements[ni];
+                        if (bI <= aI || !mask.has(bI))
+                            continue;
+                        var altB = altLoc[bI];
+                        if (altA && altB && altA !== altB)
+                            continue;
+                        var rbI = residueIndex[bI];
+                        if (raI === rbI && hasComponent)
+                            continue;
+                        var beI = idx(elementSymbol[bI]);
+                        var isHb = isHydrogen(beI);
+                        if (isHa && isHb)
+                            continue;
+                        var dist = Math.sqrt(squaredDistances[ni]);
+                        if (dist === 0)
+                            continue;
+                        if (structConnEntries) {
+                            var added = false;
+                            for (var _e = 0, structConnEntries_1 = structConnEntries; _e < structConnEntries_1.length; _e++) {
+                                var se = structConnEntries_1[_e];
+                                for (var _f = 0, _g = se.partners; _f < _g.length; _f++) {
+                                    var p = _g[_f];
+                                    if (p.atomIndex === bI) {
+                                        ChunkedAdd(atomA, aI);
+                                        ChunkedAdd(atomB, bI);
+                                        ChunkedAdd(type, se.bondType);
+                                        added = true;
+                                        break;
+                                    }
+                                }
+                                if (added)
+                                    break;
+                            }
+                            if (added)
+                                continue;
+                        }
+                        if (isHa || isHb) {
+                            if (dist < params.maxHbondLength) {
+                                ChunkedAdd(atomA, aI);
+                                ChunkedAdd(atomB, bI);
+                                ChunkedAdd(type, 1 /* Single */);
+                            }
+                            continue;
+                        }
+                        var thresholdAB = pairThreshold(aeI, beI);
+                        var pairingThreshold = thresholdAB > 0
+                            ? thresholdAB
+                            : beI < 0 ? thresholdA : Math.max(thresholdA, threshold(beI));
+                        var metalB = MetalsSet.has(beI);
+                        if (dist <= pairingThreshold) {
+                            ChunkedAdd(atomA, aI);
+                            ChunkedAdd(atomB, bI);
+                            ChunkedAdd(type, metalA || metalB ? 6 /* Metallic */ : 1 /* Single */);
+                        }
+                    }
+                }
+                var ret = Core.Utils.DataTable.builder(atomA.elementCount);
+                ret.addRawColumn('atomAIndex', function (s) { return new Int32Array(s); }, Core.Utils.ChunkedArray.compact(atomA));
+                ret.addRawColumn('atomBIndex', function (s) { return new Int32Array(s); }, Core.Utils.ChunkedArray.compact(atomB));
+                ret.addRawColumn('type', function (s) { return new Uint8Array(s); }, Core.Utils.ChunkedArray.compact(type));
+                var dataTable = ret.seal();
+                return dataTable;
+            }
+            function computeBonds(model, atomIndices, params) {
+                if (model.data.bonds.input)
+                    return bondsFromInput(model, atomIndices);
+                return _computeBonds(model, atomIndices, {
+                    maxHbondLength: (params && params.maxHbondLength) || 1.15,
+                    forceCompute: !!(params && params.forceCompute),
+                });
+            }
+            Structure.computeBonds = computeBonds;
+        })(Structure = Core.Structure || (Core.Structure = {}));
+    })(Core = LiteMol.Core || (LiteMol.Core = {}));
+})(LiteMol || (LiteMol = {}));
+/*
  * Copyright (c) 2016 - now David Sehnal, licensed under Apache 2.0, See LICENSE file for more info.
  */
 var LiteMol;
@@ -16566,7 +17293,7 @@ var LiteMol;
             var Spacegroup = (function () {
                 function Spacegroup(info) {
                     this.info = info;
-                    this.temp = Mat4.empty();
+                    this.temp = Mat4.zero();
                     this.tempV = new Float64Array(4);
                     if (SpacegroupTables.Spacegroup[info.spacegroupName] === void 0) {
                         throw "'" + info.spacegroupName + "' is not a spacegroup recognized by the library.";
@@ -16588,18 +17315,16 @@ var LiteMol;
                     Mat4.fromTranslation(this.temp, this.tempV);
                     Mat4.mul(target, Mat4.mul(target, Mat4.mul(target, this.space.fromFrac, this.temp), this.operators[index]), this.space.toFrac);
                     return target;
-                    //this.temp.setPosition(this.tempV.set(i, j, k));
-                    //return target.copy(this.space.fromFrac).multiply(this.temp).multiply(this.operators[index]).multiply(this.space.toFrac);
                 };
                 Spacegroup.prototype.getSpace = function () {
-                    var toFrac = this.info.toFracTransform, fromFrac = Mat4.empty();
+                    var toFrac = this.info.toFracTransform, fromFrac = Mat4.zero();
                     Mat4.invert(fromFrac, toFrac);
                     return {
                         toFrac: toFrac,
                         fromFrac: fromFrac,
-                        baseX: Vec4.transform(Vec4.create(), Vec4.fromValues(1, 0, 0, 1), toFrac),
-                        baseY: Vec4.transform(Vec4.create(), Vec4.fromValues(0, 1, 0, 1), toFrac),
-                        baseZ: Vec4.transform(Vec4.create(), Vec4.fromValues(0, 0, 1, 1), toFrac)
+                        baseX: Vec4.transform(Vec4.zero(), Vec4.fromValues(1, 0, 0, 1), toFrac),
+                        baseY: Vec4.transform(Vec4.zero(), Vec4.fromValues(0, 1, 0, 1), toFrac),
+                        baseZ: Vec4.transform(Vec4.zero(), Vec4.fromValues(0, 0, 1, 1), toFrac)
                     };
                 };
                 Spacegroup.getOperator = function (ids) {
@@ -17958,37 +18683,35 @@ var LiteMol;
             var SymmetryHelpers;
             (function (SymmetryHelpers) {
                 var Mat4 = Core.Geometry.LinearAlgebra.Matrix4;
+                var Vec3 = Core.Geometry.LinearAlgebra.Vector3;
                 function getBoudingSphere(arrays, indices) {
                     var x = arrays.x, y = arrays.y, z = arrays.z;
-                    var center = { x: 0, y: 0, z: 0 };
-                    for (var _i = 0, indices_1 = indices; _i < indices_1.length; _i++) {
-                        var aI = indices_1[_i];
-                        center.x += x[aI];
-                        center.y += y[aI];
-                        center.z += z[aI];
+                    var center = Vec3.zero();
+                    for (var _i = 0, indices_3 = indices; _i < indices_3.length; _i++) {
+                        var aI = indices_3[_i];
+                        center[0] += x[aI];
+                        center[1] += y[aI];
+                        center[2] += z[aI];
                     }
                     var count = indices.length > 0 ? indices.length : 1;
-                    center.x /= count;
-                    center.y /= count;
-                    center.z /= count;
+                    center[0] /= count;
+                    center[1] /= count;
+                    center[2] /= count;
                     var r = 0;
-                    for (var _a = 0, indices_2 = indices; _a < indices_2.length; _a++) {
-                        var aI = indices_2[_a];
+                    for (var _a = 0, indices_4 = indices; _a < indices_4.length; _a++) {
+                        var aI = indices_4[_a];
                         r = Math.max(indexedVectorDistSq(aI, center, arrays), r);
                     }
                     return { center: center, radius: Math.sqrt(r) };
                 }
-                function newVec() { return { x: 0, y: 0, z: 0 }; }
-                ;
                 function getSphereDist(c, r, q) {
-                    var dx = c.x - q.center.x, dy = c.y - q.center.y, dz = c.z - q.center.z;
-                    return Math.sqrt(dx * dx + dy * dy + dz * dz) - (r + q.radius);
+                    return Vec3.distance(c, q.center) - (r + q.radius);
                 }
                 function isWithinRadius(bounds, i, data, t, r, v) {
-                    v.x = data.x[i];
-                    v.y = data.y[i];
-                    v.z = data.z[i];
-                    Mat4.transformVector3(v, v, t);
+                    v[0] = data.x[i];
+                    v[1] = data.y[i];
+                    v[2] = data.z[i];
+                    Vec3.transformMat4(v, v, t);
                     return getSphereDist(v, data.r[i], bounds) <= r;
                 }
                 function indexedDistSq(aI, cI, arrays) {
@@ -17996,7 +18719,7 @@ var LiteMol;
                     return dx * dx + dy * dy + dz * dz;
                 }
                 function indexedVectorDistSq(aI, v, arrays) {
-                    var dx = arrays.x[aI] - v.x, dy = arrays.y[aI] - v.y, dz = arrays.z[aI] - v.z;
+                    var dx = arrays.x[aI] - v[0], dy = arrays.y[aI] - v[1], dz = arrays.z[aI] - v[2];
                     return dx * dx + dy * dy + dz * dz;
                 }
                 function createSymmetryContext(model, boundingInfo, spacegroup, radius) {
@@ -18005,13 +18728,13 @@ var LiteMol;
                         boundingInfo: boundingInfo,
                         spacegroup: spacegroup,
                         radius: radius,
-                        transform: Mat4.empty(),
-                        transformed: { x: 0, y: 0, z: 0 },
+                        transform: Mat4.zero(),
+                        transformed: Vec3.zero(),
                         i: 0, j: 0, k: 0, op: 0
                     };
                 }
                 function symmetryContextMap(ctx, p) {
-                    return Mat4.transformVector3(ctx.transformed, p, ctx.transform);
+                    return Vec3.transformMat4(ctx.transformed, p, ctx.transform);
                 }
                 function symmetryContextGetTransform(ctx) {
                     return createSymmetryTransform(ctx.i, ctx.j, ctx.k, ctx.op, Mat4.clone(ctx.transform));
@@ -18051,61 +18774,49 @@ var LiteMol;
                 function getBoundingInfo(model, pivotIndices) {
                     var atoms = model.data.atoms, residues = model.data.residues, chains = model.data.chains, entities = model.data.entities, _a = model.positions, x = _a.x, y = _a.y, z = _a.z;
                     var entityTable = DataTable.builder(entities.count), eX = entityTable.addColumn('x', function (s) { return new Float64Array(s); }), eY = entityTable.addColumn('y', function (s) { return new Float64Array(s); }), eZ = entityTable.addColumn('z', function (s) { return new Float64Array(s); }), eR = entityTable.addColumn('r', function (s) { return new Float64Array(s); }), chainTable = DataTable.builder(chains.count), cX = chainTable.addColumn('x', function (s) { return new Float64Array(s); }), cY = chainTable.addColumn('y', function (s) { return new Float64Array(s); }), cZ = chainTable.addColumn('z', function (s) { return new Float64Array(s); }), cR = chainTable.addColumn('r', function (s) { return new Float64Array(s); }), residueTable = DataTable.builder(residues.count), rX = residueTable.addColumn('x', function (s) { return new Float64Array(s); }), rY = residueTable.addColumn('y', function (s) { return new Float64Array(s); }), rZ = residueTable.addColumn('z', function (s) { return new Float64Array(s); }), rR = residueTable.addColumn('r', function (s) { return new Float64Array(s); });
-                    var allCenter = newVec(), allRadius = 0, pivotCenter = newVec(), pivotRadius = 0, n = 0, eCenter = newVec(), eRadius = 0, cCenter = newVec(), cRadius = 0, rCenter = newVec(), rRadius = 0;
+                    var allCenter = Vec3.zero(), allRadius = 0, pivotCenter = Vec3.zero(), pivotRadius = 0, n = 0, eCenter = Vec3.zero(), eRadius = 0, cCenter = Vec3.zero(), cRadius = 0, rCenter = Vec3.zero(), rRadius = 0;
                     for (var eI = 0, _eC = entities.count; eI < _eC; eI++) {
-                        eCenter.x = 0;
-                        eCenter.y = 0;
-                        eCenter.z = 0;
+                        Vec3.set(eCenter, 0, 0, 0);
                         for (var cI = entities.chainStartIndex[eI], _cC = entities.chainEndIndex[eI]; cI < _cC; cI++) {
-                            cCenter.x = 0;
-                            cCenter.y = 0;
-                            cCenter.z = 0;
+                            Vec3.set(cCenter, 0, 0, 0);
                             for (var rI = chains.residueStartIndex[cI], _rC = chains.residueEndIndex[cI]; rI < _rC; rI++) {
-                                rCenter.x = 0;
-                                rCenter.y = 0;
-                                rCenter.z = 0;
+                                Vec3.set(rCenter, 0, 0, 0);
                                 for (var aI = residues.atomStartIndex[rI], _aC = residues.atomEndIndex[rI]; aI < _aC; aI++) {
-                                    rCenter.x += x[aI];
-                                    rCenter.y += y[aI];
-                                    rCenter.z += z[aI];
+                                    rCenter[0] += x[aI];
+                                    rCenter[1] += y[aI];
+                                    rCenter[2] += z[aI];
                                 }
-                                allCenter.x += rCenter.x;
-                                allCenter.y += rCenter.y;
-                                allCenter.z += rCenter.z;
+                                Vec3.add(allCenter, allCenter, rCenter);
                                 n = residues.atomEndIndex[rI] - residues.atomStartIndex[rI];
-                                cCenter.x += rCenter.x;
-                                cCenter.y += rCenter.y;
-                                cCenter.z += rCenter.z;
-                                rX[rI] = rCenter.x / n;
-                                rY[rI] = rCenter.y / n;
-                                rZ[rI] = rCenter.z / n;
+                                Vec3.add(cCenter, cCenter, rCenter);
+                                rX[rI] = rCenter[0] / n;
+                                rY[rI] = rCenter[1] / n;
+                                rZ[rI] = rCenter[2] / n;
                             }
-                            eCenter.x += cCenter.x;
-                            eCenter.y += cCenter.y;
-                            eCenter.z += cCenter.z;
+                            Vec3.add(eCenter, eCenter, cCenter);
                             n = chains.atomEndIndex[cI] - chains.atomStartIndex[cI];
-                            cX[cI] = cCenter.x / n;
-                            cY[cI] = cCenter.y / n;
-                            cZ[cI] = cCenter.z / n;
+                            cX[cI] = cCenter[0] / n;
+                            cY[cI] = cCenter[1] / n;
+                            cZ[cI] = cCenter[2] / n;
                         }
                         n = entities.atomEndIndex[eI] - entities.atomStartIndex[eI];
-                        eX[eI] = eCenter.x / n;
-                        eY[eI] = eCenter.y / n;
-                        eZ[eI] = eCenter.z / n;
+                        eX[eI] = eCenter[0] / n;
+                        eY[eI] = eCenter[1] / n;
+                        eZ[eI] = eCenter[2] / n;
                     }
-                    allCenter.x /= atoms.count;
-                    allCenter.y /= atoms.count;
-                    allCenter.z /= atoms.count;
+                    allCenter[0] /= atoms.count;
+                    allCenter[1] /= atoms.count;
+                    allCenter[2] /= atoms.count;
                     for (var _i = 0, pivotIndices_1 = pivotIndices; _i < pivotIndices_1.length; _i++) {
                         var aI = pivotIndices_1[_i];
-                        pivotCenter.x += x[aI];
-                        pivotCenter.y += y[aI];
-                        pivotCenter.z += z[aI];
+                        pivotCenter[0] += x[aI];
+                        pivotCenter[1] += y[aI];
+                        pivotCenter[2] += z[aI];
                     }
                     var pivotCount = pivotIndices.length > 0 ? pivotIndices.length : 1;
-                    pivotCenter.x /= pivotCount;
-                    pivotCenter.y /= pivotCount;
-                    pivotCenter.z /= pivotCount;
+                    pivotCenter[0] /= pivotCount;
+                    pivotCenter[1] /= pivotCount;
+                    pivotCenter[2] /= pivotCount;
                     var eDA = { x: x, y: y, z: z, cX: eX, cY: eY, cZ: eZ }, cDA = { x: x, y: y, z: z, cX: cX, cY: cY, cZ: cZ }, rDA = { x: x, y: y, z: z, cX: rX, cY: rY, cZ: rZ };
                     for (var eI = 0, _eC = entities.count; eI < _eC; eI++) {
                         eRadius = 0;
@@ -18151,7 +18862,6 @@ var LiteMol;
                         for (var j = -3; j <= 3; j++) {
                             for (var k = -3; k <= 3; k++) {
                                 for (var l = (i === 0 && j === 0 && k === 0 ? 1 : 0), lm = sg.operatorCount; l < lm; l++) {
-                                    //for (let l = 0, lm = sg.operatorCount; l < lm; l++) {                            
                                     sg.getOperatorMatrix(l, i, j, k, ctx.transform);
                                     ctx.i = i;
                                     ctx.k = k;
@@ -18171,10 +18881,9 @@ var LiteMol;
                     var bounds = ctx.boundingInfo, radius = ctx.radius, targetBounds = bounds.target;
                     var model = ctx.model, residues = model.data.residues, chains = model.data.chains, entities = model.data.entities;
                     var residueIndices = Core.Utils.ChunkedArray.create(function (s) { return new Int32Array(s); }, residues.count, 1), operatorIndices = Core.Utils.ChunkedArray.create(function (s) { return new Int32Array(s); }, residues.count, 1);
-                    var v = { x: 0, y: 0, z: 0 }, opIndex = 0;
+                    var v = Vec3.zero(), opIndex = 0;
                     var atomCount = 0, chainCount = 0, entityCount = 0;
                     for (var eI = 0, _eC = entities.count; eI < _eC; eI++) {
-                        //if (!isWithinRadius(hetBounds, eI, bounds.entities, t.transform, radius, v)) continue;
                         opIndex = 0;
                         var chainAdded = false;
                         for (var _i = 0, transforms_1 = transforms; _i < transforms_1.length; _i++) {
@@ -18240,7 +18949,7 @@ var LiteMol;
                             };
                         }
                     }
-                    var assemblyResidueParts = assemblyParts.residues, assemblyOpParts = assemblyParts.operators, temp = { x: 0, y: 0, z: 0 }, atomOffset = 0;
+                    var assemblyResidueParts = assemblyParts.residues, assemblyOpParts = assemblyParts.operators, temp = Core.Geometry.LinearAlgebra.Vector3.zero(), atomOffset = 0;
                     var rI = assemblyResidueParts[0], currentChain = residueChainIndex[rI], currentEntity = residueEntityIndex[rI], currentOp = assemblyOpParts[0], currentAsymId, currentAuthAsymId;
                     // setup entity table
                     cloneRow(srcEntityData, residueEntityIndex[rI], entityData, 0, srcEntityData.length);
@@ -18326,13 +19035,11 @@ var LiteMol;
                         residueAsymId[residueOffset] = currentAsymId;
                         residueAuthAsymId[residueOffset] = currentAuthAsymId;
                         for (var aI = residueAtomStartIndex[rI], _mAI = residueAtomEndIndex[rI]; aI < _mAI; aI++) {
-                            temp.x = x[aI];
-                            temp.y = y[aI];
-                            temp.z = z[aI];
-                            Mat4.transformVector3(temp, temp, transform.transform);
-                            atomX[atomOffset] = temp.x;
-                            atomY[atomOffset] = temp.y;
-                            atomZ[atomOffset] = temp.z;
+                            Vec3.set(temp, x[aI], y[aI], z[aI]);
+                            Vec3.transformMat4(temp, temp, transform.transform);
+                            atomX[atomOffset] = temp[0];
+                            atomY[atomOffset] = temp[1];
+                            atomZ[atomOffset] = temp[2];
                             atomId[atomOffset] = atomOffset + 1;
                             atomResidue[atomOffset] = residueOffset;
                             atomChain[atomOffset] = chainOffset;
@@ -18353,7 +19060,10 @@ var LiteMol;
                     chainResidueEnd[chainOffset] = assemblyResidueParts.length;
                     chainAtomEnd[chainOffset] = atomOffset;
                     var finalAtoms = atomTable.seal(), finalResidues = residueTableBuilder.seal(), finalChains = chainTableBuilder.seal(), finalEntities = entityTableBuilder.seal();
-                    var ss = buildSS(model, assemblyParts, finalResidues);
+                    var secondaryStructure = buildSS(model, assemblyParts, finalResidues);
+                    var structConn = model.data.bonds.structConn
+                        ? buildStructConn(model.data.bonds.structConn, transforms, assemblyParts.residues, assemblyParts.operators, model.data.residues, finalResidues)
+                        : void 0;
                     return Structure.Molecule.Model.create({
                         id: model.id,
                         modelId: model.modelId,
@@ -18363,15 +19073,108 @@ var LiteMol;
                             chains: finalChains,
                             entities: finalEntities,
                             bonds: {
+                                structConn: structConn,
                                 component: model.data.bonds.component
                             },
-                            secondaryStructure: ss,
+                            secondaryStructure: secondaryStructure
                         },
                         positions: positionTable,
                         parent: model,
                         source: Structure.Molecule.Model.Source.Computed,
                         operators: transforms.map(function (t) { return new Structure.Operator(t.transform, t.id, t.isIdentity); })
                     });
+                }
+                function buildStructConn(structConn, ops, residueParts, residueOpParts, oldResidues, newResidues) {
+                    var entries = structConn.entries;
+                    var opsMap = Core.Utils.FastMap.create();
+                    for (var i = 0, __i = ops.length; i < __i; i++) {
+                        opsMap.set(ops[i].id, i);
+                    }
+                    var transformMap = Core.Utils.FastMap.create();
+                    for (var _i = 0, entries_1 = entries; _i < entries_1.length; _i++) {
+                        var e = entries_1[_i];
+                        for (var _a = 0, _b = e.partners; _a < _b.length; _a++) {
+                            var p = _b[_a];
+                            if (!transformMap.has(p.residueIndex)) {
+                                transformMap.set(p.residueIndex, Core.Utils.FastMap.create());
+                            }
+                        }
+                    }
+                    for (var i = 0, __i = residueParts.length; i < __i; i++) {
+                        var r = residueParts[i];
+                        if (!transformMap.has(r))
+                            continue;
+                        transformMap.get(r).set(residueOpParts[i], i);
+                    }
+                    var oldStart = oldResidues.atomStartIndex;
+                    var newStart = newResidues.atomStartIndex;
+                    var ret = [];
+                    for (var _c = 0, entries_2 = entries; _c < entries_2.length; _c++) {
+                        var e = entries_2[_c];
+                        var allId = true;
+                        for (var _d = 0, _e = e.partners; _d < _e.length; _d++) {
+                            var p = _e[_d];
+                            if (p.symmetry !== '1_555') {
+                                allId = false;
+                                break;
+                            }
+                        }
+                        if (allId) {
+                            var _loop_1 = function (opIndex, __oi) {
+                                var allMapped = true;
+                                for (var _i = 0, _a = e.partners; _i < _a.length; _i++) {
+                                    var p = _a[_i];
+                                    if (!transformMap.get(p.residueIndex).has(opIndex)) {
+                                        allMapped = false;
+                                        break;
+                                    }
+                                }
+                                if (!allMapped)
+                                    return "continue";
+                                ret.push({
+                                    bondType: e.bondType,
+                                    distance: e.distance,
+                                    partners: e.partners.map(function (p) {
+                                        var rI = transformMap.get(p.residueIndex).get(opIndex);
+                                        return {
+                                            residueIndex: rI,
+                                            atomIndex: newStart[rI] + (p.atomIndex - oldStart[p.residueIndex]),
+                                            symmetry: p.symmetry
+                                        };
+                                    })
+                                });
+                            };
+                            for (var opIndex = 0, __oi = ops.length; opIndex < __oi; opIndex++) {
+                                _loop_1(opIndex, __oi);
+                            }
+                        }
+                        else {
+                            var partners = [];
+                            for (var _f = 0, _g = e.partners; _f < _g.length; _f++) {
+                                var p = _g[_f];
+                                if (!opsMap.has(p.symmetry))
+                                    break;
+                                var op = opsMap.get(p.symmetry);
+                                var m = transformMap.get(p.residueIndex);
+                                if (!m.has(op))
+                                    break;
+                                var rI = m.get(op);
+                                partners.push({
+                                    residueIndex: rI,
+                                    atomIndex: newStart[rI] + (p.atomIndex - oldStart[p.residueIndex]),
+                                    symmetry: p.symmetry
+                                });
+                            }
+                            if (partners.length === e.partners.length) {
+                                ret.push({
+                                    bondType: e.bondType,
+                                    distance: e.distance,
+                                    partners: partners
+                                });
+                            }
+                        }
+                    }
+                    return new Structure.StructConn(ret);
                 }
                 function buildSS(parent, assemblyParts, newResidues) {
                     var index = parent.data.residues.secondaryStructureIndex;
@@ -18417,18 +19220,18 @@ var LiteMol;
                 function findMates(model, radius) {
                     var bounds = getBoudingSphere(model.positions, model.positions.indices);
                     var spacegroup = new Structure.Spacegroup(model.data.symmetryInfo);
-                    var t = Mat4.empty();
-                    var v = { x: 0, y: 0, z: 0 };
+                    var t = Mat4.zero();
+                    var v = Vec3.zero();
                     var transforms = [];
                     for (var i = -3; i <= 3; i++) {
                         for (var j = -3; j <= 3; j++) {
                             for (var k = -3; k <= 3; k++) {
                                 for (var op = 0; op < spacegroup.operatorCount; op++) {
                                     spacegroup.getOperatorMatrix(op, i, j, k, t);
-                                    Mat4.transformVector3(v, bounds.center, t);
+                                    Vec3.transformMat4(v, bounds.center, t);
                                     if (getSphereDist(v, bounds.radius, bounds) > radius)
                                         continue;
-                                    var copy = Mat4.empty();
+                                    var copy = Mat4.zero();
                                     Mat4.copy(copy, t);
                                     transforms.push(createSymmetryTransform(i, j, k, op, copy));
                                 }
@@ -18482,10 +19285,10 @@ var LiteMol;
                         createOperators(operators, list, i - 1, current);
                     }
                 }
-                function getAssemblyTransforms(model, operators) {
+                function getAssemblyTransforms(model, operators, offset) {
                     var info = model.data.assemblyInfo;
                     var transforms = [];
-                    var index = 0;
+                    var index = offset;
                     for (var _i = 0, operators_1 = operators; _i < operators_1.length; _i++) {
                         var op = operators_1[_i];
                         var m = Mat4.identity();
@@ -18497,12 +19300,12 @@ var LiteMol;
                     }
                     return transforms;
                 }
-                function getAssemblyParts(model, residueMask, currentTransforms, state) {
+                function getAssemblyParts(model, residueMask, currentTransforms, state, transformOffset) {
                     var _a = model.data, chains = _a.chains, entities = _a.entities, residues = _a.residues;
                     var residueIndices = state.residueIndices, operatorIndices = state.operatorIndices;
                     var atomCount = 0, chainCount = 0, entityCount = 0;
                     for (var eI = 0, _eC = entities.count; eI < _eC; eI++) {
-                        var opIndex = state.transformsOffset; //0;
+                        var opIndex = transformOffset;
                         var chainAdded = false;
                         for (var _i = 0, currentTransforms_1 = currentTransforms; _i < currentTransforms_1.length; _i++) {
                             var _ = currentTransforms_1[_i];
@@ -18530,21 +19333,14 @@ var LiteMol;
                     state.atomCount += atomCount;
                     state.chainCount += chainCount;
                     state.entityCount += entityCount;
-                    // return {
-                    //     residues: residueIndices.compact(),
-                    //     operators: operatorIndices.compact(),
-                    //     atomCount,
-                    //     chainCount,
-                    //     entityCount
-                    // };
                 }
                 function buildAssemblyEntry(model, entry, state) {
                     var ops = [], currentOp = [];
                     for (var i_2 = 0; i_2 < entry.operators.length; i_2++)
                         currentOp[i_2] = '';
                     createOperators(entry.operators, ops, entry.operators.length - 1, currentOp);
-                    var transforms = getAssemblyTransforms(model, ops);
-                    state.transformsOffset += state.transforms.length;
+                    var transformOffset = state.transforms.length;
+                    var transforms = getAssemblyTransforms(model, ops, state.transforms.length);
                     (_a = state.transforms).push.apply(_a, transforms);
                     var asymIds = Core.Utils.FastSet.create();
                     entry.asymIds.forEach(function (id) { return asymIds.add(id); });
@@ -18554,7 +19350,7 @@ var LiteMol;
                     for (var i = 0; i < residueCount; i++) {
                         mask[i] = asymIds.has(residueAsymIds[i]);
                     }
-                    getAssemblyParts(model, mask, transforms, state);
+                    getAssemblyParts(model, mask, transforms, state, transformOffset);
                     var _a;
                 }
                 SymmetryHelpers.buildAssemblyEntry = buildAssemblyEntry;
@@ -18564,7 +19360,6 @@ var LiteMol;
                         chainCount: 0,
                         entityCount: 0,
                         transforms: [],
-                        transformsOffset: 0,
                         mask: new Int8Array(model.data.residues.count),
                         residueIndices: Core.Utils.ChunkedArray.create(function (s) { return new Int32Array(s); }, model.data.residues.count, 1),
                         operatorIndices: Core.Utils.ChunkedArray.create(function (s) { return new Int32Array(s); }, model.data.residues.count, 1)
@@ -18625,8 +19420,8 @@ var LiteMol;
                  */
                 var Context = (function () {
                     function Context(structure, mask) {
-                        this.structure = structure;
                         this.mask = mask;
+                        this.structure = structure;
                     }
                     Object.defineProperty(Context.prototype, "atomCount", {
                         /**
@@ -18648,14 +19443,14 @@ var LiteMol;
                         enumerable: true,
                         configurable: true
                     });
-                    Object.defineProperty(Context.prototype, "tree", {
+                    Object.defineProperty(Context.prototype, "lookup3d", {
                         /**
-                         * Get a kd-tree for the atoms in the current context.
+                         * Get a 3d loopup structure for the atoms in the current context.
                          */
                         get: function () {
-                            if (!this.lazyTree)
-                                this.makeTree();
-                            return this.lazyTree;
+                            if (!this.lazyLoopup3d)
+                                this.makeLookup3d();
+                            return this.lazyLoopup3d;
                         },
                         enumerable: true,
                         configurable: true
@@ -18680,110 +19475,32 @@ var LiteMol;
                      * Create a new context based on the provide structure.
                      */
                     Context.ofStructure = function (structure) {
-                        return new Context(structure, Context.Mask.ofStructure(structure));
+                        return new Context(structure, Core.Utils.Mask.ofStructure(structure));
                     };
                     /**
                      * Create a new context from a sequence of fragments.
                      */
                     Context.ofFragments = function (seq) {
-                        return new Context(seq.context.structure, Context.Mask.ofFragments(seq));
+                        return new Context(seq.context.structure, Core.Utils.Mask.ofFragments(seq));
                     };
                     /**
                      * Create a new context from a sequence of fragments.
                      */
                     Context.ofAtomIndices = function (structure, atomIndices) {
-                        return new Context(structure, Context.Mask.ofIndices(structure, atomIndices));
+                        return new Context(structure, Core.Utils.Mask.ofIndices(structure.data.atoms.count, atomIndices));
                     };
-                    Context.prototype.makeTree = function () {
+                    Context.prototype.makeLookup3d = function () {
                         var data = new Int32Array(this.mask.size), dataCount = 0, _a = this.structure.positions, x = _a.x, y = _a.y, z = _a.z;
                         for (var i = 0, _b = this.structure.positions.count; i < _b; i++) {
                             if (this.mask.has(i))
                                 data[dataCount++] = i;
                         }
-                        this.lazyTree = Core.Geometry.SubdivisionTree3D.create(data, function (i, add) { return add(x[i], y[i], z[i]); });
+                        var inputData = Core.Geometry.Query3D.createInputData(data, function (i, add) { return add(x[i], y[i], z[i]); });
+                        this.lazyLoopup3d = Core.Geometry.Query3D.createSpatialHash(inputData);
                     };
                     return Context;
                 }());
                 Query.Context = Context;
-                (function (Context) {
-                    var Mask;
-                    (function (Mask) {
-                        var BitMask = (function () {
-                            function BitMask(mask, size) {
-                                this.mask = mask;
-                                this.size = size;
-                            }
-                            BitMask.prototype.has = function (i) { return this.mask[i]; };
-                            return BitMask;
-                        }());
-                        var AllMask = (function () {
-                            function AllMask(size) {
-                                this.size = size;
-                            }
-                            AllMask.prototype.has = function (i) { return true; };
-                            return AllMask;
-                        }());
-                        function ofStructure(structure) {
-                            return new AllMask(structure.data.atoms.count);
-                        }
-                        Mask.ofStructure = ofStructure;
-                        function ofIndices(structure, atomIndices) {
-                            var f = atomIndices.length / structure.data.atoms.count;
-                            if (f < 0.25) {
-                                var set = Core.Utils.FastSet.create();
-                                for (var _i = 0, atomIndices_1 = atomIndices; _i < atomIndices_1.length; _i++) {
-                                    var i = atomIndices_1[_i];
-                                    set.add(i);
-                                }
-                                return set;
-                            }
-                            var mask = new Int8Array(structure.data.atoms.count);
-                            for (var _a = 0, atomIndices_2 = atomIndices; _a < atomIndices_2.length; _a++) {
-                                var i = atomIndices_2[_a];
-                                mask[i] = 1;
-                            }
-                            return new BitMask(mask, atomIndices.length);
-                        }
-                        Mask.ofIndices = ofIndices;
-                        function ofFragments(seq) {
-                            var sizeEstimate = 0;
-                            for (var _i = 0, _a = seq.fragments; _i < _a.length; _i++) {
-                                var f = _a[_i];
-                                sizeEstimate += f.atomCount;
-                            }
-                            var count = seq.context.structure.data.atoms.count;
-                            if (sizeEstimate / count < 0.25) {
-                                // create set;
-                                var mask = Core.Utils.FastSet.create();
-                                for (var _c = 0, _d = seq.fragments; _c < _d.length; _c++) {
-                                    var f = _d[_c];
-                                    for (var _e = 0, _f = f.atomIndices; _e < _f.length; _e++) {
-                                        var i = _f[_e];
-                                        mask.add(i);
-                                    }
-                                }
-                                return mask;
-                            }
-                            else {
-                                var mask = new Int8Array(count);
-                                for (var _g = 0, _h = seq.fragments; _g < _h.length; _g++) {
-                                    var f = _h[_g];
-                                    for (var _j = 0, _k = f.atomIndices; _j < _k.length; _j++) {
-                                        var i = _k[_j];
-                                        mask[i] = 1;
-                                    }
-                                }
-                                var size = 0;
-                                for (var i = 0; i < count; i++) {
-                                    if (mask[i] !== 0)
-                                        size++;
-                                }
-                                return new BitMask(mask, size);
-                            }
-                        }
-                        Mask.ofFragments = ofFragments;
-                    })(Mask = Context.Mask || (Context.Mask = {}));
-                })(Context = Query.Context || (Query.Context = {}));
                 /**
                  * The basic element of the query language.
                  * Everything is represented as a fragment.
@@ -19171,6 +19888,8 @@ var LiteMol;
                     }
                     Builder.toQuery = toQuery;
                 })(Builder = Query.Builder || (Query.Builder = {}));
+                function allAtoms() { return Builder.build(function () { return Compiler.compileAllAtoms(); }); }
+                Query.allAtoms = allAtoms;
                 function atomsByElement() {
                     var elements = [];
                     for (var _i = 0; _i < arguments.length; _i++) {
@@ -19288,6 +20007,9 @@ var LiteMol;
                 Builder.registerModifier('flatten', flatten);
                 function flatten(what, selector) { return Builder.build(function () { return Compiler.compileFlatten(what, selector); }); }
                 Query.flatten = flatten;
+                Builder.registerModifier('except', except);
+                function except(what, toRemove) { return Builder.build(function () { return Compiler.compileExcept(what, toRemove); }); }
+                Query.except = except;
                 /**
                  * Shortcuts
                  */
@@ -19357,6 +20079,17 @@ var LiteMol;
                         };
                     }
                     Compiler.compileEverything = compileEverything;
+                    function compileAllAtoms() {
+                        return function (ctx) {
+                            var fragments = new Query.FragmentSeqBuilder(ctx);
+                            for (var i = 0, _b = ctx.structure.data.atoms.count; i < _b; i++) {
+                                if (ctx.hasAtom(i))
+                                    fragments.add(Query.Fragment.ofIndex(ctx, i));
+                            }
+                            return fragments.getSeq();
+                        };
+                    }
+                    Compiler.compileAllAtoms = compileAllAtoms;
                     function compileAtoms(elements, sel) {
                         return function (ctx) {
                             var set = Core.Utils.FastSet.ofArray(elements), data = sel(ctx.structure), fragments = new Query.FragmentSeqBuilder(ctx);
@@ -19371,17 +20104,19 @@ var LiteMol;
                     function compileAtomIndices(indices) {
                         return function (ctx) {
                             var count = 0;
-                            for (var _i = 0, indices_3 = indices; _i < indices_3.length; _i++) {
-                                var aI = indices_3[_i];
+                            for (var _i = 0, indices_5 = indices; _i < indices_5.length; _i++) {
+                                var aI = indices_5[_i];
                                 if (ctx.hasAtom(aI))
                                     count++;
                             }
                             if (!count)
                                 return Query.FragmentSeq.empty(ctx);
+                            if (count === indices.length)
+                                return new Query.FragmentSeq(ctx, [Query.Fragment.ofArray(ctx, indices[0], indices)]);
                             var offset = 0;
                             var f = new Int32Array(count);
-                            for (var _a = 0, indices_4 = indices; _a < indices_4.length; _a++) {
-                                var aI = indices_4[_a];
+                            for (var _a = 0, indices_6 = indices; _a < indices_6.length; _a++) {
+                                var aI = indices_6[_a];
                                 if (ctx.hasAtom(aI))
                                     f[offset++] = aI;
                             }
@@ -19404,8 +20139,8 @@ var LiteMol;
                                 }
                             }
                             else {
-                                for (var _i = 0, indices_5 = indices; _i < indices_5.length; _i++) {
-                                    var i = indices_5[_i];
+                                for (var _i = 0, indices_7 = indices; _i < indices_7.length; _i++) {
+                                    var i = indices_7[_i];
                                     if (!ctx.hasRange(atomStartIndex[i], atomEndIndex[i]))
                                         continue;
                                     fragments.add(Query.Fragment.ofIndexRange(ctx, atomStartIndex[i], atomEndIndex[i]));
@@ -19572,7 +20307,7 @@ var LiteMol;
                         var _where = Builder.toQuery(where);
                         return function (ctx) {
                             var fs = _what(ctx);
-                            var map = Query.Context.Mask.ofFragments(_where(ctx));
+                            var map = Core.Utils.Mask.ofFragments(_where(ctx));
                             var ret = new Query.FragmentSeqBuilder(ctx);
                             for (var _i = 0, _a = fs.fragments; _i < _a.length; _i++) {
                                 var f = _a[_i];
@@ -19600,7 +20335,7 @@ var LiteMol;
                     function compileComplement(what) {
                         var _what = Builder.toQuery(what);
                         return function (ctx) {
-                            var mask = Query.Context.Mask.ofFragments(_what(ctx)), count = 0, offset = 0;
+                            var mask = Core.Utils.Mask.ofFragments(_what(ctx)), count = 0, offset = 0;
                             for (var i = 0, _b = ctx.structure.data.atoms.count; i < _b; i++) {
                                 if (ctx.hasAtom(i) && !mask.has(i))
                                     count++;
@@ -19682,16 +20417,16 @@ var LiteMol;
                     function compileAmbientResidues(where, radius) {
                         var _where = Builder.toQuery(where);
                         return function (ctx) {
-                            var src = _where(ctx), tree = ctx.tree, radiusCtx = Core.Geometry.SubdivisionTree3D.createContextRadius(tree, radius, false), buffer = radiusCtx.buffer, ret = new Query.HashFragmentSeqBuilder(ctx), _a = ctx.structure.positions, x = _a.x, y = _a.y, z = _a.z, residueIndex = ctx.structure.data.atoms.residueIndex, atomStart = ctx.structure.data.residues.atomStartIndex, atomEnd = ctx.structure.data.residues.atomEndIndex, treeData = tree.data;
+                            var src = _where(ctx), nearest = ctx.lookup3d(), ret = new Query.HashFragmentSeqBuilder(ctx), _a = ctx.structure.positions, x = _a.x, y = _a.y, z = _a.z, residueIndex = ctx.structure.data.atoms.residueIndex, atomStart = ctx.structure.data.residues.atomStartIndex, atomEnd = ctx.structure.data.residues.atomEndIndex;
                             for (var _i = 0, _c = src.fragments; _i < _c.length; _i++) {
                                 var f = _c[_i];
                                 var residues_1 = Core.Utils.FastSet.create();
                                 for (var _d = 0, _e = f.atomIndices; _d < _e.length; _d++) {
                                     var i = _e[_d];
                                     residues_1.add(residueIndex[i]);
-                                    radiusCtx.nearest(x[i], y[i], z[i], radius);
-                                    for (var j = 0, _l = buffer.count; j < _l; j++) {
-                                        residues_1.add(residueIndex[treeData[buffer.indices[j]]]);
+                                    var _f = nearest(x[i], y[i], z[i], radius), elements = _f.elements, count = _f.count;
+                                    for (var j = 0; j < count; j++) {
+                                        residues_1.add(residueIndex[elements[j]]);
                                     }
                                 }
                                 var atomCount = { count: 0, start: atomStart, end: atomEnd };
@@ -19752,6 +20487,36 @@ var LiteMol;
                         };
                     }
                     Compiler.compileFlatten = compileFlatten;
+                    function compileExcept(what, toRemove) {
+                        var _what = Builder.toQuery(what);
+                        var _toRemove = Builder.toQuery(toRemove);
+                        return function (ctx) {
+                            var fs = _what(ctx);
+                            var mask = Core.Utils.Mask.ofFragments(_toRemove(ctx));
+                            var ret = new Query.HashFragmentSeqBuilder(ctx);
+                            for (var _i = 0, _a = fs.fragments; _i < _a.length; _i++) {
+                                var f = _a[_i];
+                                var size = 0;
+                                for (var _c = 0, _d = f.atomIndices; _c < _d.length; _c++) {
+                                    var i = _d[_c];
+                                    if (!mask.has(i))
+                                        size++;
+                                }
+                                if (!size)
+                                    continue;
+                                var indices = new Int32Array(size);
+                                var offset = 0;
+                                for (var _e = 0, _f = f.atomIndices; _e < _f.length; _e++) {
+                                    var i = _f[_e];
+                                    if (!mask.has(i))
+                                        indices[offset++] = i;
+                                }
+                                ret.add(Query.Fragment.ofArray(ctx, indices[0], indices));
+                            }
+                            return ret.getSeq();
+                        };
+                    }
+                    Compiler.compileExcept = compileExcept;
                 })(Compiler = Query.Compiler || (Query.Compiler = {}));
             })(Query = Structure.Query || (Structure.Query = {}));
         })(Structure = Core.Structure || (Core.Structure = {}));

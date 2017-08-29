@@ -402,34 +402,53 @@ namespace LayersVizualizer.UI{
             var vizualizer = this.props.vizualizer;
 
             vizualizer.setColorBoundsMode(this.state.colorBoundsMode);
-
-            this.setState({
-                instanceId: vizualizer.getPublicInstanceIdx(),
-                customColoringPropertyKey:vizualizer.getCustomColoringPropertyKey(),
-                coloringPropertyKey:vizualizer.getColoringPropertyKey(),
-                customRadiusPropertyKey:vizualizer.getCustomRadiusPropertyKey(),
-                radiusPropertyKey:vizualizer.getRadiusPropertyKey(),
-                colorBoundsMode:this.state.colorBoundsMode
-            });
+            
+            let state = this.state;
+            state.instanceId= vizualizer.getPublicInstanceIdx(),
+            state.customColoringPropertyKey=vizualizer.getCustomColoringPropertyKey(),
+            state.coloringPropertyKey=vizualizer.getColoringPropertyKey(),
+            state.customRadiusPropertyKey=vizualizer.getCustomRadiusPropertyKey(),
+            state.radiusPropertyKey=vizualizer.getRadiusPropertyKey(),
+            state.colorBoundsMode=this.state.colorBoundsMode
+            this.setState(state);
             this.vizualizer = vizualizer;
 
             CommonUtils.Selection.SelectionHelper.attachOnChannelSelectHandler((data)=>{
                 window.setTimeout(()=>{
-                    this.setState({currentTunnelRef: CommonUtils.Selection.SelectionHelper.getSelectedChannelRef(), isLayerSelected: false});
+                    let state = this.state;
+                    state.currentTunnelRef = CommonUtils.Selection.SelectionHelper.getSelectedChannelRef();
+                    state.isLayerSelected = false;
+                    this.setState(state);
                     //$('#left-tabs').tabs("option", "active", 0);
                     Tabs.activateTab("left-tabs","1");
                     let layers = DataInterface.convertLayersToLayerData(data);
                     Tabs.doAfterTabActivated("left-tabs","1",()=>{
                         vizualizer.setData(layers);
-                        this.setState({data: layers, hasData: true, isDOMReady:false, instanceId: vizualizer.getPublicInstanceIdx()});
+                        let s1 = this.state;
+                        s1.data= layers;
+                        s1.hasData= true;
+                        s1.isDOMReady=false;
+                        s1.instanceId= vizualizer.getPublicInstanceIdx();
+                        this.setState(s1);
                         vizualizer.rebindDOMRefs();
-                        vizualizer.vizualize();  
-                        this.setState({data: layers, hasData: true, isDOMReady:true, instanceId: vizualizer.getPublicInstanceIdx()});
+                        vizualizer.vizualize();
+                        let s2 = this.state;  
+                        s2.data= layers;
+                        s2.hasData= true; 
+                        s2.isDOMReady=true; 
+                        s2.instanceId= vizualizer.getPublicInstanceIdx();
+                        this.setState(s2);
                     });
                 },50);
             });
             CommonUtils.Selection.SelectionHelper.attachOnChannelDeselectHandler(()=>{
-                this.setState({data: [], hasData:false, isDOMReady:false, currentTunnelRef: "", isLayerSelected: false});
+                let state = this.state;
+                state.data= [];
+                state.hasData=false;
+                state.isDOMReady=false;
+                state.currentTunnelRef= "";
+                state.isLayerSelected= false;
+                this.setState(state);
                 setTimeout(function(){
                     $( window ).trigger('contentResize');
                 },1);
@@ -685,12 +704,14 @@ namespace LayersVizualizer.UI{
             }
 
             instance.vizualize();
-            
+            let state = this.props.app.state;
             if(this.props.isCustom){
-                this.props.app.setState({customColoringPropertyKey:propertyName});
+                state.customColoringPropertyKey = propertyName;
+                this.props.app.setState(state);
             }
             else{
-                this.props.app.setState({coloringPropertyKey:propertyName});
+                state.coloringPropertyKey=propertyName;
+                this.props.app.setState(state);
             }
         }
 
@@ -721,11 +742,14 @@ namespace LayersVizualizer.UI{
 
             instance.vizualize();
             
+            let state = this.props.app.state;
             if(this.props.isCustom){
-                this.props.app.setState({customRadiusPropertyKey:propertyName});
+                state.customRadiusPropertyKey = propertyName;
+                this.props.app.setState(state);
             }
             else{
-                this.props.app.setState({radiusPropertyKey:propertyName});
+                state.radiusPropertyKey = propertyName;
+                this.props.app.setState(state);
             }
         }
 
@@ -749,8 +773,9 @@ namespace LayersVizualizer.UI{
 
             instance.setColorBoundsMode(mode);
             instance.vizualize();
-            
-            this.props.app.setState({colorBoundsMode:mode});
+            let state = this.props.app.state;
+            state.colorBoundsMode = mode;
+            this.props.app.setState(state);
         }
 
         render(){
@@ -1046,7 +1071,9 @@ namespace LayersVizualizer.UI{
             
             instance.highlightHitbox(layerIdx);
             if(!this.props.app.state.isLayerSelected){
-                this.props.app.setState({layerId: layerIdx});    
+                let state = this.props.app.state;
+                state.layerId = layerIdx;
+                this.props.app.setState(state);    
                 $( window ).trigger('layerTriggered',layerIdx);
                 /*$( window ).trigger('resize');
                 $( window ).trigger('contentResize');*/
@@ -1068,7 +1095,10 @@ namespace LayersVizualizer.UI{
                 instance.highlightHitbox(layerIdx);
             }
             else{
-                this.props.app.setState({layerId: layerIdx,isLayerSelected: true});   
+                let state = this.props.app.state;
+                state.layerId = layerIdx;
+                state.isLayerSelected = true;
+                this.props.app.setState(state);   
                 this.showLayerResidues3DAndFocus(layerIdx);
                 instance.deselectLayer();
                 instance.selectLayer(layerIdx);

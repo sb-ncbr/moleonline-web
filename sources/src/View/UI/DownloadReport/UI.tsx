@@ -67,7 +67,9 @@ namespace DownloadReport.UI{
             }
 
             MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId((submitId)=>{
-                this.setState({submitId});
+                let state = this.state;
+                state.submitId = submitId;
+                this.setState(state);
             });
         }
         

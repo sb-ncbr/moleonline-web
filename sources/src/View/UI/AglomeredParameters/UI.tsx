@@ -26,7 +26,7 @@ namespace AglomeredParameters.UI{
 
         private interactionEventStream: LiteMol.Bootstrap.Rx.IDisposable | undefined = void 0;
 
-        state = {
+        state:State = {
             data: null,
             app: this,
             isWaitingForData: false
@@ -41,17 +41,17 @@ namespace AglomeredParameters.UI{
                     toShow = toShow.concat(data.Channels.Paths);
                     toShow = toShow.concat(data.Channels.Pores);
                     toShow = toShow.concat(data.Channels.MergedPores);
-                    this.setState({
-                        data: toShow
-                    });
+                    let state = this.state;
+                    state.data = toShow;
+                    this.setState(state);
                     $( window ).trigger("contentResize");
                 }
             });
             LiteMoleEvent.Tree.NodeRemoved.getStream(this.props.controller.context).subscribe(e => {
                 if(e.data.tree !== void 0 && e.data.ref === "mole-data"){
-                    this.setState({
-                        data: null
-                    });
+                    let state = this.state;
+                    state.data = null;
+                    this.setState(state);
                 }
             });
             this.forceUpdate();

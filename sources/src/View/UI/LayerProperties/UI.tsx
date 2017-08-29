@@ -39,7 +39,7 @@ namespace LayerProperties.UI{
 
         private interactionEventStream: LiteMol.Bootstrap.Rx.IDisposable | undefined = void 0;
 
-        state = {
+        state:State = {
             data: null,
             app: this,
             layerIdx: -1
@@ -69,7 +69,10 @@ namespace LayerProperties.UI{
                 .subscribe(e => interactionHandler('select', e.data as ChannelEventInfo, this));
             */
             CommonUtils.Selection.SelectionHelper.attachOnChannelDeselectHandler(()=>{
-                this.setState({layerIdx:-1,data:null});
+                let state = this.state;
+                state.layerIdx = -1;
+                state.data = null;
+                this.setState(state);
             });
             
             $( window ).on('layerTriggered', this.layerTriggerHandler.bind(this));
@@ -82,10 +85,15 @@ namespace LayerProperties.UI{
             let data = CommonUtils.Selection.SelectionHelper.getSelectedChannelData();
 
             if(data!==null){
-                this.setState({layerIdx, data: data.LayersInfo});
+                let state = this.state;
+                state.layerIdx=layerIdx;
+                state.data = data.LayersInfo;
+                this.setState(state);
             }
             else{
-                this.setState({layerIdx});
+                let state = this.state;
+                state.layerIdx = layerIdx;
+                this.setState(state);
             }
 
             setTimeout(function(){

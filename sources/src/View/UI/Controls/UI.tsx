@@ -434,7 +434,9 @@ namespace Controls.UI{
         state:SettingsState = {data:null,mode:"Mole"}
         
         componentDidMount(){  
-            this.setState({data:this.props.initialData}); 
+            let state = this.state;
+            state.data = this.props.initialData;
+            this.setState(state); 
         }
 
         render(){
@@ -451,7 +453,9 @@ namespace Controls.UI{
                 <div>
                     <div className="mode-switch-button-container">
                         <span className="btn-sm btn-primary mode-switch" onClick={(e)=>{
-                                this.setState({mode:(this.state.mode==="Mole")?"Pores":"Mole"});
+                                let state = this.state;
+                                state.mode = (this.state.mode==="Mole")?"Pores":"Mole";
+                                this.setState(state);
                             }}>Switch to {(this.state.mode==="Mole")?"Pores":"Mole"} calculation</span>
                     </div>
                     {form}
@@ -659,7 +663,9 @@ namespace Controls.UI{
                                 let old = statusInfo.get(String(status.SubmitId));
                                 if(old===void 0||old!==state.Status){                                    
                                     statusInfo.set(String(status.SubmitId),state.Status);
-                                    this.setState({statusInfo:map});
+                                    let s = this.state;
+                                    s.statusInfo = map;
+                                    this.setState(s);
                                     if(old!==void 0){
                                         let hasKillable = this.checkHasKillable(map);
                                         if(this.hasKillable!==hasKillable){
@@ -1062,7 +1068,9 @@ namespace Controls.UI{
         
         componentDidMount(){
             if(this.props.activeTab !== void 0){
-                this.setState({activeTabIdx:this.props.activeTab});
+                let state = this.state;
+                state.activeTabIdx = this.props.activeTab;
+                this.setState(state);
             }
 
             let parameters = CommonUtils.Router.getParameters();
@@ -1070,14 +1078,21 @@ namespace Controls.UI{
                 let compId = parameters.computationId;
                 let submitId = parameters.submitId;
                 Provider.get(parameters.computationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
-                    this.setState({data:info, submitId});
+                    let state = this.state;
+                    state.data = info;
+                    state.submitId = submitId;
+                    this.setState(state);
                 }).bind(this));
             }else{
-                this.setState({err:"Parameters from url cannot be properly processed."});
+                let state = this.state;
+                state.err = "Parameters from url cannot be properly processed.";
+                this.setState(state);
             }
 
             MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId((submitId)=>{
-                this.setState({submitId});
+                let state = this.state;
+                state.submitId = submitId;
+                this.setState(state);
             });
         }
 
@@ -1323,7 +1338,9 @@ namespace Controls.UI{
                     LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
 
                     Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
-                        this.setState({data:info});
+                        let state = this.state;
+                        state.data = info;
+                        this.setState(state);
                         MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
                         MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
                     }).bind(this), true);
@@ -1350,7 +1367,11 @@ namespace Controls.UI{
                     <Settings initialData={this.state.data} submitId={this.state.submitId}/>
                 );
                 tabs.push(
-                    <Submissions computationInfo={this.state.data} onResubmit={(info)=>this.setState({data:info})}/>
+                    <Submissions computationInfo={this.state.data} onResubmit={(info)=>{
+                        let state = this.state;
+                        state.data = info;
+                        this.setState(state);
+                        }}/>
                 );
             } 
             else{
@@ -1389,14 +1410,16 @@ namespace Controls.UI{
         componentDidMount(){
             this.state.submitId = this.props.submitId;
             MoleOnlineWebUI.Bridge.Events.subscribeChangeHasKillable((hasKillable)=>{
-                this.setState({hasKillable});
+                let state = this.state;
+                state.hasKillable = hasKillable;
+                this.setState(state);
             });
         }
 
         componentWillReceiveProps(nextProps:ControlButtonsProps){
-            this.setState({
-                submitId:nextProps.submitId
-            });
+            let state = this.state;
+            state.submitId = nextProps.submitId;
+            this.setState(state);
         }
 
         private getSubmissions(){
@@ -1444,7 +1467,7 @@ namespace Controls.UI{
             return void 0;
         }
 
-        private onSubmitIdComboSelectChange(e:React.ChangeEvent<HTMLSelectElement>){
+        private onSubmitIdComboSelectChange(e:any){
             if(this.props.computationInfo===void 0){
                 return;
             }
@@ -1453,7 +1476,9 @@ namespace Controls.UI{
             let submitId = (e.currentTarget.options[idx] as HTMLOptionElement).value;
             let sid = Number(submitId).valueOf();
             changeSubmitId(this.props.computationInfo.ComputationId, sid);
-            this.setState({submitId:sid})
+            let state = this.state;
+            state.submitId = sid;
+            this.setState(state);
         }
 
         private changeSubmitIdByStep(e:React.MouseEvent<HTMLInputElement>){
@@ -1465,7 +1490,9 @@ namespace Controls.UI{
             if(submitId!==void 0){
                 let sid = Number(submitId).valueOf();
                 changeSubmitId(this.props.computationInfo.ComputationId, sid);
-                this.setState({submitId:sid})
+                let state = this.state;
+                state.submitId = sid;
+                this.setState(state);
             }
         }
 

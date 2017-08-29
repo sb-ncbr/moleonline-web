@@ -1,74 +1,4 @@
 
-
-
-// Project: https://github.com/jakearchibald/ES6-Promise
-// Definitions by: François de Campredon <https://github.com/fdecampredon/>, vvakame <https://github.com/vvakame>
-// Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
-
-declare namespace __Promise {
-    interface Thenable<T> {
-        then<U>(onFulfilled?: (value: T) => U | Thenable<U>, onRejected?: (error: any) => U | Thenable<U>): Thenable<U>;
-        then<U>(onFulfilled?: (value: T) => U | Thenable<U>, onRejected?: (error: any) => void): Thenable<U>;
-        catch<U>(onRejected?: (error: any) => U | Thenable<U>): Thenable<U>;
-    }
-
-    class Promise<T> implements Thenable<T> {
-        /**
-         * If you call resolve in the body of the callback passed to the constructor,
-         * your promise is fulfilled with result object passed to resolve.
-         * If you call reject your promise is rejected with the object passed to reject.
-         * For consistency and debugging (eg stack traces), obj should be an instanceof Error.
-         * Any errors thrown in the constructor callback will be implicitly passed to reject().
-         */
-        constructor(callback: (resolve: (value?: T | Thenable<T>) => void, reject: (error?: any) => void) => void);
-
-        /**
-         * onFulfilled is called when/if "promise" resolves. onRejected is called when/if "promise" rejects.
-         * Both are optional, if either/both are omitted the next onFulfilled/onRejected in the chain is called.
-         * Both callbacks have a single parameter , the fulfillment value or rejection reason.
-         * "then" returns a new promise equivalent to the value you return from onFulfilled/onRejected after being passed through Promise.resolve.
-         * If an error is thrown in the callback, the returned promise rejects with that error.
-         *
-         * @param onFulfilled called when/if "promise" resolves
-         * @param onRejected called when/if "promise" rejects
-         */
-        then<U>(onFulfilled?: (value: T) => U | Thenable<U>, onRejected?: (error: any) => U | Thenable<U>): Promise<U>;
-        then<U>(onFulfilled?: (value: T) => U | Thenable<U>, onRejected?: (error: any) => void): Promise<U>;
-
-        /**
-         * Sugar for promise.then(undefined, onRejected)
-         *
-         * @param onRejected called when/if "promise" rejects
-         */
-        catch<U>(onRejected?: (error: any) => U | Thenable<U>): Promise<U>;
-    }
-
-    namespace Promise {
-        /**
-         * Make a new promise from the thenable.
-         * A thenable is promise-like in as far as it has a "then" method.
-         */
-        function resolve<T>(value?: T | Thenable<T>): Promise<T>;
-
-        /**
-         * Make a promise that rejects to obj. For consistency and debugging (eg stack traces), obj should be an instanceof Error
-         */
-        function reject(error: any): Promise<any>;
-        function reject<T>(error: T): Promise<T>;
-
-        /**
-         * Make a promise that fulfills when every item in the array fulfills, and rejects if (and when) any item rejects.
-         * the array passed to all can be a mixture of promise-like objects and other objects.
-         * The fulfillment value is an array (in order) of fulfillment values. The rejection value is the first rejection value.
-         */
-        function all<T>(promises: (T | Thenable<T>)[]): Promise<T[]>;
-
-        /**
-         * Make a Promise that fulfills when any item fulfills, and rejects if any item rejects.
-         */
-        function race<T>(promises: (T | Thenable<T>)[]): Promise<T>;
-    }
-}
 // DefinitelyTyped: partial
 
 // This file contains common part of defintions for rx.d.ts and rx.lite.d.ts
@@ -886,13 +816,13 @@ declare namespace __LiteMolRx {
         shareReplay(bufferSize?: number, window?: number, scheduler?: IScheduler): Observable<T>;
     }
 }
-declare namespace CIFTools {
+declare namespace LiteMolCIFTools {
     var VERSION: {
         number: string;
         date: string;
     };
 }
-declare namespace CIFTools.Utils {
+declare namespace LiteMolCIFTools.Utils {
     /**
      * A generic chunked array builder.
      *
@@ -932,13 +862,13 @@ declare namespace CIFTools.Utils {
  * For the purposes of parsing numbers from the mmCIF data representations,
  * up to 4 times faster than JS parseInt/parseFloat.
  */
-declare namespace CIFTools.Utils.FastNumberParsers {
+declare namespace LiteMolCIFTools.Utils.FastNumberParsers {
     function parseIntSkipTrailingWhitespace(str: string, start: number, end: number): number;
     function parseInt(str: string, start: number, end: number): number;
     function parseFloatSkipTrailingWhitespace(str: string, start: number, end: number): number;
     function parseFloat(str: string, start: number, end: number): number;
 }
-declare namespace CIFTools.Utils {
+declare namespace LiteMolCIFTools.Utils {
     interface StringWriter {
         chunkData: string[];
         chunkOffset: number;
@@ -966,7 +896,7 @@ declare namespace CIFTools.Utils {
         function writeFloatPadRight(writer: StringWriter, val: number, precisionMultiplier: number, totalWidth: number): void;
     }
 }
-declare namespace CIFTools {
+declare namespace LiteMolCIFTools {
     /**
      * Represents a "CIF FILE" with one or more data blocks.
      */
@@ -1063,7 +993,7 @@ declare namespace CIFTools {
         function getVector(category: Category, field: string, rows: number, cols: number, rowIndex: number): number[];
     }
 }
-declare namespace CIFTools {
+declare namespace LiteMolCIFTools {
     type ParserResult<T> = ParserSuccess<T> | ParserError;
     namespace ParserResult {
         function error<T>(message: string, line?: number): ParserResult<T>;
@@ -1083,7 +1013,7 @@ declare namespace CIFTools {
         constructor(result: T, warnings: string[]);
     }
 }
-declare namespace CIFTools {
+declare namespace LiteMolCIFTools {
     interface FieldDesc<Data> {
         name: string;
         string?: (data: Data, i: number) => string | null;
@@ -1113,11 +1043,11 @@ declare namespace CIFTools {
         flush(stream: OutputStream): void;
     }
 }
-declare namespace CIFTools.Text {
+declare namespace LiteMolCIFTools.Text {
     /**
      * Represents the input file.
      */
-    class File implements CIFTools.File {
+    class File implements LiteMolCIFTools.File {
         /**
          * The input string.
          *
@@ -1150,7 +1080,7 @@ declare namespace CIFTools.Text {
     /**
      * Represents a single data block.
      */
-    class DataBlock implements CIFTools.DataBlock {
+    class DataBlock implements LiteMolCIFTools.DataBlock {
         private categoryMap;
         private categoryList;
         /**
@@ -1196,7 +1126,7 @@ declare namespace CIFTools.Text {
     /**
      * Represents a single CIF category.
      */
-    class Category implements CIFTools.Category {
+    class Category implements LiteMolCIFTools.Category {
         private data;
         private columnIndices;
         private columnNameList;
@@ -1233,7 +1163,7 @@ declare namespace CIFTools.Text {
          * Get a column object that makes accessing data easier.
          * @returns undefined if the column isn't present, the Column object otherwise.
          */
-        getColumn(name: string): CIFTools.Column;
+        getColumn(name: string): LiteMolCIFTools.Column;
         constructor(data: string, name: string, startIndex: number, endIndex: number, columns: string[], tokens: number[], tokenCount: number);
         toJSON(): {
             name: string;
@@ -1244,7 +1174,7 @@ declare namespace CIFTools.Text {
     /**
      * Represents a single column of a CIF category.
      */
-    class Column implements CIFTools.Column {
+    class Column implements LiteMolCIFTools.Column {
         private data;
         name: string;
         index: number;
@@ -1280,11 +1210,11 @@ declare namespace CIFTools.Text {
         constructor(category: Category, data: string, name: string, index: number);
     }
 }
-declare namespace CIFTools.Text {
-    function parse(data: string): ParserResult<CIFTools.File>;
+declare namespace LiteMolCIFTools.Text {
+    function parse(data: string): ParserResult<LiteMolCIFTools.File>;
 }
-declare namespace CIFTools.Text {
-    class Writer<Context> implements CIFTools.Writer<Context> {
+declare namespace LiteMolCIFTools.Text {
+    class Writer<Context> implements LiteMolCIFTools.Writer<Context> {
         private writer;
         private encoded;
         private dataBlockCreated;
@@ -1295,26 +1225,26 @@ declare namespace CIFTools.Text {
         constructor();
     }
 }
-declare namespace CIFTools.Binary.MessagePack {
+declare namespace LiteMolCIFTools.Binary.MessagePack {
     function decode(buffer: Uint8Array): any;
 }
-declare namespace CIFTools.Binary.MessagePack {
+declare namespace LiteMolCIFTools.Binary.MessagePack {
     function encode(value: any): Uint8Array;
 }
-declare namespace CIFTools.Binary.MessagePack {
+declare namespace LiteMolCIFTools.Binary.MessagePack {
     function utf8Write(data: Uint8Array, offset: number, str: string): void;
     function utf8Read(data: Uint8Array, offset: number, length: number): string;
     function utf8ByteCount(str: string): number;
 }
-declare namespace CIFTools.Binary {
+declare namespace LiteMolCIFTools.Binary {
     /**
      * Fixed point, delta, RLE, integer packing adopted from https://github.com/rcsb/mmtf-javascript/
      * by Alexander Rose <alexander.rose@weirdbyte.de>, MIT License, Copyright (c) 2016
      */
     function decode(data: EncodedData): any;
 }
-declare namespace CIFTools.Binary {
-    class File implements CIFTools.File {
+declare namespace LiteMolCIFTools.Binary {
+    class File implements LiteMolCIFTools.File {
         dataBlocks: DataBlock[];
         toJSON(): {
             id: string;
@@ -1329,7 +1259,7 @@ declare namespace CIFTools.Binary {
         }[];
         constructor(data: EncodedFile);
     }
-    class DataBlock implements CIFTools.DataBlock {
+    class DataBlock implements LiteMolCIFTools.DataBlock {
         private categoryMap;
         private categoryList;
         header: string;
@@ -1351,14 +1281,14 @@ declare namespace CIFTools.Binary {
         };
         constructor(data: EncodedDataBlock);
     }
-    class Category implements CIFTools.Category {
+    class Category implements LiteMolCIFTools.Category {
         private encodedColumns;
         private columnNameList;
         name: string;
         columnCount: number;
         rowCount: number;
         readonly columnNames: string[];
-        getColumn(name: string): CIFTools.Column;
+        getColumn(name: string): LiteMolCIFTools.Column;
         toJSON(): {
             name: string;
             columns: string[];
@@ -1367,7 +1297,7 @@ declare namespace CIFTools.Binary {
         constructor(data: EncodedCategory);
     }
 }
-declare namespace CIFTools.Binary {
+declare namespace LiteMolCIFTools.Binary {
     /**
      * Fixed point, delta, RLE, integer packing adopted from https://github.com/rcsb/mmtf-javascript/
      * by Alexander Rose <alexander.rose@weirdbyte.de>, MIT License, Copyright (c) 2016
@@ -1397,8 +1327,8 @@ declare namespace CIFTools.Binary {
         function stringArray(data: string[]): Result;
     }
 }
-declare namespace CIFTools.Binary {
-    const VERSION: string;
+declare namespace LiteMolCIFTools.Binary {
+    const VERSION = "0.3.0";
     type Encoding = Encoding.ByteArray | Encoding.FixedPoint | Encoding.RunLength | Encoding.Delta | Encoding.IntervalQuantization | Encoding.IntegerPacking | Encoding.StringArray;
     interface EncodedFile {
         version: string;
@@ -1490,11 +1420,11 @@ declare namespace CIFTools.Binary {
         }
     }
 }
-declare namespace CIFTools.Binary {
-    function parse(data: ArrayBuffer): ParserResult<CIFTools.File>;
+declare namespace LiteMolCIFTools.Binary {
+    function parse(data: ArrayBuffer): ParserResult<LiteMolCIFTools.File>;
 }
-declare namespace CIFTools.Binary {
-    class Writer<Context> implements CIFTools.Writer<Context> {
+declare namespace LiteMolCIFTools.Binary {
+    class Writer<Context> implements LiteMolCIFTools.Writer<Context> {
         private data;
         private dataBlocks;
         private encodedData;
@@ -1505,20 +1435,14 @@ declare namespace CIFTools.Binary {
         constructor(encoder: string);
     }
 }
-declare module 'CIFTools' {
-    import __Tools = CIFTools;
-    export = __Tools;
-}
-
 declare namespace LiteMol {
-    type Promise<T> = __Promise.Promise<T>;
-    const Promise: typeof __Promise.Promise;
+    const Promise: PromiseConstructor;
 }
 declare namespace LiteMol.Core {
     export import Rx = __LiteMolRx;
     export import Promise = LiteMol.Promise;
     namespace Formats {
-        export import CIF = CIFTools;
+        export import CIF = LiteMolCIFTools;
     }
 }
 declare namespace LiteMol.Core {
@@ -1531,11 +1455,12 @@ declare namespace LiteMol.Core {
     function computation<A>(c: (ctx: Computation.Context) => Promise<A>): Computation<A>;
     class Computation<A> {
         private computation;
-        run(ctx?: Computation.Context): __Promise.Promise<A>;
+        run(ctx?: Computation.Context): Promise<A>;
         runWithContext(ctx?: Computation.Context): Computation.Running<A>;
         constructor(computation: (ctx: Computation.Context) => Promise<A>);
     }
     module Computation {
+        let PRINT_CONSOLE_ERROR: boolean;
         function resolve<A>(a: A): Computation<A>;
         function reject<A>(reason: any): Computation<A>;
         function createContext(): Computation.Context;
@@ -1555,7 +1480,7 @@ declare namespace LiteMol.Core {
              * Checks if the computation was aborted. If so, throws.
              * Otherwise, updates the progress.
              */
-            updateProgress(msg: string, abort?: boolean | (() => void), current?: number, max?: number): void;
+            updateProgress(msg: string, abort?: boolean | (() => void), current?: number, max?: number): Promise<void>;
         }
         interface Running<A> {
             progress: Rx.Observable<Progress>;
@@ -1613,7 +1538,7 @@ declare namespace LiteMol.Core.Utils {
         /**
          * Create a map from an array of the form [[key, value], ...]
          */
-        function ofArray<K extends string | number, V>(data: (K | V)[][]): FastMap<K, V>;
+        function ofArray<K extends string | number, V>(data: [K, V][]): FastMap<K, V>;
         /**
          * Create a map from an object of the form { key: value, ... }
          */
@@ -1630,6 +1555,18 @@ declare namespace LiteMol.Core.Utils {
          * Create a set of an "array like" sequence.
          */
         function ofArray<T extends string | number>(xs: ArrayLike<T>): FastSet<T>;
+    }
+    /**
+     * An optimized set-like structure.
+     */
+    interface Mask {
+        size: number;
+        has(i: number): boolean;
+    }
+    namespace Mask {
+        function ofStructure(structure: Structure.Molecule.Model): Mask;
+        function ofIndices(totalCount: number, indices: number[]): Mask;
+        function ofFragments(seq: Structure.Query.FragmentSeq): Mask;
     }
 }
 declare namespace LiteMol.Core.Utils {
@@ -1671,6 +1608,7 @@ declare namespace LiteMol.Core.Utils {
             count: number;
             columns: ColumnDescriptor<Schema>[];
             addColumn<T>(name: keyof Schema, creator: (size: number) => T): T;
+            addRawColumn<T>(name: keyof Schema, creator: (size: number) => T, data: T): T;
             getRawData(): any[][];
             /**
              * This functions clones the table and defines all its column inside the constructor, hopefully making the JS engine
@@ -1744,6 +1682,14 @@ declare namespace LiteMol.Core.Utils {
         function forFloat32(count: number): ArrayBuilder<number>;
         function forArray<T>(count: number): ArrayBuilder<T>;
         function create<T>(creator: (size: number) => any, chunkElementCount: number, elementSize: number): ArrayBuilder<T>;
+    }
+    interface UniqueArray<T extends number | string> {
+        _set: FastSet<T>;
+        array: T[];
+    }
+    function UniqueArray<T extends number | string>(): UniqueArray<T>;
+    namespace UniqueArray {
+        function add<T extends number | string>({_set, array}: UniqueArray<T>, e: T): void;
     }
 }
 declare namespace LiteMol.Core.Utils {
@@ -1820,6 +1766,7 @@ declare namespace LiteMol.Core.Formats {
     }
 }
 declare namespace LiteMol.Core.Formats.Molecule.mmCIF {
+    type StructConnType = 'covale' | 'covale_base' | 'covale_phosphate' | 'covale_sugar' | 'disulf' | 'hydrog' | 'metalc' | 'mismat' | 'modres' | 'saltbr';
     function ofDataBlock(data: CIF.DataBlock): Structure.Molecule;
 }
 declare namespace LiteMol.Core.Formats.Molecule.PDB {
@@ -1916,6 +1863,9 @@ declare namespace LiteMol.Core.Formats.Density {
         set(i: number, j: number, k: number, v: number): void;
         fill(v: number): void;
     }
+    /**
+     * A field with the Z axis being the slowest and the X being the fastest.
+     */
     class Field3DZYX implements Field3D {
         data: number[];
         dimensions: number[];
@@ -1930,46 +1880,34 @@ declare namespace LiteMol.Core.Formats.Density {
         fill(v: number): void;
         constructor(data: number[], dimensions: number[]);
     }
-    /**
-     * Represents electron density data.
-     */
-    interface Data {
-        /**
-         * Crystal cell size.
-         */
-        cellSize: number[];
-        /**
-         * Crystal cell angles.
-         */
-        cellAngles: number[];
-        /**
-         * Origin of the cell
-         */
-        origin: number[];
-        /**
-         * 3D volumetric data.
-         */
-        data: Field3D;
-        /**
-         * X, Y, Z dimensions of the data matrix.
-         */
-        dataDimensions: number[];
-        /**
-         * The basis of the space.
-         */
+    interface Spacegroup {
+        number: number;
+        size: number[];
+        angles: number[];
         basis: {
             x: number[];
             y: number[];
             z: number[];
         };
+    }
+    /**
+     * Represents electron density data.
+     */
+    interface Data {
+        name?: string;
+        spacegroup: Spacegroup;
+        box: {
+            /** Origin of the data block in fractional coords. */
+            origin: number[];
+            /** Dimensions oft he data block in fractional coords. */
+            dimensions: number[];
+            /** X, Y, Z dimensions of the data matrix. */
+            sampleCount: number[];
+        };
         /**
-         * Was the skew matrix present in the input?
+         * 3D volumetric data.
          */
-        hasSkewMatrix: boolean;
-        /**
-         * Column major ordered skew matrix.
-         */
-        skewMatrix: number[];
+        data: Field3D;
         /**
          * Information about the min/max/mean/sigma values.
          */
@@ -1979,33 +1917,8 @@ declare namespace LiteMol.Core.Formats.Density {
             mean: number;
             sigma: number;
         };
-        /**
-         * Additional attributes.
-         */
-        attributes: {
-            [key: string]: any;
-        };
-        /**
-         * Are the data normalized?
-         */
-        isNormalized: boolean;
     }
-    namespace Data {
-        function create(cellSize: number[], cellAngles: number[], origin: number[], hasSkewMatrix: boolean, skewMatrix: number[], data: Field3D, dataDimensions: number[], basis: {
-            x: number[];
-            y: number[];
-            z: number[];
-        }, valuesInfo: {
-            min: number;
-            max: number;
-            mean: number;
-            sigma: number;
-        }, attributes?: {
-            [key: string]: any;
-        }): Data;
-        function normalize(densityData: Data): void;
-        function denormalize(densityData: Data): void;
-    }
+    function createSpacegroup(number: number, size: number[], angles: number[]): Spacegroup;
 }
 declare namespace LiteMol.Core.Formats.Density.CCP4 {
     function parse(buffer: ArrayBuffer): ParserResult<Data>;
@@ -2013,55 +1926,77 @@ declare namespace LiteMol.Core.Formats.Density.CCP4 {
 declare namespace LiteMol.Core.Formats.Density.CIF {
     function parse(block: Formats.CIF.DataBlock): ParserResult<Data>;
 }
-declare namespace LiteMol.Core.Formats.Density.DSN6 {
-    function parse(buffer: ArrayBuffer): ParserResult<Data>;
-}
 declare namespace LiteMol.Core.Formats.Density {
     namespace SupportedFormats {
         const CCP4: FormatInfo;
-        const DSN6: FormatInfo;
         const All: FormatInfo[];
     }
 }
 declare namespace LiteMol.Core.Geometry.LinearAlgebra {
-    type ObjectVec3 = {
-        x: number;
-        y: number;
-        z: number;
-    };
+    type Matrix4 = number[];
+    type Vector3 = number[];
+    type Vector4 = number[];
+    function Matrix4(): number[];
     /**
      * Stores a 4x4 matrix in a column major (j * 4 + i indexing) format.
      */
     namespace Matrix4 {
-        function empty(): number[];
+        function zero(): number[];
         function identity(): number[];
+        function fromIdentity(mat: number[]): number[];
         function ofRows(rows: number[][]): number[];
         function areEqual(a: number[], b: number[], eps: number): boolean;
         function setValue(a: number[], i: number, j: number, value: number): void;
-        function copy(out: number[], a: any): number[];
+        function copy(out: number[], a: number[]): number[];
         function clone(a: number[]): number[];
         function invert(out: number[], a: number[]): number[] | null;
         function mul(out: number[], a: number[], b: number[]): number[];
+        function mul3(out: number[], a: number[], b: number[], c: number[]): number[];
         function translate(out: number[], a: number[], v: number[]): number[];
         function fromTranslation(out: number[], v: number[]): number[];
-        function transformVector3(out: {
+        function rotate(out: number[], a: number[], rad: number, axis: number[]): number[] | null;
+        function fromRotation(out: number[], rad: number, axis: number[]): number[];
+        function scale(out: number[], a: number[], v: number[]): number[];
+        function fromScaling(out: number[], v: number[]): number[];
+        function makeTable(m: number[]): string;
+        function determinant(a: number[]): number;
+    }
+    function Vector3(x?: number, y?: number, z?: number): number[];
+    namespace Vector3 {
+        function zero(): number[];
+        function clone(a: number[]): number[];
+        function fromObj(v: {
             x: number;
             y: number;
             z: number;
-        }, a: {
-            x: number;
-            y: number;
-            z: number;
-        }, m: number[]): {
+        }): number[];
+        function toObj(v: number[]): {
             x: number;
             y: number;
             z: number;
         };
-        function makeTable(m: number[]): string;
-        function determinant(a: number[]): number;
+        function fromValues(x: number, y: number, z: number): number[];
+        function set(out: number[], x: number, y: number, z: number): number[];
+        function copy(out: number[], a: number[]): number[];
+        function add(out: number[], a: number[], b: number[]): number[];
+        function sub(out: number[], a: number[], b: number[]): number[];
+        function scale(out: number[], a: number[], b: number): number[];
+        function scaleAndAdd(out: number[], a: number[], b: number[], scale: number): number[];
+        function distance(a: number[], b: number[]): number;
+        function squaredDistance(a: number[], b: number[]): number;
+        function magnitude(a: number[]): number;
+        function squaredMagnitude(a: number[]): number;
+        function normalize(out: number[], a: number[]): number[];
+        function dot(a: number[], b: number[]): number;
+        function cross(out: number[], a: number[], b: number[]): number[];
+        function lerp(out: number[], a: number[], b: number[], t: number): number[];
+        function transformMat4(out: number[], a: number[], m: number[]): number[];
+        function angle(a: number[], b: number[]): number;
+        function makeRotation(mat: Matrix4, a: Vector3, b: Vector3): Matrix4;
     }
+    function Vector4(x?: number, y?: number, z?: number, w?: number): number[];
     namespace Vector4 {
-        function create(): number[];
+        function zero(): number[];
         function clone(a: number[]): number[];
         function fromValues(x: number, y: number, z: number, w: number): number[];
         function set(out: number[], x: number, y: number, z: number, w: number): number[];
@@ -2070,90 +2005,6 @@ declare namespace LiteMol.Core.Geometry.LinearAlgebra {
         function norm(a: number[]): number;
         function squaredNorm(a: number[]): number;
         function transform(out: number[], a: number[], m: number[]): number[];
-    }
-}
-declare namespace LiteMol.Core.Geometry {
-    /**
-     * Basic shape of the result buffer for range queries.
-     */
-    interface SubdivisionTree3DResultBuffer {
-        count: number;
-        indices: number[];
-        hasPriorities: boolean;
-        priorities: number[] | undefined;
-        add(distSq: number, index: number): void;
-        reset(): void;
-    }
-    /**
-     * A buffer that only remembers the values.
-     */
-    namespace SubdivisionTree3DResultIndexBuffer {
-        function create(initialCapacity: number): SubdivisionTree3DResultBuffer;
-    }
-    /**
-     * A buffer that remembers values and priorities.
-     */
-    namespace SubdivisionTree3DResultPriorityBuffer {
-        function create(initialCapacity: number): SubdivisionTree3DResultBuffer;
-    }
-    /**
-     * Query context. Handles the actual querying.
-     */
-    interface SubdivisionTree3DQueryContext<T> {
-        tree: SubdivisionTree3D<T>;
-        pivot: number[];
-        radius: number;
-        radiusSq: number;
-        indices: number[];
-        positions: number[];
-        buffer: SubdivisionTree3DResultBuffer;
-        nearest(x: number, y: number, z: number, radius: number): void;
-    }
-    namespace SubdivisionTree3DQueryContext {
-        function create<T>(tree: SubdivisionTree3D<T>, buffer: SubdivisionTree3DResultBuffer): SubdivisionTree3DQueryContext<T>;
-    }
-    /**
-     * A kd-like tree to query 3D data.
-     */
-    interface SubdivisionTree3D<T> {
-        data: T[];
-        indices: number[];
-        positions: number[];
-        root: SubdivisionTree3DNode;
-    }
-    namespace SubdivisionTree3D {
-        /**
-         * Create a context used for querying the data.
-         */
-        function createContextRadius<T>(tree: SubdivisionTree3D<T>, radiusEstimate: number, includePriorities?: boolean): SubdivisionTree3DQueryContext<T>;
-        /**
-         * Takes data and a function that calls SubdivisionTree3DPositionBuilder.add(x, y, z) on each data element.
-         */
-        function create<T>(data: T[], f: (e: T, add: (x: number, y: number, z: number) => void) => void, leafSize?: number): SubdivisionTree3D<T>;
-    }
-    /**
-     * A tree node.
-     */
-    interface SubdivisionTree3DNode {
-        splitValue: number;
-        startIndex: number;
-        endIndex: number;
-        left: SubdivisionTree3DNode;
-        right: SubdivisionTree3DNode;
-    }
-    namespace SubdivisionTree3DNode {
-        function nearest<T>(node: SubdivisionTree3DNode, ctx: SubdivisionTree3DQueryContext<T>, dim: number): void;
-        function create(splitValue: number, startIndex: number, endIndex: number, left: SubdivisionTree3DNode, right: SubdivisionTree3DNode): SubdivisionTree3DNode;
-    }
-    /**
-     * A helper to store boundary box.
-     */
-    interface Box3D {
-        min: number[];
-        max: number[];
-    }
-    namespace Box3D {
-        function createInfinite(): Box3D;
     }
 }
 declare namespace LiteMol.Core.Geometry {
@@ -2188,7 +2039,7 @@ declare namespace LiteMol.Core.Geometry {
          * Bounding sphere.
          */
         boundingSphere?: {
-            center: Geometry.LinearAlgebra.ObjectVec3;
+            center: Geometry.LinearAlgebra.Vector3;
             radius: number;
         };
     }
@@ -2200,6 +2051,65 @@ declare namespace LiteMol.Core.Geometry {
         function transformImmediate(surface: Surface, t: number[]): void;
         function transform(surface: Surface, t: number[]): Computation<Surface>;
     }
+}
+declare namespace LiteMol.Core.Geometry.Query3D {
+    /**
+     * Query context. Handles the actual querying.
+     */
+    type QueryFunc<T> = (x: number, y: number, z: number, radius: number) => Result<T>;
+    interface Result<T> {
+        readonly count: number;
+        readonly elements: T[];
+        readonly squaredDistances: number[];
+    }
+    interface InputData<T> {
+        elements: T[];
+        indices: Int32Array;
+        bounds: Box3D;
+        positions: number[];
+    }
+    type LookupStructure<T> = () => QueryFunc<T>;
+    /**
+     * A helper to store boundary box.
+     */
+    interface Box3D {
+        min: number[];
+        max: number[];
+    }
+    namespace Box3D {
+        function createInfinite(): Box3D;
+    }
+    /**
+    * Query context. Handles the actual querying.
+    */
+    interface QueryContext<T> {
+        structure: T;
+        pivot: number[];
+        radius: number;
+        radiusSq: number;
+        buffer: QueryContext.Buffer;
+    }
+    namespace QueryContext {
+        interface Buffer {
+            sourceElements: any[];
+            count: number;
+            elements: any[];
+            squaredDistances: number[];
+        }
+        function add<T>(ctx: QueryContext<T>, distSq: number, index: number): void;
+        /**
+         * Query the tree and store the result to this.buffer. Overwrites the old result.
+         */
+        function update<T>(ctx: QueryContext<T>, x: number, y: number, z: number, radius: number): void;
+        function create<T>(structure: T, sourceElements: any[]): QueryContext<T>;
+    }
+    function createInputData<T>(elements: T[], f: (e: T, add: (x: number, y: number, z: number) => void) => void): InputData<T>;
+}
+declare namespace LiteMol.Core.Geometry.Query3D {
+    function createSubdivisionTree<T>(data: InputData<T>, leafSize?: number): LookupStructure<T>;
+}
+declare namespace LiteMol.Core.Geometry.Query3D {
+    function createSpatialHash<T>(data: InputData<T>): LookupStructure<T>;
 }
 declare namespace LiteMol.Core.Geometry.MarchingCubes {
     /**
@@ -2256,8 +2166,8 @@ declare namespace LiteMol.Core.Geometry.MolecularSurface {
     }
     interface MolecularIsoField {
         data: Geometry.MarchingCubes.MarchingCubesParameters;
-        bottomLeft: Geometry.LinearAlgebra.ObjectVec3;
-        topRight: Geometry.LinearAlgebra.ObjectVec3;
+        bottomLeft: Geometry.LinearAlgebra.Vector3;
+        topRight: Geometry.LinearAlgebra.Vector3;
         transform: number[];
         inputParameters: MolecularSurfaceInputParameters;
         parameters: MolecularIsoSurfaceParameters;
@@ -2338,25 +2248,19 @@ declare namespace LiteMol.Core.Structure {
     interface Bond {
         atomAIndex: number;
         atomBIndex: number;
-        type: Bond.Type;
+        type: BondType;
     }
-    namespace Bond {
-        const enum Type {
-            Unknown = 0,
-            Single = 1,
-            Double = 2,
-            Triple = 3,
-            Aromatic = 4,
-            Metallic = 5,
-            Ion = 6,
-            Hydrogen = 7,
-            DisulfideBridge = 8,
-        }
+    interface ModifiedResidue {
+        asymId: string;
+        seqNumber: number;
+        insCode: string | null;
+        parent: string;
+        details: string | null;
     }
     class ComponentBondInfoEntry {
         id: string;
-        map: Utils.FastMap<string, Utils.FastMap<string, Bond.Type>>;
-        add(a: string, b: string, order: Bond.Type, swap?: boolean): void;
+        map: Utils.FastMap<string, Utils.FastMap<string, BondType>>;
+        add(a: string, b: string, order: BondType, swap?: boolean): void;
         constructor(id: string);
     }
     class ComponentBondInfo {
@@ -2402,6 +2306,32 @@ declare namespace LiteMol.Core.Structure {
         constructor(spacegroupName: string, cellSize: number[], cellAngles: number[], toFracTransform: number[], isNonStandardCrytalFrame: boolean);
     }
     /**
+     * Wraps _struct_conn mmCIF category.
+     */
+    class StructConn {
+        entries: StructConn.Entry[];
+        private _residuePairIndex;
+        private _atomIndex;
+        private static _resKey(rA, rB);
+        private getResiduePairIndex();
+        private getAtomIndex();
+        private static _emptyEntry;
+        getResidueEntries(residueAIndex: number, residueBIndex: number): ReadonlyArray<StructConn.Entry>;
+        getAtomEntries(atomIndex: number): ReadonlyArray<StructConn.Entry>;
+        constructor(entries: StructConn.Entry[]);
+    }
+    namespace StructConn {
+        interface Entry {
+            distance: number;
+            bondType: BondType;
+            partners: {
+                residueIndex: number;
+                atomIndex: number;
+                symmetry: string;
+            }[];
+        }
+    }
+    /**
      * Wraps an assembly operator.
      */
     class AssemblyOperator {
@@ -2444,6 +2374,7 @@ declare namespace LiteMol.Core.Structure {
     type ChainTable = DataTable<Chain>;
     type EntityTable = DataTable<Entity>;
     type BondTable = DataTable<Bond>;
+    type ModifiedResidueTable = DataTable<ModifiedResidue>;
     /**
      * Default Builders
      */
@@ -2454,12 +2385,13 @@ declare namespace LiteMol.Core.Structure {
         const Chains: DataTable.Definition<Chain>;
         const Entities: DataTable.Definition<Entity>;
         const Bonds: DataTable.Definition<Bond>;
+        const ModifiedResidues: DataTable.Definition<ModifiedResidue>;
     }
     class Operator {
         matrix: number[];
         id: string;
         isIdentity: boolean;
-        apply(v: Geometry.LinearAlgebra.ObjectVec3): void;
+        apply(v: Geometry.LinearAlgebra.Vector3): void;
         static applyToModelUnsafe(matrix: number[], m: Molecule.Model): void;
         constructor(matrix: number[], id: string, isIdentity: boolean);
     }
@@ -2474,9 +2406,8 @@ declare namespace LiteMol.Core.Structure {
             experimentMethod?: string;
         }
         interface Bonds {
-            covalent?: BondTable;
-            nonCovalent?: BondTable;
-            computed?: BondTable;
+            readonly structConn?: StructConn;
+            readonly input?: BondTable;
             readonly component?: ComponentBondInfo;
         }
         interface Model extends Model.Base {
@@ -2504,12 +2435,32 @@ declare namespace LiteMol.Core.Structure {
                 readonly entities: EntityTable;
                 readonly bonds: Bonds;
                 readonly secondaryStructure: SecondaryStructureElement[];
+                readonly modifiedResidues?: ModifiedResidueTable;
                 readonly symmetryInfo?: SymmetryInfo;
                 readonly assemblyInfo?: AssemblyInfo;
             }
-            function withTransformedXYZ<T>(model: Model, ctx: T, transform: (ctx: T, x: number, y: number, z: number, out: Geometry.LinearAlgebra.ObjectVec3) => void): Model;
+            function withTransformedXYZ<T>(model: Model, ctx: T, transform: (ctx: T, x: number, y: number, z: number, out: Geometry.LinearAlgebra.Vector3) => void): Model;
         }
     }
+}
+declare namespace LiteMol.Core.Structure {
+    const enum BondType {
+        Unknown = 0,
+        Single = 1,
+        Double = 2,
+        Triple = 3,
+        Aromatic = 4,
+        DisulfideBridge = 5,
+        Metallic = 6,
+        Ion = 7,
+        Hydrogen = 8,
+    }
+    function isBondTypeCovalent(t: BondType): boolean;
+    interface BondComputationParameters {
+        maxHbondLength: number;
+        forceCompute: boolean;
+    }
+    function computeBonds(model: Molecule.Model, atomIndices: number[], params?: Partial<BondComputationParameters>): Utils.DataTable<Bond>;
 }
 declare namespace LiteMol.Core.Structure {
     class Spacegroup {
@@ -2557,8 +2508,8 @@ declare namespace LiteMol.Core.Structure {
          *
          */
         class Context {
-            private mask;
-            private lazyTree;
+            readonly mask: Utils.Mask;
+            private lazyLoopup3d;
             /**
              * Number of atoms in the current context.
              */
@@ -2572,9 +2523,9 @@ declare namespace LiteMol.Core.Structure {
              */
             structure: Molecule.Model;
             /**
-             * Get a kd-tree for the atoms in the current context.
+             * Get a 3d loopup structure for the atoms in the current context.
              */
-            readonly tree: Geometry.SubdivisionTree3D<number>;
+            readonly lookup3d: Geometry.Query3D.LookupStructure<number>;
             /**
              * Checks if an atom is included in the current context.
              */
@@ -2595,22 +2546,8 @@ declare namespace LiteMol.Core.Structure {
              * Create a new context from a sequence of fragments.
              */
             static ofAtomIndices(structure: Molecule.Model, atomIndices: number[]): Context;
-            constructor(structure: Molecule.Model, mask: Context.Mask);
-            private makeTree();
-        }
-        namespace Context {
-            /**
-             * Represents the atoms in the context.
-             */
-            interface Mask {
-                size: number;
-                has(i: number): boolean;
-            }
-            module Mask {
-                function ofStructure(structure: Molecule.Model): Mask;
-                function ofIndices(structure: Molecule.Model, atomIndices: number[]): Mask;
-                function ofFragments(seq: FragmentSeq): Mask;
-            }
+            constructor(structure: Molecule.Model, mask: Utils.Mask);
+            private makeLookup3d();
         }
         /**
          * The basic element of the query language.
@@ -2688,7 +2625,7 @@ declare namespace LiteMol.Core.Structure {
              * Assumes the set is in the given context's mask.
              * Assumes the array is sorted.
              */
-            static ofArray(context: Context, tag: number, atomIndices: Int32Array): Fragment;
+            static ofArray(context: Context, tag: number, atomIndices: Int32Array | number[]): Fragment;
             /**
              * Create a fragment from a single index.
              * Assumes the index is in the given context's mask.
@@ -2755,6 +2692,7 @@ declare namespace LiteMol.Core.Structure.Query {
         inside(where: Source): Builder;
         intersectWith(where: Source): Builder;
         flatten(selector: (f: Fragment) => FragmentSeq): Builder;
+        except(toRemove: Source): Builder;
     }
     namespace Builder {
         const BuilderPrototype: any;
@@ -2778,6 +2716,7 @@ declare namespace LiteMol.Core.Structure.Query {
         authSeqNumber?: number;
         insCode?: string | null;
     }
+    function allAtoms(): Builder;
     function atomsByElement(...elements: string[]): Builder;
     function atomsByName(...names: string[]): Builder;
     function atomsById(...ids: number[]): Builder;
@@ -2814,6 +2753,7 @@ declare namespace LiteMol.Core.Structure.Query {
     function inside(q: Source, where: Source): Builder;
     function intersectWith(what: Source, where: Source): Builder;
     function flatten(what: Source, selector: (f: Fragment) => FragmentSeq): Builder;
+    function except(what: Source, toRemove: Source): Builder;
     /**
      * Shortcuts
      */
@@ -2825,6 +2765,7 @@ declare namespace LiteMol.Core.Structure.Query {
      */
     namespace Compiler {
         function compileEverything(): (ctx: Context) => FragmentSeq;
+        function compileAllAtoms(): (ctx: Context) => FragmentSeq;
         function compileAtoms(elements: string[] | number[], sel: (model: Structure.Molecule.Model) => string[] | number[]): (ctx: Context) => FragmentSeq;
         function compileAtomIndices(indices: number[]): (ctx: Context) => FragmentSeq;
         function compileFromIndices(complement: boolean, indices: number[], tableProvider: (molecule: Structure.Molecule.Model) => {
@@ -2857,6 +2798,7 @@ declare namespace LiteMol.Core.Structure.Query {
         function compileAmbientResidues(where: Source, radius: number): (ctx: Context) => FragmentSeq;
         function compileWholeResidues(where: Source): (ctx: Context) => FragmentSeq;
         function compileFlatten(what: Source, selector: (f: Fragment) => FragmentSeq): (ctx: Context) => FragmentSeq;
+        function compileExcept(what: Source, toRemove: Source): (ctx: Context) => FragmentSeq;
     }
 }
 declare namespace LiteMol.Core.Structure.Query.Algebraic {

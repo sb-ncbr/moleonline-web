@@ -6,14 +6,14 @@ namespace PdbIdSign.UI{
     export function render(target: Element) {
         LiteMol.Plugin.ReactDOM.render(<App />, target);
     }
-
-    export class App extends React.Component<{}, {pdbid:string|undefined,err?:string}> {
-        state = {pdbid:void 0, err: void 0}
+    interface State{pdbid?:string,err?:string};
+    export class App extends React.Component<{}, State> {
+        state:State = {pdbid:void 0, err: void 0};
 
         componentDidMount(){
             let params = CommonUtils.Router.getParameters();
             if(params===null){
-                this.setState({err:"<Error>"});
+                this.setState({err:"!!!"});
                 return;
             }
             MoleOnlineWebUI.Service.MoleAPI.ApiService.getComputationInfoList(params.computationId).then((res)=>{

@@ -2,7 +2,7 @@ namespace Common.Controls{
     import React = LiteMol.Plugin.React;
     import ReactDOM = LiteMol.Plugin.ReactDOM;
 
-    export class SimpleComboBox extends React.Component<{id:string, items:{label:string,value:string}[], defaultSelectedIndex?:number, className?:string, onSelectedChange?:(e:React.ChangeEvent<HTMLSelectElement>)=>boolean},{}>{
+    export class SimpleComboBox extends React.Component<{id:string, items:{label:string,value:string}[], defaultSelectedIndex?:number, className?:string, onSelectedChange?:(e:any)=>boolean},{}>{
         render(){
             let classNames = "";
             if(this.props.className!==void 0){

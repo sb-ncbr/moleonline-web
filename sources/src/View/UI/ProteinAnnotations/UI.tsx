@@ -38,7 +38,7 @@ namespace ProteinAnnotations.UI{
 
         //private interactionEventStream: LiteMol.Bootstrap.Rx.IDisposable | undefined = void 0;
 
-        state = {
+        state:State = {
             data: null,
             app: this
         };
@@ -48,7 +48,9 @@ namespace ProteinAnnotations.UI{
         private handleData(){
             let annotations = Annotation.AnnotationDataProvider.getProteinAnnotations();
             if(annotations !== void 0){
-                this.setState({data:annotations});
+                let state = this.state;
+                state.data = annotations;
+                this.setState(state);
                 setTimeout(function(){
                     $( window ).trigger('contentResize');
                 },1);
