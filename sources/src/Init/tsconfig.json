@@ -25,6 +25,7 @@
 
     "../../src/SimpleRouter.ts",
     "../../src/MoleAPIService.ts",
+    "../../src/PatternQueryAPIService.ts",
 
     //InitForm
     "InitForm/UI.tsx",

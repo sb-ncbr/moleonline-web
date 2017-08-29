@@ -37,23 +37,149 @@ namespace Controls.UI{
         }
     }  
 
-    export class TextBox extends React.Component<{label: string, id:string, placeholder?:string, classNames?:string[]},{}>{
+    function onFocusReplaceDefaultValidationPopup(e:any, elemId:string){
+        let el = e.currentTarget as HTMLElement;
+        if(el.dataset["hasReplacedValidationPopup"]!=="true"){
+            replaceDefaultValidationPopup(elemId);
+            el.dataset["hasReplacedValidationPopup"] = "true";
+        }
+    };
+
+    function replaceDefaultValidationPopup(id:string){
+        $( `#${id}` )[0]
+                .addEventListener( "invalid",(event:any) => {
+                    $(event.target).data("toggle","popover");
+                    $(event.target).data("trigger","manual");
+                    $(event.target).data("placement","left");
+                    //$(event.target).data("container","body");
+                    $(event.target).data("content",event.target.validationMessage);
+                    $(event.target).popover("show");
+                    window.setTimeout(()=>{
+                        $(event.target).popover("hide");
+                        $(event.target).popover("destroy");
+                    },5000);
+                    $(event.target).focus();
+
+                    event.preventDefault();
+                }
+            );
+    }
+
+    function createCustomValidationPopup(el:HTMLElement, message:string){
+        $(el)[0].validationMessage = message;
+
+        $(el).data("toggle","popover");
+        $(el).data("trigger","manual");
+        $(el).data("placement","left");
+        //$(el).data("container","body");
+        $(el).data("content",message);
+        $(el).popover("show");
+        window.setTimeout(()=>{
+            $(el).popover("hide");
+            $(el).popover("destroy");
+        },5000);
+        $(el).focus();
+    }
+
+    interface TextBoxProps{
+        label: string, 
+        id:string, 
+        placeholder?:string, 
+        classNames?:string[], 
+        hint?:JSX.Element,
+        onValidate?:(value:string)=>{valid:boolean,message:string}
+        onValidateCustom?:(event:any)=>void
+    };
+    export class TextBox extends React.Component<TextBoxProps,{}>{
+    
+        private validators:((value:string)=>{valid:boolean,message:string})[]=[];
+
+        private validate(e:EventTarget & HTMLInputElement){
+            let value = e.value;
+            if(this.validators===void 0){
+                return true;
+            }
+
+            for(let v of this.validators){
+                let validationState = v(value);
+                if(!validationState.valid){
+                    e.setCustomValidity(validationState.message);
+                    window.setTimeout(()=>{
+                        $(e.form).find("input[type=submit].submit").click(); //Enforces validation message popup. Form will not be submited due to validation errors.
+                    });                    
+                    return false;
+                }
+                else{
+                    e.setCustomValidity("");
+                }
+            }
+
+            return true;
+        }
+
+        componentWillReceiveProps(nextProps:TextBoxProps){
+            if(nextProps.onValidate!==void 0)
+                this.validators.push(nextProps.onValidate);
+        }
+
+        componentDidMount(){
+            if(this.props.onValidate!==void 0)
+                this.validators.push(this.props.onValidate);
+        }
+
         render(){
             let classNames = ["",""];
             if(this.props.classNames!==void 0){
                 classNames = this.props.classNames;
+            }
+            let hint;
+            if(this.props.hint!==void 0){
+                hint = <div className="TextBox-hint">
+                    {this.props.hint}
+                </div>
+            }
+
+            let onKeyDown=(e:any)=>{
+                if(e.keyCode===13){
+                    if(!this.validate(e.currentTarget)){
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+            };
+
+            let onBlur=(e:any)=>{
+                this.validate(e.currentTarget);
+            };
+
+            if(this.props.onValidateCustom!==void 0){
+                let validateCustom = this.props.onValidateCustom;
+                onKeyDown = (e:any)=>{
+                    if(e.keyCode===13){
+                        if(!validateCustom(e)){
+                            e.preventDefault();
+                            return false;
+                        }
+                    }
+                };
+
+                onBlur=(e:any)=>{
+                    validateCustom(e);
+                };
             }
 
             return (
                 <div className="form-group">
                     <label className={`control-label ${classNames[0]}`} htmlFor={this.props.id}>{this.props.label}:</label>
                     <div className={`${classNames[1]}`}>
-                        <input type="text" className="form-control" id={this.props.id} placeholder={this.props.placeholder}/>
+                        <input type="text" className="form-control" id={this.props.id} placeholder={this.props.placeholder} onBlur={onBlur} onKeyDown={onKeyDown} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,this.props.id)} />
                     </div>
+                    {hint}
                 </div>
             );
         }
     }
+    
     export class CheckBox extends React.Component<{label: string, id:string, defaultChecked?:boolean, classNames?:string[]},{}>{
         render(){
             let classNames = [""];
@@ -105,25 +231,8 @@ namespace Controls.UI{
         }
     }
 
-    export class CheckBox_old extends React.Component<{label: string, id:string, defaultChecked?:boolean, classNames?:string[]},{}>{
-        render(){
-            let classNames = [""];
-            if(this.props.classNames!==void 0){
-                classNames = this.props.classNames;
-            }
-            return (
-                <div className="form-group"> 
-                    <div className={`${classNames[0]}`}>                 
-                        <div className="checkbox">
-                            <label><input type="checkbox" id={this.props.id} defaultChecked={this.props.defaultChecked} />{this.props.label}:</label>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-    }
-
     export class NumberBox extends React.Component<{label: string, id:string, defaultValue?:number, min?:number, max?:number, step?:number, classNames?:string[]},{}>{
+        
         render(){
             let classNames = ["",""];
             if(this.props.classNames!==void 0){
@@ -137,7 +246,7 @@ namespace Controls.UI{
                 <div className="form-group">
                     <label className={`control-label ${classNames[0]}`} htmlFor={this.props.id}>{this.props.label}:</label>
                     <div className={`${classNames[1]}`}>
-                        <input type="number" min={this.props.min} max={this.props.max} className="form-control" id={this.props.id} step={step} defaultValue={defaultValue.toString()}/>
+                        <input type="number" min={this.props.min} max={this.props.max} className="form-control" id={this.props.id} step={step} defaultValue={defaultValue.toString()} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,this.props.id)} />
                     </div>
                 </div>
             );
@@ -145,6 +254,43 @@ namespace Controls.UI{
     }
 
     export class XYZBox extends React.Component<{label: string, id:string, defaultValue?:{x:number,y:number,z:number}, classNames?:string[], placeholder?:{x:number,y:number,z:number}},{}>{
+
+        private validateIsNumber(value:string){
+            let valid = !isNaN(Number(value));
+            let message = (!valid)?"Value must be numeric!":"";
+            return {
+                valid,
+                message
+            }
+        }
+
+        private validators:((value:string)=>{valid:boolean,message:string})[]=[
+            this.validateIsNumber
+        ];
+
+        private validate(e:EventTarget & HTMLInputElement){
+            let value = e.value;
+            if(this.validators===void 0){
+                return true;
+            }
+
+            for(let v of this.validators){
+                let validationState = v(value);
+                if(!validationState.valid){
+                    e.setCustomValidity(validationState.message);
+                    window.setTimeout(()=>{
+                        $(e.form).find("input[type=submit].submit").click(); //Enforces validation message popup. Form will not be submited due to validation errors.
+                    });                    
+                    return false;
+                }
+                else{
+                    e.setCustomValidity("");
+                }
+            }
+
+            return true;
+        }
+        
         render(){
             let classNames = ["",""];
             if(this.props.classNames!==void 0){
@@ -154,13 +300,26 @@ namespace Controls.UI{
             let defaultValue = this.props.defaultValue;
             let placeholder = this.props.placeholder;
 
+            let onKeyDown=(e:any)=>{
+                if(e.keyCode===13){
+                    if(!this.validate(e.currentTarget)){
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+            };
+
+            let onBlur=(e:any)=>{
+                this.validate(e.currentTarget);
+            };
+
             return (
                 <div className="form-group">
                     <label className={`control-label ${classNames[0]}`} htmlFor={this.props.id}>{this.props.label}:</label>
                     <div className={`${classNames[1]}`}>
-                        <input type="text" className="form-control form-3-input" id={`${this.props.id}_x`} defaultValue={(defaultValue===void 0)?void 0:defaultValue.x.toString()} placeholder={(placeholder===void 0)?void 0:placeholder.x.toString()} />
-                        <input type="text" className="form-control form-3-input" id={`${this.props.id}_y`} defaultValue={(defaultValue===void 0)?void 0:defaultValue.y.toString()} placeholder={(placeholder===void 0)?void 0:placeholder.y.toString()} />
-                        <input type="text" className="form-control form-3-input" id={`${this.props.id}_z`} defaultValue={(defaultValue===void 0)?void 0:defaultValue.z.toString()} placeholder={(placeholder===void 0)?void 0:placeholder.z.toString()} />
+                        <input type="text" className="form-control form-3-input" id={`${this.props.id}_x`} defaultValue={(defaultValue===void 0)?void 0:defaultValue.x.toString()} placeholder={(placeholder===void 0)?void 0:placeholder.x.toString()} onKeyDown={onKeyDown} onBlur={onBlur} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,`${this.props.id}_x`)} />
+                        <input type="text" className="form-control form-3-input" id={`${this.props.id}_y`} defaultValue={(defaultValue===void 0)?void 0:defaultValue.y.toString()} placeholder={(placeholder===void 0)?void 0:placeholder.y.toString()} onKeyDown={onKeyDown} onBlur={onBlur} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,`${this.props.id}_y`)} />
+                        <input type="text" className="form-control form-3-input" id={`${this.props.id}_z`} defaultValue={(defaultValue===void 0)?void 0:defaultValue.z.toString()} placeholder={(placeholder===void 0)?void 0:placeholder.z.toString()} onKeyDown={onKeyDown} onBlur={onBlur} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,`${this.props.id}_z`)} />
                     </div>
                 </div>
             );
@@ -325,39 +484,125 @@ namespace Controls.UI{
                 }
             }*/
 
+            let patternQueryHint = <span><span className="glyphicon glyphicon-info-sign"/>See <a href="https://webchem.ncbr.muni.cz/Wiki/PatternQuery:UserManual" target="_blank">PatternQuery manual</a> for help.</span>
+            
+            let validateChainsArray = (value:string)=>{
+                if(value.length===0){
+                    return {valid:true, message:""};
+                }
+
+                let reg = new RegExp(/^[A-Z][\-][\d]*$|^[A-Z]{1}$/);
+                value = value.replace(/\s*,\s*/g,",");
+                let chains = value.split(",");
+                let valid = true;
+                for(let chain of chains){                    
+                    valid = valid && reg.test(chain);
+                }
+
+                return {
+                    valid,
+                    message:(!valid)?"List of chains is not in readable format!":""};
+            };
+
+            let validateResidueSimpleArray = (value:string)=>{
+                if(value.length===0){
+                    return {valid:true, message:""};
+                }
+                
+                let expectedCount = value.split(',').length;                
+                let valid = parseResidues(value).length===expectedCount
+                
+                return {
+                    valid,
+                    message:(!valid)?"List of chains is not in readable format!":""};
+            };
+            
+            let validateResidueDoubleArray = (value:string)=>{
+                if(value.length===0){
+                    return {valid:true, message:""};
+                }
+
+                value = value.replace(/\]\s,\s\[/g,'],[');
+                
+                let arrays = value.split("],[");
+
+                let expectedCount = value.split(',').length;                
+                let valid = true;
+                let residuesArray = parseResiduesArray(value);
+
+                if(residuesArray.length!==arrays.length){
+                    valid = false;
+                }
+                else{
+                    for(let i=0;i<residuesArray.length;i++){
+                        valid = valid && arrays[i].split(",").length===residuesArray[i].length;
+                        if(!valid){
+                            break;
+                        }
+                    }
+                }
+                
+                return {
+                    valid,
+                    message:(!valid)?"Invalid syntax! Should be [A 69, ...], [A 137, ...], ...":""};
+            };
+
+            let validatePatternQuery = (e:any)=>{
+                let el = e.currentTarget as HTMLInputElement;
+                if(el.value.length===0){
+                    $(el.form).find("input[type=submit]").attr("disabled",false);
+                    return;
+                }
+                
+                $(el.form).find("input[type=submit]").attr("disabled",true);
+                
+                MoleOnlineWebUI.Service.PatternQueryAPI.ApiService.getValidationResult(el.value)
+                    .then((result)=>{
+                        if(result.isOk){
+                            $(el.form).find("input[type=submit]").attr("disabled",false);
+                        }
+                        else{
+                            createCustomValidationPopup(el,(result.error===void 0)?"":result.error);
+                        }
+                    })
+                    .catch((err)=>{
+                        createCustomValidationPopup(el,`Error occured during query validation.`);
+                    });
+            };
+
             return <div className="settings-form basic-settings">
                         <h4>General</h4>
                         <LabelBox label="Structure" text={this.state.data.PdbId} id="pdbid" classNames={doubleColClasses} />
-                        <TextBox label="Specific chains" id="specificChains" classNames={doubleColClasses} placeholder="A, B, ..." />
-                        <CheckBox label="Read all models" defaultChecked={false} id="readAllModels" classNames={chckColClasses} />
-                        <TextBox label="Ignored residues" id="nonActiveResidues" classNames={doubleColClasses} placeholder="GLY A 69, MET A 386, ..."/>
-                        <TextBox label="Query filter" id="queryFilter" classNames={doubleColClasses} placeholder='ResidueIdRange("A", 50, 100)' />
+                        <TextBox label="Specific Chains" id="specificChains" classNames={doubleColClasses} placeholder="A, B, ..." onValidate={validateChainsArray}/>
+                        <CheckBox label="Read All Models" defaultChecked={false} id="readAllModels" classNames={chckColClasses} />
+                        <TextBox label="Ignored Residues" id="nonActiveResidues" classNames={doubleColClasses} placeholder="A 69, A 386, ..." onValidate={validateResidueSimpleArray} />
+                        <TextBox label="Query Filter" id="queryFilter" classNames={doubleColClasses} placeholder="Residues('GOL')" hint={patternQueryHint} onValidateCustom={validatePatternQuery} />
 
                         <h4>Cavity</h4>
-                        <CheckBox label="Ignore hydrogens" defaultChecked={false} id="ignoreHydrogens" classNames={chckColClasses} />
-                        <CheckBox label="Ignore all HETATM" defaultChecked={false} id="ignoreAllHetatm" classNames={chckColClasses} />
-                        <NumberBox label="Interior Treshold" id="interiorTreshold" classNames={doubleColClasses} min={0.8} max={2.4} defaultValue={1.25} step={0.01} />
-                        <NumberBox label="Probe radius" id="probeRadius" classNames={doubleColClasses} min={1.4} max={20} defaultValue={3} step={0.01} />
+                        <CheckBox label="Ignore Hydrogens" defaultChecked={false} id="ignoreHydrogens" classNames={chckColClasses} />
+                        <CheckBox label="Ignore HETATMs" defaultChecked={true} id="ignoreAllHetatm" classNames={chckColClasses} />
+                        <NumberBox label="Interior Treshold" id="interiorTreshold" classNames={doubleColClasses} min={0.8} max={2.4} defaultValue={1.1} step={0.01} />
+                        <NumberBox label="Probe Radius" id="probeRadius" classNames={doubleColClasses} min={1.4} max={20} defaultValue={5} step={0.01} />
 
                         <h4>Start and end</h4>
-                        <CSAPickBox label="Active sites from CSA" id="csaActiveSites" classNames={doubleColClasses} outputRefId="originResidues" computationId={this.props.initialData.ComputationId} />
-                        <TextBox label="Starting point" id="originResidues" classNames={doubleColClasses} placeholder="[GLY A 69, MET A 386], [PHE A 137, THR A 136]" />
-                        <XYZBox label="Starting point [x,y,z]" id="originPoints" classNames={doubleColClasses} placeholder={{x:-1,y:0,z:4}} />
-                        <TextBox label="End point" id="customExitsResidues" classNames={doubleColClasses} placeholder="[GLY A 69, MET A 386], [PHE A 137, THR A 136]"/>
-                        <XYZBox label="End point [x,y,z]" id="customExitsPoints" classNames={doubleColClasses} placeholder={{x:-1,y:0,z:4}} />
-                        <TextBox label="Query expresion" id="queryExpresion" classNames={doubleColClasses} placeholder='ResidueIdRange("A", 50, 100)'/>
+                        <CSAPickBox label="Active Sites From CSA" id="csaActiveSites" classNames={doubleColClasses} outputRefId="originResidues" computationId={this.props.initialData.ComputationId} />
+                        <TextBox label="Starting Point" id="originResidues" classNames={doubleColClasses} placeholder="[A 69, A 386], [A 137, A 136]" onValidate={validateResidueDoubleArray} />
+                        <XYZBox label="Starting Point [x,y,z]" id="originPoints" classNames={doubleColClasses} placeholder={{x:-1,y:0,z:4}} />
+                        <TextBox label="End Point" id="customExitsResidues" classNames={doubleColClasses} placeholder="[A 69, A 386], [A 137, A 136]" onValidate={validateResidueDoubleArray} />
+                        <XYZBox label="End Point [x,y,z]" id="customExitsPoints" classNames={doubleColClasses} placeholder={{x:-1,y:0,z:4}} />
+                        <TextBox label="Query Expression" id="queryExpresion" classNames={doubleColClasses} placeholder="Atoms('Fe')" hint={patternQueryHint} onValidateCustom={validatePatternQuery} />
 
                         <h4>Tunnel</h4>
-                        <ComboBox label="Weight function" id="tunnelWeightFunction" items={MoleOnlineWebUI.StaticData.WeightFunctions.get()} classNames={doubleColClasses} />
-                        <NumberBox label="Bottleneck radius" id="bottleneckRadius" classNames={doubleColClasses} min={0.8} max={5} defaultValue={1.2} step={0.01} />
-                        <NumberBox label="Bottleneck tolerance" id="bottleneckTolerance" classNames={doubleColClasses} min={0} max={5} defaultValue={0} step={0.1} />
-                        <NumberBox label="Max tunnel similarity" id="maxTunnelSimilarity" classNames={doubleColClasses} min={0} max={1} defaultValue={0.9} step={0.05} />
-                        <NumberBox label="Origin radius" id="originRadius" classNames={doubleColClasses} min={0.1} max={10} defaultValue={5} step={0.05}/>
-                        <NumberBox label="Surface cover radius" id="surfaceCoverRadius" classNames={doubleColClasses} min={5} max={20} defaultValue={10} step={0.5} />                    
+                        <ComboBox label="Weight Function" id="tunnelWeightFunction" items={MoleOnlineWebUI.StaticData.WeightFunctions.get()} classNames={doubleColClasses} />
+                        <NumberBox label="Bottleneck Radius" id="bottleneckRadius" classNames={doubleColClasses} min={0.8} max={5} defaultValue={1.2} step={0.01} />
+                        <NumberBox label="Bottleneck Tolerance" id="bottleneckTolerance" classNames={doubleColClasses} min={0} max={5} defaultValue={3.0} step={0.1} />
+                        <NumberBox label="Max tunnel Similarity" id="maxTunnelSimilarity" classNames={doubleColClasses} min={0} max={1} defaultValue={0.7} step={0.05} />
+                        <NumberBox label="Origin Radius" id="originRadius" classNames={doubleColClasses} min={0.1} max={10} defaultValue={5} step={0.05}/>
+                        <NumberBox label="Surface Cover Radius" id="surfaceCoverRadius" classNames={doubleColClasses} min={5} max={20} defaultValue={10} step={0.5} />                    
 
                         <h4>Pores</h4>
-                        <CheckBox label="Merge pores" defaultChecked={false} id="mergePores" classNames={chckColClasses} />
-                        <CheckBox label="Automatic pores" defaultChecked={false} id="automaticPores" classNames={chckColClasses} />
+                        <CheckBox label="Merge Pores" defaultChecked={false} id="mergePores" classNames={chckColClasses} />
+                        <CheckBox label="Automatic Pores" defaultChecked={false} id="automaticPores" classNames={chckColClasses} />
                         <input type="hidden" id="mode" value="Mole" />
                     </div>
         }
@@ -375,8 +620,8 @@ namespace Controls.UI{
             return <div className="settings-form basic-settings">
                         <h4>General</h4>
                         <LabelBox label="Structure" text={this.state.data.PdbId} id="pdbid" classNames={doubleColClasses} />
-                        <CheckBox label="Is beta structure" defaultChecked={false} id="poresIsBetaStructure" classNames={chckColClasses} />
-                        <CheckBox label="In transmembrane" defaultChecked={false} id="poresInMembrane" classNames={chckColClasses} />
+                        <CheckBox label="Beta Structure" defaultChecked={false} id="poresIsBetaStructure" classNames={chckColClasses} />
+                        <CheckBox label="Membrane Region" defaultChecked={false} id="poresInMembrane" classNames={chckColClasses} />
                         <TextBox label="Chains" id="poresChains" classNames={doubleColClasses} placeholder="A, B, ..." />
                         <input type="hidden" id="mode" value="Pores" />
                     </div>
@@ -750,15 +995,14 @@ namespace Controls.UI{
         if(residuesArray===void 0){
             return [];
         }
-        residuesArray = residuesArray.replace("], [","],[");
+        residuesArray = residuesArray.replace(/\]\s*,\s*\[/g,"],[");
         let parts = residuesArray.split("],[");
         let rv = [];
         for(let part of parts){
-            part = part.replace("[","");
-            part = part.replace("]","");
+            part = part.replace(/\[/g,"");
+            part = part.replace(/\]/g,"");
             rv.push(parseResidues(part));
         }
-        console.log(rv);
         return rv;
     }
 
@@ -767,7 +1011,7 @@ namespace Controls.UI{
             return [];
         }
 
-        residues = residues.replace(", ",",");
+        residues = residues.replace(/\s*,\s*/g,",");
         let items = residues.split(',');
         let rv = [];
         

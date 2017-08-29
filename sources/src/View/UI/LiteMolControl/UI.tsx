@@ -120,6 +120,37 @@ namespace LiteMol.Example.Channels.UI {
 
     export class Data extends React.Component<State, {}> {
         render() {          
+            let channels = new Map<String,any>();
+            channels.set('Merged pores', this.props.data.Channels.MergedPores);
+            channels.set('Paths', this.props.data.Channels.Paths);
+            channels.set('Pores', this.props.data.Channels.Pores);
+            channels.set('Tunnels', this.props.data.Channels.Tunnels);
+
+            let channelsControls:any[] = [];
+            channels.forEach((val,key,map)=>{
+                if(val.length>0){
+                    channelsControls.push(
+                        <Channels channels={val} state={this.props} header={key.valueOf()} />
+                    );
+                }
+            });
+
+            let noChannelsData = <div className="no-channels-data">There are no channels available...</div>
+
+            let cavities = new Map<String,any>();
+            cavities.set('Surface', [this.props.data.Cavities.Surface]);
+            cavities.set('Cavities', this.props.data.Cavities.Cavities);
+            cavities.set('Voids', this.props.data.Cavities.Voids);
+
+            let cavitiesControls:any[] = [];
+            cavities.forEach((val,key,map)=>{
+                if(val.length>0){
+                    cavitiesControls.push(
+                        <Cavities cavities={val} state={this.props} header={key.valueOf()} />
+                    );
+                }
+            });
+
             return <div>
                 <Selection {...this.props} />
 
@@ -127,10 +158,7 @@ namespace LiteMol.Example.Channels.UI {
                     Channels
                 </div>
                 <div>
-                    <Channels channels={this.props.data.Channels.MergedPores} state={this.props}  header='Merged pores' />
-                    <Channels channels={this.props.data.Channels.Paths} state={this.props}  header='Paths' />
-                    <Channels channels={this.props.data.Channels.Pores} state={this.props}  header='Pores' />
-                    <Channels channels={this.props.data.Channels.Tunnels} state={this.props}  header='Tunnels' />
+                    {(channelsControls.length===0)?noChannelsData:channelsControls}
                 </div>
 
                 <div className="ui-header origins">
@@ -149,9 +177,7 @@ namespace LiteMol.Example.Channels.UI {
                     Cavities
                 </div>
                 <div>
-                    <Cavities cavities={[this.props.data.Cavities.Surface]} state={this.props} header='Surface' />
-                    <Cavities cavities={this.props.data.Cavities.Cavities} state={this.props} header='Cavities' />
-                    <Cavities cavities={this.props.data.Cavities.Voids} state={this.props} header='Voids' />
+                    {cavitiesControls}
                 </div>
             </div>;
         }
@@ -439,7 +465,7 @@ namespace LiteMol.Example.Channels.UI {
         }
 
         render() {
-            if (!this.props.origins.Points.length) {
+            if (this.props.origins.Points===void 0 || !this.props.origins.Points.length) {
                 return <div style={{ display: 'none' }} />
             }
 

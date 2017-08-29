@@ -606,6 +606,16 @@ span.ATable-label {
     vertical-align: text-top;
 }
 
+.popover {
+    left: -60% !important;
+    width: 65% !important;
+}
+
+.no-channels-data{
+    margin-top: 20px;
+    font-style: italic;
+}
+
 @media only screen and (max-width: 1360px){
     #dg-aglomered-parameters.datagrid .col.col-4{
         min-width:50px;

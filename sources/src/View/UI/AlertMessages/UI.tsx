@@ -76,8 +76,11 @@ namespace AlertMessages.UI{
                     <Message message={m} />
                 );
             }
+
+            let active = (this.queue.length>0)?" active":"";
+
             return(
-                <div className="alert-messages-container">
+                <div className={`alert-messages-container${active}`}>
                     {messages}
                 </div>
             );

@@ -29,7 +29,7 @@ namespace PdbIdSign.UI{
 
         render() {
             if(this.state.pdbid===void 0){
-                return <div>{(this.state.err===void 0)?"<Unknown>":this.state.err}</div>
+                return <div>{(this.state.err===void 0)?"...":this.state.err}</div>
             }
 
             return <div>

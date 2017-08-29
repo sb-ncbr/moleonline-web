@@ -6,4 +6,9 @@
     padding: 15px;
     margin-top: 60px;
     z-index: 1000;
+    display:none;
+}
+
+.alert-messages-container.active{
+    display:block;
 }

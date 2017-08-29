@@ -17,6 +17,12 @@ namespace Config{
             "prod":"https://api.mole.upol.cz",
         }
 
+        public static PATTERN_QUERY_API_URL:any = {
+            "local":"https://webchem.ncbr.muni.cz/Platform/PatternQuery/ValidateQuery",
+            "test":"https://webchem.ncbr.muni.cz/Platform/PatternQuery/ValidateQuery",
+            "prod":"https://webchem.ncbr.muni.cz/Platform/PatternQuery/ValidateQuery",
+        }
+
         public static MODE = "unknown";
     }
 

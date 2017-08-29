@@ -217,6 +217,10 @@
     text-align: right;
 }
 
+.submit-form-container .TextBox-hint .glyphicon.glyphicon-info-sign{
+    margin-right: 4px;
+}
+
 @media only screen and (max-width: 1300px),
 only screen and (max-height: 900px) {
     .submit-form-container .tab-content{
