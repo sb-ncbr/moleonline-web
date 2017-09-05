@@ -61,6 +61,15 @@ namespace LiteMol.Example.Channels.UI {
                         return;
                     }
                     let _data = (entities[0] as Bootstrap.Entity.Data.Json).props.data as DataInterface.MoleData;
+                    let csaOrigins = this.props.plugin.context.select("csa-origins");
+                    if(csaOrigins.length>0){
+                        if((_data as any).Origins===void 0){
+                            (_data as any).Origins = {};
+                        }
+                        
+                        (_data as any).Origins.CSAOrigins = (csaOrigins[0] as Bootstrap.Entity.Data.Json).props.data.Origins.CSAOrigins;
+                    }
+
                     if((_data as any).Error !== void 0){
                         this.setState({ isLoading: false, error: (_data as any).Error as string });
                     }
@@ -171,6 +180,7 @@ namespace LiteMol.Example.Channels.UI {
                     <Origins origins={this.props.data.Origins.Database} {...this.props} label='Database' />
                     <Origins origins={this.props.data.Origins.InputExits} {...this.props} label='Input Exits' />
 		            <Origins origins={this.props.data.Origins.InputFoundExits} {...this.props} label='Input Found Exits' />
+                    <Origins origins={this.props.data.Origins.CSAOrigins} {...this.props} label='CSA Origins' />
                 </div>
 
                 <div className="ui-header cavities">

@@ -4,8 +4,9 @@ namespace Controls.UI{
     import TunnelUtils = CommonUtils.Tunnels;
     import Provider = MoleOnlineWebUI.DataProxy.ComputationInfo.DataProvider;
     import Service = MoleOnlineWebUI.Service.MoleAPI;
+    import TooltipText = MoleOnlineWebUI.StaticData.TooltipText;
 
-    declare function $(p:any): any;
+    declare function $(p:any,p1?:any): any;
 
     interface State{
         app: App
@@ -87,6 +88,7 @@ namespace Controls.UI{
         placeholder?:string, 
         classNames?:string[], 
         hint?:JSX.Element,
+        tooltip?:string,
         onValidate?:(value:string)=>{valid:boolean,message:string}
         onValidateCustom?:(event:any)=>void
     };
@@ -139,6 +141,12 @@ namespace Controls.UI{
                 </div>
             }
 
+            let tooltip;
+            if(this.props.tooltip!==void 0){
+                tooltip = this.props.tooltip;
+                CommonUtils.Tooltips.initWhenReady(`${this.props.id}_label`);
+            }
+
             let onKeyDown=(e:any)=>{
                 if(e.keyCode===13){
                     if(!this.validate(e.currentTarget)){
@@ -170,7 +178,7 @@ namespace Controls.UI{
 
             return (
                 <div className="form-group">
-                    <label className={`control-label ${classNames[0]}`} htmlFor={this.props.id}>{this.props.label}:</label>
+                    <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} htmlFor={this.props.id} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}:</label>
                     <div className={`${classNames[1]}`}>
                         <input type="text" className="form-control" id={this.props.id} placeholder={this.props.placeholder} onBlur={onBlur} onKeyDown={onKeyDown} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,this.props.id)} />
                     </div>
@@ -180,15 +188,29 @@ namespace Controls.UI{
         }
     }
     
-    export class CheckBox extends React.Component<{label: string, id:string, defaultChecked?:boolean, classNames?:string[]},{}>{
+    interface CheckBoxProps{
+        label: string, 
+        id:string, 
+        defaultChecked?:boolean, 
+        classNames?:string[],
+        tooltip?:string
+    }
+    export class CheckBox extends React.Component<CheckBoxProps,{}>{
         render(){
             let classNames = [""];
             if(this.props.classNames!==void 0){
                 classNames = this.props.classNames;
             }
+            
+            let tooltip;
+            if(this.props.tooltip!==void 0){
+                tooltip = this.props.tooltip;
+                CommonUtils.Tooltips.initWhenReady(`${this.props.id}_label`);
+            }
+
             return (
                 <div className="form-group">                
-                    <label className={`control-label ${classNames[0]}`}>{this.props.label}</label>
+                    <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}</label>
                     <div className={`${classNames[1]}`}>
                         <input type="checkbox" className="checkbox" id={this.props.id} defaultChecked={this.props.defaultChecked} />
                     </div>
@@ -197,7 +219,15 @@ namespace Controls.UI{
         }
     }
 
-    export class ComboBox extends React.Component<{label: string, id:string, items:{label:string,value:string}[], defaultSelectedIndex?:number, classNames?:string[]},{}>{
+    interface ComboBoxProps{
+        label: string, 
+        id:string, 
+        items:{label:string,value:string}[], 
+        defaultSelectedIndex?:number, 
+        classNames?:string[],
+        tooltip?:string
+    }
+    export class ComboBox extends React.Component<ComboBoxProps,{}>{
         render(){
             let classNames = [""];
             if(this.props.classNames!==void 0){
@@ -218,9 +248,15 @@ namespace Controls.UI{
                 idx++;
             }
 
+            let tooltip;
+            if(this.props.tooltip!==void 0){
+                tooltip = this.props.tooltip;
+                CommonUtils.Tooltips.initWhenReady(`${this.props.id}_label`);
+            }
+
             return (
                 <div className="form-group">                
-                    <label className={`control-label ${classNames[0]}`}>{this.props.label}</label>
+                    <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}</label>
                     <div className={`${classNames[1]}`}>
                         <select id={this.props.id} className="form-control">
                             {items}
@@ -231,7 +267,16 @@ namespace Controls.UI{
         }
     }
 
-    export class NumberBox extends React.Component<{label: string, id:string, defaultValue?:number, min?:number, max?:number, step?:number, classNames?:string[]},{}>{
+    interface NumberBoxProps{
+        label: string, 
+        id:string, 
+        defaultValue?:number, 
+        min?:number, max?:number, 
+        step?:number, 
+        classNames?:string[],
+        tooltip?:string
+    }
+    export class NumberBox extends React.Component<NumberBoxProps,{}>{
         
         render(){
             let classNames = ["",""];
@@ -242,9 +287,15 @@ namespace Controls.UI{
             let step = (this.props.step===void 0)?1:this.props.step;
             let defaultValue = (this.props.defaultValue===void 0)?0:this.props.defaultValue;
 
+            let tooltip;
+            if(this.props.tooltip!==void 0){
+                tooltip = this.props.tooltip;
+                CommonUtils.Tooltips.initWhenReady(`${this.props.id}_label`);
+            }
+
             return (
                 <div className="form-group">
-                    <label className={`control-label ${classNames[0]}`} htmlFor={this.props.id}>{this.props.label}:</label>
+                    <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} htmlFor={this.props.id} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}:</label>
                     <div className={`${classNames[1]}`}>
                         <input type="number" min={this.props.min} max={this.props.max} className="form-control" id={this.props.id} step={step} defaultValue={defaultValue.toString()} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,this.props.id)} />
                     </div>
@@ -252,8 +303,15 @@ namespace Controls.UI{
             );
         }
     }
-
-    export class XYZBox extends React.Component<{label: string, id:string, defaultValue?:{x:number,y:number,z:number}, classNames?:string[], placeholder?:{x:number,y:number,z:number}},{}>{
+    interface XYZBoxProps{
+        label: string, 
+        id:string, 
+        defaultValue?:{x:number,y:number,z:number}, 
+        classNames?:string[], 
+        placeholder?:{x:number,y:number,z:number},
+        tooltip?:string
+    }
+    export class XYZBox extends React.Component<XYZBoxProps,{}>{
 
         private validateIsNumber(value:string){
             let valid = !isNaN(Number(value));
@@ -300,6 +358,12 @@ namespace Controls.UI{
             let defaultValue = this.props.defaultValue;
             let placeholder = this.props.placeholder;
 
+            let tooltip;
+            if(this.props.tooltip!==void 0){
+                tooltip = this.props.tooltip;
+                CommonUtils.Tooltips.initWhenReady(`${this.props.id}_label`);
+            }
+
             let onKeyDown=(e:any)=>{
                 if(e.keyCode===13){
                     if(!this.validate(e.currentTarget)){
@@ -315,7 +379,7 @@ namespace Controls.UI{
 
             return (
                 <div className="form-group">
-                    <label className={`control-label ${classNames[0]}`} htmlFor={this.props.id}>{this.props.label}:</label>
+                    <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} htmlFor={this.props.id} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}:</label>
                     <div className={`${classNames[1]}`}>
                         <input type="text" className="form-control form-3-input" id={`${this.props.id}_x`} defaultValue={(defaultValue===void 0)?void 0:defaultValue.x.toString()} placeholder={(placeholder===void 0)?void 0:placeholder.x.toString()} onKeyDown={onKeyDown} onBlur={onBlur} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,`${this.props.id}_x`)} />
                         <input type="text" className="form-control form-3-input" id={`${this.props.id}_y`} defaultValue={(defaultValue===void 0)?void 0:defaultValue.y.toString()} placeholder={(placeholder===void 0)?void 0:placeholder.y.toString()} onKeyDown={onKeyDown} onBlur={onBlur} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,`${this.props.id}_y`)} />
@@ -326,8 +390,16 @@ namespace Controls.UI{
         }
     }
 
+    interface CSAPickBoxProps{
+        label: string, 
+        id:string,
+        outputRefId:string, 
+        computationId:string, 
+        classNames?:string[],
+        tooltip?:string
+    }
     interface CSAPickBoxState{isLoading:boolean, data:Service.CSAResidues|null};
-    export class CSAPickBox extends React.Component<{label: string, id:string, outputRefId:string, computationId:string, classNames?:string[]},CSAPickBoxState>{
+    export class CSAPickBox extends React.Component<CSAPickBoxProps,CSAPickBoxState>{
         
         state:CSAPickBoxState = {isLoading:true, data:null};
 
@@ -354,10 +426,15 @@ namespace Controls.UI{
                 contents = <CSAPickBoxItem outputRefId="" />
             }
             
+            let tooltip;
+            if(this.props.tooltip!==void 0){
+                tooltip = this.props.tooltip;
+                CommonUtils.Tooltips.initWhenReady(`${this.props.id}_label`);
+            }
 
             return (
                 <div className="form-group">
-                    <label className={`control-label ${classNames[0]}`} htmlFor={this.props.id}>{this.props.label}:</label>
+                    <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} htmlFor={this.props.id} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}:</label>
                     <div className={`${classNames[1]}`}>
                         {contents}
                     </div>
@@ -467,9 +544,99 @@ namespace Controls.UI{
             //<LabelBox label="Active sites from CSA" text="TODO:..." id="activeSites" classNames={doubleColClasses} />
         }
 
+        getPatternQueryHint(){
+            return <span><span className="glyphicon glyphicon-info-sign"/>See <a href="https://webchem.ncbr.muni.cz/Wiki/PatternQuery:UserManual" target="_blank">PatternQuery manual</a> for help.</span>
+        } 
+            
+        validateChainsArray(value:string){
+            if(value.length===0){
+                return {valid:true, message:""};
+            }
+
+            let reg = new RegExp(/^[A-Z][\-][\d]*$|^[A-Z]{1}$/);
+            value = value.replace(/\s*,\s*/g,",");
+            let chains = value.split(",");
+            let valid = true;
+            for(let chain of chains){                    
+                valid = valid && reg.test(chain);
+            }
+
+            return {
+                valid,
+                message:(!valid)?"List of chains is not in readable format!":""
+            };
+        }
+
+        validateResidueSimpleArray(value:string){
+            if(value.length===0){
+                return {valid:true, message:""};
+            }
+            
+            let expectedCount = value.split(',').length;                
+            let valid = parseResidues(value).length===expectedCount
+            
+            return {
+                valid,
+                message:(!valid)?"List of chains is not in readable format!":""};
+        }
+        
+        validateResidueDoubleArray(value:string){
+            if(value.length===0){
+                return {valid:true, message:""};
+            }
+
+            value = value.replace(/\]\s,\s\[/g,'],[');
+            
+            let arrays = value.split("],[");
+
+            let expectedCount = value.split(',').length;                
+            let valid = true;
+            let residuesArray = parseResiduesArray(value);
+
+            if(residuesArray.length!==arrays.length){
+                valid = false;
+            }
+            else{
+                for(let i=0;i<residuesArray.length;i++){
+                    valid = valid && arrays[i].split(",").length===residuesArray[i].length;
+                    if(!valid){
+                        break;
+                    }
+                }
+            }
+            
+            return {
+                valid,
+                message:(!valid)?"Invalid syntax! Should be [A 69, ...], [A 137, ...], ...":""};
+        }
+
+        validatePatternQuery(e:any){
+            let el = e.currentTarget as HTMLInputElement;
+            if(el.value.length===0){
+                $(el.form).find("input[type=submit]").attr("disabled",false);
+                return;
+            }
+            
+            $(el.form).find("input[type=submit]").attr("disabled",true);
+            
+            MoleOnlineWebUI.Service.PatternQueryAPI.ApiService.getValidationResult(el.value)
+                .then((result)=>{
+                    if(result.isOk){
+                        $(el.form).find("input[type=submit]").attr("disabled",false);
+                    }
+                    else{
+                        createCustomValidationPopup(el,(result.error===void 0)?"":result.error);
+                    }
+                })
+                .catch((err)=>{
+                    createCustomValidationPopup(el,`Error occured during query validation.`);
+                });
+        }
+
         getMoleForm(){
-            let doubleColClasses = ["col-md-5","col-md-7"];
-            let chckColClasses = doubleColClasses;//["col-md-offset-4 col-md-8"];
+            let css:string[] = ["col-md-5 controls-panel-label-tooltip","col-md-7"];
+            let chckColClasses:string[] = [];//["col-md-offset-4 col-md-8"];
+            chckColClasses = css;
 
             if(this.state.data===null){
                 return <div/>
@@ -488,125 +655,68 @@ namespace Controls.UI{
                 }
             }*/
 
-            let patternQueryHint = <span><span className="glyphicon glyphicon-info-sign"/>See <a href="https://webchem.ncbr.muni.cz/Wiki/PatternQuery:UserManual" target="_blank">PatternQuery manual</a> for help.</span>
-            
-            let validateChainsArray = (value:string)=>{
-                if(value.length===0){
-                    return {valid:true, message:""};
-                }
-
-                let reg = new RegExp(/^[A-Z][\-][\d]*$|^[A-Z]{1}$/);
-                value = value.replace(/\s*,\s*/g,",");
-                let chains = value.split(",");
-                let valid = true;
-                for(let chain of chains){                    
-                    valid = valid && reg.test(chain);
-                }
-
-                return {
-                    valid,
-                    message:(!valid)?"List of chains is not in readable format!":""};
-            };
-
-            let validateResidueSimpleArray = (value:string)=>{
-                if(value.length===0){
-                    return {valid:true, message:""};
-                }
-                
-                let expectedCount = value.split(',').length;                
-                let valid = parseResidues(value).length===expectedCount
-                
-                return {
-                    valid,
-                    message:(!valid)?"List of chains is not in readable format!":""};
-            };
-            
-            let validateResidueDoubleArray = (value:string)=>{
-                if(value.length===0){
-                    return {valid:true, message:""};
-                }
-
-                value = value.replace(/\]\s,\s\[/g,'],[');
-                
-                let arrays = value.split("],[");
-
-                let expectedCount = value.split(',').length;                
-                let valid = true;
-                let residuesArray = parseResiduesArray(value);
-
-                if(residuesArray.length!==arrays.length){
-                    valid = false;
-                }
-                else{
-                    for(let i=0;i<residuesArray.length;i++){
-                        valid = valid && arrays[i].split(",").length===residuesArray[i].length;
-                        if(!valid){
-                            break;
-                        }
-                    }
-                }
-                
-                return {
-                    valid,
-                    message:(!valid)?"Invalid syntax! Should be [A 69, ...], [A 137, ...], ...":""};
-            };
-
-            let validatePatternQuery = (e:any)=>{
-                let el = e.currentTarget as HTMLInputElement;
-                if(el.value.length===0){
-                    $(el.form).find("input[type=submit]").attr("disabled",false);
-                    return;
-                }
-                
-                $(el.form).find("input[type=submit]").attr("disabled",true);
-                
-                MoleOnlineWebUI.Service.PatternQueryAPI.ApiService.getValidationResult(el.value)
-                    .then((result)=>{
-                        if(result.isOk){
-                            $(el.form).find("input[type=submit]").attr("disabled",false);
-                        }
-                        else{
-                            createCustomValidationPopup(el,(result.error===void 0)?"":result.error);
-                        }
-                    })
-                    .catch((err)=>{
-                        createCustomValidationPopup(el,`Error occured during query validation.`);
-                    });
-            };
-
+            /*<LabelBox label="Structure" text={this.state.data.PdbId} id="pdbid" classNames={css} />*/
             return <div className="settings-form basic-settings">
-                        <h4>General</h4>
-                        <LabelBox label="Structure" text={this.state.data.PdbId} id="pdbid" classNames={doubleColClasses} />
-                        <TextBox label="Specific Chains" id="specificChains" classNames={doubleColClasses} placeholder="A, B, ..." onValidate={validateChainsArray}/>
-                        <CheckBox label="Read All Models" defaultChecked={false} id="readAllModels" classNames={chckColClasses} />
-                        <TextBox label="Ignored Residues" id="nonActiveResidues" classNames={doubleColClasses} placeholder="A 69, A 386, ..." onValidate={validateResidueSimpleArray} />
-                        <TextBox label="Query Filter" id="queryFilter" classNames={doubleColClasses} placeholder="Residues('GOL')" hint={patternQueryHint} onValidateCustom={validatePatternQuery} />
+                        <h3>Mole</h3>
+                        <h4>Active Atoms/Residues</h4>
+                        <CheckBox label="Ignore Hydrogens" defaultChecked={false} id="ignoreHydrogens" tooltip={TooltipText.get("ignoreHydrogens")} classNames={chckColClasses} />
+                        <CheckBox label="Ignore HETATMs" defaultChecked={true} id="ignoreAllHetatm" tooltip={TooltipText.get("ignoreAllHetatm")} classNames={chckColClasses} />
+                        <TextBox label="Query Filter" id="queryFilter" tooltip={TooltipText.get("queryFilter")} classNames={css} placeholder="Residues('GOL')" hint={this.getPatternQueryHint()} onValidateCustom={this.validatePatternQuery} />                        
+                        <CheckBox label="Read All Models" defaultChecked={false} id="readAllModels" tooltip={TooltipText.get("readAllModels")} classNames={chckColClasses} />
+                        <TextBox label="Ignored Residues" id="nonActiveResidues" tooltip={TooltipText.get("nonActiveResidues")} classNames={css} placeholder="A 69, A 386, ..." onValidate={this.validateResidueSimpleArray} />
+                        <TextBox label="Specific Chains" id="specificChains" tooltip={TooltipText.get("specificChains")} classNames={css} placeholder="A, B, ..." onValidate={this.validateChainsArray}/>                  
 
-                        <h4>Cavity</h4>
-                        <CheckBox label="Ignore Hydrogens" defaultChecked={false} id="ignoreHydrogens" classNames={chckColClasses} />
-                        <CheckBox label="Ignore HETATMs" defaultChecked={true} id="ignoreAllHetatm" classNames={chckColClasses} />
-                        <NumberBox label="Interior Treshold" id="interiorTreshold" classNames={doubleColClasses} min={0.8} max={2.4} defaultValue={1.1} step={0.01} />
-                        <NumberBox label="Probe Radius" id="probeRadius" classNames={doubleColClasses} min={1.4} max={20} defaultValue={5} step={0.01} />
+                        <h4>Cavity Parameters</h4>
+                        <NumberBox label="Probe Radius" id="probeRadius" tooltip={TooltipText.get("probeRadius")} classNames={css} min={1.4} max={20} defaultValue={5} step={0.01} />
+                        <NumberBox label="Interior Treshold" id="interiorTreshold" tooltip={TooltipText.get("interiorTreshold")} classNames={css} min={0.8} max={2.4} defaultValue={1.1} step={0.01} />                      
 
-                        <h4>Start and end</h4>
-                        <CSAPickBox label="Active Sites From CSA" id="csaActiveSites" classNames={doubleColClasses} outputRefId="originResidues" computationId={this.props.initialData.ComputationId} />
-                        <TextBox label="Starting Point" id="originResidues" classNames={doubleColClasses} placeholder="[A 69, A 386], [A 137, A 136]" onValidate={validateResidueDoubleArray} />
-                        <XYZBox label="Starting Point [x,y,z]" id="originPoints" classNames={doubleColClasses} placeholder={{x:-1,y:0,z:4}} />
-                        <TextBox label="End Point" id="customExitsResidues" classNames={doubleColClasses} placeholder="[A 69, A 386], [A 137, A 136]" onValidate={validateResidueDoubleArray} />
-                        <XYZBox label="End Point [x,y,z]" id="customExitsPoints" classNames={doubleColClasses} placeholder={{x:-1,y:0,z:4}} />
-                        <TextBox label="Query Expression" id="queryExpresion" classNames={doubleColClasses} placeholder="Atoms('Fe')" hint={patternQueryHint} onValidateCustom={validatePatternQuery} />
+                        <h4>Channel Parameters</h4>
+                        <NumberBox label="Origin Radius" id="originRadius" tooltip={TooltipText.get("originRadius")} classNames={css} min={0.1} max={10} defaultValue={5} step={0.05}/>
+                        <NumberBox label="Surface Cover Radius" id="surfaceCoverRadius" tooltip={TooltipText.get("surfaceCoverRadius")} classNames={css} min={5} max={20} defaultValue={10} step={0.5} />                    
+                        <ComboBox label="Weight Function" id="tunnelWeightFunction" tooltip={TooltipText.get("tunnelWeightFunction")} items={MoleOnlineWebUI.StaticData.WeightFunctions.get()} classNames={css} />
+                    
+                        <div className="panel-group optional-channel-parameters">
+                            <div className="panel">
+                                <div className="panel-heading">
+                                    <a data-toggle="collapse" href="#optionalChannelParameters" onClick={(e)=>{                                                    
+                                                    if(e.currentTarget.attributes.getNamedItem("aria-expanded").value==="true"){
+                                                        $('.panel-title .glyphicon',e.currentTarget).removeClass("glyphicon-menu-down");
+                                                        $('.panel-title .glyphicon',e.currentTarget).addClass("glyphicon-menu-up");
+                                                    }
+                                                    else{
+                                                        $('.panel-title .glyphicon',e.currentTarget).removeClass("glyphicon-menu-up");
+                                                        $('.panel-title .glyphicon',e.currentTarget).addClass("glyphicon-menu-down");
+                                                    }
+                                                }}>
+                                        <span className="col-md-5 panel-title">
+                                            
+                                        </span>
+                                        <span className="col-md-7 panel-title">
+                                            Channel Filtering <span className={`glyphicon glyphicon-menu-down`} />
+                                        </span>
+                                    </a>
+                                </div>
+                                <div id="optionalChannelParameters" className="panel-collapse collapse">
+                                    <div className="panel-body">
+                                        <NumberBox label="Bottleneck Radius" id="bottleneckRadius" tooltip={TooltipText.get("bottleneckRadius")} classNames={css} min={0.8} max={5} defaultValue={1.2} step={0.01} />
+                                        <NumberBox label="Bottleneck Tolerance" id="bottleneckTolerance" tooltip={TooltipText.get("bottleneckTolerance")} classNames={css} min={0} max={5} defaultValue={3.0} step={0.1} />
+                                        <NumberBox label="Max Tunnel Similarity" id="maxTunnelSimilarity" tooltip={TooltipText.get("maxTunnelSimilarity")} classNames={css} min={0} max={1} defaultValue={0.7} step={0.05} />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <CheckBox label="Merge Pores" defaultChecked={false} id="mergePores" tooltip={TooltipText.get("mergePores")} classNames={chckColClasses} />
+                        <CheckBox label="Automatic Pores" defaultChecked={false} id="automaticPores" tooltip={TooltipText.get("automaticPores")} classNames={chckColClasses} />
+                        
+                        <h4>Selection</h4>
+                        <CSAPickBox label="Active Sites From CSA" id="csaActiveSites" tooltip={TooltipText.get("csaActiveSites")} classNames={css} outputRefId="originResidues" computationId={this.props.initialData.ComputationId} />
+                        <TextBox label="Starting Point" id="originResidues" tooltip={TooltipText.get("originResidues")} classNames={css} placeholder="[A 69, A 386], [A 137, A 136]" onValidate={this.validateResidueDoubleArray} />
+                        <XYZBox label="Starting Point [x,y,z]" id="originPoints" tooltip={TooltipText.get("originPoints")} classNames={css} placeholder={{x:-1,y:0,z:4}} />
+                        <TextBox label="End Point" id="customExitsResidues" tooltip={TooltipText.get("customExitsResidues")} classNames={css} placeholder="[A 69, A 386], [A 137, A 136]" onValidate={this.validateResidueDoubleArray} />
+                        <XYZBox label="End Point [x,y,z]" id="customExitsPoints" tooltip={TooltipText.get("customExitsPoints")} classNames={css} placeholder={{x:-1,y:0,z:4}} />
+                        <TextBox label="Query" id="queryExpresion" tooltip={TooltipText.get("queryExpresion")} classNames={css} placeholder="Atoms('Fe')" hint={this.getPatternQueryHint()} onValidateCustom={this.validatePatternQuery} />
 
-                        <h4>Tunnel</h4>
-                        <ComboBox label="Weight Function" id="tunnelWeightFunction" items={MoleOnlineWebUI.StaticData.WeightFunctions.get()} classNames={doubleColClasses} />
-                        <NumberBox label="Bottleneck Radius" id="bottleneckRadius" classNames={doubleColClasses} min={0.8} max={5} defaultValue={1.2} step={0.01} />
-                        <NumberBox label="Bottleneck Tolerance" id="bottleneckTolerance" classNames={doubleColClasses} min={0} max={5} defaultValue={3.0} step={0.1} />
-                        <NumberBox label="Max tunnel Similarity" id="maxTunnelSimilarity" classNames={doubleColClasses} min={0} max={1} defaultValue={0.7} step={0.05} />
-                        <NumberBox label="Origin Radius" id="originRadius" classNames={doubleColClasses} min={0.1} max={10} defaultValue={5} step={0.05}/>
-                        <NumberBox label="Surface Cover Radius" id="surfaceCoverRadius" classNames={doubleColClasses} min={5} max={20} defaultValue={10} step={0.5} />                    
-
-                        <h4>Pores</h4>
-                        <CheckBox label="Merge Pores" defaultChecked={false} id="mergePores" classNames={chckColClasses} />
-                        <CheckBox label="Automatic Pores" defaultChecked={false} id="automaticPores" classNames={chckColClasses} />
                         <input type="hidden" id="mode" value="Mole" />
                     </div>
         }
@@ -621,25 +731,32 @@ namespace Controls.UI{
 
             let pdbid = this.state.data.PdbId;
 
-            return <div className="settings-form basic-settings">
-                        <h4>General</h4>
-                        <LabelBox label="Structure" text={this.state.data.PdbId} id="pdbid" classNames={doubleColClasses} />
-                        <CheckBox label="Beta Structure" defaultChecked={false} id="poresIsBetaStructure" classNames={chckColClasses} />
-                        <CheckBox label="Membrane Region" defaultChecked={false} id="poresInMembrane" classNames={chckColClasses} />
-                        <TextBox label="Chains" id="poresChains" classNames={doubleColClasses} placeholder="A, B, ..." />
+            return <div className="settings-form basic-settings pores">
+                        <h3>Pores</h3>
+                        <CheckBox label="Beta Structure" defaultChecked={false} id="poresIsBetaStructure" tooltip={TooltipText.get("poresIsBetaStructure")} classNames={chckColClasses} />
+                        <CheckBox label="Membrane Region" defaultChecked={false} id="poresInMembrane" tooltip={TooltipText.get("poresInMembrane")} classNames={chckColClasses} />
+                        <TextBox label="Specific Chains" id="poresChains" tooltip={TooltipText.get("poresChains")} classNames={doubleColClasses} placeholder="A, B, ..." onValidate={this.validateChainsArray} />
                         <input type="hidden" id="mode" value="Pores" />
                     </div>
         }
     }
 
+    function getSubmissionIdx(compInfo:Service.CompInfo,submitId:number):number|null{
+        for(let idx=0;idx<compInfo.Submissions.length;idx++){
+            if(String(compInfo.Submissions[idx].SubmitId)===String(submitId)){
+                return idx;
+            }
+        }
+        return null;
+    }
+
     interface ComputationsState{
         computationInfo:Service.CompInfo|null,
-        loading:boolean,
-        statusInfo: Map<string,string>|null
+        loading:boolean
     };
     export class Submissions extends React.Component<{computationInfo:Service.CompInfo,onResubmit:(info:Service.CompInfo)=>void},ComputationsState>{
         
-        state:ComputationsState = {computationInfo:null,loading:true,statusInfo:null}
+        state:ComputationsState = {computationInfo:null,loading:true}
         private hasKillable = false;
         
         componentWillReceiveProps(nextProps:{computationInfo:Service.CompInfo}){
@@ -647,59 +764,69 @@ namespace Controls.UI{
         }
 
         private prepareSubmissionData(computationInfo:Service.CompInfo){
-            let promises = [];
+            let state_ = this.state;
+            state_.computationInfo = computationInfo;
+            this.setState(state_);
+            
+            let hasKillable = false;
+
             for(let submission of computationInfo.Submissions){
-                promises.push(
-                    Service.ApiService.getStatus(computationInfo.ComputationId, submission.SubmitId)
+                if(submission.Status!=="Initializing"&&submission.Status!=="Running"){
+                    //Skip submission state check loop for submissions in stable and terminal state
+                    continue;
+                }
+                hasKillable = true;
+                MoleOnlineWebUI.DataProxy.JobStatus.Watcher.registerOnChangeHandler(this.props.computationInfo.ComputationId, submission.SubmitId,(state)=>{
+                        let oldStatus = submission.Status;
+
+                        if(oldStatus===void 0||oldStatus!==state.Status){                                    
+                            let s = this.state;
+                            let currentCompInfo = s.computationInfo;
+                            if(currentCompInfo===null){
+                                console.log(`Computation info was not initialized corectly.`);
+                                return;
+                            }
+                            let subIdx = getSubmissionIdx(currentCompInfo,submission.SubmitId);
+                            if(subIdx===null){
+                                console.log(`Submission with id'${submission.SubmitId}' not found.`);
+                                return;
+                            }
+                            currentCompInfo.Submissions[subIdx].Status = state.Status;
+                            s.computationInfo = currentCompInfo;
+                            this.setState(s);
+                            if(oldStatus!==void 0){
+                                let hasKillable_ = this.checkHasKillable(currentCompInfo);
+                                if(this.hasKillable!==hasKillable_){
+                                    this.hasKillable = hasKillable_;
+                                    MoleOnlineWebUI.Bridge.Events.invokeChangeHasKillable(hasKillable_);
+                                }    
+                            }
+                        }
+                    },(err)=>{
+                        if(Config.CommonOptions.DEBUG_MODE)
+                            console.log(err);
+                    }
                 );
             }
-            Promise.all(promises).then((statusResponses)=>{
-                let map = new Map<string,string>();
-                for(let status of statusResponses){
-                    if(status.Status==="Initializing"||status.Status==="Running"){
-                        MoleOnlineWebUI.DataProxy.JobStatus.Watcher.registerOnChangeHandler(status.ComputationId,status.SubmitId,(state)=>{
-                            let statusInfo = this.state.statusInfo;
-                            if(statusInfo!==null){
-                                let old = statusInfo.get(String(status.SubmitId));
-                                if(old===void 0||old!==state.Status){                                    
-                                    statusInfo.set(String(status.SubmitId),state.Status);
-                                    let s = this.state;
-                                    s.statusInfo = map;
-                                    this.setState(s);
-                                    if(old!==void 0){
-                                        let hasKillable = this.checkHasKillable(map);
-                                        if(this.hasKillable!==hasKillable){
-                                            this.hasKillable = hasKillable;
-                                            MoleOnlineWebUI.Bridge.Events.invokeChangeHasKillable(hasKillable);
-                                        }    
-                                    }
-                                }
-                            }
-                        },(err)=>{
-                            if(Config.CommonOptions.DEBUG_MODE)
-                                console.log(err);
-                        })
-                    }
-                    map.set(String(status.SubmitId),status.Status);
-                }  
-                let hasKillable = this.checkHasKillable(map);
-                if(this.hasKillable!==hasKillable){
-                    this.hasKillable = hasKillable;
-                    MoleOnlineWebUI.Bridge.Events.invokeChangeHasKillable(hasKillable);
-                }              
-                this.setState({computationInfo:computationInfo, loading:false, statusInfo:map});
-            });    
+            this.hasKillable = hasKillable;
+
+            let state = this.state;
+            state.loading = false;
+            this.setState(state);
+
+            if(hasKillable){
+                MoleOnlineWebUI.Bridge.Events.invokeChangeHasKillable(hasKillable);
+            }
         }
 
-        private checkHasKillable(map:Map<string,string>){
+        private checkHasKillable(compInfo:Service.CompInfo){
             let hasKillable = false;
-            map.forEach((val,key,map)=>{
-                if(val==="Running"){
+            for(let submission of compInfo.Submissions){
+                if(submission.Status==="Running"){
                     hasKillable = true;
                     return hasKillable;
                 }
-            })
-
+            }
             return hasKillable;
         }
 
@@ -719,14 +846,7 @@ namespace Controls.UI{
                 for(let s of submissionsData.sort((a,b)=>{
                     return a.SubmitId-b.SubmitId;
                 })){
-                    let stat = "Unknown";
-
-                    if(this.state.statusInfo!==null){
-                        let st = this.state.statusInfo.get(String(s.SubmitId));
-                        if(st!==void 0){
-                            stat = st;
-                        }
-                    }
+                    let stat = s.Status;
 
                     submissions.push(
                         <Submission data={s} currentSubmitId={submitId} computationId={this.props.computationInfo.ComputationId} status={(stat===void 0)?"Unknown":stat} onResubmit={this.props.onResubmit}/>
@@ -810,6 +930,10 @@ namespace Controls.UI{
         return result;
     }
 
+    function checkCanSubmit(status:Service.ComputationStatus){
+        return !checkCanKill(status);
+    }
+
     function checkCanDelete(status:Service.ComputationStatus){
         let result = false;
         switch(status as Service.ComputationStatus){
@@ -854,42 +978,39 @@ namespace Controls.UI{
 
         getMoleJob(data:Service.Submission){
             return <div className="panel-body">
-                <h4>General</h4>
-                Specific chains: {(data.MoleConfig.Input===void 0)?"":data.MoleConfig.Input.SpecificChains}<br/>
-                Read all models: {(data.MoleConfig.Input===void 0)?"False":(data.MoleConfig.Input.ReadAllModels)?"True":"False"}<br/>
-                Ignored residues: {(data.MoleConfig.NonActiveResidues===void 0||data.MoleConfig.NonActiveResidues===null)?"":flattenResidues(data.MoleConfig.NonActiveResidues)}<br/>
-                Query filter: {(data.MoleConfig.QueryFilter===void 0)?"":data.MoleConfig.QueryFilter}<br/>
-                <h4>Cavity</h4>
-                Ignore hdrogens: {(data.MoleConfig.Cavity===void 0)?"False":(data.MoleConfig.Cavity.IgnoreHydrogens)?"True":"False"}<br/>
-                Ignore all HETATM: {(data.MoleConfig.Cavity===void 0)?"False":(data.MoleConfig.Cavity.IgnoreHETAtoms)?"True":"False"}<br/>
-                Interior treshold: {(data.MoleConfig.Cavity===void 0)?"":data.MoleConfig.Cavity.InteriorThreshold}<br/>
-                Probe radius: {(data.MoleConfig.Cavity===void 0)?"":data.MoleConfig.Cavity.ProbeRadius}<br/>
-                <h4>Start and end</h4>
-                Starting points: {(data.MoleConfig.Origin===void 0 || data.MoleConfig.Origin===null)?"":(data.MoleConfig.Origin.Residues===void 0 || data.MoleConfig.Origin.Residues===null || data.MoleConfig.Origin.Residues.length===0)?"":flattenResiduesArray(data.MoleConfig.Origin.Residues)}<br/>
-                Starting point[x,y,z]: {(data.MoleConfig.Origin===void 0 || data.MoleConfig.Origin===null)?"":(data.MoleConfig.Origin.Points===void 0 || data.MoleConfig.Origin.Points===null)?"":pointsToString(data.MoleConfig.Origin.Points)}<br/>
-                End points: {(data.MoleConfig.CustomExits===void 0 || data.MoleConfig.CustomExits===null)?"":(data.MoleConfig.CustomExits.Residues===void 0 || data.MoleConfig.CustomExits.Residues===null || data.MoleConfig.CustomExits.Residues.length===0)?"":flattenResiduesArray(data.MoleConfig.CustomExits.Residues)}<br/>
-                End point[x,y,z]: {(data.MoleConfig.CustomExits===void 0 || data.MoleConfig.CustomExits===null)?"":(data.MoleConfig.CustomExits.Points===void 0 || data.MoleConfig.CustomExits.Points===null)?"":pointsToString(data.MoleConfig.CustomExits.Points)}<br/>
-                Query expression: {(data.MoleConfig.Origin===void 0 || data.MoleConfig.Origin===null)?"":(data.MoleConfig.Origin.QueryExpression===void 0 || data.MoleConfig.Origin.QueryExpression===null)?"":data.MoleConfig.Origin.QueryExpression}<br/>
-                <h4>Tunnel</h4>
-                Weight function: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.WeightFunction}<br/>
-                Bottleneck radius: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.BottleneckRadius}<br/>
-                Bottleneck tolerance: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.BottleneckTolerance}<br/>
-                Max tunnel similarity: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.MaxTunnelSimilarity}<br/>
-                Origin radius: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.OriginRadius}<br/>
-                Surface cover radius: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.SurfaceCoverRadius}<br/>
-                Use custom exits only: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"False":(data.MoleConfig.Tunnel.UseCustomExitsOnly)?"True":"False"}<br/>
-                <h4>Pores</h4>
-                Merge pores: {(data.MoleConfig.PoresMerged===void 0 || data.MoleConfig.PoresMerged===null)?"False":(data.MoleConfig.PoresMerged)?"True":"False"}<br/>
-                Automatic pores: {(data.MoleConfig.PoresAuto===void 0 || data.MoleConfig.PoresAuto===null)?"False":(data.MoleConfig.PoresAuto)?"True":"False"}<br/>
+                <h4>Active Atoms/Residues</h4>
+                Ignore Hydrogens: {(data.MoleConfig.Cavity===void 0)?"False":(data.MoleConfig.Cavity.IgnoreHydrogens)?"True":"False"}<br/>
+                Ignore HETATMa: {(data.MoleConfig.Cavity===void 0)?"False":(data.MoleConfig.Cavity.IgnoreHETAtoms)?"True":"False"}<br/>
+                Query Filter: {(data.MoleConfig.QueryFilter===void 0)?"":data.MoleConfig.QueryFilter}<br/>
+                Read All Models: {(data.MoleConfig.Input===void 0)?"False":(data.MoleConfig.Input.ReadAllModels)?"True":"False"}<br/>
+                Ignored Residues: {(data.MoleConfig.NonActiveResidues===void 0||data.MoleConfig.NonActiveResidues===null)?"":flattenResidues(data.MoleConfig.NonActiveResidues)}<br/>                
+                Specific Chains: {(data.MoleConfig.Input===void 0)?"":data.MoleConfig.Input.SpecificChains}<br/>                
+                <h4>Cavity Parameters</h4>
+                Probe Radius: {(data.MoleConfig.Cavity===void 0)?"":data.MoleConfig.Cavity.ProbeRadius}<br/>
+                Interior Treshold: {(data.MoleConfig.Cavity===void 0)?"":data.MoleConfig.Cavity.InteriorThreshold}<br/>
+                <h4>Channel Parameters</h4>
+                Origin Radius: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.OriginRadius}<br/>
+                Surface Cover Radius: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.SurfaceCoverRadius}<br/>
+                Weight Function: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.WeightFunction}<br/>
+                Bottleneck Radius: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.BottleneckRadius}<br/>
+                Bottleneck Tolerance: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.BottleneckTolerance}<br/>
+                Max Tunnel Similarity: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.MaxTunnelSimilarity}<br/>
+                Merge Pores: {(data.MoleConfig.PoresMerged===void 0 || data.MoleConfig.PoresMerged===null)?"False":(data.MoleConfig.PoresMerged)?"True":"False"}<br/>
+                Automatic Pores: {(data.MoleConfig.PoresAuto===void 0 || data.MoleConfig.PoresAuto===null)?"False":(data.MoleConfig.PoresAuto)?"True":"False"}<br/>               
+                <h4>Selection</h4>
+                Starting Point: {(data.MoleConfig.Origin===void 0 || data.MoleConfig.Origin===null)?"":(data.MoleConfig.Origin.Residues===void 0 || data.MoleConfig.Origin.Residues===null || data.MoleConfig.Origin.Residues.length===0)?"":flattenResiduesArray(data.MoleConfig.Origin.Residues)}<br/>
+                Starting Point[x,y,z]: {(data.MoleConfig.Origin===void 0 || data.MoleConfig.Origin===null)?"":(data.MoleConfig.Origin.Points===void 0 || data.MoleConfig.Origin.Points===null)?"":pointsToString(data.MoleConfig.Origin.Points)}<br/>
+                End Point: {(data.MoleConfig.CustomExits===void 0 || data.MoleConfig.CustomExits===null)?"":(data.MoleConfig.CustomExits.Residues===void 0 || data.MoleConfig.CustomExits.Residues===null || data.MoleConfig.CustomExits.Residues.length===0)?"":flattenResiduesArray(data.MoleConfig.CustomExits.Residues)}<br/>
+                End Point[x,y,z]: {(data.MoleConfig.CustomExits===void 0 || data.MoleConfig.CustomExits===null)?"":(data.MoleConfig.CustomExits.Points===void 0 || data.MoleConfig.CustomExits.Points===null)?"":pointsToString(data.MoleConfig.CustomExits.Points)}<br/>
+                Query: {(data.MoleConfig.Origin===void 0 || data.MoleConfig.Origin===null)?"":(data.MoleConfig.Origin.QueryExpression===void 0 || data.MoleConfig.Origin.QueryExpression===null)?"":data.MoleConfig.Origin.QueryExpression}<br/>
             </div>
         }
 
         getPoresJob(data:Service.Submission){
             return <div className="panel-body">
-                <h4>General</h4>
-                Chains: {(data.PoresConfig.Chains===void 0)?"":data.PoresConfig.Chains}<br/>
-                Is beta structure: {(data.PoresConfig.IsBetaBarel===void 0)?"False":(data.PoresConfig.IsBetaBarel)?"True":"False"}<br/>
-                In transmembrane: {(data.PoresConfig.InMembrane===void 0)?"False":(data.PoresConfig.InMembrane)?"True":"False"}<br/>
+                Beta Structure: {(data.PoresConfig.IsBetaBarel===void 0)?"False":(data.PoresConfig.IsBetaBarel)?"True":"False"}<br/>
+                Membrane Region: {(data.PoresConfig.InMembrane===void 0)?"False":(data.PoresConfig.InMembrane)?"True":"False"}<br/>
+                Specific Chains: {(data.PoresConfig.Chains===void 0)?"":data.PoresConfig.Chains}<br/>
             </div>
         }
 
@@ -930,7 +1051,9 @@ namespace Controls.UI{
                     <div className="panel-heading">
                         <a data-toggle="collapse" href={`#submit-data-${data.SubmitId}`} onClick={(e)=>{
                                 if(e.currentTarget.attributes.getNamedItem('aria-expanded').value==='true'){
-                                    changeSubmitId(this.props.computationId, data.SubmitId);
+                                    if(String(data.SubmitId)!==String(this.props.currentSubmitId)){
+                                        changeSubmitId(this.props.computationId, data.SubmitId);
+                                    }
                                 }
                             }}>
                             <h4 className="panel-title">
@@ -952,7 +1075,7 @@ namespace Controls.UI{
         }
 
         private reSubmit(){
-            if(this.props.data.MoleConfig!==void 0){
+            if(this.isMoleJob(this.props.data)){
                 Service.ApiService.submitMoleJob(this.props.computationId,this.props.data.MoleConfig).then((result)=>{
                     CommonUtils.Router.fakeRedirect(result.ComputationId, Number(result.SubmitId));
                     LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
@@ -975,7 +1098,26 @@ namespace Controls.UI{
                 });
             }
             else{
+                Service.ApiService.submitPoresJob(this.props.computationId,this.props.data.PoresConfig).then((result)=>{
+                    CommonUtils.Router.fakeRedirect(result.ComputationId, Number(result.SubmitId));
+                    LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
 
+                    Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
+                        this.props.onResubmit(info);
+                        MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
+                        MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
+                    }).bind(this), true);
+                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                        messageType: "Success",
+                        message: "Job was successfully resubmited."
+                    })
+                })
+                .catch(err=>{
+                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                        messageType:"Danger",
+                        message: `Resubmit failed with message: ${err}.`
+                    });
+                });
             }
         }
     }
@@ -1055,7 +1197,8 @@ namespace Controls.UI{
         activeTabIdx: Number,
         data?: Service.CompInfo,
         err?: String,
-        submitId: number
+        submitId: number,
+        canSubmit: boolean
     };
     export class ControlTabs extends React.Component<{activeTab?: number},ControlTabState>{          
         
@@ -1063,7 +1206,8 @@ namespace Controls.UI{
             activeTabIdx: 0,
             data: void 0,
             err: void 0,
-            submitId: 1
+            submitId: 1,
+            canSubmit:true
         }
         
         componentDidMount(){
@@ -1106,6 +1250,20 @@ namespace Controls.UI{
 
         handleSubmit(e:React.FormEvent<HTMLFormElement>){
             e.preventDefault();
+            /*
+            if(!this.state.canSubmit){
+                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                    messageType: "Danger",
+                    message: "Only one running submission is alowed. Please wait until completed."
+                })
+                return false;
+            }
+            */
+            $(e.target).find("input[type=submit]").attr("disabled",true);
+            let currentState = this.state;
+            currentState.canSubmit = false;
+            this.setState(currentState);
+            
             if(this.state.data===void 0){
                 return;
             }
@@ -1333,23 +1491,51 @@ namespace Controls.UI{
             }
 
             promise
-                .then((result:any)=>{
-                    CommonUtils.Router.fakeRedirect(result.ComputationId, Number(result.SubmitId));
-                    LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
-
-                    Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
+                .then((result:any)=>{                    
+                    if(result.Status==="Error"){
                         let state = this.state;
-                        state.data = info;
+                        state.canSubmit=true;
                         this.setState(state);
-                        MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
-                        MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
-                    }).bind(this), true);
-                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                        messageType: "Success",
-                        message: "Job was successfully submited."
-                    })
+
+                        MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                            messageType: "Danger",
+                            message: result.ErrorMsg
+                        })
+                    }
+                    else{
+                        CommonUtils.Router.fakeRedirect(result.ComputationId, Number(result.SubmitId));
+                        LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
+
+                        Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
+                            MoleOnlineWebUI.DataProxy.JobStatus.Watcher.registerOnChangeHandler(result.ComputationId,result.SubmitId,(status)=>{
+                                if(checkCanSubmit(status.Status)){
+                                    let s = this.state;
+                                    s.canSubmit=true;
+                                    this.setState(s);
+                                }
+                            },(err)=>{
+                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                    messageType: "Danger",
+                                    message: "Job status cannot be tracked. Please try to refresh the page."
+                                })    
+                            })
+                            let state = this.state;
+                            state.data = info;
+                            this.setState(state);
+                            
+                            MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
+                            MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
+                        }).bind(this), true);
+                        MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                            messageType: "Success",
+                            message: "Job was successfully submited."
+                        })
+                    }
                 })
                 .catch((err:any)=>{
+                    let state = this.state;
+                    state.canSubmit = true;
+                    this.setState(state);
                     if(Config.CommonOptions.DEBUG_MODE)
                         console.log(err);
                     MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
@@ -1379,7 +1565,9 @@ namespace Controls.UI{
                     <div>No data</div>
                 );
             }
-
+            if(this.state.canSubmit){
+                $('#controls .submit-parent').find("input[type=submit]").removeAttr("disabled");
+            }
             return (
                 <div className="submit-form-container">
                     <form className="form-horizontal" onSubmit={this.handleSubmit.bind(this)}>
@@ -1502,7 +1690,7 @@ namespace Controls.UI{
             let idx = this.getSelectedIndex(this.state.submitId,items);
             return <div className="submit-parent">
                     <input className="btn btn-primary submit" type="submit" value="Submit" />
-                    <span className="btn btn-primary kill-job-button" data-toggle="modal" data-target="#killJobDialog" disabled={!canKill} onClick={(e=>{e.preventDefault();return false;})}>Kill</span>
+                    <span className="btn btn-primary kill-job-button" disabled={!canKill} onClick={(e=>{if($(e.currentTarget).attr("disabled")!=="disabled"){$('#killJobDialog').modal('show');}})}>Kill</span>
                     <span className="btn btn-primary delete-project-button" data-toggle="modal" data-target="#deleteProjectDialog" onClick={(e=>{e.preventDefault();return false;})}>Delete</span>
                     <input className="btn btn-primary submit-arrow" type="button" value=">" disabled={(idx===void 0||idx===items.length-1)?true:void 0} data-value={(idx===void 0||idx===items.length-1)?void 0:items[idx+1].value} onClick={this.changeSubmitIdByStep.bind(this)} />
                     <Common.Controls.SimpleComboBox id="submissionComboSwitch" items={items} defaultSelectedIndex={idx} className="form-control submit-combo" onSelectedChange={this.onSubmitIdComboSelectChange.bind(this)} />
@@ -1520,7 +1708,15 @@ namespace Controls.UI{
                             if(this.props.computationInfo===void 0){
                                 return false;
                             }
-                            Service.ApiService.killRunningJob(this.props.computationInfo.ComputationId).then(()=>{
+                            Service.ApiService.killRunningJob(this.props.computationInfo.ComputationId).then((result)=>{
+                                if(result.Status!=="Aborted"){
+                                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                        message:(result.ErrorMsg.length===0)?"Attempt to kill job was not successfull.":result.ErrorMsg,
+                                        messageType:"Warning"
+                                    });    
+                                    return;
+                                }
+                                
                                 MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
                                     message:"Job has been successfully killed.",
                                     messageType:"Success"

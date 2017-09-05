@@ -60,10 +60,95 @@ namespace LiteMol.Example.Channels.State {
     }
 
     export function removeChannelsData(plugin:Plugin.Controller){
-        let channelsDataObj = getNodeFromTree(plugin.root, 'mole-data-object');
-        if(channelsDataObj!==null){
-            Tree.remove(channelsDataObj);
+        removeNodeFromTree(plugin, 'mole-data-object');
+    }
+
+    function removeNodeFromTree(plugin:Plugin.Controller, nodeRef:string){
+        let obj = getNodeFromTree(plugin.root, nodeRef);
+        if(obj!==null){
+            Tree.remove(obj);
         }
+    }
+
+    interface Point{X:number,Y:number,Z:number};
+    function residuesToPoints(plugin:Plugin.Controller, residueOrigins:MoleAPI.CSAResidues):string{
+        let points:Point[] = [];
+
+        for(let origin of residueOrigins){
+            let positions:Point[] = [];
+            
+            for(let residue of origin){
+                let moleculeModel = getNodeFromTree(plugin.root,'protein-data');
+                if(moleculeModel===null){
+                    console.log("protein data not ready!");
+                    return "";
+                }
+
+                let proteinData = moleculeModel.children[0].props.molecule.models[0].data;
+
+                let indices = [];
+                let residueCount = moleculeModel.children[0].props.molecule.models[0].data.residues.count;
+                for(let i=0;i<residueCount;i++){
+                    if(String(proteinData.residues.authSeqNumber[i])===String(residue.SequenceNumber)
+                        && String(proteinData.residues.authAsymId[i])===residue.Chain){
+                        indices.push(proteinData.residues.atomStartIndex[i]);
+                        indices.push(proteinData.residues.atomEndIndex[i]);
+                        break;
+                    }
+                }
+                
+                for(let i=0;i<indices.length;i++){
+                    positions.push({
+                        X:moleculeModel.children[0].props.molecule.models[0].positions.x[indices[i]] as number,
+                        Y:moleculeModel.children[0].props.molecule.models[0].positions.y[indices[i]] as number,
+                        Z:moleculeModel.children[0].props.molecule.models[0].positions.z[indices[i]] as number
+                    });
+                }                        
+            }
+
+            if(positions.length<2)
+                continue;
+            
+            let sum = positions.reduce((prev,cur,idx,array)=>{
+                return {
+                    X:prev.X+cur.X,
+                    Y:prev.Y+cur.Y,
+                    Z:prev.Z+cur.Z
+                }
+            });
+            let centerOfMass = {
+                X:sum.X/positions.length,
+                Y:sum.Y/positions.length,
+                Z:sum.Z/positions.length,
+            };
+            points.push(centerOfMass);
+            
+        }
+        return JSON.stringify({
+            Origins:{
+                CSAOrigins:{
+                    Points:points,
+                    Type: "CSA Origins"
+                }
+            }
+        });        
+    }
+
+    function createCSAOriginsData(plugin:Plugin.Controller, computationId:string){
+        return new Promise<any>((res,rej)=>{
+            MoleOnlineWebUI.DataProxy.CSAResidues.DataProvider.get(computationId,(compId,info)=>{
+                let originsData:string=residuesToPoints(plugin, info);
+                let csaOrigins = plugin.createTransform().add(plugin.root, Transformer.Data.FromData, { data: originsData, id: 'CSA Origins' }, { isHidden: false, ref:'csa-origins-object' })
+                    .then(Transformer.Data.ParseJson, { id: 'CSA Origins' }, { ref: 'csa-origins' });
+                plugin.applyTransform(csaOrigins)
+                    .then(() => {
+                        res();
+                    })
+                    .catch(error=>{
+                        rej(error);
+                    });
+            })
+        });
     }
 
     function downloadChannelsData(plugin:Plugin.Controller, computationId:string, submitId:number){
@@ -118,7 +203,7 @@ namespace LiteMol.Example.Channels.State {
             //plugin.clear();
 
             let modelLoadPromise = new Promise<any>((res,rej)=>{
-                let parameters = CommonUtils.Router.getParameters();
+                let parameters = CommonUtils.Router.getParameters(true);
                 /*
                 let parameters = SimpleRouter.GlobalRouter.getParametersByRegex(/\/online\/([a-zA-Z0-9]+)\/*([0-9]*)/g);
                 let computationId = null;
@@ -161,7 +246,7 @@ namespace LiteMol.Example.Channels.State {
                         //Do Nothing
                     }
                     else if(status.Status === "Initialized"){
-                        acquireData(computationId,submitId,plugin,res,rej,!proteinLoaded,false);
+                        acquireData(computationId,submitId,plugin,res,rej,!proteinLoaded,submitId==0);
                     }
                     else if(status.Status === "FailedInitialization" || status.Status === "Error" || status.Status === "Deleted" || status.Status === "Aborted"){
                         rej(status.ErrorMsg);
@@ -192,52 +277,32 @@ namespace LiteMol.Example.Channels.State {
         return false;
     }
 
-    function waitForResult(computationId:string, submitId:number/*, plugin:LiteMol.Plugin.Controller*/, res:any, rej:any/*, proteinLoaded:boolean*/){
-        ApiService.getStatus(computationId,submitId).then((state)=>{
-            let plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
-            let proteinLoaded = existsRefInTree(plugin.root,'protein-data');
-
-            /*
-            "Initializing"| OK
-            "Initialized"| OK
-            "FailedInitialization"| OK
-            "Running"| OK
-            "Finished"| OK
-            "Error"| OK
-            "Deleted"| OK
-            "Aborted"; OK
-            */
-            if(state.Status === "Initializing" || state.Status === "Running"){
-                window.setTimeout(()=>{waitForResult(computationId,submitId/*,plugin*/,res,rej/*,proteinLoaded*/);},1000);
-            }
-            else if(state.Status === "Initialized"){
-                acquireData(computationId,submitId,plugin,res,rej,!proteinLoaded,false);
-            }
-            else if(state.Status === "FailedInitialization" || state.Status === "Error" || state.Status === "Deleted" || state.Status === "Aborted"){
-                rej(state.ErrorMsg);
-            }
-            else if(state.Status === "Finished"){
-                acquireData(computationId,submitId,plugin,res,rej,!proteinLoaded,true);
-            }
-
-        })
-        .catch((err)=>{
-            rej(err);
-        });
-    }
-
     function acquireData(computationId:string, submitId:number, plugin:LiteMol.Plugin.Controller, res:any, rej:any, protein:boolean, channels:boolean){
         ApiService.getComputationInfoList(computationId).then((info)=>{
-            let assemblyId = "1";
-            if(info.AssemblyId!==null){
-                assemblyId = info.AssemblyId;
-            }
             let promises = [];
 
             if(protein){
                 if(Config.CommonOptions.DEBUG_MODE)
                     console.log("reloading protein structure");
-                promises.push(downloadProteinData(plugin, info.ComputationId, submitId));
+                let proteinAndCSA = new Promise<any>((res,rej)=>{
+                    downloadProteinData(plugin, info.ComputationId, submitId)
+                        .then(()=>{
+                            let csaOriginsExists = existsRefInTree(plugin.root,'csa-origins');
+                            if(!csaOriginsExists){
+                                if(Config.CommonOptions.DEBUG_MODE)
+                                    console.log("reloading CSA Origins");
+                                createCSAOriginsData(plugin,info.ComputationId)
+                                    .then(()=>res())
+                                    .catch((err)=>rej(err));
+                            }
+                            else{
+                                res();
+                            }
+                        })
+                        .catch(err=>rej(err))
+                });
+                
+                promises.push(proteinAndCSA);
             }
             if(channels){
                 if(Config.CommonOptions.DEBUG_MODE)
@@ -691,6 +756,14 @@ namespace LiteMol.Example.Channels.State {
         return s.buildSurface().run();        
     }
 
+    function setOriginColorByType(origins:any){
+        switch(origins.Type as string){
+            case 'Computed': return Visualization.Color.fromRgb(128,128,255);
+            case 'CSA Origins': return Visualization.Color.fromRgb(128,255,128);
+            default:return Visualization.Color.fromRgb(255,128,128);
+        }
+    }
+
     export function showOriginsSurface(plugin: Plugin.Controller, origins: any, visible: boolean): Promise<any> {
         if (!origins.__id) origins.__id = Bootstrap.Utils.generateUUID();
         if (!origins.Points.length || !!origins.__isVisible === visible) return Promise.resolve();
@@ -701,6 +774,8 @@ namespace LiteMol.Example.Channels.State {
             origins.__isBusy = false;
             return Promise.resolve();
         }
+
+        origins.__color = setOriginColorByType(origins);
 
         if (!origins.__color) {
             // the colors should probably be initialized when the data is loaded

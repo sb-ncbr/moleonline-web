@@ -24,3 +24,8 @@
     max-height:170px;
     max-width:400px;
 }
+
+.controls-panel-label-tooltip + .tooltip > .tooltip-inner {
+    border: 1px solid #777;
+    max-width: 180px;
+}

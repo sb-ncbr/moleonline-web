@@ -246,7 +246,9 @@ only screen and (max-height: 600px) {
 	width:75vw;
 	height:66vh;
 	left:0;
-	top:0;
+    top:0;
+    border-bottom: 1px solid #aaa;
+    border-right: 1px solid #aaa;
 }
 .plugin.bottom-panel-toggled{
 	height:33vh;
@@ -264,7 +266,7 @@ only screen and (max-height: 600px) {
 	width:25vw;
 	height:100vh;
 	right:0;
-	top:0;
+    top:0;
 }
 
 .bottom-panel{
@@ -337,6 +339,10 @@ only screen and (max-height: 600px) {
     padding: 20px;
     overflow-y: auto;
     background: #fff;/*#ccc;*/
+    border-left: 1px solid #aaa;
+    border-bottom: 1px solid #aaa;
+    /*border-bottom-left-radius: 4px;*/
+    margin-left: 3px;
 }
 .right-panel .bottom{
 	position:absolute;
@@ -379,6 +385,10 @@ only screen and (max-height: 600px) {
 #right-panel-tabs .datagrid tr.highlight.hl-main td {
     padding-top: 10px;
     padding-bottom: 10px;
+}
+
+#right-panel-tabs .tab-content{
+    height: 100vh;
 }
 
 .datagrid tr.separate{
@@ -667,7 +677,7 @@ only screen and (max-height: 900px) {
     line-height: 2.5vh;
     text-align: center;
     margin-right: 15px;
-    margin-top: 1vh;
+    margin-top: 0.5vh;
     padding-top: 0.5vh;
 }
 

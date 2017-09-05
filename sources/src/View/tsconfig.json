@@ -32,7 +32,8 @@
     "CommonUtils/Residues.ts", 
     "CommonUtils/Selection.ts", 
     "CommonUtils/Router.ts", 
-    "CommonUtils/Tabs.ts",  
+    "CommonUtils/Tabs.ts",
+    "CommonUtils/Tooltips.ts",  
 
     //Annotation data provider
     "AnnotationDataProvider.ts", 

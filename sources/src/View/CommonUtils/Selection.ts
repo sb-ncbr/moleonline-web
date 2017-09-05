@@ -427,6 +427,11 @@ namespace CommonUtils.Selection{
                 return;    
             }
 
+            //Unsupported types
+            if(i.source.props.tag.type === "Origins"){
+                return;
+            }
+
             if(this.selectedResidue !== void 0){
                 //console.log("selected channel - clearing residues");
                 LiteMol.Bootstrap.Command.Tree.RemoveNode.dispatch(plugin.context, this.SELECTION_VISUAL_REF);

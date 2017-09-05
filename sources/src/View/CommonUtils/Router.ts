@@ -1,8 +1,9 @@
 namespace CommonUtils.Router{
-    export function getParameters():{submitId:number, computationId:string}|null{
+    export function getParameters(suppressDefaultSubmitId?:boolean):{submitId:number, computationId:string}|null{
+        let suppressDefaultSubmitId_ = (suppressDefaultSubmitId===void 0)?false:suppressDefaultSubmitId;
         let parameters = SimpleRouter.GlobalRouter.getParametersByRegex(/\/online\/([a-zA-Z0-9]+)\/*([0-9]*)/g);
         let computationId = null;
-        let submitId = 1;
+        let submitId = (suppressDefaultSubmitId_)?0:1;
         if((parameters===null)||(parameters.length===0)||(parameters.length>3)){
             console.log(parameters);
             console.log("Corrupted url found - cannot parse parameters.");

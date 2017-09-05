@@ -12,6 +12,7 @@
     color: #777;
     padding-left: 60px;
     padding-right: 10px;
+    border-bottom: 1px solid #ccc;
 }
 
 .current-pbdbid-sign .href-ico{

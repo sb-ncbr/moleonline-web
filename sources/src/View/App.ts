@@ -29,7 +29,7 @@ namespace LiteMol.Example.Channels {
 
         let plugin = Plugin.create({
             target: '#plugin',
-            viewportBackground: '#000',
+            viewportBackground: '#fff',
             layoutState: {
                 hideControls: true,
                 isExpanded: false,

@@ -53,6 +53,11 @@ namespace AlertMessages.UI{
             this.forceUpdate();
         }
 
+        public fastDequeue(m:MessageWrapper){
+            this.queue.splice(this.queue.indexOf(m),1);
+            this.forceUpdate();
+        }
+
         componentDidMount(){
             MoleOnlineWebUI.Bridge.Events.subscribeNotifyMessage((m)=>{
                 this.waitingMessages.push(
@@ -73,7 +78,7 @@ namespace AlertMessages.UI{
             let messages = [];
             for(let m of this.queue){
                 messages.push(
-                    <Message message={m} />
+                    <Message message={m} app={this}/>
                 );
             }
 
@@ -87,12 +92,14 @@ namespace AlertMessages.UI{
         }
     }
 
-    class Message extends React.Component<{message:MessageWrapper},{}>{
+    class Message extends React.Component<{message:MessageWrapper, app:App},{}>{
         private getClassByType(type:MoleOnlineWebUI.Bridge.MessageType){
             return `alert-${type.toLowerCase()}`;
         }
         render(){
-            return <div className={`alert ${this.getClassByType(this.props.message.message.messageType)}`}>
+            return <div className={`alert ${this.getClassByType(this.props.message.message.messageType)}`} onClick={(e)=>{
+                    this.props.app.fastDequeue(this.props.message);
+                }}>
                 {this.props.message.message.message}
             </div>
         }

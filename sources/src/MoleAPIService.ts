@@ -26,7 +26,8 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
     export interface Submission{
         SubmitId: number,
         MoleConfig: MoleConfig,
-        PoresConfig: PoresConfig
+        PoresConfig: PoresConfig,
+        Status: ComputationStatus
     };
 
     export interface MoleConfig{
@@ -215,7 +216,7 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
         }
 
         public static submitPoresJob(computationId:string, data:PoresConfig){
-            let url = `${this.baseUrl}/Submit/Pores/${computationId}?isBetaStructure=${data.IsBetaBarel}&inMembrane=${data.InMembrane}&chains=${data.Chains}`;
+            let url = `${this.baseUrl}/Submit/Pores/${computationId}?isBetaStructure=${data.IsBetaBarel}&inMembrane=${data.InMembrane}&chains=${(data.Chains===null)?"":data.Chains}`;
             if(this.DEBUG_MODE){
                 console.log(url);
             }

@@ -28,8 +28,9 @@
     padding: 0;
     color: #777;
     padding-right: 10px;
-    border-left: 1px #ccc solid;
+    border: 1px #ccc solid;
     border-bottom-right-radius: 30px;
+    border-top: 0;
 }
 button.download.dropdown-toggle {
     background-color: transparent;

@@ -11,4 +11,5 @@
 
 .alert-messages-container.active{
     display:block;
+    cursor: pointer;
 }
