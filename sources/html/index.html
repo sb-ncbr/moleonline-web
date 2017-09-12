@@ -3,8 +3,8 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>MOLEonline 2.5 | moleOnline</title>
-	<meta name="description" content="The web interface provides a direct access to MOLE 2.0 functionality and enables on-line and easy-to-use interactive analysis of tunnels in (bio)molecular structures.">
+	<title>MOLEonline | moleOnline</title>
+	<meta name="description" content="The web interface provides a direct access to MOLE 2.5 functionality and enables on-line and easy-to-use interactive analysis of tunnels in (bio)molecular structures.">
 	<meta name="author" content="Ing. Ondřej Hanák; http://ondrejhanak.cz">
 	<link rel="shortcut icon" href="http://beta.mole.upol.cz/favicon.ico" type="image/icon">
 <script type="text/javascript" src="http://beta.mole.upol.cz/temp/jsloader-dfac1c60f3fb.js?1409226142"></script>
@@ -34,7 +34,7 @@
 			var div = $(this);
 			var img = div.prev('img.hint');
 			div.hide();
-			div.css('position', 'absolute');
+			div.css('position', 'fixed');
 			div.append('<img src="http://beta.mole.upol.cz/images/front/hint_toptip.png" alt="" class="toptip">');
 			img.mouseenter(function () { $(this).next('.hint').show();});
 			img.mouseout(function () { $(this).next('.hint').hide();});
@@ -49,7 +49,7 @@
 <div id="page">
 
 	<div id="header">
-		<h1><a href="/">MOLE <span>2.0</span></a></h1>
+		<h1><a href="/">MOLE <span>2.5</span></a></h1>
 
 		<div id="topmenu">
 			<ul>
@@ -65,11 +65,11 @@
 		
 
 
-<h2>MOLE<em>online</em> 2.5</h2>
+<h2>MOLE<em>online</em></h2>
 
 <p>The web interface provides a direct access to MOLE 2.5 functionality and enables on-line and easy-to-use interactive analysis of tunnels in (bio)molecular structures.</p>
 
-<p><a href="/tour/">Walkthrough guide</a> through MOLE<em>online</em> 2.5 can be found in Documentation section</p>
+<p><a href="/tour/">Walkthrough guide</a> through MOLE<em>online</em> can be found in Documentation section</p>
 
 <div id="init-form">
 </div>
@@ -92,6 +92,6 @@
   })();
 </script>
 -->
-<script src="MoleOnlineWebUI-Core-Init.js?version=1.2.4.1"></script>
+<script src="MoleOnlineWebUI-Core-Init.js?version=1.2.5"></script>
 </body>
 </html>

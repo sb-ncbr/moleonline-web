@@ -73,7 +73,7 @@ namespace MoleOnlineWebUI.DataProxy{
                 }).catch((err)=>{
                     if(Config.CommonOptions.DEBUG_MODE)
                         console.log(err);
-                    window.setTimeout((()=>{this.requestData(compId)}).bind(this),2000);
+                    window.setTimeout((()=>{this.requestData(compId)}).bind(this),100);
                 });
             }
 
@@ -304,7 +304,7 @@ namespace MoleOnlineWebUI.DataProxy{
                 }).catch((err)=>{
                     if(Config.CommonOptions.DEBUG_MODE)
                         console.log(err);
-                    window.setTimeout((()=>{this.requestData(compId)}).bind(this),2000);
+                    window.setTimeout((()=>{this.requestData(compId)}).bind(this),100);
                 });
             }
 

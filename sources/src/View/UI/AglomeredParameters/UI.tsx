@@ -33,6 +33,19 @@ namespace AglomeredParameters.UI{
         };
 
         componentDidMount() {
+            MoleOnlineWebUI.Bridge.Events.subscribeChannelDataLoaded((data)=>{
+                let toShow:DataInterface.Tunnel[] = [];
+                /*let data = e.data.props.data as DataInterface.MoleOnlineData;*/
+                toShow = toShow.concat(data.Channels.Tunnels);
+                toShow = toShow.concat(data.Channels.Paths);
+                toShow = toShow.concat(data.Channels.Pores);
+                toShow = toShow.concat(data.Channels.MergedPores);
+                let state = this.state;
+                state.data = toShow;
+                this.setState(state);
+                $( window ).trigger("contentResize");
+            });
+            /*
             LiteMoleEvent.Tree.NodeAdded.getStream(this.props.controller.context).subscribe(e => {
                 if(e.data.tree !== void 0 && e.data.ref === "mole-data"){
                     let toShow:DataInterface.Tunnel[] = [];
@@ -46,7 +59,7 @@ namespace AglomeredParameters.UI{
                     this.setState(state);
                     $( window ).trigger("contentResize");
                 }
-            });
+            });*/
             LiteMoleEvent.Tree.NodeRemoved.getStream(this.props.controller.context).subscribe(e => {
                 if(e.data.tree !== void 0 && e.data.ref === "mole-data"){
                     let state = this.state;
@@ -169,7 +182,10 @@ namespace AglomeredParameters.UI{
     class DGRow extends React.Component<{tunnel: DataInterface.Tunnel, app: App},{}>{
         
         render(){
-            let tunnelID = this.props.tunnel.Type;
+            let name = MoleOnlineWebUI.Cache.TunnelName.get(this.props.tunnel.Id);
+            let namePart = (name===void 0)?':P':` (${name})`;
+            let tunnelID = this.props.tunnel.Type+namePart;
+
             /*let annotation = Annotation.AnnotationDataProvider.getChannelAnnotation(this.props.tunnel.Id);
             if(annotation!== void 0 && annotation !== null){
                 tunnelID = annotation.text;

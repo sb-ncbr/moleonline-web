@@ -33,14 +33,9 @@ namespace LiteMol.Example.Channels {
                     let tunnel = e as DataInterface.Tunnel;
                     let len = CommonUtils.Tunnels.getLength(tunnel);
                     let bneck = CommonUtils.Tunnels.getBottleneck(tunnel);
-                    let annotation = Annotation.AnnotationDataProvider.getChannelAnnotation(tunnel.Id);
-
-                    if(annotation===null || annotation === void 0){
-                        return `<b>${tunnel.Type}</b>, Length: ${len} Å | Bottleneck: ${bneck} Å`;
-                    }
-                    else{
-                        return `<b>${annotation.text}</b>, Length: ${len} Å | Bottleneck: ${bneck} Å`;    
-                    }
+                    let name = MoleOnlineWebUI.Cache.TunnelName.get(tunnel.Id);
+                    let namePart = (name===void 0)?'':` (${name})`;
+                    return `<b>${tunnel.Type}${namePart}</b>, Length: ${len} Å | Bottleneck: ${bneck} Å`;                    
                 }
                 case 'Origins': {
                     let o = e.Points[info.elements[0]];

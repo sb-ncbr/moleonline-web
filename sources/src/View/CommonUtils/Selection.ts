@@ -360,6 +360,10 @@ namespace CommonUtils.Selection{
                     residue
                 )
             );
+
+            if(this.selectedChannelRef!==void 0){
+                this.invokeOnChannelDeselectHandlers();
+            }
             
             CommonUtils.Selection.SelectionHelper.clearSelectionPrivate(plugin);
             this.selectedChannelRef = void 0;

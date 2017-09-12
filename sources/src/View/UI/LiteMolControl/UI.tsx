@@ -44,7 +44,7 @@ namespace LiteMol.Example.Channels.UI {
             this.currentProteinId = SimpleRouter.GlobalRouter.getCurrentPid();
 
             this.setState({ isLoading: true, error: void 0 });      //https://webchem.ncbr.muni.cz/API/ChannelsDB/PDB/1tqn
-            State.loadData(this.props.plugin/*, this.currentProteinId*/) //'channels.json'
+            State.loadData(this.props.plugin)
                 .then(data => {
                     if(Config.CommonOptions.DEBUG_MODE)
                         console.log("loading done ok");
@@ -276,17 +276,25 @@ namespace LiteMol.Example.Channels.UI {
                     if(CommonUtils.Selection.SelectionHelper.isSelectedAnyChannel()){
                         let data = e.data as ChannelEventInfo;
                         let c = data.source.props.tag.element;
+
+                        $("#left-tabs li a[href='#left-tabs-1']")
+                            .text(`Channel profile (${CommonUtils.Tunnels.getName(c)})`);
+
                         let len = CommonUtils.Tunnels.getLength(c);
+                        let name = CommonUtils.Tunnels.getName(c);
+                        let namePart = (name===void 0)?'':` (${name})`;
                         //let bneck = CommonUtils.Tunnels.getBottleneck(c);
                         let annotation = Annotation.AnnotationDataProvider.getChannelAnnotation(c.Id);
                         if(annotation === void 0 || annotation === null){
-                            this.setState({ label: <span><b>{c.Type}</b>, {`Length: ${len} Å`}</span> });
+                            this.setState({ label: <span><b>{c.Type}{namePart}</b>, {`Length: ${len} Å`}</span> });
                         }
                         else{
                             this.setState({ label: <span><b>{annotation.text}</b>, Length: {len} Å</span> });
                         }
                     }
                     else if(!CommonUtils.Selection.SelectionHelper.isSelectedAny()){
+                        $("#left-tabs li a[href='#left-tabs-1']")
+                            .text(`Channel profile`);
                         this.setState({ label: void 0})
                     }
                 }
@@ -383,11 +391,12 @@ namespace LiteMol.Example.Channels.UI {
         state = { isVisible: false, isWaitingForData: false };
 
         componentDidMount(){
+            /*
             MoleOnlineWebUI.Bridge.Events.subscribeChannelSelect(((channelId:string)=>{
                 if(this.props.channel.Id === channelId){
                     this.selectChannel();
                 }
-            }).bind(this));
+            }).bind(this));*/
         }
 
         private dataWaitHandler(){
@@ -410,8 +419,9 @@ namespace LiteMol.Example.Channels.UI {
         render() {
             let c = this.props.channel as DataInterface.Tunnel;
             let len = CommonUtils.Tunnels.getLength(c);
-
-            return <Renderable label={<span><b><a onClick={this.selectChannel.bind(this)}>{c.Type}</a></b>, {`Length: ${len} Å`}</span>} element={c} toggle={State.showChannelVisuals} {...this.props.state} />
+            let name = MoleOnlineWebUI.Cache.TunnelName.get(c.Id);
+            let namePart = (name===void 0)?'':` (${name})`;
+            return <Renderable label={<span><b><a onClick={this.selectChannel.bind(this)}>{c.Type}{namePart}</a></b>, {`Length: ${len} Å`}</span>} element={c} toggle={State.showChannelVisuals} {...this.props.state} />
         }
 
         private selectChannel(){

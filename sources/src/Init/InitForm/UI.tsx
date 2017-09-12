@@ -144,7 +144,7 @@ namespace MoleOnlineWebUI.InitForm.UI{
         render() {            
             return (
             <div className="InitForm">
-                <form onSubmit={this.handleFormSubmit.bind(this)} action="/online/" method="post" encType="multipart/form-data">
+                <form onSubmit={this.handleFormSubmit.bind(this)} action={`${Config.Routing.ROUTING_OPTIONS[Config.Routing.ROUTING_MODE].defaultContextPath}/`} method="post" encType="multipart/form-data">
                     <div className="groupbox">
                         <table style={{width:"100%"}}>
                             <tbody>
@@ -163,7 +163,7 @@ namespace MoleOnlineWebUI.InitForm.UI{
                                 </tr>
                                 <tr>
                                     <td><label htmlFor="frm-jobSetup-setupForm-chains">Use biological unit</label>:</td>
-                                    <td><input type="checkbox" onChange={this.biologicalUnitChange.bind(this)} name="biological-unit" className="checkbox" defaultChecked={false}/>
+                                    <td><input type="checkbox" onChange={this.biologicalUnitChange.bind(this)} name="biological-unit" className="checkbox" defaultChecked={true}/>
                                         <div className="hint">
                                             use biological unit
                                         </div>

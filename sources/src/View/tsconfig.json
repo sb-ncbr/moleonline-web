@@ -43,6 +43,7 @@
     "../../src/MoleAPIService.ts",
     "../../src/PatternQueryAPIService.ts",
     "DataProxy.ts",
+    "Cache.ts",
 
     //Layer Vizualizer
     "UI/LayerVizualizer/UI.tsx",

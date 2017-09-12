@@ -21,6 +21,7 @@ namespace MoleOnlineWebUI.Bridge{
     export type ChannelSelectHandler = (channelId:number)=>void;
     export type ChangeHasKillableHandler = (hasKillable:boolean)=>void;
     export type NotifyMessageHandler = (e:MessageInfo)=>void;
+    export type ChannelDataLoadedHandler = (data:DataInterface.MoleData)=>void;
 
     namespace HandlerTypes{
         export const NewSubmitType = "NEW-SUBMIT";
@@ -28,16 +29,18 @@ namespace MoleOnlineWebUI.Bridge{
         export const ChannelSelectType = "CHANNEL-SELECT";
         export const ChangeHasKillableType = "CHANGE-HAS-KILLABLE";
         export const NotifyMessageType = "NOTIFY-MESSAGE";
+        export const ChannelDataLoadedType = "CHANNEL-DATA-LOADED";
         
         export type NewSubmit = "NEW-SUBMIT";
         export type ChangeSubmitId = "CHANGE-SUBMIT-ID";
         export type ChannelSelect = "CHANNEL-SELECT";
         export type ChangeHasKillable = "CHANGE-HAS-KILLABLE";
         export type NotifyMessage = "NOTIFY-MESSAGE";
+        export type ChannelDataLoaded = "CHANNEL-DATA-LOADED";
         
     };
 
-    type HandlerType = HandlerTypes.NewSubmit | HandlerTypes.ChangeSubmitId | HandlerTypes.ChannelSelect | HandlerTypes.ChangeHasKillable | HandlerTypes.NotifyMessage;
+    type HandlerType = HandlerTypes.NewSubmit | HandlerTypes.ChangeSubmitId | HandlerTypes.ChannelSelect | HandlerTypes.ChangeHasKillable | HandlerTypes.NotifyMessage | HandlerTypes.ChannelDataLoaded;
 
     export class Events{
         private static handlers = new Map<HandlerType,SimpleHandler[]>();
@@ -130,6 +133,24 @@ namespace MoleOnlineWebUI.Bridge{
             if(hndlrs!==void 0){
                 for(let h of hndlrs){
                     h(e);
+                }
+            }
+        }
+
+        public static subscribeChannelDataLoaded(h:ChannelDataLoadedHandler){
+            let list = this.handlers.get(HandlerTypes.ChannelDataLoadedType);
+            if(list===void 0){
+                list = [];
+            }
+            list.push(h);
+            this.handlers.set(HandlerTypes.ChannelDataLoadedType, list);
+        }
+
+        public static invokeChannelDataLoaded(data:DataInterface.MoleData){
+            let hndlrs = this.handlers.get(HandlerTypes.ChannelDataLoadedType);
+            if(hndlrs!==void 0){
+                for(let h of hndlrs){
+                    h(data);
                 }
             }
         }

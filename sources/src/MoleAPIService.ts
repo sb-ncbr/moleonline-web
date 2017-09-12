@@ -105,9 +105,15 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
             }), url);
         }
         private static sendGET(url:string):Promise<any>{
+            if(Config.CommonOptions.DEBUG_MODE)
+                console.time(`sendGET '${url}'`);
             return this.handleResponse(fetch(url, {
                 method: "GET"
-            }), url);
+            }), url).then((val)=>{
+                if(Config.CommonOptions.DEBUG_MODE)
+                    console.timeEnd(`sendGET '${url}'`);
+                return val;
+            });
         }
         private static handleResponse(response:Promise<Response>,url:string){
             return new Promise<any>((res,rej)=>{
@@ -192,6 +198,7 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
             if(this.DEBUG_MODE){
                 console.log(url);
             }
+            
             return this.sendGET(url);
         }
 
@@ -228,11 +235,18 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
             if(this.DEBUG_MODE){
                 console.log(url);
             }
+
+            if(this.DEBUG_MODE)
+                console.time("getProteinStructure");
             return new Promise<any>((res,rej)=>{
+                if(this.DEBUG_MODE)
+                    console.time('protein-raw');
                 fetch(url, {
                     method: "GET"
                 })
                 .then((rawResponse)=>{
+                    if(this.DEBUG_MODE)
+                        console.timeEnd('protein-raw');
                     if(!rawResponse.ok){
                         if(this.DEBUG_MODE){
                             console.log(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
@@ -242,6 +256,8 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
                     }
                     rawResponse.text().then(value=>{
                         res(value);
+                        if(this.DEBUG_MODE)
+                            console.timeEnd("getProteinStructure");
                     })
                     .catch(error=>{
                         rej(error);
@@ -256,7 +272,13 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
             if(this.DEBUG_MODE){
                 console.log(url);
             }
-            return this.handleJsonToStringResponse(this.sendGET(url));
+            if(this.DEBUG_MODE)
+                console.time("getChannelsData");
+            return this.handleJsonToStringResponse(this.sendGET(url)).then((s)=>{
+                if(this.DEBUG_MODE)
+                    console.timeEnd("getChannelsData");
+                return s;
+            });
         }
 
         public static killRunningJob(computationId:string){

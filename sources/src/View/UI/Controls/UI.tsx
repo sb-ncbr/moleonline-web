@@ -58,7 +58,7 @@ namespace Controls.UI{
                     window.setTimeout(()=>{
                         $(event.target).popover("hide");
                         $(event.target).popover("destroy");
-                    },5000);
+                    });
                     $(event.target).focus();
 
                     event.preventDefault();
@@ -78,7 +78,7 @@ namespace Controls.UI{
         window.setTimeout(()=>{
             $(el).popover("hide");
             $(el).popover("destroy");
-        },5000);
+        });
         $(el).focus();
     }
 
@@ -498,10 +498,7 @@ namespace Controls.UI{
             );
         }
     }
-    /*
-    export interface SubmitFormData{
-        pdbid: string
-    };*/
+
     interface SettingsState{
         data:Service.CompInfo|null,
         mode:"Mole"|"Pores"
@@ -555,6 +552,8 @@ namespace Controls.UI{
 
             let reg = new RegExp(/^[A-Z][\-][\d]*$|^[A-Z]{1}$/);
             value = value.replace(/\s*,\s*/g,",");
+            value = value.replace(/\s*$/g,'');
+            value = value.replace(/^\s*/g,'');
             let chains = value.split(",");
             let valid = true;
             for(let chain of chains){                    
@@ -1123,7 +1122,7 @@ namespace Controls.UI{
     }
 
     function changeSubmitId(computationId:string, submitId:number){
-        CommonUtils.Router.fakeRedirect(computationId, submitId);
+        CommonUtils.Router.fakeRedirect(computationId, (submitId>0)?submitId:void 0);
         LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
         MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(submitId);
     }
@@ -1138,6 +1137,28 @@ namespace Controls.UI{
         }
         return rv;
     }
+
+    function parseChainsArray(value:string){
+            if(value.length===0){
+                return "";
+            }
+
+            value = value.replace(/\s*,\s*/g,",");
+            value = value.replace(/\s*$/g,'');
+            value = value.replace(/^\s*/g,'');
+            let chains = value.split(",");
+            let rv = "";
+            let idx = 0;
+            for(let chain of chains){                    
+                if(idx!==0){
+                    rv+=',';
+                }
+                rv+=chain;
+                idx++;
+            }
+
+            return rv;
+        }
 
     function parseResiduesArray(residuesArray:string|undefined):{Chain:string,SequenceNumber:number}[][]{
         if(residuesArray===void 0){
@@ -1316,7 +1337,7 @@ namespace Controls.UI{
                         break;
                     //Mole
                     case 'specificChains':
-                        specificChains = item.value;
+                        specificChains = parseChainsArray(item.value);
                         break;
                     case 'readAllModels':
                         readAllModels = (item.value!=="")?item.checked:false;
@@ -1401,7 +1422,7 @@ namespace Controls.UI{
                         break;
                     //Pores
                     case 'poresChains':
-                        chains = item.value;
+                        chains = parseChainsArray(item.value);
                         break;
                     case 'poresInMembrane':
                         inMembrane = (item.value!=="")?item.checked:false;
@@ -1632,6 +1653,14 @@ namespace Controls.UI{
             }
 
             let rv = [];
+
+            rv.push(
+                    {
+                        label:`-`,
+                        value:'0'
+                    }
+                );
+
             for(let item of submissions){
                 rv.push(
                     {
@@ -1675,6 +1704,7 @@ namespace Controls.UI{
             }
             
             let submitId = e.currentTarget.dataset["value"];
+
             if(submitId!==void 0){
                 let sid = Number(submitId).valueOf();
                 changeSubmitId(this.props.computationInfo.ComputationId, sid);
@@ -1684,17 +1714,53 @@ namespace Controls.UI{
             }
         }
 
+        private canShift(left:boolean){
+            if(this.props.computationInfo===void 0){
+                return false;
+            }
+
+            if(String(this.state.submitId)===String(0)){
+                return false;
+            }
+
+            let submissions = this.getSubmissions();
+            
+            for(let idx=0;idx<submissions.length;idx++){                
+                if(String(submissions[idx].SubmitId)===String(this.props.submitId)){
+                    let nextIdx = idx + ((left)?-1:1);
+                    if(nextIdx<0||nextIdx>=submissions.length){
+                        return false;
+                    }
+                    else{
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private canShiftNext(){
+            return this.canShift(false);
+        }
+
+        private canShiftPrev(){
+            return this.canShift(true);
+        }
+
         render(){            
             let canKill = (this.props.computationInfo!==void 0&&this.state.hasKillable);
             let items=this.prepareSubmissionItems(); 
             let idx = this.getSelectedIndex(this.state.submitId,items);
+            let canShiftPrev = this.canShiftPrev();
+            let canShiftNext = this.canShiftNext();
             return <div className="submit-parent">
                     <input className="btn btn-primary submit" type="submit" value="Submit" />
                     <span className="btn btn-primary kill-job-button" disabled={!canKill} onClick={(e=>{if($(e.currentTarget).attr("disabled")!=="disabled"){$('#killJobDialog').modal('show');}})}>Kill</span>
                     <span className="btn btn-primary delete-project-button" data-toggle="modal" data-target="#deleteProjectDialog" onClick={(e=>{e.preventDefault();return false;})}>Delete</span>
-                    <input className="btn btn-primary submit-arrow" type="button" value=">" disabled={(idx===void 0||idx===items.length-1)?true:void 0} data-value={(idx===void 0||idx===items.length-1)?void 0:items[idx+1].value} onClick={this.changeSubmitIdByStep.bind(this)} />
+                    <input className="btn btn-primary submit-arrow" type="button" value=">" disabled={(!canShiftNext)?true:void 0} data-value={(!canShiftNext||idx===void 0)?void 0:items[idx+1].value} onClick={this.changeSubmitIdByStep.bind(this)} />
                     <Common.Controls.SimpleComboBox id="submissionComboSwitch" items={items} defaultSelectedIndex={idx} className="form-control submit-combo" onSelectedChange={this.onSubmitIdComboSelectChange.bind(this)} />
-                    <input className="btn btn-primary submit-arrow" type="button" value="<" disabled={(idx===void 0||idx===0)?true:void 0} data-value={(idx===void 0||idx===0)?void 0:items[idx-1].value} onClick={this.changeSubmitIdByStep.bind(this)} />
+                    <input className="btn btn-primary submit-arrow" type="button" value="<" disabled={(!canShiftPrev)?true:void 0} data-value={(!canShiftPrev||idx==void 0)?void 0:items[idx-1].value} onClick={this.changeSubmitIdByStep.bind(this)} />
                     <ModalDialog id="killJobDialog" header="Do you really want to kill running job?" body={this.prepareKillJobDialogBody()}/>
                     <ModalDialog id="deleteProjectDialog" header="Do you really want to delete whole computation project?" body={this.prepareDeleteDialogBody()}/>
                 </div>
@@ -1749,7 +1815,7 @@ namespace Controls.UI{
                                     messageType:"Success"
                                 });
                                 window.setTimeout(()=>{
-                                    SimpleRouter.GlobalRouter.redirect("/online");
+                                    SimpleRouter.GlobalRouter.redirect(Config.Routing.ROUTING_OPTIONS[Config.Routing.ROUTING_MODE].defaultContextPath);
                                 },5000);
                             })
                             .catch((err)=>{

@@ -83,7 +83,7 @@ namespace CommonUtils{
                 );
             }
 
-            let sortFn = this.getSortFunction();
+            let sortFn = this.getSortFunctionBackboneChainSeq();
             let all:RType[] = [];
             for(let group of groups){
                 all = all.concat(group.sort(sortFn));
@@ -135,7 +135,24 @@ namespace CommonUtils{
             return resParsed;
         }
 
-        public static getSortFunction(){
+        public static getSortFunctionBackboneChainSeq(){
+            return (a:RType,b:RType)=>{                
+                if(a.backbone===b.backbone){
+                    if(a.chain.authAsymId===b.chain.authAsymId){
+                        return a.authSeqNumber-b.authSeqNumber;
+                    }
+                    return (a.chain.authAsymId<b.chain.authAsymId)?-1:1;
+                }
+                if(a.backbone===true){
+                    return 1;
+                }
+                else{
+                    return -1;
+                }
+            }
+        }
+
+        public static getSortFunctionChainSeqBackbone(){
             return (a:RType,b:RType)=>{
                 if(a.chain.authAsymId<b.chain.authAsymId){
                     return -1;

@@ -74,6 +74,11 @@ namespace LayerProperties.UI{
                 state.data = null;
                 this.setState(state);
             });
+            CommonUtils.Selection.SelectionHelper.attachOnChannelSelectHandler((data)=>{
+                let state = this.state;
+                state.data = data.LayersInfo;
+                this.setState(state);
+            });
             
             $( window ).on('layerTriggered', this.layerTriggerHandler.bind(this));
         }
@@ -82,19 +87,9 @@ namespace LayerProperties.UI{
 
             this.layerIdx = layerIdx;
 
-            let data = CommonUtils.Selection.SelectionHelper.getSelectedChannelData();
-
-            if(data!==null){
-                let state = this.state;
-                state.layerIdx=layerIdx;
-                state.data = data.LayersInfo;
-                this.setState(state);
-            }
-            else{
-                let state = this.state;
-                state.layerIdx = layerIdx;
-                this.setState(state);
-            }
+            let state = this.state;
+            state.layerIdx = layerIdx;
+            this.setState(state);
 
             setTimeout(function(){
                 $( window ).trigger('contentResize');

@@ -12,7 +12,7 @@ namespace LiteMol.Example.Channels {
     import Vizualizer = LayersVizualizer;    
 
     (function() {
-
+        
         SimpleRouter.GlobalRouter.init(Config.Routing.ROUTING_OPTIONS[Config.Routing.ROUTING_MODE]);
         console.log(Config.Routing.ROUTING_MODE);
                 

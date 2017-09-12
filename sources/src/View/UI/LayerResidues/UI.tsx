@@ -50,67 +50,28 @@ namespace LayerResidues.UI{
         layerIdx = -1;
 
         componentDidMount() {
-            /*
-            var interactionHandler = function showInteraction(type: string, i: ChannelEventInfo | undefined, app: App) {
-                if (!i || i.source == null || i.source.props.tag === void 0 || i.source.props.tag.type === void 0) {
-                    return;    
-                }
-
-                if(i.source.props.tag.type == "Tunnel" 
-                    || i.source.props.tag.type == "Path"
-                    || i.source.props.tag.type == "Pore"
-                    || i.source.props.tag.type == "MergedPore"){
-                    
-                    let layers = i.source.props.tag.element.Layers;
-                    app.setState({data:layers.LayersInfo});
-                }
-                
-            }
-
-            this.interactionEventStream = LiteMoleEvent.Visual.VisualSelectElement.getStream(this.props.controller.context)
-                .subscribe(e => interactionHandler('select', e.data as ChannelEventInfo, this));
-            */
             CommonUtils.Selection.SelectionHelper.attachOnChannelDeselectHandler(()=>{
                 let state = this.state;
                 state.layerIdx = -1;
                 state.data = null;
                 this.setState(state);
             });
+            CommonUtils.Selection.SelectionHelper.attachOnChannelSelectHandler((data)=>{
+                let state = this.state;
+                state.data = data.LayersInfo;
+                this.setState(state);
+            });
             
             $( window ).on('layerTriggered', this.layerTriggerHandler.bind(this));
         }
-        /*
-        private dataWaitHandler(){
-            this.setState({isWaitingForData:false});
-        }
-
-        public invokeDataWait(){
-            if(this.state.isWaitingForData){
-                return;
-            }
-
-            this.setState({isWaitingForData: true});
-            Annotation.AnnotationDataProvider.subscribeForData(this.dataWaitHandler.bind(this));
-        }
-        */
 
         private layerTriggerHandler(event:any,layerIdx:number){
 
             this.layerIdx = layerIdx;
-
-            let data = CommonUtils.Selection.SelectionHelper.getSelectedChannelData();
-
-            if(data!==null){
-                let state = this.state;
-                state.layerIdx = layerIdx;
-                state.data = data.LayersInfo;
-                this.setState(state);
-            }
-            else{
-                let state = this.state;
-                state.layerIdx = layerIdx;
-                this.setState(state);
-            }
+            
+            let state = this.state;
+            state.layerIdx = layerIdx;
+            this.setState(state);
 
             setTimeout(function(){
                 $( window ).trigger('contentResize');
@@ -179,91 +140,26 @@ namespace LayerResidues.UI{
     }
 
     class DGBody extends React.Component<State,{}>{ 
-        /*
-        private generateLink(annotation:Annotation.ResidueAnnotation){
-            if(annotation.reference===""){
-                return (annotation.text!== void 0 && annotation.text !== null)?<span>{annotation.text}</span>:<span className="no-annotation"/>;
-            }
-            return <a target="_blank" href={annotation.link} dangerouslySetInnerHTML={{__html:annotation.text}}></a>
-        }
-        */
 
         private shortenBackbone(residue:string){
-            return residue.replace(/Backbone/g,'');
+            return residue.replace(/Backbone/g,'BB');
         }
 
         private isBackbone(residue:string){
             return residue.indexOf("Backbone") >= 0;
         }
         
-        /*
-        private generateSpannedRows(residue:string, annotations: Annotation.ResidueAnnotation[]){
-            let trs:JSX.Element[] = [];
-
-            let residueNameEl = (this.isBackbone(residue))?<i><strong>{this.shortenBackbone(residue)}</strong></i>:<span>{residue}</span>;
-
-            let first = true;
-            for(let annotation of annotations){
-                if(first === true){
-                    first = false;
-                    trs.push(
-                        <tr className={(this.isBackbone(residue)?"help":"")}>
-                            <td title={(this.isBackbone(residue)?residue:"")} className={`col col-1`} rowSpan={(annotations.length>1)?annotations.length:0}>
-                                {residueNameEl}
-                            </td>    
-                            <td className={`col col-2`} >
-                                {this.generateLink(annotation)}
-                            </td>
-                        </tr>
-                    );
-                }
-                else{
-                   trs.push(
-                        <tr>    
-                            <td className={`col col-2`} >
-                                {this.generateLink(annotation)}
-                            </td>
-                        </tr>
-                    ); 
-                }
-            }
-            return trs;
-        }*/
-
         private generateRows(){
             if(this.props.data === null){
                 return <DGComponents.DGNoDataInfoRow columnsCount={DGTABLE_COLS_COUNT} infoText={NO_DATA_MESSAGE}/>;
             }
 
-            let layerData = this.props.data[this.props.layerIdx].Residues;
+            let layerData = CommonUtils.Residues.sort(this.props.data[this.props.layerIdx].Residues,void 0, true, true);
             let rows:JSX.Element[] = [];
             
             for(let residue of layerData){
                 let residueId = residue.split(" ").slice(1,3).join(" ");
-                /*
-                let annotation;
-                let annotationText = "";
-                let annotationSource = "";
-
-                annotation = Annotation.AnnotationDataProvider.getResidueAnnotations(residueId);
-                let residueNameEl = (this.isBackbone(residue))?<i><strong>{this.shortenBackbone(residue)}</strong></i>:<span>{residue}</span>;
-                if(annotation === void 0){
-                    this.props.app.invokeDataWait();
-                    rows.push(
-                        <DGComponents.DGElementRow columns={[residueNameEl,<span>Annotation data still loading...</span>]} title={[(this.isBackbone(residue)?residue:""),""]} trClass={(this.isBackbone(residue)?"help":"")} />
-                    );
-                }
-                else if(annotation !== null && annotation.length>0){
-                    rows = rows.concat(
-                        this.generateSpannedRows(residue,annotation)
-                    );
-                }
-                else{
-                    rows.push(
-                        <DGComponents.DGElementRow columns={[residueNameEl,<span/>]} title={[(this.isBackbone(residue)?residue:""),""]} trClass={(this.isBackbone(residue)?"help":"")} />
-                    );
-                }*/
-                let residueNameEl = (this.isBackbone(residue))?<i><strong>{this.shortenBackbone(residue)}</strong></i>:<span>{residue}</span>;
+                let residueNameEl = (this.isBackbone(residue))?<span>{residue}</span>:<strong>{residue}</strong>;
                 rows.push(
                         <DGComponents.DGElementRow columns={[residueNameEl]} title={[(this.isBackbone(residue)?residue:""),""]} trClass={(this.isBackbone(residue)?"help":"")} />
                     );

@@ -19,6 +19,10 @@ namespace CommonUtils{
             return bneck;
         }
 
+        public static getName(tunnel: DataInterface.Tunnel):string|undefined{
+            return MoleOnlineWebUI.Cache.TunnelName.get(tunnel.Id);
+        }
+
         /*
         public static getAnnotation(tunnelId:string,context: LiteMol.Bootstrap.Context):{text:string,source:string}|null{
             let parsedData = context.select('mole-data')[0] as LiteMol.Bootstrap.Entity.Data.Json;

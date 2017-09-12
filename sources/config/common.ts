@@ -2,7 +2,7 @@ namespace Config{
 
     export class Routing{
         public static ROUTING_OPTIONS:any = {
-            "local":{defaultContextPath: "/online", defaultCompId:"compid", defaultSubmitId:"1"},
+            "local":{defaultContextPath: "/online"},
             "test":{defaultContextPath: "/online"},
             "prod":{defaultContextPath: "/online"},
         };

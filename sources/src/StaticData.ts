@@ -95,4 +95,46 @@ namespace MoleOnlineWebUI.StaticData{
             return text;
         }
     }
+
+    export namespace LiteMolObjectsColorScheme{
+        export class Colors{
+            private static excludedColors = [3,5,8,9,10,16,19,24/**/,25/**/,28,30,31,32,33,37,44,51,54,56,65,73/**/,76/**/,81,90,92];
+            private static colorIndex = -1;
+
+            public static get(key:Enum):LiteMol.Visualization.Color{
+                switch(key){
+                    case Enum.CSAOrigin: return LiteMol.Visualization.Color.fromRgb(128,255,128);
+                    case Enum.ComputedOrigin: return LiteMol.Visualization.Color.fromRgb(128,128,255);
+                    case Enum.OtherOrigin: return LiteMol.Visualization.Color.fromRgb(255,128,128);
+
+                    case Enum.Cavity: return LiteMol.Visualization.Molecule.Colors.DefaultPallete[99];
+                    case Enum.Surface: return LiteMol.Visualization.Molecule.Colors.DefaultPallete[25];
+                    case Enum.Void: return LiteMol.Visualization.Molecule.Colors.DefaultPallete[76];
+
+                    case Enum.DefaultColor: return LiteMol.Visualization.Color.fromRgb(0,0,0);
+                    default : return this.get(Enum.DefaultColor);
+                }
+            }
+
+            private static shouldExcludeColor(colorIdx:number){
+                return !(this.excludedColors.indexOf(colorIdx)<0);
+            }
+            public static getRandomUnused() {
+                do{
+                    this.colorIndex = (this.colorIndex+1)%LiteMol.Visualization.Molecule.Colors.DefaultPallete.length;
+                }while(this.shouldExcludeColor(this.colorIndex));
+                return LiteMol.Visualization.Molecule.Colors.DefaultPallete[this.colorIndex];
+            }
+        }
+
+        export enum Enum{
+            CSAOrigin,
+            ComputedOrigin,
+            OtherOrigin,
+            Cavity,
+            Surface,
+            Void,
+            DefaultColor
+        }
+    }
 }

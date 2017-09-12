@@ -12,6 +12,8 @@ namespace LiteMol.Example.Channels.State {
 
     import Transformer = Bootstrap.Entity.Transformer;
 
+    import ColorScheme = MoleOnlineWebUI.StaticData.LiteMolObjectsColorScheme;
+
     export interface SurfaceTag { type: string, element?: any }
 
     function showDefaultVisuals(plugin: Plugin.Controller, data: any) {
@@ -30,8 +32,8 @@ namespace LiteMol.Example.Channels.State {
             else if(data.Tunnels.length > 0){
                 toShow = data.Tunnels;
             }
-            
-            return showChannelVisuals(plugin, toShow, true).then(() => {
+
+            return showChannelVisuals(plugin, toShow.slice(0,5), true).then(() => {
                 if(data.Cavities === void 0){
                     res();
                     return;
@@ -151,6 +153,22 @@ namespace LiteMol.Example.Channels.State {
         });
     }
 
+    function generateGuid(moleData:DataInterface.MoleData){
+        let f:(channels:DataInterface.Tunnel[])=>DataInterface.Tunnel[] = (channels:DataInterface.Tunnel[])=>{
+            for(let idx=0;idx<channels.length;idx++){
+                channels[idx].Id = Bootstrap.Utils.generateUUID();
+            }
+            return channels;
+        };
+
+        moleData.Channels.MergedPores = f(moleData.Channels.MergedPores);
+        moleData.Channels.Paths = f(moleData.Channels.Paths);
+        moleData.Channels.Pores = f(moleData.Channels.Pores);
+        moleData.Channels.Tunnels = f(moleData.Channels.Tunnels);
+        
+        return moleData;
+    }
+
     function downloadChannelsData(plugin:Plugin.Controller, computationId:string, submitId:number){
         removeChannelsData(plugin);
         return new Promise<any>((res,rej)=>{
@@ -166,8 +184,13 @@ namespace LiteMol.Example.Channels.State {
                         }
                         else {
                             let data_ = parsedData.props.data as DataInterface.MoleData;
+                            data_ = generateGuid(data_);
+                            MoleOnlineWebUI.Cache.TunnelName.reload(data_);
+                            MoleOnlineWebUI.Bridge.Events.invokeChannelDataLoaded(data_);
                             showDefaultVisuals(plugin, data_.Channels)
-                                .then(() => res());
+                                .then(() =>{ 
+                                    res();
+                                });
                         }
                     })
                     .catch(error=>rej(error));
@@ -201,23 +224,11 @@ namespace LiteMol.Example.Channels.State {
     export function loadData(plugin: Plugin.Controller) {
         
             //plugin.clear();
-
+            if(Config.CommonOptions.DEBUG_MODE)
+                console.profile("loadData");
             let modelLoadPromise = new Promise<any>((res,rej)=>{
-                let parameters = CommonUtils.Router.getParameters(true);
-                /*
-                let parameters = SimpleRouter.GlobalRouter.getParametersByRegex(/\/online\/([a-zA-Z0-9]+)\/*([0-9]*)/g);
-                let computationId = null;
-                let submitId = 1;
-                if((parameters===null)||(parameters.length===0)||(parameters.length>3)){
-                    console.log(parameters);
-                    rej("Corrupted url found - cannot parse parameters.");
-                    return;
-                }
-                computationId = parameters[1];
-                if(parameters[2]!==''){
-                    submitId = Number(parameters[2]);
-                }
-                */
+                let parameters = CommonUtils.Router.getParameters();
+
                 if(parameters===null){
                     rej("Corrupted url found - cannot parse parameters.");
                     return;
@@ -225,13 +236,13 @@ namespace LiteMol.Example.Channels.State {
 
                 let computationId = parameters.computationId;
                 let submitId = parameters.submitId;
-
-                //let protein = plugin.selectEntities('polymer-visual');
-                //waitForResult(computationId,submitId/*,plugin*/,res,rej/*,protein.length!==0*/);
+                if(Config.CommonOptions.DEBUG_MODE)
+                    console.log("Status watcher - BEFORE EXEC");
                 MoleOnlineWebUI.DataProxy.JobStatus.Watcher.registerOnChangeHandler(computationId,submitId,(status=>{
+                    if(Config.CommonOptions.DEBUG_MODE)
+                        console.log("Watcher iteration");
                     let plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
                     let proteinLoaded = existsRefInTree(plugin.root,'protein-data');
-
                     /*
                     "Initializing"| OK
                     "Initialized"| OK
@@ -244,6 +255,8 @@ namespace LiteMol.Example.Channels.State {
                     */
                     if(status.Status === "Initializing" || status.Status === "Running"){
                         //Do Nothing
+                        if(Config.CommonOptions.DEBUG_MODE)
+                            console.log("Waiting for status change");
                     }
                     else if(status.Status === "Initialized"){
                         acquireData(computationId,submitId,plugin,res,rej,!proteinLoaded,submitId==0);
@@ -278,46 +291,46 @@ namespace LiteMol.Example.Channels.State {
     }
 
     function acquireData(computationId:string, submitId:number, plugin:LiteMol.Plugin.Controller, res:any, rej:any, protein:boolean, channels:boolean){
-        ApiService.getComputationInfoList(computationId).then((info)=>{
-            let promises = [];
+        let promises = [];
 
-            if(protein){
-                if(Config.CommonOptions.DEBUG_MODE)
-                    console.log("reloading protein structure");
-                let proteinAndCSA = new Promise<any>((res,rej)=>{
-                    downloadProteinData(plugin, info.ComputationId, submitId)
-                        .then(()=>{
-                            let csaOriginsExists = existsRefInTree(plugin.root,'csa-origins');
-                            if(!csaOriginsExists){
-                                if(Config.CommonOptions.DEBUG_MODE)
-                                    console.log("reloading CSA Origins");
-                                createCSAOriginsData(plugin,info.ComputationId)
-                                    .then(()=>res())
-                                    .catch((err)=>rej(err));
-                            }
-                            else{
-                                res();
-                            }
-                        })
-                        .catch(err=>rej(err))
-                });
-                
-                promises.push(proteinAndCSA);
-            }
-            if(channels){
-                if(Config.CommonOptions.DEBUG_MODE)
-                    console.log("reloading channels");
-                promises.push(downloadChannelsData(plugin, info.ComputationId, submitId));
-            }
+        if(protein){
+            if(Config.CommonOptions.DEBUG_MODE)
+                console.log("reloading protein structure");
+            let proteinAndCSA = new Promise<any>((res,rej)=>{
+                downloadProteinData(plugin, computationId, submitId)
+                    .then(()=>{
+                        let csaOriginsExists = existsRefInTree(plugin.root,'csa-origins');
+                        if(!csaOriginsExists){
+                            if(Config.CommonOptions.DEBUG_MODE)
+                                console.log("reloading CSA Origins");
+                            createCSAOriginsData(plugin,computationId)
+                                .then(()=>res())
+                                .catch((err)=>rej(err));
+                        }
+                        else{
+                            res();
+                        }
+                    })
+                    .catch(err=>rej(err))
+            });
+            
+            promises.push(proteinAndCSA);
+        }
+        if(channels){
+            if(Config.CommonOptions.DEBUG_MODE)
+                console.log("reloading channels");
+            promises.push(downloadChannelsData(plugin, computationId, submitId));
+        }
 
-            Promise.all(promises)
-                .then(()=>{
-                    res();
-                })
-                .catch((error)=>{
-                    rej(error);
-                })
-        });
+        Promise.all(promises)
+            .then(()=>{
+                res();
+                if(Config.CommonOptions.DEBUG_MODE)
+                    console.profileEnd();
+            })
+            .catch((error)=>{
+                rej(error);
+            })
     }
 
     function createSurface(mesh: any) {
@@ -337,17 +350,6 @@ namespace LiteMol.Example.Channels.State {
         };
 
         return surface;
-    }
-
-    let colorIndex = Visualization.Molecule.Colors.DefaultPallete.length - 1;
-    function nextColor() {
-        return Visualization.Color.random();
-
-        // can use the build in palette for example like this:
-        // let color = Visualization.Molecule.Colors.DefaultPallete[colorIndex];
-        // colorIndex--;
-        // if (colorIndex < 0) colorIndex = Visualization.Molecule.Colors.DefaultPallete.length - 1;
-        // return color;
     }
 
     //Added
@@ -608,32 +610,32 @@ namespace LiteMol.Example.Channels.State {
   */      
     }
 
-    function showSurfaceVisuals(plugin: Plugin.Controller, elements: any[], visible: boolean, type: string, label: (e: any) => string, alpha: number): Promise<any> {
-        // I am modifying the original JSON response. In general this is not a very good
-        // idea and should be avoided in "real" apps.
+    
+    function getSurfaceColorByType(type:string){
+        switch(type){
+            case 'Cavity': return ColorScheme.Colors.get(ColorScheme.Enum.Cavity);
+            case 'MolecularSurface': return ColorScheme.Colors.get(ColorScheme.Enum.Surface);
+            case 'Void': return ColorScheme.Colors.get(ColorScheme.Enum.Void);
+            default : return ColorScheme.Colors.get(ColorScheme.Enum.DefaultColor);
+        }
+    }
 
+    function showSurfaceVisuals(plugin: Plugin.Controller, elements: any[], visible: boolean, type: string, label: (e: any) => string, alpha: number): Promise<any> {
         let t = plugin.createTransform();
         let needsApply = false;
 
         for (let element of elements) {
             if (!element.__id) element.__id = Bootstrap.Utils.generateUUID();
-            //console.log(!!element.__isVisible);
             if (!!element.__isVisible === visible) continue;
-            //console.log("for 1");
+
             element.__isVisible = visible;
             if (!element.__color) {
-                // the colors should probably be initialized when the data is loaded
-                // so that they are deterministic...
-                element.__color = nextColor();
-                //console.log("got new color");
+                element.__color = getSurfaceColorByType(element.Type);
             }
 
             if (!visible) {
-                //console.log("node removed");
                 plugin.command(Bootstrap.Command.Tree.RemoveNode, element.__id);
             } else {
-                //console.log("creating surface from mesh");
-                //console.log(element.Mesh);
                 let surface = createSurface(element.Mesh);
                 t.add('mole-data', CreateSurface, {
                     label: label(element),
@@ -648,7 +650,6 @@ namespace LiteMol.Example.Channels.State {
         }
 
         if (needsApply) {
-            //console.log("needs apply = true");
             return new Promise<any>((res, rej) => {
                 plugin.applyTransform(t).then(() => {
                     for (let element of elements) {
@@ -659,7 +660,6 @@ namespace LiteMol.Example.Channels.State {
             });
         }
         else {
-            //console.log("needs apply = false");
             return new Promise<any>((res, rej) => {
                 for (let element of elements) {
                     element.__isBusy = false;
@@ -694,9 +694,7 @@ namespace LiteMol.Example.Channels.State {
 
             channel.__isVisible = visible;
             if (!channel.__color) {
-                // the colors should probably be initialized when the data is loaded
-                // so that they are deterministic...
-                channel.__color = nextColor();
+                channel.__color = ColorScheme.Colors.getRandomUnused();
             }
 
             if (!visible) {
@@ -756,11 +754,11 @@ namespace LiteMol.Example.Channels.State {
         return s.buildSurface().run();        
     }
 
-    function setOriginColorByType(origins:any){
+    function getOriginColorByType(origins:any){
         switch(origins.Type as string){
-            case 'Computed': return Visualization.Color.fromRgb(128,128,255);
-            case 'CSA Origins': return Visualization.Color.fromRgb(128,255,128);
-            default:return Visualization.Color.fromRgb(255,128,128);
+            case 'Computed': return ColorScheme.Colors.get(ColorScheme.Enum.ComputedOrigin);
+            case 'CSA Origins': return ColorScheme.Colors.get(ColorScheme.Enum.CSAOrigin);
+            default:return ColorScheme.Colors.get(ColorScheme.Enum.OtherOrigin);
         }
     }
 
@@ -775,12 +773,8 @@ namespace LiteMol.Example.Channels.State {
             return Promise.resolve();
         }
 
-        origins.__color = setOriginColorByType(origins);
-
         if (!origins.__color) {
-            // the colors should probably be initialized when the data is loaded
-            // so that they are deterministic...
-            origins.__color = nextColor();
+            origins.__color = getOriginColorByType(origins);
         }
 
         return new Promise((res, rej) => {

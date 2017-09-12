@@ -22,7 +22,7 @@ namespace CommonUtils{
                             console.log('tooltipInit: removing '+elementId+' from loop');
                         this.checkedElements.delete(elementId);
                     }
-                },1000)
+                })
             }
         }
 
