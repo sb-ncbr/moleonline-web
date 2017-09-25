@@ -58,7 +58,7 @@ namespace Controls.UI{
                     window.setTimeout(()=>{
                         $(event.target).popover("hide");
                         $(event.target).popover("destroy");
-                    });
+                    },5000);
                     $(event.target).focus();
 
                     event.preventDefault();
@@ -129,7 +129,7 @@ namespace Controls.UI{
                 this.validators.push(this.props.onValidate);
         }
 
-        render(){
+        prepareRenderParameters(){
             let classNames = ["",""];
             if(this.props.classNames!==void 0){
                 classNames = this.props.classNames;
@@ -176,15 +176,111 @@ namespace Controls.UI{
                 };
             }
 
+            return {
+                classNames,
+                hint,
+                tooltip,
+                onKeyDown,
+                onBlur
+            }
+        }
+
+        render(){
+            let renderParameters = this.prepareRenderParameters();
+
             return (
                 <div className="form-group">
-                    <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} htmlFor={this.props.id} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}:</label>
-                    <div className={`${classNames[1]}`}>
-                        <input type="text" className="form-control" id={this.props.id} placeholder={this.props.placeholder} onBlur={onBlur} onKeyDown={onKeyDown} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,this.props.id)} />
+                    <label id={`${this.props.id}_label`} className={`control-label ${renderParameters.classNames[0]}`} htmlFor={this.props.id} data-toggle={(renderParameters.tooltip===void 0)?void 0:'tooltip'} data-original-title={renderParameters.tooltip}>{this.props.label}:</label>
+                    <div className={`${renderParameters.classNames[1]}`}>
+                        <input type="text" className="form-control" id={this.props.id} placeholder={this.props.placeholder} onBlur={renderParameters.onBlur} onKeyDown={renderParameters.onKeyDown} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,this.props.id)} />
                     </div>
-                    {hint}
+                    {renderParameters.hint}
                 </div>
             );
+        }
+    }
+
+    export class ResidueArraysBox extends TextBox{
+        componentDidMount(){
+            super.componentDidMount();
+            CommonUtils.Selection.SelectionHelper.attachOnClearSelectionHandler(()=>{
+                this.forceUpdate();
+            });
+
+            CommonUtils.Selection.SelectionHelper.attachOnResidueBulkSelectHandler(()=>{
+                this.forceUpdate();
+            });
+        }
+
+        getUseSelectionButtonOnClick(){
+            return (e:React.MouseEvent<HTMLDivElement>)=>{
+                if(e.currentTarget.attributes.getNamedItem("disabled")===null){
+                    let residues = CommonUtils.Selection.SelectionHelper.getSelectedResidues();
+                    if(residues.length>0){
+                        let currentValue = $(`#${this.props.id}`).val();
+                        let newResidues:{
+                            Chain: string;
+                            SequenceNumber: number;
+                        }[] = [];
+                        for(let r of residues){
+                            newResidues.push({
+                                SequenceNumber: r.info.authSeqNumber,
+                                Chain: r.info.chain.authAsymId
+                            });
+                        }
+                        let currentResidues = parseResiduesArray(currentValue);
+                        if(currentResidues.length===1&&currentResidues[0].length===0){
+                            currentResidues = [];
+                        }
+                        currentResidues.push(newResidues);
+                        $(`#${this.props.id}`).val(flattenResiduesArray(currentResidues));
+                    }
+                }
+            }
+        }
+
+        render(){
+            let renderParameters = this.prepareRenderParameters();
+            let hasSelection = CommonUtils.Selection.SelectionHelper.getSelectedResidues().length>0;
+            let useSelectionEl = <div className="ResidueArraysBox-useSelection">
+                    <div className="btn btn-default btn-xs" onClick={this.getUseSelectionButtonOnClick()} disabled={!hasSelection}><span className="glyphicon glyphicon-plus useCurrentSelectionIcon"/>Use current selection</div>
+                </div>
+            return (
+                <div className="form-group">
+                    <label id={`${this.props.id}_label`} className={`control-label ${renderParameters.classNames[0]}`} htmlFor={this.props.id} data-toggle={(renderParameters.tooltip===void 0)?void 0:'tooltip'} data-original-title={renderParameters.tooltip}>{this.props.label}:</label>
+                    <div className={`${renderParameters.classNames[1]}`}>
+                        <input type="text" className="form-control" id={this.props.id} placeholder={this.props.placeholder} onBlur={renderParameters.onBlur} onKeyDown={renderParameters.onKeyDown} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,this.props.id)} />
+                    </div>
+                    {useSelectionEl}
+                    {renderParameters.hint}
+                </div>
+            );
+        }
+    }
+
+    export class ResiduesBox extends ResidueArraysBox{
+        getUseSelectionButtonOnClick(){
+            return (e:React.MouseEvent<HTMLDivElement>)=>{
+                if(e.currentTarget.attributes.getNamedItem("disabled")===null){
+                    let residues = CommonUtils.Selection.SelectionHelper.getSelectedResidues();
+                    if(residues.length>0){
+                        let currentValue = $(`#${this.props.id}`).val();
+                        let newResidues:{
+                            Chain: string;
+                            SequenceNumber: number;
+                        }[] = [];
+                        for(let r of residues){
+                            newResidues.push({
+                                SequenceNumber: r.info.authSeqNumber,
+                                Chain: r.info.chain.authAsymId
+                            });
+                        }
+                        let currentResidues = parseResidues(currentValue);
+                        currentResidues = currentResidues.concat(newResidues);
+                        $(`#${this.props.id}`).val(flattenResidues(currentResidues));
+                    }
+                }
+            }
         }
     }
     
@@ -662,7 +758,7 @@ namespace Controls.UI{
                         <CheckBox label="Ignore HETATMs" defaultChecked={true} id="ignoreAllHetatm" tooltip={TooltipText.get("ignoreAllHetatm")} classNames={chckColClasses} />
                         <TextBox label="Query Filter" id="queryFilter" tooltip={TooltipText.get("queryFilter")} classNames={css} placeholder="Residues('GOL')" hint={this.getPatternQueryHint()} onValidateCustom={this.validatePatternQuery} />                        
                         <CheckBox label="Read All Models" defaultChecked={false} id="readAllModels" tooltip={TooltipText.get("readAllModels")} classNames={chckColClasses} />
-                        <TextBox label="Ignored Residues" id="nonActiveResidues" tooltip={TooltipText.get("nonActiveResidues")} classNames={css} placeholder="A 69, A 386, ..." onValidate={this.validateResidueSimpleArray} />
+                        <ResiduesBox label="Ignored Residues" id="nonActiveResidues" tooltip={TooltipText.get("nonActiveResidues")} classNames={css} placeholder="A 69, A 386, ..." onValidate={this.validateResidueSimpleArray} />
                         <TextBox label="Specific Chains" id="specificChains" tooltip={TooltipText.get("specificChains")} classNames={css} placeholder="A, B, ..." onValidate={this.validateChainsArray}/>                  
 
                         <h4>Cavity Parameters</h4>
@@ -710,9 +806,9 @@ namespace Controls.UI{
                         
                         <h4>Selection</h4>
                         <CSAPickBox label="Active Sites From CSA" id="csaActiveSites" tooltip={TooltipText.get("csaActiveSites")} classNames={css} outputRefId="originResidues" computationId={this.props.initialData.ComputationId} />
-                        <TextBox label="Starting Point" id="originResidues" tooltip={TooltipText.get("originResidues")} classNames={css} placeholder="[A 69, A 386], [A 137, A 136]" onValidate={this.validateResidueDoubleArray} />
+                        <ResidueArraysBox label="Starting Point" id="originResidues" tooltip={TooltipText.get("originResidues")} classNames={css} placeholder="[A 69, A 386], [A 137, A 136]" onValidate={this.validateResidueDoubleArray} />
                         <XYZBox label="Starting Point [x,y,z]" id="originPoints" tooltip={TooltipText.get("originPoints")} classNames={css} placeholder={{x:-1,y:0,z:4}} />
-                        <TextBox label="End Point" id="customExitsResidues" tooltip={TooltipText.get("customExitsResidues")} classNames={css} placeholder="[A 69, A 386], [A 137, A 136]" onValidate={this.validateResidueDoubleArray} />
+                        <ResidueArraysBox label="End Point" id="customExitsResidues" tooltip={TooltipText.get("customExitsResidues")} classNames={css} placeholder="[A 69, A 386], [A 137, A 136]" onValidate={this.validateResidueDoubleArray} />
                         <XYZBox label="End Point [x,y,z]" id="customExitsPoints" tooltip={TooltipText.get("customExitsPoints")} classNames={css} placeholder={{x:-1,y:0,z:4}} />
                         <TextBox label="Query" id="queryExpresion" tooltip={TooltipText.get("queryExpresion")} classNames={css} placeholder="Atoms('Fe')" hint={this.getPatternQueryHint()} onValidateCustom={this.validatePatternQuery} />
 

@@ -67,5 +67,7 @@ namespace LiteMol.Example.Channels {
         PdbIdSign.UI.render(document.getElementById("pdbid-sign") !);        
 
         AlertMessages.UI.render(document.getElementById("alert-messages") !);
+
+        SequenceViewer.UI.render(document.getElementById("sequence-viewer") !, plugin);
     })();
 }

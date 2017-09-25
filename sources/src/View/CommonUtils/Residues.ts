@@ -15,7 +15,7 @@ namespace CommonUtils{
             this.cache = new Map<number,string>();
         }
 
-        private static getDirect(residueSeqNumber:number, plugin: Controller){
+        private static getNameDirect(residueSeqNumber:number, plugin: Controller){
             if(plugin.context.select('polymer-visual')[0].props!==void 0){
                 let props = plugin.context.select('polymer-visual')[0].props as any;
                 if(props.model===void 0 || props.model.model===void 0){
@@ -51,7 +51,7 @@ namespace CommonUtils{
                 return name;
             }
 
-            let name = this.getDirect(residueSeqNumber, plugin);
+            let name = this.getNameDirect(residueSeqNumber, plugin);
             this.cache.set(residueSeqNumber, name);
 
             return name;
@@ -176,6 +176,82 @@ namespace CommonUtils{
                     return a.authSeqNumber-b.authSeqNumber;
                 }
             };
+        }
+
+        private static sequenceLetters:string[] = [
+            'A',
+            'B',
+            'C',
+            'D',
+            'E',
+            'F',
+            'G',
+            'H',
+            'I',
+            'J',
+            'K',
+            'L',
+            'M',
+            'N',
+            'O',
+            'P',
+            'Q',
+            'R',
+            'S',
+            'T',
+            'U',
+            'V',
+            'W',
+            'Y',
+            'Z'
+        ];
+
+        private static residueNames:string[] = [
+            'ALA',
+            'ASP/ASN',
+            'CYS',
+            'ASP',
+            'GLU',
+            'PHE',
+            'GLY',
+            'HIS',
+            'ILE',
+            'LEU/ISO',
+            'LYS',
+            'LEU',
+            'MET',
+            'ASN',
+            'PYL',
+            'PRO',
+            'GLN',
+            'ARG',
+            'SER',
+            'THR',
+            'SEC',
+            'VAL',
+            'TRP',
+            'TYR',
+            'GLU/GLN'
+        ];
+
+        private static codelistSearch(whereToSearch:string[],results:string[],query:string){
+            for(let idx=0;idx<whereToSearch.length;idx++){
+                if(whereToSearch[idx]===query){
+                    return results[idx];
+                }
+            }
+
+            return "";
+        }
+
+        public static getSequenceLetterByName(name:string){
+            let rv = this.codelistSearch(this.residueNames,this.sequenceLetters,name);
+            return (rv==="")?"~":rv;
+        }
+
+        public static getNameBySequenceLetter(letter:string){
+            let rv = this.codelistSearch(this.sequenceLetters,this.residueNames,letter);
+            return (rv==="")?"<Unknown>":rv;
         }
     }
 }

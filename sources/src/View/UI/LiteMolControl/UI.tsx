@@ -214,13 +214,6 @@ namespace LiteMol.Example.Channels.UI {
         private observer: Bootstrap.Rx.IDisposable | undefined = void 0;
         private observerChannels: Bootstrap.Rx.IDisposable | undefined = void 0;
         componentWillMount() {
-            CommonUtils.Selection.SelectionHelper.attachOnResidueSelectHandler(((r:any)=>{
-                this.setState({ label: `${r.name} ${r.authSeqNumber} ${r.chain.authAsymId}`});
-            }).bind(this));
-            CommonUtils.Selection.SelectionHelper.attachOnResidueLightSelectHandler(((r:CommonUtils.Selection.LightResidueInfo)=>{
-                let name = CommonUtils.Residues.getName(r.authSeqNumber,this.props.plugin);
-                this.setState({ label: `${name} ${r.authSeqNumber} ${r.chain.authAsymId}`});
-            }).bind(this));
             CommonUtils.Selection.SelectionHelper.attachOnResidueBulkSelectHandler(((r:CommonUtils.Selection.LightResidueInfo[])=>{    
                 let label = r.map((val,idx,array)=>{
                     let name = CommonUtils.Residues.getName(val.authSeqNumber,this.props.plugin);
@@ -258,8 +251,7 @@ namespace LiteMol.Example.Channels.UI {
             this.observer = this.props.plugin.subscribe(Bootstrap.Event.Molecule.ModelSelect, e => {
                 if (e.data) {
                     let r = e.data.residues[0];
-                    CommonUtils.Selection.SelectionHelper.selectResidueWithBallsAndSticks(this.props.plugin,r);
-                    
+                    CommonUtils.Selection.SelectionHelper.addResidueToSelection(r.authSeqNumber,r.chain.authAsymId);
                     if(!CommonUtils.Selection.SelectionHelper.isSelectedAny()){
                         this.setState({ label: void 0})
                     }
@@ -314,7 +306,14 @@ namespace LiteMol.Example.Channels.UI {
 
         render() {
             return <div>
-                <div className="ui-selection-header">Selection</div>  
+                <div className="ui-selection-header">
+                    <span>Selection</span>
+                    <div className="btn btn-xs btn-basic ui-selection-clear" onClick={(e)=>{
+                        let plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
+                        CommonUtils.Selection.SelectionHelper.clearSelection(plugin);
+                        //CommonUtils.Selection.SelectionHelper.clearAltSelection(plugin);
+                        }}>(Clear selection)</div>
+                </div>  
                 <div className="ui-selection">{ !this.state.label 
                     ? <i>Click on atom residue or channel</i>
                     : this.state.label}
@@ -420,8 +419,15 @@ namespace LiteMol.Example.Channels.UI {
             let c = this.props.channel as DataInterface.Tunnel;
             let len = CommonUtils.Tunnels.getLength(c);
             let name = MoleOnlineWebUI.Cache.TunnelName.get(c.Id);
-            let namePart = (name===void 0)?'':` (${name})`;
-            return <Renderable label={<span><b><a onClick={this.selectChannel.bind(this)}>{c.Type}{namePart}</a></b>, {`Length: ${len} Å`}</span>} element={c} toggle={State.showChannelVisuals} {...this.props.state} />
+            let namePart = (name===void 0)?'':` (${name})`;        
+            return <Renderable label={<span><b><a onClick={this.selectChannel.bind(this)}>{c.Type}{namePart}</a></b><ColorPicker tunnel={this.props.channel}/>, {`Length: ${len} Å`}</span>} element={c} toggle={(p:LiteMol.Plugin.Controller,ch:DataInterface.Tunnel[]&State.TunnelMetaInfo[],v:boolean)=>{                
+                    return State.showChannelVisuals(p,ch,v)
+                        .then(res=>{
+                            this.props.channel = ch[0];
+                            this.forceUpdate();
+                        })
+                }
+            } {...this.props.state} />
         }
 
         private selectChannel(){
@@ -500,6 +506,54 @@ namespace LiteMol.Example.Channels.UI {
                     <input type='checkbox' checked={!!this.props.origins.__isVisible} onChange={() => this.toggle()} disabled={!!this.props.origins.__isBusy} /> {this.props.label}
                 </label>
             </div>
+        }
+    }
+
+
+    let __colorPickerIdSeq = 0;
+    function generateColorPickerId(){
+        return `color-picker-${__colorPickerIdSeq++}`;
+    }
+    export class ColorPicker extends React.Component<{tunnel:DataInterface.Tunnel & State.TunnelMetaInfo},{visible:boolean}>{
+        state = {visible:false}
+        private id:string;
+
+        componentDidMount(){
+            this.id = generateColorPickerId();
+            $(window).on('click',((e:MouseEvent)=>{
+                if(!this.state.visible){
+                    return;
+                }
+                let el = ($("#"+this.id)[0] as HTMLElement).children[0];
+                let rect = el.getBoundingClientRect();
+
+                if(!(e.clientX>=rect.left && e.clientX<=rect.left+rect.width
+                    && e.clientY >= rect.top && e.clientY<= rect.top+rect.height)){
+                    this.setState({visible:false});
+                }
+            }).bind(this));
+        }
+
+        render(){
+            if(!this.props.tunnel.__isVisible){
+                return <span/>
+            }
+
+            let color = (this.props.tunnel.__color!==void 0)?this.props.tunnel.__color:MoleOnlineWebUI.StaticData.LiteMolObjectsColorScheme.Colors.get(MoleOnlineWebUI.StaticData.LiteMolObjectsColorScheme.Enum.DefaultColor);
+            let plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
+            if(this.state.visible){
+                return <div className="color-picker" id={this.id}>
+                        <LiteMol.Plugin.Controls.ColorPicker color={color} onChange={c => {                
+                        this.props.tunnel.__color = c;
+                        State.showChannelVisuals(plugin,[this.props.tunnel],(this.props.tunnel as any).__isVisible, true);
+                    }} />
+                </div>
+            }
+            else{
+                return <div className="color-picker" id={this.id} style={{backgroundColor:`rgb(${Math.ceil(color.r*255)},${Math.ceil(color.g*255)},${Math.ceil(color.b*255)})`}} onClick={(e)=>{
+                    this.setState({visible:true});
+                    }}/>
+            }
         }
     }
 

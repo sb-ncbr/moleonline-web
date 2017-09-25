@@ -127,9 +127,9 @@ namespace LiningResidues.UI{
                 residues.push(residueStringToResidueLight(residue));
             }
 
-            if(!CommonUtils.Selection.SelectionHelper.isBulkResiduesSelected(residues)){
-                CommonUtils.Selection.SelectionHelper.selectResiduesBulkWithBallsAndSticks(this.props.app.props.controller, residues);
-            }
+            //CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
+            CommonUtils.Selection.SelectionHelper.addResiduesToSelection(residues,false);
+
         }
 
         render(){
@@ -202,9 +202,7 @@ namespace LiningResidues.UI{
 
         private selectResidue(residue:string){
             let residueLightEntity = residueStringToResidueLight(residue);
-            if(!CommonUtils.Selection.SelectionHelper.isSelectedLight(residueLightEntity)){
-                CommonUtils.Selection.SelectionHelper.selectResidueByAuthAsymIdAndAuthSeqNumberWithBallsAndSticks(this.props.app.props.controller,residueLightEntity)
-            }
+            CommonUtils.Selection.SelectionHelper.addResidueToSelection(residueLightEntity.authSeqNumber,residueLightEntity.chain.authAsymId);
         }
 
         private getSelect3DLink(residue:string){           

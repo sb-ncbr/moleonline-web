@@ -1,6 +1,15 @@
-.TextBox-hint{
+.TextBox-hint,
+.ResidueArraysBox-useSelection{
     width: 100%;
     text-align: right;
     padding-right: 18px;
     margin-top: 40px;
+}
+
+.ResidueArraysBox-useSelection{
+    padding-right: 15px;
+}
+
+.ResidueArraysBox-useSelection .useCurrentSelectionIcon{
+    margin-right: 3px;
 }

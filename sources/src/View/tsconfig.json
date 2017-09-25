@@ -91,6 +91,9 @@
     //PDB id sign
     "UI/PdbIdSign/UI.tsx",
     
+    //Sequence Viewer
+    "UI/SequenceViewer/UI.tsx",
+
     //Main UI
     "State.ts",
     "UI/LiteMolControl/UI.tsx",

@@ -244,22 +244,30 @@ only screen and (max-height: 600px) {
 
 .plugin{
 	width:75vw;
-	height:66vh;
+	height:58vh;
 	left:0;
     top:0;
     border-bottom: 1px solid #aaa;
     border-right: 1px solid #aaa;
 }
 .plugin.bottom-panel-toggled{
-	height:33vh;
+	height:25vh;
 }
 
-.plugin .lm-highlight-info{
+.sequence-viewer{
+    top:58vh;
+    height:8vh;
+    width:75vw;
+}
+.sequence-viewer.bottom-panel-toggled{
+    top:25vh;
+}
+
+
+.plugin .lm-highlight-info,
+.plugin .lm-background-tasks{
     top: initial;
-    bottom: 10px;
-    /*
-    left:70px;
-    */
+    bottom: 40px;
 }
 
 .right-panel{
@@ -626,6 +634,24 @@ span.ATable-label {
     font-style: italic;
 }
 
+.ui .color-picker{
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin: 2px 2px;
+    margin-bottom: -4px;
+    margin-left: 4px;
+    border: 1px solid black;
+    cursor: pointer;
+}
+
+.ui .lm-color-picker{
+    position:absolute;
+    width:120px;
+    height:80px;
+}
+
+
 @media only screen and (max-width: 1360px){
     #dg-aglomered-parameters.datagrid .col.col-4{
         min-width:50px;
@@ -638,10 +664,19 @@ span.ATable-label {
 @media only screen and (max-width: 1300px),
 only screen and (max-height: 900px) {
     .plugin{
-        height:60vh;
+        height:50vh;
     }
     .plugin.bottom-panel-toggled{
-        height:40vh;
+        height:30vh;
+    }
+    .sequence-viewer{
+        top:50vh;
+    }
+    .sequence-viewer.bottom-panel-toggled{
+        top:30vh;
+    }
+    .sequence-viewer .seq-container{
+        height:10vh;
     }
     .bottom-panel{
         height:40vh;

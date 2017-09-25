@@ -70,7 +70,7 @@ namespace DataInterface{
         },
         Annotations:AnnotationObject[]
     }
-
+/*
     export interface MoleOnlineData{
         Channels:{
             Tunnels:Tunnel[],
@@ -79,7 +79,7 @@ namespace DataInterface{
             Paths:Tunnel[]
         },
         Annotations:AnnotationObject[]
-    }
+    }*/
 
     export interface AnnotationObject{
         Annotation: any,
@@ -98,72 +98,101 @@ namespace DataInterface{
     };
 
     export function convertLayersToLayerData(layersObject:DataInterface.Layers):LayerData[]{
-            let layersData: LayerData[] = [];
-            let layerCount = layersObject.LayersInfo.length;
-            
+        let layersData: LayerData[] = [];
+        let layerCount = layersObject.LayersInfo.length;
+        
+        /*
+        export interface LayerData{
+        StartDistance: number,
+        EndDistance: number,
+        MinRadius: number,
+        MinFreeRadius: number,
+        Properties: any,
+        Residues: any
+        */
+
+        for(let i=0;i<layerCount;i++){
             /*
-            export interface LayerData{
-            StartDistance: number,
-            EndDistance: number,
-            MinRadius: number,
-            MinFreeRadius: number,
-            Properties: any,
-            Residues: any
+            Hydrophobicity: number,
+            Hydropathy: number,
+            Polarity: number,
+            Mutability: number
             */
-
-            for(let i=0;i<layerCount;i++){
-                /*
-                Hydrophobicity: number,
-                Hydropathy: number,
-                Polarity: number,
-                Mutability: number
-                */
-                let properties = {
-                    Charge: layersObject.LayersInfo[i].Properties.Charge,
-                    NumPositives: layersObject.LayersInfo[i].Properties.NumPositives,
-                    NumNegatives: layersObject.LayersInfo[i].Properties.NumNegatives,
-                    Hydrophobicity: layersObject.LayerWeightedProperties.Hydrophobicity,
-                    Hydropathy: layersObject.LayerWeightedProperties.Hydropathy,
-                    Polarity: layersObject.LayerWeightedProperties.Polarity,
-                    Mutability: layersObject.LayerWeightedProperties.Mutability
-                };
-                layersData.push({
-                    StartDistance: layersObject.LayersInfo[i].LayerGeometry.StartDistance,
-                    EndDistance: layersObject.LayersInfo[i].LayerGeometry.EndDistance,
-                    MinRadius: layersObject.LayersInfo[i].LayerGeometry.MinRadius,
-                    MinFreeRadius: layersObject.LayersInfo[i].LayerGeometry.MinFreeRadius,
-                    Properties: layersObject.LayersInfo[i].Properties,//? Proc sem davat weighted properties?
-                    Residues: layersObject.LayersInfo[i].Residues
-                });
-            }
-
-            return layersData;
+            let properties = {
+                Charge: layersObject.LayersInfo[i].Properties.Charge,
+                NumPositives: layersObject.LayersInfo[i].Properties.NumPositives,
+                NumNegatives: layersObject.LayersInfo[i].Properties.NumNegatives,
+                Hydrophobicity: layersObject.LayerWeightedProperties.Hydrophobicity,
+                Hydropathy: layersObject.LayerWeightedProperties.Hydropathy,
+                Polarity: layersObject.LayerWeightedProperties.Polarity,
+                Mutability: layersObject.LayerWeightedProperties.Mutability
+            };
+            layersData.push({
+                StartDistance: layersObject.LayersInfo[i].LayerGeometry.StartDistance,
+                EndDistance: layersObject.LayersInfo[i].LayerGeometry.EndDistance,
+                MinRadius: layersObject.LayersInfo[i].LayerGeometry.MinRadius,
+                MinFreeRadius: layersObject.LayersInfo[i].LayerGeometry.MinFreeRadius,
+                Properties: layersObject.LayersInfo[i].Properties,//? Proc sem davat weighted properties?
+                Residues: layersObject.LayersInfo[i].Residues
+            });
         }
 
-        export namespace Annotations{
-            export interface ChannelsDBData{
-                EntryAnnotations: ProteinAnnotation[],
-                ResidueAnnotations: ResidueAnnotations
-            };
+        return layersData;
+    }
 
-            export interface ProteinAnnotation{
-                Function: string,
-                Name: string,
-                Catalytics: string[],
-                UniProtId: string
-            };
+    export namespace Annotations{
+        export interface ChannelsDBData{
+            EntryAnnotations: ProteinAnnotation[],
+            ResidueAnnotations: ResidueAnnotations
+        };
 
-            export interface ResidueAnnotations{
-                ChannelsDB: Annotation[],
-                UniProt: Annotation[]
-            };
+        export interface ProteinAnnotation{
+            Function: string,
+            Name: string,
+            Catalytics: string[],
+            UniProtId: string
+        };
 
-            export interface Annotation {
-                Id: string,
-                Chain: string,
-                Text: string,
-                Reference: string,
-                ReferenceType: string
-            }
+        export interface ResidueAnnotations{
+            ChannelsDB: Annotation[],
+            UniProt: Annotation[]
+        };
+
+        export interface Annotation {
+            Id: string,
+            Chain: string,
+            Text: string,
+            Reference: string,
+            ReferenceType: string
         }
-};
+    }
+
+    export interface ProteinData{
+        data:{
+            chains:{
+                authAsymId:String[],
+                count:Number,
+                indices:Number[],
+                residueStartIndex:Number[],
+                residueEndIndex:Number[]
+            }
+            residues:{
+                authAsymId:string[],
+                authSeqNumber:Number[],
+                authName:string[],
+                indices:Number[],
+                count:Number,
+                entityId:Number
+            }
+        },
+        id:string,
+        modelId:string,
+        positions:{
+            count:Number,
+            indices:Number[],
+            x:Number[],
+            y:Number[],
+            z:Number[],
+        }
+    };
+}

@@ -12,9 +12,8 @@ namespace Config{
 
     export class DataSources{
         public static API_URL:any = {
-            "local":"https://webchem.ncbr.muni.cz/API/MOLE",
-            "test":"https://webchem.ncbr.muni.cz/API/MOLE",
-            "prod":"https://api.mole.upol.cz",
+            "webchem":"https://webchem.ncbr.muni.cz/API/MOLE",
+            "upol":"https://api.mole.upol.cz",
         }
 
         public static PATTERN_QUERY_API_URL:any = {

@@ -140,8 +140,8 @@ namespace LiteMol.Example.Channels.State {
         return new Promise<any>((res,rej)=>{
             MoleOnlineWebUI.DataProxy.CSAResidues.DataProvider.get(computationId,(compId,info)=>{
                 let originsData:string=residuesToPoints(plugin, info);
-                let csaOrigins = plugin.createTransform().add(plugin.root, Transformer.Data.FromData, { data: originsData, id: 'CSA Origins' }, { isHidden: false, ref:'csa-origins-object' })
-                    .then(Transformer.Data.ParseJson, { id: 'CSA Origins' }, { ref: 'csa-origins' });
+                let csaOrigins = plugin.createTransform().add(plugin.root, Transformer.Data.FromData, { data: originsData, id: 'CSA Origins' }, { isHidden: true, ref:'csa-origins-object' })
+                    .then(Transformer.Data.ParseJson, { id: 'Origins' }, { isHidden:true, ref: 'csa-origins' });
                 plugin.applyTransform(csaOrigins)
                     .then(() => {
                         res();
@@ -173,8 +173,8 @@ namespace LiteMol.Example.Channels.State {
         removeChannelsData(plugin);
         return new Promise<any>((res,rej)=>{
             ApiService.getChannelsData(computationId, submitId).then((data)=>{
-                let channels = plugin.createTransform().add(plugin.root, Transformer.Data.FromData, { data, id: 'MOLE Data' }, { isHidden: false, ref:'mole-data-object' })
-                    .then(Transformer.Data.ParseJson, { id: 'MOLE Data' }, { ref: 'mole-data' });
+                let channels = plugin.createTransform().add(plugin.root, Transformer.Data.FromData, { data, id: 'Computation Results' }, { isHidden: true, ref:'mole-data-object' })
+                    .then(Transformer.Data.ParseJson, { id: 'Objects' }, { ref: 'mole-data', isHidden:true });
                 plugin.applyTransform(channels)
                     .then(() => {
                         let parsedData = plugin.context.select('mole-data')[0] as Bootstrap.Entity.Data.Json;
@@ -209,11 +209,15 @@ namespace LiteMol.Example.Channels.State {
                 
                 plugin.applyTransform(protein)
                     .then(() => {
-                        if(plugin.context.select('polymer-visual').length!==1){
+                        let polymerVisual = plugin.context.select('polymer-visual');
+                        if(polymerVisual.length!==1){
                             rej("Application was unable to retrieve protein structure from coordinate server.");
                         }
-                        plugin.command(Bootstrap.Command.Entity.Focus, plugin.context.select('polymer-visual'));
-                        res();
+                        else{
+                            plugin.command(Bootstrap.Command.Entity.Focus, polymerVisual);
+                            res();
+                            MoleOnlineWebUI.Bridge.Events.invokeProteinDataLoaded((polymerVisual[0].props as any).model.model);
+                        }
                     })
                     .catch(error=>rej(error));
             })
@@ -404,7 +408,7 @@ namespace LiteMol.Example.Channels.State {
                 continue;
             }
             s.add({ type: 'Sphere', id: 0/*id++*/, radius: sphere.Radius, center: [ sphere.X, sphere.Y, sphere.Z ], tessalation: 2 });
-        }
+        }        
         return s.buildSurface().run();
     }
 
@@ -673,24 +677,27 @@ namespace LiteMol.Example.Channels.State {
         return showSurfaceVisuals(plugin, cavities, visible, 'Cavity', (cavity: any) => `${cavity.Type} ${cavity.Id}`, 0.33);
     }
 
-    interface TunnelMetaInfo{
+    export interface TunnelMetaInfo{
         __id:string,
         __isVisible:boolean,
         __color:Visualization.Color,
         __isBusy:boolean
     };
     //Modified
-    export function showChannelVisuals(plugin: Plugin.Controller, channels: DataInterface.Tunnel[]&TunnelMetaInfo[], visible: boolean): Promise<any> {
-        let label = (channel: any) => `${channel.Type} ${channel.Id + 1}`;
+    export function showChannelVisuals(plugin: Plugin.Controller, channels: DataInterface.Tunnel[]&TunnelMetaInfo[], visible: boolean, forceRepaint?:boolean): Promise<any> {
+        let label = (channel: any) => `${channel.Type} ${CommonUtils.Tunnels.getName(channel)}`;
         /*let type = "Channel";*/
         let alpha = 1.0;
 
         let promises = [];
         for (let channel of channels) {
-
             // Stejné jako v Examples/Channels
             if (!channel.__id) channel.__id = Bootstrap.Utils.generateUUID();
-            if (!!channel.__isVisible === visible) continue;
+            if (!!channel.__isVisible === visible && !forceRepaint) continue;
+
+            if(forceRepaint!==void 0&&forceRepaint){
+                plugin.command(Bootstrap.Command.Tree.RemoveNode, channel.__id);
+            }
 
             channel.__isVisible = visible;
             if (!channel.__color) {
@@ -720,7 +727,7 @@ namespace LiteMol.Example.Channels.State {
                         }
                         */
                         
-                        let t = plugin.createTransform();
+                        let t = plugin.createTransform();                        
                         t.add('mole-data', CreateSurface, {
                             label: label(channel),
                             tag: { type:channel.Type, element: channel },
@@ -781,7 +788,7 @@ namespace LiteMol.Example.Channels.State {
             createOriginsSurface(origins).then(surface => {
                 let t = plugin.createTransform()
                     .add('mole-data', CreateSurface, {
-                        label: 'Origins ' + origins.Type,
+                        label: 'Origins (' + origins.Type + ')',
                         tag: { type: 'Origins', element: origins },
                         surface,
                         isInteractive: true,

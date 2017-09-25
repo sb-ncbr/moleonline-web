@@ -22,6 +22,7 @@ namespace MoleOnlineWebUI.Bridge{
     export type ChangeHasKillableHandler = (hasKillable:boolean)=>void;
     export type NotifyMessageHandler = (e:MessageInfo)=>void;
     export type ChannelDataLoadedHandler = (data:DataInterface.MoleData)=>void;
+    export type ProteinDataLoadedHandler = (data:DataInterface.ProteinData)=>void;
 
     namespace HandlerTypes{
         export const NewSubmitType = "NEW-SUBMIT";
@@ -30,6 +31,7 @@ namespace MoleOnlineWebUI.Bridge{
         export const ChangeHasKillableType = "CHANGE-HAS-KILLABLE";
         export const NotifyMessageType = "NOTIFY-MESSAGE";
         export const ChannelDataLoadedType = "CHANNEL-DATA-LOADED";
+        export const ProteinDataLoadedType = "PROTEIN-DATA-LOADED";
         
         export type NewSubmit = "NEW-SUBMIT";
         export type ChangeSubmitId = "CHANGE-SUBMIT-ID";
@@ -37,10 +39,11 @@ namespace MoleOnlineWebUI.Bridge{
         export type ChangeHasKillable = "CHANGE-HAS-KILLABLE";
         export type NotifyMessage = "NOTIFY-MESSAGE";
         export type ChannelDataLoaded = "CHANNEL-DATA-LOADED";
+        export type ProteinDataLoaded = "PROTEIN-DATA-LOADED";
         
     };
 
-    type HandlerType = HandlerTypes.NewSubmit | HandlerTypes.ChangeSubmitId | HandlerTypes.ChannelSelect | HandlerTypes.ChangeHasKillable | HandlerTypes.NotifyMessage | HandlerTypes.ChannelDataLoaded;
+    type HandlerType = HandlerTypes.NewSubmit | HandlerTypes.ChangeSubmitId | HandlerTypes.ChannelSelect | HandlerTypes.ChangeHasKillable | HandlerTypes.NotifyMessage | HandlerTypes.ChannelDataLoaded | HandlerTypes.ProteinDataLoaded;
 
     export class Events{
         private static handlers = new Map<HandlerType,SimpleHandler[]>();
@@ -148,6 +151,24 @@ namespace MoleOnlineWebUI.Bridge{
 
         public static invokeChannelDataLoaded(data:DataInterface.MoleData){
             let hndlrs = this.handlers.get(HandlerTypes.ChannelDataLoadedType);
+            if(hndlrs!==void 0){
+                for(let h of hndlrs){
+                    h(data);
+                }
+            }
+        }
+
+        public static subscribeProteinDataLoaded(h:ProteinDataLoadedHandler){
+            let list = this.handlers.get(HandlerTypes.ProteinDataLoadedType);
+            if(list===void 0){
+                list = [];
+            }
+            list.push(h);
+            this.handlers.set(HandlerTypes.ProteinDataLoadedType, list);
+        }
+
+        public static invokeProteinDataLoaded(data:DataInterface.ProteinData){
+            let hndlrs = this.handlers.get(HandlerTypes.ProteinDataLoadedType);
             if(hndlrs!==void 0){
                 for(let h of hndlrs){
                     h(data);

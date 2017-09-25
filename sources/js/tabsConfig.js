@@ -15,6 +15,7 @@ $( function() {
     });
     $( "#bottom-panel-toggler" ).on("click",function(){
         $( ".plugin" ).toggleClass( "bottom-panel-toggled" );
+        $( ".sequence-viewer" ).toggleClass( "bottom-panel-toggled" );
         $( ".bottom-panel" ).toggleClass( "bottom-panel-toggled" );
         //Agglomered parameters resize
         $( window ).trigger('resize');
