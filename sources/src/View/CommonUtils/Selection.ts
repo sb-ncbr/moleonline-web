@@ -242,7 +242,7 @@ namespace CommonUtils.Selection{
             let query = LiteMol.Core.Structure.Query.or(...queries);
 
             let t = plugin.createTransform();
-            let visualStyle = LiteMol.Bootstrap.Visualization.Molecule.Default.ForType.get('BallsAndSticks');
+            const visualStyle = LiteMol.Bootstrap.Visualization.Molecule.Default.ForType.get('BallsAndSticks');
             if(visualStyle!==void 0){
                 visualStyle.taskType = "Silent";
             }
