@@ -242,10 +242,15 @@ namespace CommonUtils.Selection{
             let query = LiteMol.Core.Structure.Query.or(...queries);
 
             let t = plugin.createTransform();
+            let visualStyle = LiteMol.Bootstrap.Visualization.Molecule.Default.ForType.get('BallsAndSticks');
+            if(visualStyle!==void 0){
+                visualStyle.taskType = "Silent";
+            }
             t.add('polymer-visual', Transformer.Molecule.CreateSelectionFromQuery, { query, name: 'Residues', silent:true }, { ref: CommonUtils.Selection.SelectionHelper.getSelectionVisualRef(), isHidden: true })
-                .then(Transformer.Molecule.CreateVisual, { style: LiteMol.Bootstrap.Visualization.Molecule.Default.ForType.get('BallsAndSticks') }, {isHidden:true});
+                .then(Transformer.Molecule.CreateVisual, { style: visualStyle }, {isHidden:true});
 
             plugin.applyTransform(t)
+
             /*.then(()=>{
                 //LiteMol.Bootstrap.Command.Entity.Focus.dispatch(plugin.context, plugin.context.select(CommonUtils.Selection.SelectionHelper.getSelectionVisualRef()));
             }); */ 
