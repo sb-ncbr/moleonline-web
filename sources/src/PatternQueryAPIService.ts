@@ -8,11 +8,11 @@ namespace MoleOnlineWebUI.Service.PatternQueryAPI{
     export class ApiService{
         private static DEBUG_MODE = Config.CommonOptions.DEBUG_MODE;
         
-        private static baseUrl = Config.DataSources.PATTERN_QUERY_API_URL[Config.DataSources.MODE];
+        private static baseUrl = Config.DataSources.PATTERN_QUERY_API_URL[Config.DataSources.PATTERN_QUERY_MODE];
         
         private static sendGET(url:string):Promise<any>{
             return this.handleResponse(fetch(url, {
-                method: "GET"
+                method: "GET",
             }), url);
         }
         private static handleResponse(response:Promise<Response>,url:string){

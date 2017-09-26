@@ -17,12 +17,11 @@ namespace Config{
         }
 
         public static PATTERN_QUERY_API_URL:any = {
-            "local":"https://webchem.ncbr.muni.cz/Platform/PatternQuery/ValidateQuery",
-            "test":"https://webchem.ncbr.muni.cz/Platform/PatternQuery/ValidateQuery",
-            "prod":"https://webchem.ncbr.muni.cz/Platform/PatternQuery/ValidateQuery",
+            "webchem":"https://webchem.ncbr.muni.cz/Platform/PatternQuery/ValidateQuery",
         }
 
         public static MODE = "unknown";
+        public static PATTERN_QUERY_MODE = "unknown";
     }
 
     export class CommonOptions{

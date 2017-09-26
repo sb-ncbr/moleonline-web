@@ -160,8 +160,9 @@ namespace SequenceViewer.UI{
                 <div className={`seq-letter${(this.state.selected)?" selected":""}`} onMouseDown={(e)=>{
                         CommonUtils.Selection.SelectionHelper.addResidueToSelection(this.props.seqNumber.valueOf(),this.props.chainName.valueOf());
                     }} onMouseMove={(e)=>{
-                        //TODO:
-                        //highlightResiude(this.props.seqNumber,this.props.chainName.valueOf(),this.props.data);
+                        highlightResiude(this.props.seqNumber,this.props.chainName.valueOf(),true);
+                    }} onMouseOut={(e)=>{
+                        highlightResiude(this.props.seqNumber,this.props.chainName.valueOf(),false);
                     }} title={`${this.props.residueName} ${this.props.chainName} ${this.props.seqNumber}`}>{this.props.seqLetter}</div>
             </div>
         }
@@ -172,32 +173,11 @@ namespace SequenceViewer.UI{
         CommonUtils.Selection.SelectionHelper.clearSelection(plugin);
     }
 
-    function highlightResiude(seqNumber:Number, chain:string, data:DataType){
-        /*let indice:Number = -1;
-        for(let i=0;i<data.data.residues.count;i++){
-            if(data.data.residues.authSeqNumber[i]===seqNumber&&data.data.residues.authAsymId[i]===chain){
-                indice = data.data.residues.indices[i];
-            }
-        }
-        if(indice===-1){
-            return;
-        }
-        */
+    function highlightResiude(seqNumber:Number, chain:string, isOn:boolean){
         let plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
-        let entities = plugin.selectEntities("polymer-visual");        
-        console.log(entities);
-        let v = entities[0] as LiteMol.Bootstrap.Entity.Visual.Any;   
-        if (LiteMol.Bootstrap.Entity.isVisual(entities[0])&&v.props.isSelectable) {
-            v.props.model.applySelection(CommonUtils.Selection.getIndices(v), LiteMol.Visualization.Selection.Action.Highlight);
-        }
-        
-        
-        console.log(data);
-        let model = data as any;
-        //let plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
-        console.log(plugin.context.tree.root);
-        //let indices = CommonUtils.Selection.getIndices(model);
-        //LiteMol.Bootstrap.Event.Visual.VisualHoverElement.dispatch(plugin.context,{elements:indices,kind:LiteMol.Bootstrap.Interactivity.Info.__Kind.Selection,source:model});   
+        let model = plugin.selectEntities("polymer-visual")[0] as LiteMol.Bootstrap.Entity.Molecule.Model;
+        let query = LiteMol.Core.Structure.Query.residuesById(seqNumber.valueOf()).intersectWith(LiteMol.Core.Structure.Query.chainsById(chain));
+        LiteMol.Bootstrap.Command.Molecule.Highlight.dispatch(plugin.context,{model,query,isOn});        
     }
 
 }

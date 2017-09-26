@@ -78,7 +78,7 @@ namespace Controls.UI{
         window.setTimeout(()=>{
             $(el).popover("hide");
             $(el).popover("destroy");
-        });
+        },5000);
         $(el).focus();
     }
 
@@ -724,6 +724,7 @@ namespace Controls.UI{
                     }
                 })
                 .catch((err)=>{
+                    console.log(err);
                     createCustomValidationPopup(el,`Error occured during query validation.`);
                 });
         }
