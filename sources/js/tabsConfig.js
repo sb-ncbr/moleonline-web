@@ -71,6 +71,10 @@ function resizeTabAfterActivate(){
 }
 
 function fillSpaceOnResize(elementId,lowLevelContainerId,highLevelContainerId,height){
+    if($('#'+elementId).length === 0){
+        return;
+    }
+    
     if(height===void 0){
         height=100;
     }

@@ -3,6 +3,11 @@ namespace MoleOnlineWebUI.InitForm.UI{
     import ApiService =  MoleOnlineWebUI.Service.MoleAPI.ApiService;
     import MoleAPI = MoleOnlineWebUI.Service.MoleAPI;
 
+    import React = LiteMol.Plugin.React;
+    import ReactDOM = LiteMol.Plugin.ReactDOM;
+
+    declare function $(p:any): any;
+
     interface State{
         app: App,
         useBiologicalUnit: boolean,
@@ -34,6 +39,8 @@ namespace MoleOnlineWebUI.InitForm.UI{
             e.preventDefault();
 
             let form = e.target as HTMLFormElement;
+            $('#frm-jobSetup-setupForm-next').val('Submiting...');
+            $('#frm-jobSetup-setupForm-next').prop('disabled', true);      
             
             let pdbid="";
             let assembly;
@@ -89,7 +96,13 @@ namespace MoleOnlineWebUI.InitForm.UI{
 
         private handleFormSubmitResponse(response:MoleAPI.InitResponse){
             if(response.Status==="FailedInitialization"){
-                throw new Error(`API was unable to initialize computation with specified parameters. API responded with message: ${response.ErrorMsg}`);
+                $('#frm-jobSetup-setupForm-next').prop('disabled', false);   
+                $('#frm-jobSetup-setupForm-next').val('Next');       
+                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                    messageType: "Danger",
+                    message: `API was unable to initialize computation with specified parameters. API responded with message: ${response.ErrorMsg}`
+                })
+                return;
             }
 
             this.computationId = response.ComputationId;
@@ -97,42 +110,33 @@ namespace MoleOnlineWebUI.InitForm.UI{
 
             if(response.Status==="Initialized"){
                 console.log("Initialized");
-                //TODO: handle initialized
-                SimpleRouter.GlobalRouter.redirect(`${this.computationId}`, true);
+                $('#frm-jobSetup-setupForm-next').val('Initialized!');
+                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                    messageType: "Success",
+                    message: "Computation was successfully initialized. You will be redirected to detail page."
+                });
+                SimpleRouter.GlobalRouter.redirect(`/${this.computationId}`, true);
                 return;
             }
 
             if(response.Status==="Initializing"){
                 console.log("Waiting for computation initialization...");
-                window.setTimeout(this.waitForComputationInitialization.bind(this),100);
+                $('#frm-jobSetup-setupForm-next').val('Initializing computation...');
+                window.setTimeout(this.waitForComputationInitialization.bind(this),500);
                 return;
             }
 
-            throw new Error(`Unexpected computation status recieved from API: ${response.Status}`);
+            $('#frm-jobSetup-setupForm-next').prop('disabled', false);
+            MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                messageType: "Danger",
+                message: `Unexpected computation status recieved from API: ${response.Status}`
+            })          
         }
 
         private waitForComputationInitialization(){
             ApiService.getStatus(this.computationId, this.submitId).then((response)=>{
                 console.log(response);
-                
-                if(response.Status==="FailedInitialization"){
-                    throw new Error(`API was unable to initialize computation with specified parameters. API responded with message: ${response.ErrorMsg}`);
-                }
-
-                if(response.Status==="Initialized"){
-                    console.log("initialized");
-                    //TODO: handle initialized
-                    SimpleRouter.GlobalRouter.redirect(`/${this.computationId}`, true);
-                    return;
-                }
-
-                if(response.Status==="Initializing"){
-                    console.log("Waiting for computation initialization...");
-                    window.setTimeout(this.waitForComputationInitialization.bind(this),100);
-                    return;
-                }
-
-                throw new Error(`Unexpected computation status recieved from API: ${response.Status}`);
+                this.handleFormSubmitResponse(response);
             });
         }
 
@@ -141,7 +145,7 @@ namespace MoleOnlineWebUI.InitForm.UI{
             this.setState({useBiologicalUnit:el.checked});
         }
 
-        render() {            
+        render() {         
             return (
             <div className="InitForm">
                 <form onSubmit={this.handleFormSubmit.bind(this)} action={`${Config.Routing.ROUTING_OPTIONS[Config.Routing.ROUTING_MODE].defaultContextPath}/`} method="post" encType="multipart/form-data">

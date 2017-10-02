@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>MoleOnline | Home</title>
+	<meta name="description" content="MOLE 2.5 is an universal toolkit for rapid and fully automated location and characterization of tunnels, channels and pores in (bio)molecular structures.">
+	<meta name="author" content="Ing. Ondřej Hanák; http://ondrejhanak.cz">
+	<link rel="shortcut icon" href="http://beta.mole.upol.cz/favicon.ico" type="image/icon">
+<script type="text/javascript" src="http://beta.mole.upol.cz/temp/jsloader-dfac1c60f3fb.js?1409226142"></script>
+<link rel="stylesheet" type="text/css" media="screen" href="http://beta.mole.upol.cz/temp/cssloader-67095fc34ac3.css?1380184049">
+	<link rel="stylesheet" href="http://beta.mole.upol.cz/css/print.front.css" type="text/css" media="print">
+        <link rel="stylesheet" href="http://beta.mole.upol.cz/libs/css-litemol/LiteMol-plugin.css?lmversion=1484057705188" type="text/css">
+        <!--<link rel="stylesheet" href="/libs/css-litemol/litemol-style.css?lmversion=1484057705188" type="text/css" />-->
+        <!--<script src="http://beta.mole.upol.cz/libs/LiteMol-plugin.js?lmversion=1493053346323"></script>-->
+        	<link rel="stylesheet" href="css/init-styles.css?version=1.3.2" type="text/css">
+	<script src="js/provided.js?version=1.3.2"></script>
+	<script src="js/scripts.js?version=1.3.2"></script>     
+        
+         
+
+	<script type="text/javascript">
+	$(function () {
+		// auto-hide flash messages
+		$('.flashmsg.info, .flashmsg.ok').each(function () {
+			var el = $(this);
+			setTimeout(function () {
+				el.animate({'opacity': 0}, 2000).slideUp();
+			}, 10100);
+		});
+
+		// format hint messages
+		$('span.hint, div.hint').before('<img src="http://beta.mole.upol.cz/images/icons/help.png" class="hint" alt="">').each(function () {
+			var div = $(this);
+			var img = div.prev('img.hint');
+			div.hide();
+			div.css('position', 'absolute');
+			div.append('<img src="http://beta.mole.upol.cz/images/front/hint_toptip.png" alt="" class="toptip">');
+			img.mouseenter(function () { $(this).next('.hint').show();});
+			img.mouseout(function () { $(this).next('.hint').hide();});
+		});
+	});
+	</script>
+</head>
+
+<body>
+
+<div id="page">
+
+	<div id="header">
+		<h1><a href="/">MOLE<em>online</em></a></h1>
+
+		<div id="topmenu">
+			<ul>
+				<li class="active"><a href="/">Home</a></li>
+				<li><a href="/online/">Online</a></li>
+				<li><a href="/documentation/">Documentation</a></li>
+				<li><a href="/about/">About</a></li>
+			</ul>
+		</div> <!-- #topmenu -->
+	</div> <!-- #header -->
+
+	<div id="content">
+		
+
+
+<div class="column homeleft">
+
+<h2>MOLE<em>online</em> introduction page</h2>
+
+<p><a href="/online/"><b>MOLE<em>online</em></a></b> web interface provides a direct access to MOLE 2.5 functionality and enables on-line and easy-to-use interactive channel analysis.</p>
+
+<p><b>MOLE 2.5</b> is an universal toolkit for <a href="/method/">rapid and fully automated location and
+characterization of channels, tunnels and pores </a> in (bio)macromolecular structures.</p>
+
+<h3>MOLE<em>online</em> features</h3> 
+<ul>
+<li>Channel calculation three times quicker than <a href="https://lcc.ncbr.muni.cz/whitezone/development/mole/web/index.php">previous version of MOLE</a></li>
+<li>Automatic active site identification for enzymes using <a href="http://www.ebi.ac.uk/thornton-srv/databases/CSA/" alt="Catalytic Site Atlas">CSA</a></li>
+<li>Interactive visualization of structure and channels with <a href="http://www.jmol.sourceforge.net">Jmol</a></li>
+<li>Interactive selection of starting points from the sequence or set of residues</li>
+<li>Automatic detection of starting points in cavities</li>
+<li>Visualization of starting points</li>
+<li>Cavity and molecular surface visualization</li>
+<li>Tunnel size profile</li>
+<li>Analysis of residues lining channels along with sidechain/mainchain resolution with physicochemical properties (charge, polarity, hydropathy, hydrophobicity, mutability, etc.)</li>
+<li>Results download in form of report, channel export in format of PDB and pymol python script</li> 
+<li>Free of charge</li>
+</ul>
+
+<h3>Additional features of MOLE 2.5 standalone application</h3>
+<ul>
+<li>Additional powerful selection options for structure preparation prior channel calculation</li>
+<li>Comparison of channels in several different structures</li>
+<li>Selection of channels to a specific exit</li>
+<li>Vizualization of cavities and unconnected voids</li>
+<li>Powerful visualization engine with 3D option</li>
+</ul>
+
+<p>Windows desktop version and Windows, Linux and Mac OS command line version can be downloaded on
+<a href="http://webchem.ncbr.muni.cz/Platform/App/Mole">webchem</a> site.</p> 
+
+</div>
+
+<div class="column homeright">
+    <div id="alert-messages" class="index">
+    </div>
+	<h3>Quick start</h3>
+    <div id="init-form">
+    </div>
+	<div id="news">
+
+		<h3>News</h3>
+
+		<div class="item">
+			<h4>New beta.mole.upol.cz</h4>
+			<span class="date">01. 04. 2017</span>
+			<div class="body">MOLEonline 2.5 with integrated Litemol vizualization overcomes previous problems of tunnel visualization in Jmol and brings some new functionality. Try it e.g. better patway detection with selection of would-be starts and ends. </div>
+		</div> <!-- .item -->
+		<div class="item">
+			<h4>ELIXIR CZ support</h4>
+			<span class="date">01. 04. 2017</span>
+			<div class="body">MOLEonline is supported by ELIXIR CZ research infrastructure project (MEYS Grant No: LM2015047).
+</div>
+		</div> <!-- .item -->
+	</div> <!-- #news -->
+        <img src="http://beta.mole.upol.cz/images/elixir.png">
+</div>
+
+	</div> <!-- #content -->
+	<hr class="cleaner">
+
+</div> <!-- #page -->
+
+<div id="ajaxspinner"></div>
+<!--
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-4336835-6']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+-->
+<script src="MoleOnlineWebUI-Core-Init.js?version=1.3.2"></script>
+</body>
+</html>

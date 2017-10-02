@@ -89,17 +89,21 @@ function buildInitResources(){
 
         let minify = !DEBUG;
         
-        let css = gulp.src([sourcesPath + '/css/Init.css'])
+        let css = gulp.src([
+            sourcesPath + '/css/Init.css',
+            sourcesPath + '/css/AlertMessages.css'
+        ])
         .pipe(plugins.sass()({ outputStyle: minify ? 'compressed' : void 0 }).on('error', plugins.sass().logError))
 
         .pipe(plugins.concat()('init-styles.css'))
         .pipe(gulp.dest(destDir + '/css'));
-
+        /*
         let jsMin = gulp.src(providedJs)
         .pipe(plugins.concat()("init-provided.js"))
         .pipe(gulp.dest(destDir + '/js'));
+        */
 
-        return plugins.merge()([src, jsMin]);
+        return plugins.merge()([src/*, jsMin*/]);
 }
 
 function copyHtmlFiles(){

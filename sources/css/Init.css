@@ -2,3 +2,26 @@
     width:150px;
     vertical-align:middle;
 }
+
+.InitForm input[type="submit"]:disabled{
+    color: gray !important;
+}
+
+.InitForm .buttons{
+    padding:0;
+}
+
+#topmenu a {
+    color: white;
+    background:none;
+    background-color: #616161;
+}
+#topmenu a:hover {
+    background-color: #9a9a9a;
+}
+
+#topmenu li.active a,
+#topmenu li.active a:hover {
+    background-color: white;
+    color: #000;
+}

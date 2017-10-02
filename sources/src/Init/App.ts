@@ -14,6 +14,7 @@ namespace LiteMol.Example.Channels {
         SimpleRouter.GlobalRouter.init(Config.Routing.ROUTING_OPTIONS[Config.Routing.ROUTING_MODE]);
         console.log(Config.Routing.ROUTING_MODE);
         console.log(SimpleRouter.GlobalRouter.getCurrentPage());
+        AlertMessages.UI.render(document.getElementById("alert-messages") !);
         MoleUI.InitForm.UI.render(document.getElementById("init-form") !);
     })();
 }

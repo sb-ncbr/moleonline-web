@@ -40,9 +40,9 @@ namespace SequenceViewer.UI{
         }
 
         render() {
-            return <div className="seq-container">
+            return <div>
                     <Header />
-                    <div>
+                    <div className="seq-container">
                         {(this.state.data===null)?<div className="seq-waiting-for-data">Waiting for protein data...</div>:<Sequence data={this.state.data} app={this}/>}
                     </div>
                 </div>
@@ -80,6 +80,18 @@ namespace SequenceViewer.UI{
 
             return groups;
         }
+
+        private getAllHETResiduesIdxes(data:DataType){
+            let rv = [];
+
+            for(let idx=0;idx<data.data.residues.count;idx++){
+                if(data.data.residues.isHet[idx]===1&&data.data.residues.authName[idx]!=="HOH"){
+                    rv.push(idx);
+                }
+            }
+
+            return rv;
+        }
         
         render(){
             let chains:JSX.Element[] = [];
@@ -87,6 +99,13 @@ namespace SequenceViewer.UI{
             chainGroups.forEach((val,key,map)=>{
                 chains.push(<Chain chainName={key} chainBounds={val} data={this.props.data} app={this.props.app}/>);
             });
+
+            let hetResidues = this.getAllHETResiduesIdxes(this.props.data);
+            if(hetResidues.length>0){
+                chains.push(
+                    <HETChain idxes={hetResidues} data={this.props.data} app={this.props.app}/>
+                );
+            }
 
             return <div>
                 {chains}
@@ -99,22 +118,80 @@ namespace SequenceViewer.UI{
             let seqResidues:JSX.Element[] = [];
             let lastSeqNumber = -1;
             for(let bounds of this.props.chainBounds){
+                let seqNumberShowCounter = 0;
                 for(let idx=bounds.start.valueOf();idx<bounds.end.valueOf();idx++){
                     let residueName = this.props.data.data.residues.authName[idx];
                     let chainName = this.props.data.data.residues.authAsymId[idx];
+                    let isHet = this.props.data.data.residues.isHet[idx]===1;
+
+                    if(residueName==="HOH"||isHet===true){
+                        continue;
+                    }
+
                     let seqLetter = CommonUtils.Residues.getSequenceLetterByName(residueName);
                     let seqNumber = this.props.data.data.residues.authSeqNumber[idx];
+                    
+                    let nextSeqNumber = (idx+1<bounds.end.valueOf())?this.props.data.data.residues.authSeqNumber[idx+1]:-1;
 
                     let showSeqNumber = String(seqNumber)!==String(lastSeqNumber+1);
+                    let nextShowSeqNumber = String(nextSeqNumber)!==String(seqNumber.valueOf()+1);
+
+                    seqNumberShowCounter = (showSeqNumber)?0:seqNumberShowCounter+1;
+
+                    if(seqNumberShowCounter%20===0&&seqNumberShowCounter>0&&!nextShowSeqNumber){
+                        showSeqNumber=true;
+                        seqNumberShowCounter=0;
+                    }
+
                     lastSeqNumber = seqNumber.valueOf();
                     seqResidues.push(
-                        <SeqResidue residueName={residueName} chainName={chainName} seqLetter={seqLetter} seqNumber={seqNumber} showSeqNumber={showSeqNumber} data={this.props.data} app={this.props.app}/>
+                        <SeqResidue residueName={residueName} chainName={chainName} seqLetter={seqLetter} seqNumber={seqNumber} showSeqNumber={showSeqNumber} isHET={false} data={this.props.data} app={this.props.app}/>
                     );                    
                 }
             }
 
+            if(seqResidues.length===0){
+                return <div/>
+            }
+
             return <div className="seq-chain">
                     <div className="seq-header">Chain {this.props.chainName}</div>
+                    <div className="seq-content">
+                        {seqResidues}
+                    </div>
+                </div>
+        }
+    }
+
+    class HETChain extends React.Component<{idxes:number[],data:DataType, app: App},{}>{  
+        render(){
+            let seqResidues:JSX.Element[] = [];
+            let lastSeqNumber = -1;
+            for(let idx=0;idx<this.props.idxes.length;idx++){
+                let residueName = this.props.data.data.residues.authName[this.props.idxes[idx]];
+                let chainName = this.props.data.data.residues.authAsymId[this.props.idxes[idx]];
+                let isHet = this.props.data.data.residues.isHet[this.props.idxes[idx]]===1;
+
+                if(residueName==="HOH"){
+                    continue;
+                }
+
+                let seqLetter = residueName;
+                let seqNumber = this.props.data.data.residues.authSeqNumber[this.props.idxes[idx]];
+
+                let showSeqNumber = String(seqNumber)!==String(lastSeqNumber+1);
+                lastSeqNumber = seqNumber.valueOf();
+                seqResidues.push(
+                    <SeqResidue residueName={residueName} chainName={chainName} seqLetter={seqLetter} seqNumber={seqNumber} showSeqNumber={showSeqNumber} isHET={true} data={this.props.data} app={this.props.app}/>
+                );                    
+            }
+
+            if(seqResidues.length===0){
+                return <div/>
+            }
+
+            return <div className="seq-chain">
+                    <div className="seq-header">HET</div>
                     <div className="seq-content">
                         {seqResidues}
                     </div>
@@ -127,6 +204,7 @@ namespace SequenceViewer.UI{
         chainName:String, 
         seqNumber:Number, 
         seqLetter:string, 
+        isHET:boolean,
         showSeqNumber:boolean, 
         data:DataType, 
         app: App, 
@@ -155,7 +233,7 @@ namespace SequenceViewer.UI{
         }
 
         render(){
-            return <div className="seq-residue">
+            return <div className={`seq-residue${(this.props.isHET)?' het':''}`}>
                 <div className="seq-number">{(this.props.showSeqNumber)?this.props.seqNumber:""}</div>
                 <div className={`seq-letter${(this.state.selected)?" selected":""}`} onMouseDown={(e)=>{
                         CommonUtils.Selection.SelectionHelper.addResidueToSelection(this.props.seqNumber.valueOf(),this.props.chainName.valueOf());

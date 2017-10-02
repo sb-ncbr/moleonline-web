@@ -182,7 +182,8 @@ namespace DataInterface{
                 authName:string[],
                 indices:Number[],
                 count:Number,
-                entityId:Number
+                entityId:Number,
+                isHet:(0|1)[]
             }
         },
         id:string,

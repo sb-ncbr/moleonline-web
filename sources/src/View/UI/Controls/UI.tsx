@@ -569,10 +569,14 @@ namespace Controls.UI{
 
             return <div className="csa-pick-box-item has-data" onClick={()=>{
                 let output = $(`#${this.props.outputRefId}`)[0] as HTMLInputElement;
+                let toAdd = '['+flattenResidues(value)+']';
+                if(output.value.indexOf(toAdd)!==-1){
+                    return;
+                }
                 if(output.value.length>0){
                     output.value += ", ";
                 }
-                output.value += '['+flattenResidues(value)+']';
+                output.value += toAdd;
             }}>{flattenResidues(value)}</div>
         }
     }

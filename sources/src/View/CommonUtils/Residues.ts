@@ -253,5 +253,23 @@ namespace CommonUtils{
             let rv = this.codelistSearch(this.sequenceLetters,this.residueNames,letter);
             return (rv==="")?"<Unknown>":rv;
         }
+
+        public static getResidueClassByName(authName:string){
+            switch(authName.toUpperCase()){
+                case 'GLU':
+                case 'ASP': return "residue-class-red";
+                case 'ARG':
+                case 'LYS':
+                case 'HIS': return "residue-class-blue";
+                case 'PHE':
+                case 'TYR':
+                case 'TRP': return "residue-class-purple";
+                case 'SER':
+                case 'THR': return "residue-class-green";
+                case 'CYS':
+                case 'MET': return "residue-class-yellow";
+                default: return "";
+            }
+        }
     }
 }

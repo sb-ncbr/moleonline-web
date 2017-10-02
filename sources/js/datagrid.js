@@ -3,6 +3,10 @@ function parseStyleNumeric(str){
 	return (isNaN(Number(val)))?0:Number(val);
 }
 function datagridOnResize(elementId,lowLevelContainerId,highLevelContainerId){
+	if($('#'+elementId).length === 0){
+        return;
+	}
+	
 	var datagridJ = $( "#"+elementId );
 	var datagrid = datagridJ[0];
 	var parent = $("#"+highLevelContainerId)[0];/*datagrid.parentElement.parentElement;*/ //Specially modified for Jquery Tabs

@@ -22,9 +22,9 @@
     "../../../tmp/config.ts",
 
     //Data Interface
-    "DataInterface.ts",
+    "../DataInterface.ts",
 
-    "Bridge.ts",
+    "../Bridge.ts",
 
     //Common Utils
     "CommonUtils/Tunnels.ts",  
@@ -36,14 +36,14 @@
     "CommonUtils/Tooltips.ts",  
 
     //Annotation data provider
-    "AnnotationDataProvider.ts", 
+    "../AnnotationDataProvider.ts", 
 
-    "../../src/StaticData.ts",
-    "../../src/SimpleRouter.ts",
-    "../../src/MoleAPIService.ts",
-    "../../src/PatternQueryAPIService.ts",
-    "DataProxy.ts",
-    "Cache.ts",
+    "../StaticData.ts",
+    "../SimpleRouter.ts",
+    "../MoleAPIService.ts",
+    "../PatternQueryAPIService.ts",
+    "../DataProxy.ts",
+    "../Cache.ts",
 
     //Layer Vizualizer
     "UI/LayerVizualizer/UI.tsx",
@@ -53,7 +53,7 @@
     "LayerVizualizer/Colors.ts", 
 
     //Alert messages
-    "UI/AlertMessages/UI.tsx",
+    "../Common/UI/AlertMessages/UI.tsx",
 
     //Controls components
     "UI/Common/Controls/Components.tsx",

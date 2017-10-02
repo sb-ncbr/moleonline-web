@@ -17,3 +17,6 @@ sudo cp -r ./build/online/MoleOnlineWebUI-Core-View.js /var/www/html/assets
 sudo mkdir /var/www/html/online
 sudo cp ./build/online/index.html /var/www/html/online
 sudo cp ./build/online/detail.html /var/www/html/online
+sudo cp ./build/online/documentation.html /var/www/html
+sudo cp ./build/online/about.html /var/www/html
+sudo cp ./build/online/home.html /var/www/html

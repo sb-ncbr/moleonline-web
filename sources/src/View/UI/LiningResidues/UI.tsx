@@ -129,14 +129,38 @@ namespace LiningResidues.UI{
 
             //CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
             CommonUtils.Selection.SelectionHelper.addResiduesToSelection(residues,false);
+        }
 
+        selectIonizable(){
+            if(this.props.data === null){
+                return;
+            }
+            let allResidues = CommonUtils.Residues.parseResidues(this.props.data,true);
+            let ionizableResidues = [];
+            for(let residue of allResidues){
+                let rClass:string="";
+                if(residue.name!==void 0){
+                    rClass = CommonUtils.Residues.getResidueClassByName(residue.name);
+                }
+                else{
+                    rClass = CommonUtils.Residues.getName(residue.authSeqNumber,this.props.app.props.controller);
+                }
+                
+                if(rClass.indexOf("blue")!==-1||rClass.indexOf("red")!==-1){
+                    ionizableResidues.push(residue);
+                }
+            }
+
+            //CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
+            CommonUtils.Selection.SelectionHelper.addResiduesToSelection(ionizableResidues,false);
         }
 
         render(){
             return <div className="lining-residues select-controls">
+                <span className="btn-xs btn-default bt-ionizable hand" onClick={this.selectIonizable.bind(this)}>Select ionizable</span>
                 <span className="btn-xs btn-default bt-all hand" onClick={this.selectAll.bind(this)}>Select all</span>
-                <span className="btn-xs btn-default bt-none hand" onClick={this.clearSelection.bind(this)}>Clear selection</span>
             </div>
+            //<span className="btn-xs btn-default bt-none hand" onClick={this.clearSelection.bind(this)}>Clear selection</span>
         }
     }
 
@@ -271,8 +295,16 @@ namespace LiningResidues.UI{
                     );
                 }
                 else{*/
+                    let trClass = (this.isBackbone(residue)?"help":"");
+                    let residueInfo = CommonUtils.Residues.parseResidues([residue],true);
+                    if(residueInfo.length>0){
+                        let authName = residueInfo[0].name;
+                        
+                        trClass += (authName===void 0)?'':" "+CommonUtils.Residues.getResidueClassByName(authName);
+                    }
+                    
                     rows.push(
-                        <DGComponents.DGElementRow columns={[this.getSelect3DLink(residue)]} title={[(this.isBackbone(residue)?residue:"")]} trClass={(this.isBackbone(residue)?"help":"")} />
+                        <DGComponents.DGElementRow columns={[this.getSelect3DLink(residue)]} title={[(this.isBackbone(residue)?residue:"")]} trClass={trClass} />
                     );
                 /*}*/
             }            

@@ -3,6 +3,7 @@
     height: 8vh;
     border-bottom: 1px solid #aaa;
     border-right: 1px solid #aaa;
+    border-top: 1px solid #aaa;
     line-height:1px;
 }
 
@@ -16,29 +17,33 @@
     padding-right: 8px;
     padding-top: 3px;
     z-index: 1000;
-    background-color: white;
+    background-color: transparent;
     padding-bottom: 4px;
     line-height:initial;
 }
 .sequence-viewer .seq-header{
     font-size: 8pt;
-    display: inline-block;
+    display: table-cell;
     width: 5%;
+    min-width: 61px;
     height: 100%;
     top: 0;
     padding-top: 15px;
     padding-left: 5px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #aaa;
 }
 .sequence-viewer .seq-content{
-    display: inline-block;
+    display: table-cell;
     width: 95%;
     margin-left: 5%;
     top: 0;
-    margin-top: -31px;
     padding-right: 5px;
     border-left: 1px solid #aaa;
     padding-left: 4px;
     padding-top: 3px;
+    border-bottom: 1px solid #aaa;
+    padding-bottom: 3px;
 }
 .sequence-viewer .seq-residue{
     display: inline-block;
@@ -47,6 +52,9 @@
     padding-right: 1px;
     width: 12px;
 }
+.sequence-viewer .seq-residue.het{
+    width:auto;
+}
 .sequence-viewer .seq-number {
     width: 10px;
     height: 12px;
@@ -54,10 +62,12 @@
     text-align: left;
 }
 .sequence-viewer .seq-chain{
-    border-bottom:1px solid #aaa;
-    line-height:initial;
+    line-height: initial;
+    display: table-row;
 }
-.sequence-viewer .seq-chain:last-child{
+
+.sequence-viewer .seq-chain:last-child .seq-header,
+.sequence-viewer .seq-chain:last-child .seq-content{
     border-bottom: none;
 }
 
