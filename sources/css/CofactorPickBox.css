@@ -1,0 +1,14 @@
+.cofactor-pick-box-item{
+    padding: 2px 5px;
+}
+
+.cofactor-pick-box-item.has-data{
+    cursor: pointer;
+}
+.cofactor-pick-box-item.has-data::before{
+    content: '\00bb';
+    padding-right:3px;
+}
+.cofactor-pick-box-item.has-data:hover{
+    font-weight: bold;
+}

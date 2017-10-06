@@ -51,7 +51,7 @@ namespace MoleOnlineWebUI.StaticData{
             "tooltip-maxTunnelSimilarity":"Max tunnel similarity - Determine when to remove channels that are too similar. The longer is discarded",
             "tooltip-mergePores":"Merge pores - Merge computed tunnels into pores.",
             "tooltip-automaticPores":"Automatic pores - Compute pores from exits in all cavities.",
-            "tooltip-csaActiveSites":"Active sites from CSA- List of annotated active sites from the CSA database",
+            "tooltip-csaActiveSites":"Active sites from CSA - List of annotated active sites from the CSA database",
             "tooltip-originResidues":"Starting point - Select one or many channel starting points",
             "tooltip-originPoints":"", 
             "tooltip-customExitsResidues":"End point - (Optional) Select one or many channel end points",
@@ -60,6 +60,7 @@ namespace MoleOnlineWebUI.StaticData{
             "tooltip-poresIsBetaStructure":"Beta structure - is this protein formed largely from beta sheets?",
             "tooltip-poresInMembrane":"Membrane region - Calculate pore in the transmembrane region only",
             "tooltip-poresChains":"Specific chains - Select chains to be included in computation. No value, all is included.",
+            "tooltip-cofactorActiveSites":"Posible starting points based on cofactors.",
         }
     }
 

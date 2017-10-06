@@ -581,6 +581,99 @@ namespace Controls.UI{
         }
     }
 
+    interface CofactorPickBoxProps{
+        label: string, 
+        id:string,
+        outputRefId:string, 
+        classNames?:string[],
+        tooltip?:string
+    }
+    interface CofactorPickBoxState{isLoading:boolean, data:Service.Cofactors|null};
+    export class CofactorPickBox extends React.Component<CofactorPickBoxProps,CofactorPickBoxState>{
+        
+        state:CofactorPickBoxState = {isLoading:true, data:null};
+
+        componentDidMount(){
+            MoleOnlineWebUI.Bridge.Events.subscribeProteinDataLoaded(()=>{
+                this.getData();
+            })
+        }
+
+        render(){
+            let classNames = ["",""];
+            if(this.props.classNames!==void 0){
+                classNames = this.props.classNames;
+            }
+
+            let contents;
+
+            if(!this.state.isLoading&&this.state.data !== null){
+                contents = this.generateItems(this.state.data);
+            }
+
+            if(this.state.isLoading){
+                contents = <CofactorPickBoxItem outputRefId="" isLoading={true} />
+            }
+            else if(!this.state.isLoading&&this.state.data === null){
+                contents = <CofactorPickBoxItem outputRefId="" />
+            }
+            
+            let tooltip;
+            if(this.props.tooltip!==void 0){
+                tooltip = this.props.tooltip;
+                CommonUtils.Tooltips.initWhenReady(`${this.props.id}_label`);
+            }
+
+            return (
+                <div className="form-group">
+                    <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} htmlFor={this.props.id} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}:</label>
+                    <div className={`${classNames[1]}`}>
+                        {contents}
+                    </div>
+                </div>
+            );
+        }
+
+        getData(){
+            MoleOnlineWebUI.DataProxy.Cofactors.DataProvider.get((cofactors)=>{
+                this.setState({isLoading:false,data:cofactors});
+            });
+        }
+
+        generateItems(cofactors:Service.Cofactors){
+            let items:JSX.Element[] = [];
+            cofactors.forEach((value,key,map)=>{
+                if(!CommonUtils.Residues.currentContextHasResidue(key)){
+                    return;
+                }
+                items.push(
+                    <CofactorPickBoxItem outputRefId={this.props.outputRefId} label={key} value={value} />
+                );
+            });
+
+            return items;
+        }
+    }
+
+    export class CofactorPickBoxItem extends React.Component<{outputRefId:string, label?:Service.ResidueName, value?:Service.PatternQueryExpression, isLoading?:boolean},{}>{
+        render(){
+            if(this.props.isLoading===true){
+                return <div className="cofactor-pick-box-item no-data">Loading...</div>
+            }
+            if(this.props.value===void 0){
+                return <div className="cofactor-pick-box-item no-data">No cofactor starting points available...</div>
+            }
+
+            let value = this.props.value;
+
+            return <div className="cofactor-pick-box-item has-data" onClick={()=>{
+                let output = $(`#${this.props.outputRefId}`)[0] as HTMLInputElement;
+                
+                output.value = value;
+            }}>{this.props.label}</div>
+        }
+    }
+
     export class LabelBox extends React.Component<{label: string, text:string, id:string, classNames?:string[]},{}>{
         render(){
             let classNames = ["",""];
@@ -815,6 +908,7 @@ namespace Controls.UI{
                         <XYZBox label="Starting Point [x,y,z]" id="originPoints" tooltip={TooltipText.get("originPoints")} classNames={css} placeholder={{x:-1,y:0,z:4}} />
                         <ResidueArraysBox label="End Point" id="customExitsResidues" tooltip={TooltipText.get("customExitsResidues")} classNames={css} placeholder="[A 69, A 386], [A 137, A 136]" onValidate={this.validateResidueDoubleArray} />
                         <XYZBox label="End Point [x,y,z]" id="customExitsPoints" tooltip={TooltipText.get("customExitsPoints")} classNames={css} placeholder={{x:-1,y:0,z:4}} />
+                        <CofactorPickBox label="Cofactor Starting Points" id="cofactorActiveSites" tooltip={TooltipText.get("cofactorActiveSites")} classNames={css} outputRefId="queryExpresion" />
                         <TextBox label="Query" id="queryExpresion" tooltip={TooltipText.get("queryExpresion")} classNames={css} placeholder="Atoms('Fe')" hint={this.getPatternQueryHint()} onValidateCustom={this.validatePatternQuery} />
 
                         <input type="hidden" id="mode" value="Mole" />

@@ -350,4 +350,94 @@ namespace MoleOnlineWebUI.DataProxy{
             }
         }
     }
+
+    export namespace Cofactors{
+        import Cofactors = MoleOnlineWebUI.Service.MoleAPI.Cofactors;
+
+        type CofactorsHandler = (info:Cofactors)=>void;
+
+        export class DataProvider{
+            private static data: Cofactors;
+            private static handlers: {
+                handler: CofactorsHandler,
+            }[];
+            private static pending: boolean;
+
+            //--
+
+            private static hasPending():boolean{
+                if(this.pending===void 0){
+                    return false;
+                }
+
+                return this.pending;
+            }
+
+            private static setPending(isPending:boolean){
+                this.pending = isPending;
+            }
+
+            private static setData(info: Cofactors){
+                this.data = info;
+                this.runHandlers(info);
+            }
+
+            private static runHandlers(info:Cofactors){
+                if(this.handlers===void 0){
+                    return;
+                }
+
+                //this.handlers = [];
+                for(let h of this.handlers){
+                    h.handler(info);
+                }
+                this.handlers = [];
+            }
+
+            private static requestData(){
+                if(this.hasPending()){
+                    return;
+                }
+                this.setPending(true);
+                Service.getCofactors().then((val)=>{
+                    this.setPending(false);
+                    if(Config.CommonOptions.DEBUG_MODE)
+                        console.log(val);
+                    this.setData(val);
+                }).catch((err)=>{
+                    if(Config.CommonOptions.DEBUG_MODE)
+                        console.log(err);
+                    window.setTimeout((()=>{this.requestData()}).bind(this),100);
+                });
+            }
+
+            private static attachHandler(handler: CofactorsHandler){
+                if(this.handlers===void 0){
+                    this.handlers = [];
+                }
+
+                this.handlers.push(
+                    {
+                        handler
+                    }
+                );
+
+                this.requestData();
+            }
+
+            //--
+
+            public static get(handler: CofactorsHandler, onlyFresh?:boolean){
+                if(this.data!==void 0 && !onlyFresh){
+                    let data = this.data;
+                    if(data!==void 0){
+                        handler(data);
+                        return;
+                    }
+                }
+
+                this.attachHandler(handler);
+            }
+        }
+    }
 }

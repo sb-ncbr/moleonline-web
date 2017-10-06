@@ -81,6 +81,9 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
 
     export type CSAResidue = MoleConfigResidue;
     export type CSAResidues = CSAResidue[][];
+    export type ResidueName = string;
+    export type PatternQueryExpression = string;
+    export type Cofactors = Map<ResidueName,PatternQueryExpression>;
 
     export class ApiService{
         private static DEBUG_MODE = Config.CommonOptions.DEBUG_MODE;
@@ -303,6 +306,28 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
                 console.log(url);
             }
             return this.sendGET(url);
+        }
+
+        public static getCofactors():Promise<Cofactors>{
+            //let url = `${this.baseUrl}/inputs/cofactors.json`;
+            let url = `/online/cofactors.json`;
+            if(this.DEBUG_MODE){
+                console.log(url);
+            }
+            if(this.DEBUG_MODE)
+                console.time("getCofactors");
+            return this.sendGET(url).then((s)=>{
+                let rv = new Map<ResidueName,PatternQueryExpression>();
+                for(let key in s){
+                    if(!s.hasOwnProperty(key)){
+                        continue;
+                    }
+                    rv.set(key,(s as any)[key] as PatternQueryExpression);
+                }
+                if(this.DEBUG_MODE)
+                    console.timeEnd("getCofactors");
+                return rv;
+            });
         }
     }
 }

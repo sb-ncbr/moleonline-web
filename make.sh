@@ -20,3 +20,6 @@ sudo cp ./build/online/detail.html /var/www/html/online
 sudo cp ./build/online/documentation.html /var/www/html
 sudo cp ./build/online/about.html /var/www/html
 sudo cp ./build/online/home.html /var/www/html
+
+#temporary workaround(CORS problem)
+sudo cp ./cofactors.json /var/www/html/online
