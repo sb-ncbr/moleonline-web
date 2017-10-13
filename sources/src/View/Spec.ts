@@ -33,7 +33,7 @@ namespace LiteMol.Example.Channels {
                     let tunnel = e as DataInterface.Tunnel;
                     let len = CommonUtils.Tunnels.getLength(tunnel);
                     let bneck = CommonUtils.Tunnels.getBottleneck(tunnel);
-                    let name = MoleOnlineWebUI.Cache.TunnelName.get(tunnel.Id);
+                    let name = MoleOnlineWebUI.Cache.TunnelName.get(tunnel.GUID);
                     let namePart = (name===void 0)?'':` (${name})`;
                     return `<b>${tunnel.Type}${namePart}</b>, Length: ${len} Å | Bottleneck: ${bneck} Å`;                    
                 }

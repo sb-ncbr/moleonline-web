@@ -61,6 +61,12 @@ namespace MoleOnlineWebUI.StaticData{
             "tooltip-poresInMembrane":"Membrane region - Calculate pore in the transmembrane region only",
             "tooltip-poresChains":"Specific chains - Select chains to be included in computation. No value, all is included.",
             "tooltip-cofactorActiveSites":"Posible starting points based on cofactors.",
+            "validation-error-message-default":"Value you entered has invalid format!",
+            "validation-error-message-not-empty":"This field is required!",
+            "validation-error-message-residue-invalid-format":"Residue Id is in invalid format! Correct format: 142 A",
+            "placeholder-annotate-email":"(optional for further contact) jon.snow@uni.ac.uk",
+            "placeholder-annotate-message":"(optional) Explanation, notes to the authors, whatever",
+            
         }
     }
 

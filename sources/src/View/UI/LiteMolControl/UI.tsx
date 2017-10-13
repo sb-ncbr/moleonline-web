@@ -418,7 +418,7 @@ namespace LiteMol.Example.Channels.UI {
         render() {
             let c = this.props.channel as DataInterface.Tunnel;
             let len = CommonUtils.Tunnels.getLength(c);
-            let name = MoleOnlineWebUI.Cache.TunnelName.get(c.Id);
+            let name = MoleOnlineWebUI.Cache.TunnelName.get(c.GUID);
             let namePart = (name===void 0)?'':` (${name})`;        
             return <Renderable label={<span><b><a onClick={this.selectChannel.bind(this)}>{c.Type}{namePart}</a></b><ColorPicker tunnel={this.props.channel}/>, {`Length: ${len} Å`}</span>} element={c} toggle={(p:LiteMol.Plugin.Controller,ch:DataInterface.Tunnel[]&State.TunnelMetaInfo[],v:boolean)=>{                
                     return State.showChannelVisuals(p,ch,v)

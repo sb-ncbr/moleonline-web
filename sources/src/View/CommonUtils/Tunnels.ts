@@ -20,7 +20,7 @@ namespace CommonUtils{
         }
 
         public static getName(tunnel: DataInterface.Tunnel):string|undefined{
-            return MoleOnlineWebUI.Cache.TunnelName.get(tunnel.Id);
+            return MoleOnlineWebUI.Cache.TunnelName.get(tunnel.GUID);
         }
 
         /*

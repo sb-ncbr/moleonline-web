@@ -156,7 +156,7 @@ namespace LiteMol.Example.Channels.State {
     function generateGuid(moleData:DataInterface.MoleData){
         let f:(channels:DataInterface.Tunnel[])=>DataInterface.Tunnel[] = (channels:DataInterface.Tunnel[])=>{
             for(let idx=0;idx<channels.length;idx++){
-                channels[idx].Id = Bootstrap.Utils.generateUUID();
+                channels[idx].GUID = Bootstrap.Utils.generateUUID();
             }
             return channels;
         };

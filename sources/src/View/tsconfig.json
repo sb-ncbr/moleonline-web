@@ -42,6 +42,7 @@
     "../SimpleRouter.ts",
     "../MoleAPIService.ts",
     "../PatternQueryAPIService.ts",
+    "../AnnotationToChannelsDBService.ts",
     "../DataProxy.ts",
     "../Cache.ts",
 
@@ -93,6 +94,9 @@
     
     //Sequence Viewer
     "UI/SequenceViewer/UI.tsx",
+
+    //Annotate
+    "UI/Annotate/UI.tsx",
 
     //Main UI
     "State.ts",

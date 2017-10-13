@@ -51,7 +51,8 @@ namespace DataInterface{
         Auto: boolean,
         Properties: Properties,
         Profile: Profile[],
-        Layers: Layers
+        Layers: Layers,
+        GUID:string
     };
     export interface MoleData{
         Channels:{

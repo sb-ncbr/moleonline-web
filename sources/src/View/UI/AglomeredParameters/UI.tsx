@@ -182,8 +182,8 @@ namespace AglomeredParameters.UI{
     class DGRow extends React.Component<{tunnel: DataInterface.Tunnel, app: App},{}>{
         
         render(){
-            let name = MoleOnlineWebUI.Cache.TunnelName.get(this.props.tunnel.Id);
-            let namePart = (name===void 0)?':P':` (${name})`;
+            let name = MoleOnlineWebUI.Cache.TunnelName.get(this.props.tunnel.GUID);
+            let namePart = (name===void 0)?'X':` (${name})`;
             let tunnelID = this.props.tunnel.Type+namePart;
 
             /*let annotation = Annotation.AnnotationDataProvider.getChannelAnnotation(this.props.tunnel.Id);

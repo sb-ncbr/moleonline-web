@@ -20,8 +20,14 @@ namespace Config{
             "webchem":"https://webchem.ncbr.muni.cz/Platform/PatternQuery/ValidateQuery",
         }
 
+        public static ANNOTATION_API_URL:any = {
+            "webchemdev":"https://webchemdev.ncbr.muni.cz/API/ChannelsDB/UploadAnnotations/Mole",
+            "webchem":"https://webchem.ncbr.muni.cz/API/ChannelsDB/UploadAnnotations/Mole"
+        }
+
         public static MODE = "unknown";
         public static PATTERN_QUERY_MODE = "unknown";
+        public static ANNOTATION_API_MODE = "unknown";
     }
 
     export class CommonOptions{
