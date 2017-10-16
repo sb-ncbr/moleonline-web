@@ -201,9 +201,18 @@ namespace LiteMol.Example.Channels.State {
     function downloadProteinData(plugin:Plugin.Controller, computationId:string, submitId:number){      
         return new Promise<any>((res,rej)=>{
             ApiService.getProteinStructure(computationId, submitId).then((data)=>{
+
+                let format = Core.Formats.Molecule.SupportedFormats.mmCIF;
+                if(data.filename!==null){
+                    let f = Core.Formats.FormatInfo.getFormat(data.filename, Core.Formats.Molecule.SupportedFormats.All);
+                    if(f!==void 0){
+                        format = f;
+                    }
+                }
+
                 let protein = plugin.createTransform()
-                    .add(plugin.root, Transformer.Data.FromData, { data, id: `${computationId}/${submitId}`}, {isBinding:true, ref:'protein-data'})
-                    .then(Transformer.Molecule.CreateFromData, { format: Core.Formats.Molecule.SupportedFormats.mmCIF }, { isBinding: true })
+                    .add(plugin.root, Transformer.Data.FromData, { data:data.data, id: `${computationId}/${submitId}`}, {isBinding:true, ref:'protein-data'})
+                    .then(Transformer.Molecule.CreateFromData, {format}, { isBinding: true })
                     .then(Transformer.Molecule.CreateModel, { modelIndex: 0 })
                     .then(Transformer.Molecule.CreateMacromoleculeVisual, { polymer: true, polymerRef: 'polymer-visual', het: true });
                 

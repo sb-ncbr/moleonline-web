@@ -78,6 +78,10 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
         IsBetaBarel?: boolean,
         Chains?: any|null //TODO:...
     };
+    export interface ProteinData{
+        data:string,
+        filename:string|null
+    };
 
     export type CSAResidue = MoleConfigResidue;
     export type CSAResidues = CSAResidue[][];
@@ -233,7 +237,24 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
             return this.sendGET(url);
         }
 
-        public static getProteinStructure(computationId:string, submitId:number):Promise<string>{
+        private static getFilenameFromResponseHeader(r:Response){
+            let contentDisposition = r.headers.get("Content-Disposition");
+            //https://regex101.com/r/hJ7tS6/1
+            let regExp = RegExp(/filename[^;\n=]*=((['"]).*?\2|[^;\n]*)/)
+            let filename:string|null = null;
+            if(contentDisposition!==null){
+                let result = regExp.exec(contentDisposition);
+                if(result!==null){
+                    if(result.length>=2){
+                        filename = result[1];
+                    }
+                }
+            }
+
+            return filename;
+        }
+
+        public static getProteinStructure(computationId:string, submitId:number):Promise<ProteinData>{
             let url = `${this.baseUrl}/Data/${computationId}?submitId=${submitId}&format=molecule`;
             if(this.DEBUG_MODE){
                 console.log(url);
@@ -245,9 +266,11 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
                 if(this.DEBUG_MODE)
                     console.time('protein-raw');
                 fetch(url, {
-                    method: "GET"
+                    method: "GET",
                 })
                 .then((rawResponse)=>{
+                    let filename = this.getFilenameFromResponseHeader(rawResponse);
+                    console.log(filename);
                     if(this.DEBUG_MODE)
                         console.timeEnd('protein-raw');
                     if(!rawResponse.ok){
@@ -258,7 +281,10 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
                         return;
                     }
                     rawResponse.text().then(value=>{
-                        res(value);
+                        res({
+                            data:value,
+                            filename:filename
+                        });
                         if(this.DEBUG_MODE)
                             console.timeEnd("getProteinStructure");
                     })
@@ -309,8 +335,8 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
         }
 
         public static getCofactors():Promise<Cofactors>{
-            //let url = `${this.baseUrl}/inputs/cofactors.json`;
-            let url = `/online/cofactors.json`;
+            let url = `${this.baseUrl}/inputs/cofactors.json`;
+            //let url = `/online/cofactors.json`;
             if(this.DEBUG_MODE){
                 console.log(url);
             }

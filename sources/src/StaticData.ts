@@ -17,9 +17,11 @@ namespace MoleOnlineWebUI.StaticData{
             "NumPositives":"Charge(+)",
             "NumNegatives":"Charge(-)",
             "MinRadius":"Radius",
+            "MinBRadius":"BRadius",
             "MinFreeRadius":"Free Radius",
             /* Tooltips data */
             "tooltip-MinRadius":"Radius of sphere within channel limited by three closest atoms",
+            "tooltip-MinBRadius":"BRadius",
             "tooltip-MinFreeRadius":"Radius of sphere within channel limited by three closest main chain atoms in order to allow sidechain flexibility",
             "tooltip-Bottleneck":"Radius of channel bottleneck",
             "tooltip-Length": "Length of the channel",

@@ -845,7 +845,7 @@ namespace LayersVizualizer.UI{
 
     class RadiusSwitch extends React.Component<{state: State, radiusProperty:RadiusProperty,isCustom:boolean},{}>{
         private generateRadiusSwitch(){
-            let properties = ["MinRadius","MinFreeRadius"];
+            let properties = ["MinRadius","MinFreeRadius","MinBRadius"];
             let rv = [];
             for(let prop of properties){
                 rv.push(
@@ -853,7 +853,7 @@ namespace LayersVizualizer.UI{
                 );
             }
 
-            return <BootstrapDropUpMenuButton items={rv} label={this.props.radiusProperty} />
+            return <BootstrapDropUpMenuButton items={rv} label={MoleOnlineWebUI.StaticData.Bundle.get(this.props.radiusProperty)} />
         }
 
         render(){

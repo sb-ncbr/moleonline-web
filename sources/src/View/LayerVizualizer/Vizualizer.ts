@@ -68,7 +68,7 @@ namespace LayersVizualizer{
         tunnel:Tunnel
     }
 
-    export type RadiusProperty = "MinRadius" | "MinFreeRadius";
+    export type RadiusProperty = "MinRadius" | "MinFreeRadius" | "MinBRadius";
     export type ColorBoundsMode = "Min/max" | "Absolute";
 
     export class Vizualizer{      
@@ -1302,7 +1302,7 @@ namespace LayersVizualizer{
             });
             // Curly brackets Label for default tunnel
             toRender.push({
-                drawable: new TextBox(`${this.radiusPropertyKey}`,context,"small","left"),
+                drawable: new TextBox(`${MoleOnlineWebUI.StaticData.Bundle.get(this.radiusPropertyKey)}`,context,"small","left"),
                 bounds: positioning.defaultCurlyBracketsLabel.toBounds(canvasWidth,canvasHeight)   
             });
             // Curly brackets for customizable tunnel
@@ -1312,7 +1312,7 @@ namespace LayersVizualizer{
             });
             // Curly brackets Label for customizable tunnel
             toRender.push({
-                drawable: new TextBox(`${this.customRadiusPropertyKey}`,context,"small","left"),
+                drawable: new TextBox(`${MoleOnlineWebUI.StaticData.Bundle.get(this.customRadiusPropertyKey)}`,context,"small","left"),
                 bounds: positioning.customizableCurlyBracketsLabel.toBounds(canvasWidth,canvasHeight)   
             });
             // Arrowhead line for default tunnel

@@ -1,6 +1,7 @@
 namespace DataInterface{
     export interface LayerGeometry{
         MinRadius:number,
+        MinBRadius:number,
         MinFreeRadius:number,
         StartDistance:number,
         EndDistance:number,
@@ -93,6 +94,7 @@ namespace DataInterface{
         StartDistance: number,
         EndDistance: number,
         MinRadius: number,
+        MinBRadius: number,
         MinFreeRadius: number,
         Properties: any,
         Residues: any
@@ -132,6 +134,7 @@ namespace DataInterface{
                 StartDistance: layersObject.LayersInfo[i].LayerGeometry.StartDistance,
                 EndDistance: layersObject.LayersInfo[i].LayerGeometry.EndDistance,
                 MinRadius: layersObject.LayersInfo[i].LayerGeometry.MinRadius,
+                MinBRadius: layersObject.LayersInfo[i].LayerGeometry.MinBRadius,
                 MinFreeRadius: layersObject.LayersInfo[i].LayerGeometry.MinFreeRadius,
                 Properties: layersObject.LayersInfo[i].Properties,//? Proc sem davat weighted properties?
                 Residues: layersObject.LayersInfo[i].Residues
