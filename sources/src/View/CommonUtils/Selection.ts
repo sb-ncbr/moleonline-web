@@ -646,7 +646,7 @@ namespace CommonUtils.Selection{
                 }
                 for(let elIdx of i.elements){
                     let p = data as Point;
-                    this.addPointToSelection({x:`${p.X}`,y:`${p.Y}`,z:`${p.Z}`});
+                    this.addPointToSelection({x:`${Number(p.X).toFixed(2)}`,y:`${Number(p.Y).toFixed(2)}`,z:`${Number(p.Z).toFixed(2)}`});
                 }
                 return;
             }
@@ -659,7 +659,7 @@ namespace CommonUtils.Selection{
 
                 for(let elIdx of i.elements){
                     let p = data.Points[elIdx];
-                    let pPto = {x:p.X,y:p.Y,z:p.Z};
+                    let pPto = {x:Number(p.X).toFixed(2),y:Number(p.Y).toFixed(2),z:Number(p.Z).toFixed(2)};
                     this.addPointToSelection(pPto);   
                 }
                 return;

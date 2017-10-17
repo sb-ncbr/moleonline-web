@@ -1558,6 +1558,10 @@ namespace Controls.UI{
                 let compId = parameters.computationId;
                 let submitId = parameters.submitId;
                 Provider.get(parameters.computationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
+                    //CompInfo => Status==="Error" => Submissions neexistuje! Response ma format /Status na misto /CompInfo
+                    if(info===null){
+                        return;
+                    }
                     let state = this.state;
                     state.data = info;
                     state.submitId = submitId;
@@ -1879,7 +1883,7 @@ namespace Controls.UI{
 
         render(){ 
             let tabs:JSX.Element[]=[];
-            
+
             if(this.state.data !== void 0){
                 tabs.push(
                     <Settings initialData={this.state.data} submitId={this.state.submitId}/>

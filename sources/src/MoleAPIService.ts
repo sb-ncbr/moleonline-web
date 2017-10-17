@@ -206,7 +206,14 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
                 console.log(url);
             }
             
-            return this.sendGET(url);
+            return this.sendGET(url).then((val)=>{
+                if(val.Status==="Error"){
+                    return null;
+                }
+                else{
+                    return val;
+                }
+            })
         }
 
         private static handleJsonToStringResponse(response:Promise<any>){

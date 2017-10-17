@@ -38,7 +38,7 @@ namespace LiteMol.Example.Channels {
                 }
                 case 'Origins': {
                     let o = e.Points[info.elements[0]];
-                    return `<b>Origin</b> (${e.Type}) at (${o.X}, ${o.Y}, ${o.Z})`;
+                    return `<b>Origin</b> (${e.Type}) at (${Number(o.X).toFixed(2)}, ${Number(o.Y).toFixed(2)}, ${Number(o.Z).toFixed(2)})`;
                 }
                 case 'Points': {
                     let o = e[info.elements[0]];
