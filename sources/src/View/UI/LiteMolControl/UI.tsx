@@ -211,10 +211,16 @@ namespace LiteMol.Example.Channels.UI {
     export class Selection extends React.Component<State, { label?: string|JSX.Element }> {
         state = { label: void 0}
 
-        private observer: Bootstrap.Rx.IDisposable | undefined = void 0;
+        //private observer: Bootstrap.Rx.IDisposable | undefined = void 0;
         private observerChannels: Bootstrap.Rx.IDisposable | undefined = void 0;
         componentWillMount() {
             CommonUtils.Selection.SelectionHelper.attachOnResidueBulkSelectHandler(((r:CommonUtils.Selection.LightResidueInfo[])=>{    
+                if(r.length===0){
+                    this.setState({
+                        label: void 0
+                    });
+                    return;
+                }
                 let label = r.map((val,idx,array)=>{
                     let name = CommonUtils.Residues.getName(val.authSeqNumber,this.props.plugin);
                     return `${name}&nbsp;${val.authSeqNumber}&nbsp;${val.chain.authAsymId}`;
@@ -254,19 +260,6 @@ namespace LiteMol.Example.Channels.UI {
                 this.setState({ label: void 0});
             }).bind(this));
 
-            this.observer = this.props.plugin.subscribe(Bootstrap.Event.Molecule.ModelSelect, e => {
-                if (!e.data) {
-                    this.setState({ label: void 0})
-                } else {
-                    let r = e.data.residues[0];
-                    CommonUtils.Selection.SelectionHelper.addResidueToSelection(r.authSeqNumber,r.chain.authAsymId);
-                    if(!CommonUtils.Selection.SelectionHelper.isSelectedAny()){
-                        this.setState({ label: void 0})
-                    }
-                    this.setState({ label: `${r.name} ${r.authSeqNumber} ${r.chain.authAsymId}` });
-                }
-            });
-
             this.observerChannels = this.props.plugin.subscribe(Bootstrap.Event.Visual.VisualSelectElement, e => {
                 let eventData = e.data as ChannelEventInfo;
                 if(e.data !== void 0 && eventData.source !== void 0 && eventData.source.props !== void 0 && eventData.source.props.tag === void 0){
@@ -303,10 +296,10 @@ namespace LiteMol.Example.Channels.UI {
         }
 
         componentWillUnmount() {
-            if (this.observer) {
+            /*if (this.observer) {
                 this.observer.dispose();
                 this.observer = void 0;
-            }
+            }*/
             if (this.observerChannels) {
                 this.observerChannels.dispose();
                 this.observerChannels = void 0;

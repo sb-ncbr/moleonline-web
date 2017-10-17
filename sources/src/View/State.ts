@@ -22,7 +22,7 @@ namespace LiteMol.Example.Channels.State {
         | { kind: 'point', data: number[] }
 
     export type SurfaceTag =
-        | { kind: 'Channel' | 'Cavity-inner' | 'Origins' | 'Points', element: any }
+        | { kind: 'Channel' | 'Cavity-inner' | 'Origins' | 'Points' | 'TPoint', element: any }
         | { kind: 'Cavity-boundary', element: any, surface: Core.Geometry.Surface }
 
 
@@ -87,54 +87,12 @@ namespace LiteMol.Example.Channels.State {
         let points:Point[] = [];
 
         for(let origin of residueOrigins){
-            let positions:Point[] = [];
-            
-            for(let residue of origin){
-                let moleculeModel = getNodeFromTree(plugin.root,'protein-data');
-                if(moleculeModel===null){
-                    console.log("protein data not ready!");
-                    return "";
-                }
-
-                let proteinData = moleculeModel.children[0].props.molecule.models[0].data;
-
-                let indices = [];
-                let residueCount = moleculeModel.children[0].props.molecule.models[0].data.residues.count;
-                for(let i=0;i<residueCount;i++){
-                    if(String(proteinData.residues.authSeqNumber[i])===String(residue.SequenceNumber)
-                        && String(proteinData.residues.authAsymId[i])===residue.Chain){
-                        indices.push(proteinData.residues.atomStartIndex[i]);
-                        indices.push(proteinData.residues.atomEndIndex[i]);
-                        break;
-                    }
-                }
-                
-                for(let i=0;i<indices.length;i++){
-                    positions.push({
-                        X:moleculeModel.children[0].props.molecule.models[0].positions.x[indices[i]] as number,
-                        Y:moleculeModel.children[0].props.molecule.models[0].positions.y[indices[i]] as number,
-                        Z:moleculeModel.children[0].props.molecule.models[0].positions.z[indices[i]] as number
-                    });
-                }                        
+            let centerOfMass = CommonUtils.Residues.getCenterOfMass(origin);
+            if(centerOfMass===null){
+                continue;
             }
 
-            if(positions.length<2)
-                continue;
-            
-            let sum = positions.reduce((prev,cur,idx,array)=>{
-                return {
-                    X:prev.X+cur.X,
-                    Y:prev.Y+cur.Y,
-                    Z:prev.Z+cur.Z
-                }
-            });
-            let centerOfMass = {
-                X:sum.X/positions.length,
-                Y:sum.Y/positions.length,
-                Z:sum.Z/positions.length,
-            };
             points.push(centerOfMass);
-            
         }
         return JSON.stringify({
             Origins:{

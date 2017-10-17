@@ -125,6 +125,7 @@ namespace MoleOnlineWebUI.StaticData{
                     case Enum.Void: return LiteMol.Visualization.Molecule.Colors.DefaultPallete[76];
                     */
                     case Enum.SyntethicSelect: return LiteMol.Visualization.Color.fromRgb(191, 82, 204);
+                    case Enum.TPoint: return LiteMol.Visualization.Color.fromRgb(255, 0, 105);
 
                     case Enum.DefaultColor: return LiteMol.Visualization.Color.fromRgb(0,0,0);
                     default : return this.get(Enum.DefaultColor);
@@ -149,9 +150,7 @@ namespace MoleOnlineWebUI.StaticData{
             CavityBoundary,
             CavityInner,
             CavitySelectable,
-            /*Cavity,
-            Surface,
-            Void,*/
+            TPoint,
             SyntethicSelect,
             DefaultColor
         }

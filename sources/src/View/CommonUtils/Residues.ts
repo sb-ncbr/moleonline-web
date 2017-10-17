@@ -3,6 +3,11 @@ namespace CommonUtils{
     import Controller = LiteMol.Plugin.Controller;
 
     interface RType{chain: {authAsymId: string}, authSeqNumber:number, name?:string, backbone?:boolean};
+    export interface Point{
+            X:number,
+            Y:number,
+            Z:number
+        }
 
     export class Residues{
         private static cache:Map<number,string>;
@@ -289,6 +294,85 @@ namespace CommonUtils{
                 return params.fragments.length>0;
             }
             return false;
+        }
+
+        public static getCenterOfMass(residues:MoleOnlineWebUI.Service.MoleAPI.MoleConfigResidue[]):Point|null{
+            let positions:Point[] = [];
+            let plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
+
+            for(let residue of residues){
+                let moleculeModel = getNodeFromTree(plugin.root,'protein-data');
+                if(moleculeModel===null){
+                    console.log("protein data not ready!");
+                    return null;
+                }
+
+                let proteinData = moleculeModel.children[0].props.molecule.models[0].data;
+
+                let indices = [];
+                let residueCount = moleculeModel.children[0].props.molecule.models[0].data.residues.count;
+                for(let i=0;i<residueCount;i++){
+                    if(String(proteinData.residues.authSeqNumber[i])===String(residue.SequenceNumber)
+                        && String(proteinData.residues.authAsymId[i])===residue.Chain){
+                        indices.push(proteinData.residues.atomStartIndex[i]);
+                        indices.push(proteinData.residues.atomEndIndex[i]);
+                        break;
+                    }
+                }
+                
+                for(let i=0;i<indices.length;i++){
+                    positions.push({
+                        X:moleculeModel.children[0].props.molecule.models[0].positions.x[indices[i]] as number,
+                        Y:moleculeModel.children[0].props.molecule.models[0].positions.y[indices[i]] as number,
+                        Z:moleculeModel.children[0].props.molecule.models[0].positions.z[indices[i]] as number
+                    });
+                }                        
+            }
+
+            if(positions.length===1){
+                return positions[0];
+            }
+
+            if(positions.length===0){
+                return null;
+            }
+            
+            let sum = positions.reduce((prev,cur,idx,array)=>{
+                return {
+                    X:prev.X+cur.X,
+                    Y:prev.Y+cur.Y,
+                    Z:prev.Z+cur.Z
+                }
+            });
+
+            let centerOfMass = {
+                X:sum.X/positions.length,
+                Y:sum.Y/positions.length,
+                Z:sum.Z/positions.length,
+            } as Point;
+
+            return centerOfMass;
+        }
+    }
+
+    function getNodeFromTree(root:LiteMol.Bootstrap.Entity.Any,ref:string):LiteMol.Bootstrap.Entity.Any | null{
+        if(root.ref===ref){
+            return root;
+        }
+        for(let c of root.children){
+            let n = getNodeFromTree(c, ref);
+            if(n!==null){
+                return n;
+            }
+        }
+
+        return null;
+    }
+
+    function removeNodeFromTree(plugin:LiteMol.Plugin.Controller, nodeRef:string){
+        let obj = getNodeFromTree(plugin.root, nodeRef);
+        if(obj!==null){
+            LiteMol.Bootstrap.Tree.remove(obj);
         }
     }
 }

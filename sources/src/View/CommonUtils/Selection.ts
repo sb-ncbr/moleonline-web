@@ -37,6 +37,7 @@ namespace CommonUtils.Selection{
         private static selectedChannelRef: string|undefined;
         private static selectedBulkResidues:LightResidueInfo[]|undefined;
         private static selectedPoints:StringPoint[]|undefined;
+        private static selectedTPoint:Point|undefined;
 
         private static selectedChannelData: DataInterface.Layers|undefined;
 
@@ -142,21 +143,24 @@ namespace CommonUtils.Selection{
         }
 
         public static clearSelection(plugin:LiteMol.Plugin.Controller){
-            this.clearSelectionPrivate(plugin);
-            this.selectedBulkResidues = void 0;
-            this.selectedChannelRef = void 0;
-            this.selectedChannelData = void 0;
-            this.clearSelectedPoints();
+            this.clearSelectionPrivate(plugin);            
             //this.resetScene(plugin);
         }
 
         private static clearSelectionPrivate(plugin:LiteMol.Plugin.Controller){
+            this.clearSelectedTPoint();
+            this.clearSelectedPoints();
             LiteMol.Bootstrap.Command.Tree.RemoveNode.dispatch(plugin.context, this.SELECTION_VISUAL_REF);
             if(this.selectedChannelRef!==void 0){
                 deselectTunnelByRef(plugin,this.selectedChannelRef);
+                    this.selectedChannelRef = void 0;
+                    this.selectedChannelData = void 0;
             }
             LiteMol.Bootstrap.Event.Visual.VisualSelectElement.dispatch(plugin.context, LiteMol.Bootstrap.Interactivity.Info.empty);
             this.clearAltSelection(plugin);
+            
+            this.selectedBulkResidues = void 0;
+
             this.invokeOnClearSelectionHandlers();
         }
 
@@ -274,7 +278,12 @@ namespace CommonUtils.Selection{
                 //LiteMol.Bootstrap.Command.Entity.Focus.dispatch(plugin.context, plugin.context.select(CommonUtils.Selection.SelectionHelper.getSelectionVisualRef()));
             }); */ 
             
-            this.selectedBulkResidues = residues;
+            if(residues.length>0){
+                this.selectedBulkResidues = residues;
+            }
+            else{
+                this.selectedBulkResidues = void 0;
+            }
 
             this.invokeOnResidueBulkSelectHandlers(residues); 
         }
@@ -479,6 +488,12 @@ namespace CommonUtils.Selection{
             this.selectedPoints = void 0;
         }
 
+        private static clearSelectedTPoint(){
+            let plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
+            plugin.command(LiteMol.Bootstrap.Command.Tree.RemoveNode, "point-selection-T");
+            this.selectedTPoint = void 0;
+        }
+
         private static createPointsSelectionVisual(points:StringPoint[]){
             let s = LiteMol.Visualization.Primitive.Builder.create();
             let id = 0;
@@ -497,6 +512,27 @@ namespace CommonUtils.Selection{
                         isInteractive: true,
                         color: MoleOnlineWebUI.StaticData.LiteMolObjectsColorScheme.Colors.get(MoleOnlineWebUI.StaticData.LiteMolObjectsColorScheme.Enum.SyntethicSelect) as LiteMol.Visualization.Color
                     }, { ref: "point-selection", isHidden: true });
+                
+                plugin.applyTransform(t);
+            })
+        }
+
+        private static createTPointSelectionVisual(point:Point){
+            let s = LiteMol.Visualization.Primitive.Builder.create();
+            let id = 0;
+            s.add({ type: 'Sphere', id: id++, radius: 1.69, center: [ point.X,point.Y,point.Z ] });
+            
+            let plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
+            this.clearSelectedTPoint();
+            s.buildSurface().run().then(surface => {
+                let t = plugin.createTransform()
+                    .add('mole-data', LiteMol.Example.Channels.State.CreateSurface, {
+                        //label: 'Selected points (' + origins.Type + ')',
+                        tag: <LiteMol.Example.Channels.State.SurfaceTag>{ kind: 'TPoint', element: point },
+                        surface,
+                        isInteractive: true,
+                        color: MoleOnlineWebUI.StaticData.LiteMolObjectsColorScheme.Colors.get(MoleOnlineWebUI.StaticData.LiteMolObjectsColorScheme.Enum.TPoint) as LiteMol.Visualization.Color
+                    }, { ref: "point-selection-T", isHidden: true });
                 
                 plugin.applyTransform(t);
             })
@@ -530,6 +566,36 @@ namespace CommonUtils.Selection{
                 this.clearSelection(MoleOnlineWebUI.Bridge.Instances.getPlugin());
             });
 
+            this.attachOnResidueBulkSelectHandler((residues)=>{
+                let ref = "residue-selection-T";
+                if(residues.length>0){
+                    let centerOfMass = CommonUtils.Residues.getCenterOfMass(
+                        residues.map((val,idx,arr)=>{
+                            return <MoleOnlineWebUI.Service.MoleAPI.MoleConfigResidue>{
+                                Chain: val.chain.authAsymId,
+                                SequenceNumber: val.authSeqNumber
+                            }
+                        })
+                    );
+                    if(centerOfMass === null){
+                        return;
+                    }
+                    this.selectedTPoint = centerOfMass;
+                    this.createTPointSelectionVisual(centerOfMass);
+                }
+                else{
+                    this.clearSelectedTPoint();
+                }
+            });
+
+            //Residue 3D OnClick
+            plugin.subscribe(LiteMol.Bootstrap.Event.Molecule.ModelSelect, e => {
+                if (!!e.data) {
+                    let r = e.data.residues[0];
+                    CommonUtils.Selection.SelectionHelper.addResidueToSelection(r.authSeqNumber,r.chain.authAsymId);
+                }
+            });
+
             LiteMol.Example.Channels.Behaviour.initCavityBoundaryToggle(plugin);
             LiteMol.Example.Channels.Behaviour.createSelectEvent(plugin).subscribe(e => {
                 if ((e.kind === 'nothing')||(e.kind === 'molecule')) {
@@ -561,9 +627,26 @@ namespace CommonUtils.Selection{
                 if(i.elements===void 0){
                     return;
                 }
-
+                if(this.selectedBulkResidues!==void 0){
+                    this.selectResiduesBulkWithBallsAndSticks(plugin,[]);
+                }
                 for(let elIdx of i.elements){
                     this.addPointToSelection(data[elIdx]);   
+                }
+                return;
+            }
+
+            if(i.source.props.tag.kind === "TPoint"){
+                let data = i.source.props.tag.element;
+                if(i.elements===void 0){
+                    return;
+                }
+                if(this.selectedBulkResidues!==void 0){
+                    this.selectResiduesBulkWithBallsAndSticks(plugin,[]);
+                }
+                for(let elIdx of i.elements){
+                    let p = data as Point;
+                    this.addPointToSelection({x:`${p.X}`,y:`${p.Y}`,z:`${p.Z}`});
                 }
                 return;
             }
