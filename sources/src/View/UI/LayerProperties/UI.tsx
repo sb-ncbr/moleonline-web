@@ -80,6 +80,13 @@ namespace LayerProperties.UI{
                 this.setState(state);
             });
             
+            MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId(()=>{
+                let state = this.state;
+                state.layerIdx = -1;
+                state.data = null;
+                this.setState(state);
+            });
+
             $( window ).on('layerTriggered', this.layerTriggerHandler.bind(this));
         }
 

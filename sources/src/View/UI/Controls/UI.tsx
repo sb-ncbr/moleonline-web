@@ -283,6 +283,55 @@ namespace Controls.UI{
             }
         }
     }
+
+    export class PointsBox extends TextBox{
+        componentDidMount(){
+            super.componentDidMount();
+            CommonUtils.Selection.SelectionHelper.attachOnClearSelectionHandler(()=>{
+                this.forceUpdate();
+            });
+
+            CommonUtils.Selection.SelectionHelper.attachOnPointBulkSelectHandler(()=>{
+                this.forceUpdate();
+            });
+        }
+
+        getUseSelectionButtonOnClick(){
+            return (e:React.MouseEvent<HTMLDivElement>)=>{
+                if(e.currentTarget.attributes.getNamedItem("disabled")===null){
+                    let points = CommonUtils.Selection.SelectionHelper.getSelectedPoints();
+                    if(points.length>0){
+                        let currentValue = $(`#${this.props.id}`).val();
+                        let newPoints:CommonUtils.Selection.StringPoint[] = [];
+                        for(let p of points){
+                            newPoints.push(p);
+                        }
+                        let currentPoints = parsePoints(currentValue);
+                        currentPoints = currentPoints.concat(newPoints);
+                        $(`#${this.props.id}`).val(flattenPoints(currentPoints));
+                    }
+                }
+            }
+        }
+
+        render(){
+            let renderParameters = this.prepareRenderParameters();
+            let hasSelection = CommonUtils.Selection.SelectionHelper.getSelectedPoints().length>0;
+            let useSelectionEl = <div className="PointsArraysBox-useSelection">
+                    <div className="btn btn-default btn-xs" onClick={this.getUseSelectionButtonOnClick()} disabled={!hasSelection}><span className="glyphicon glyphicon-plus useCurrentSelectionIcon"/>Use current selection</div>
+                </div>
+            return (
+                <div className="form-group">
+                    <label id={`${this.props.id}_label`} className={`control-label ${renderParameters.classNames[0]}`} htmlFor={this.props.id} data-toggle={(renderParameters.tooltip===void 0)?void 0:'tooltip'} data-original-title={renderParameters.tooltip}>{this.props.label}:</label>
+                    <div className={`${renderParameters.classNames[1]}`}>
+                        <input type="text" className="form-control" id={this.props.id} placeholder={this.props.placeholder} onBlur={renderParameters.onBlur} onKeyDown={renderParameters.onKeyDown} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,this.props.id)} />
+                    </div>
+                    {useSelectionEl}
+                    {renderParameters.hint}
+                </div>
+            );
+        }
+    }
     
     interface CheckBoxProps{
         label: string, 
@@ -771,7 +820,20 @@ namespace Controls.UI{
                 valid,
                 message:(!valid)?"List of chains is not in readable format!":""};
         }
-        
+
+        validatePoints(value:string){
+            if(value.length===0){
+                return {valid:true, message:""};
+            }
+            let v = removeMultipleWSp(value);
+            let expectedCount = v.split('],[').length;                
+            let valid = parsePoints(value).length===expectedCount
+            
+            return {
+                valid,
+                message:(!valid)?"List of points is not in readable format!":""};
+        }
+
         validateResidueDoubleArray(value:string){
             if(value.length===0){
                 return {valid:true, message:""};
@@ -905,9 +967,9 @@ namespace Controls.UI{
                         <h4>Selection</h4>
                         <CSAPickBox label="Active Sites From CSA" id="csaActiveSites" tooltip={TooltipText.get("csaActiveSites")} classNames={css} outputRefId="originResidues" computationId={this.props.initialData.ComputationId} />
                         <ResidueArraysBox label="Starting Point" id="originResidues" tooltip={TooltipText.get("originResidues")} classNames={css} placeholder="[A 69, A 386], [A 137, A 136]" onValidate={this.validateResidueDoubleArray} />
-                        <XYZBox label="Starting Point [x,y,z]" id="originPoints" tooltip={TooltipText.get("originPoints")} classNames={css} placeholder={{x:-1,y:0,z:4}} />
+                        <PointsBox label="Starting Point [x,y,z]" id="originPoints" tooltip={TooltipText.get("originPoints")} classNames={css} placeholder="[-1,0,4],[3.5,1,3]" onValidate={this.validatePoints} />
                         <ResidueArraysBox label="End Point" id="customExitsResidues" tooltip={TooltipText.get("customExitsResidues")} classNames={css} placeholder="[A 69, A 386], [A 137, A 136]" onValidate={this.validateResidueDoubleArray} />
-                        <XYZBox label="End Point [x,y,z]" id="customExitsPoints" tooltip={TooltipText.get("customExitsPoints")} classNames={css} placeholder={{x:-1,y:0,z:4}} />
+                        <PointsBox label="End Point [x,y,z]" id="customExitsPoints" tooltip={TooltipText.get("customExitsPoints")} classNames={css} placeholder="[-1,0,4],[3.5,1,3]" onValidate={this.validatePoints}  />
                         <CofactorPickBox label="Cofactor Starting Points" id="cofactorActiveSites" tooltip={TooltipText.get("cofactorActiveSites")} classNames={css} outputRefId="queryExpresion" />
                         <TextBox label="Query" id="queryExpresion" tooltip={TooltipText.get("queryExpresion")} classNames={css} placeholder="Atoms('Fe')" hint={this.getPatternQueryHint()} onValidateCustom={this.validatePatternQuery} />
 
@@ -1409,6 +1471,64 @@ namespace Controls.UI{
         return rv;
     }
 
+    function parsePoint(value:string|undefined):CommonUtils.Selection.StringPoint|undefined{
+        if(value===void 0){
+            return void 0;
+        }
+        value = value.replace(/\s*,\s*/g,",");
+        let parts = value.split(",");
+
+        let x = Number(parts[0]);
+        let y = Number(parts[1]);
+        let z = Number(parts[2]);
+
+        if(isNaN(x)||isNaN(y)||isNaN(z)){
+            return void 0;
+        }
+
+        return {
+            x:parts[0],
+            y:parts[1],
+            z:parts[2]
+        }
+    }
+
+    function removeMultipleWSp(value:string){
+        let v = value.replace(/\s+/g," ");
+        v = v.replace(/\s*$/g,'');
+        v = v.replace(/^\s*/g,'');
+        return v;
+    }
+    function parsePoints(value:string){
+        value = value.replace(/\]\s*,\s*\[/g,"],[");
+        value = removeMultipleWSp(value);
+        let parts = value.split("],[");
+        let rv = [];
+        for(let part of parts){
+            part = part.replace(/\[/g,"");
+            part = part.replace(/\]/g,"");
+            let point = parsePoint(part);
+            if(point!==void 0){
+                rv.push(point);
+            }
+        }
+        return rv;
+    }
+
+    function flattenPoints(pointsArray:CommonUtils.Selection.StringPoint[]):string{
+        let rv = "";
+        for(let p of pointsArray){
+            let group = `[${p.x},${p.y},${p.z}]`;
+            
+            if(rv.length!==0){
+                rv+=",";
+            }
+            rv+=group;
+        }
+
+        return rv;
+    }
+
     interface ControlTabState{
         activeTabIdx: Number,
         data?: Service.CompInfo,
@@ -1499,14 +1619,10 @@ namespace Controls.UI{
             let probeRadius = 3;
             let automaticStartingPoints;
             let originResidues;
-            let originPoints_x;
-            let originPoints_y;
-            let originPoints_z;
+            let originPoints;
             let automaticEndPoints;
             let customExitsResidues;
-            let customExitsPoints_x;
-            let customExitsPoints_y;
-            let customExitsPoints_z;
+            let customExitsPoints;
             let queryExpresion=null;
             let tunnelWeightFunction="VoronoiScale";
             let bottleneckRadius=1.2;
@@ -1561,30 +1677,18 @@ namespace Controls.UI{
                     case 'originResidues':
                         originResidues = item.value;
                         break;  
-                    case 'originPoints_x':
-                        originPoints_x = (item.value==="")?void 0:Number(item.value);
+                    case 'originPoints':
+                        originPoints = (item.value==="")?void 0:parsePoints(item.value);
                         break;  
-                    case 'originPoints_y':
-                        originPoints_y = (item.value==="")?void 0:Number(item.value);
-                        break; 
-                    case 'originPoints_z':
-                        originPoints_z = (item.value==="")?void 0:Number(item.value);
-                        break; 
                     case 'automaticEndPoints':
                         automaticEndPoints = (item.value!=="")?item.checked:false;
                         break;
                     case 'customExitsResidues':
                         customExitsResidues = item.value;
                         break;  
-                    case 'customExitsPoints_x':
-                        customExitsPoints_x = (item.value==="")?void 0:Number(item.value);
+                    case 'customExitsPoints':
+                        customExitsPoints = (item.value==="")?void 0:parsePoints(item.value);
                         break;  
-                    case 'customExitsPoints_y':
-                        customExitsPoints_y = (item.value==="")?void 0:Number(item.value);
-                        break; 
-                    case 'customExitsPoints_z':
-                        customExitsPoints_z = (item.value==="")?void 0:Number(item.value);
-                        break; 
                     case 'queryExpresion':
                         queryExpresion = item.value;
                         break; 
@@ -1628,26 +1732,38 @@ namespace Controls.UI{
                 }
             }
 
-            let originPoints=null;
-            if(originPoints_x!== void 0 && originPoints_y!==void 0 && originPoints_z!==void 0){
-                originPoints = [
-                    {
-                        X:originPoints_x,
-                        Y:originPoints_y,
-                        Z:originPoints_z,
-                    }
-                ]
+            if(originPoints!==void 0){
+                let out = []
+                for(let p of originPoints){
+                    out.push(
+                        {
+                            X:Number(p.x),
+                            Y:Number(p.y),
+                            Z:Number(p.z),
+                        }
+                    );
+                }
+                originPoints = out;
+            }
+            else{
+                originPoints = null;
             }
 
-            let customExitsPoints=null;
-            if(customExitsPoints_x!== void 0 && customExitsPoints_y!==void 0 && customExitsPoints_z!==void 0){
-                customExitsPoints = [
-                    {
-                        X:customExitsPoints_x,
-                        Y:customExitsPoints_y,
-                        Z:customExitsPoints_z,
-                    }
-                ]
+            if(customExitsPoints!==void 0){
+                let out = []
+                for(let p of customExitsPoints){
+                    out.push(
+                        {
+                            X:Number(p.x),
+                            Y:Number(p.y),
+                            Z:Number(p.z),
+                        }
+                    );
+                }
+                customExitsPoints = out;
+            }
+            else{
+                customExitsPoints = null;
             }
 
             let customExits;

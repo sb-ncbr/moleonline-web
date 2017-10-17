@@ -22,14 +22,13 @@ namespace LiteMol.Example.Channels {
         context.highlight.addProvider(info => {
             if  (Interactivity.isEmpty(info) || info.source.type !== Bootstrap.Entity.Visual.Surface) return void 0;
             
-            let tag = (info.source as Bootstrap.Entity.Visual.Surface).props.tag as State.SurfaceTag;
-            let e = tag.element;
-            switch (tag.type) {
-                case 'Cavity': return `<b>${e.Type} ${e.Id}</b>, Volume: ${e.Volume | 0} Å`;
-                case 'Path':
-                case 'Pore':
-                case 'MergedPore':
-                case 'Tunnel': {
+            const tag = (info.source as Bootstrap.Entity.Visual.Surface).props.tag as State.SurfaceTag;
+            const e = tag.element;
+            switch (tag.kind) {
+//                case 'Cavity': return `<b>${e.Type} ${e.Id}</b>, Volume: ${e.Volume | 0} Å`;
+                case 'Cavity-inner': return `<b>${e.Type} ${e.Id}</b>, Volume: ${e.Volume | 0} Å`;
+                case 'Cavity-boundary': return `<b>${e.Type} ${e.Id}</b>, Volume: ${e.Volume | 0} Å, Center: ${Behaviour.vec3str(Behaviour.getTriangleCenter(tag.surface, info.elements[0]))}`;
+                case 'Channel': {
                     let tunnel = e as DataInterface.Tunnel;
                     let len = CommonUtils.Tunnels.getLength(tunnel);
                     let bneck = CommonUtils.Tunnels.getBottleneck(tunnel);
@@ -41,9 +40,19 @@ namespace LiteMol.Example.Channels {
                     let o = e.Points[info.elements[0]];
                     return `<b>Origin</b> (${e.Type}) at (${o.X}, ${o.Y}, ${o.Z})`;
                 }
+                case 'Points': {
+                    let o = e[info.elements[0]];
+                    return `<b>Selected Point</b> at (${Number(o.x).toFixed(2)}, ${Number(o.y).toFixed(2)}, ${Number(o.z).toFixed(2)})`;
+                }
                 default: return void 0;
             }
         });        
+    }
+
+    function isSelectableVisual(info: Bootstrap.Interactivity.Info, ctx: Bootstrap.Context) {
+        if (Interactivity.isEmpty(info) || info.source.type !== Bootstrap.Entity.Visual.Surface) return true;
+        const tag = (info.source as Bootstrap.Entity.Visual.Surface).props.tag as State.SurfaceTag;
+        return tag.kind === 'Channel';
     }
     
     export const PluginSpec: Plugin.Specification = {
@@ -66,13 +75,13 @@ namespace LiteMol.Example.Channels {
             // you will find the source of all behaviours in the Bootstrap/Behaviour directory
             
             Bootstrap.Behaviour.SetEntityToCurrentWhenAdded,
-            //Bootstrap.Behaviour.FocusCameraOnSelect,
+            //Bootstrap.Behaviour.FilteredFocusCameraOnSelect(isSelectableVisual),,
             
             // this colors the visual when a selection is created on it.
             Bootstrap.Behaviour.ApplySelectionToVisual,
             
             // this colors the visual when it's selected by mouse or touch
-            Bootstrap.Behaviour.ApplyInteractivitySelection,
+            Bootstrap.Behaviour.FilteredApplyInteractivitySelection(isSelectableVisual),
             
             // this shows what atom/residue is the pointer currently over
             Bootstrap.Behaviour.Molecule.HighlightElementInfo,

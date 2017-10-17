@@ -14,7 +14,17 @@ namespace LiteMol.Example.Channels.State {
 
     import ColorScheme = MoleOnlineWebUI.StaticData.LiteMolObjectsColorScheme;
 
-    export interface SurfaceTag { type: string, element?: any }
+    /*export interface SurfaceTag { type: string, element?: any }*/
+
+    export type SelectableElement = 
+        | { kind: 'nothing' }
+        | { kind: 'molecule', data: Bootstrap.Interactivity.Molecule.SelectionInfo }
+        | { kind: 'point', data: number[] }
+
+    export type SurfaceTag =
+        | { kind: 'Channel' | 'Cavity-inner' | 'Origins' | 'Points', element: any }
+        | { kind: 'Cavity-boundary', element: any, surface: Core.Geometry.Surface }
+
 
     function showDefaultVisuals(plugin: Plugin.Controller, data: any) {
         return new Promise(res => {
@@ -365,47 +375,44 @@ namespace LiteMol.Example.Channels.State {
         return surface;
     }
 
-    //Added
-    function createTunnelSurface_sphere(sphereArray: DataInterface.Profile[]){
-        let idxFilter = 1;
-        let posTableBuilder = Core.Utils.DataTable.builder<Core.Structure.Position>(Math.ceil(sphereArray.length/idxFilter));
-        
-        posTableBuilder.addColumn("x", Core.Utils.DataTable.customColumn<Core.Structure.Position>());
-        posTableBuilder.addColumn("y", Core.Utils.DataTable.customColumn<Core.Structure.Position>());
-        posTableBuilder.addColumn("z", Core.Utils.DataTable.customColumn<Core.Structure.Position>());
+    function createTriangleSurface(mesh: any) {
+        const triangleCount = (mesh.Triangles.length / 3) | 0;
+        const vertexCount = triangleCount * 3;
 
-        let rowIdx = 0;
-        let positions = posTableBuilder.seal(); 
-        
-        let sphereCounter = 0;
-        for(let sphere of sphereArray){
-            sphereCounter++;
-            if((sphereCounter-1)%idxFilter!==0){
-                continue;
+        const srcV = mesh.Vertices;
+        const srcT = mesh.Triangles;
+
+        const vertices = new Float32Array(vertexCount * 3);
+        const triangleIndices = new Uint32Array(triangleCount * 3);
+        const annotation = new Int32Array(vertexCount) as any as number[];
+
+        const tri = [0,0,0];
+        for (let i = 0, _i = mesh.Triangles.length; i < _i; i += 3) {
+            tri[0] = srcT[i]; tri[1] = srcT[i + 1]; tri[2] = srcT[i + 2];
+
+            for (let j = 0; j < 3; j++) {
+                const v = i + j;
+                vertices[3 * v] =  srcV[3 * tri[j]];
+                vertices[3 * v + 1] =  srcV[3 * tri[j] + 1];
+                vertices[3 * v + 2] =  srcV[3 * tri[j] + 2];
+                triangleIndices[i + j] = i + j;
             }
-
-            positions.x[rowIdx] = sphere.X.valueOf();
-            positions.y[rowIdx] = sphere.Y.valueOf();
-            positions.z[rowIdx] = sphere.Z.valueOf();
-
-            rowIdx++;
+        }
+        for (let i = 0; i < triangleCount; i++) {
+            for (let j = 0; j < 3; j++) annotation[3 * i + j] = i;
         }
 
-        return LiteMol.Core.Geometry.MolecularSurface.computeMolecularSurfaceAsync({
-            positions,
-            atomIndices: positions.indices,
-            parameters:  {
-                atomRadius: ((i: number) => {
-                    return sphereArray[i*idxFilter].Radius.valueOf();
-                }),
-                probeRadius: 0,
-                smoothingIterations: 2,
-                interactive: true, //false
-            },                
-        }).run();
+        const surface = <Core.Geometry.Surface>{
+            vertices,
+            vertexCount,
+            triangleIndices,
+            triangleCount,
+            annotation
+        };
+
+        return surface;
     }
 
-    //Added
     function createTunnelSurface(sphereArray: DataInterface.Profile[]){
         let s = Visualization.Primitive.Builder.create();
         let id = 0;
@@ -419,216 +426,13 @@ namespace LiteMol.Example.Channels.State {
             s.add({ type: 'Sphere', id: 0/*id++*/, radius: sphere.Radius, center: [ sphere.X, sphere.Y, sphere.Z ], tessalation: 2 });
         }        
         return s.buildSurface().run();
-    }
-
-    function adjustRadius(profileRadius:number, maxProfileRadius:number, maxLayerRadius:number){
-        return (maxLayerRadius/maxProfileRadius)*profileRadius;
-    }
-    
-
-    function getLayerRadiusByDistance(distance:number,layers:DataInterface.Layers,lastLayerIdx:&number):number{            
-            let __start = layers.LayersInfo[lastLayerIdx].LayerGeometry.StartDistance;
-            let __end = layers.LayersInfo[lastLayerIdx].LayerGeometry.EndDistance;
-            let __s = Math.max(__start,distance);
-            let __e = Math.min(__end,distance);
-            //console.log({__start,__end,__s,__e,distance,lastLayerIdx});
-            if(__e-__s===0){
-                return layers.LayersInfo[lastLayerIdx].LayerGeometry.MinRadius;
-            }
-            lastLayerIdx++;
-            if(lastLayerIdx===layers.LayersInfo.length){
-                return 0;
-            }
-
-            return getLayerRadiusByDistance(distance,layers,lastLayerIdx);
-        }
-
-    function buildRingSurface(s: Visualization.Primitive.Builder,spheres:DataInterface.Profile[],id:number,parts:number=8){
-        let sphere = spheres[id];
-        if(id === 0 || id === spheres.length-1){
-            s.add({ type: 'Sphere', id, radius: sphere.Radius, center: [ sphere.X, sphere.Y, sphere.Z ], tessalation: 2 });            
-            return;
-        }
-        interface vector3{x:number,y:number,z:number};
-        let prevSphere = spheres[id-1];
-        let nextSphere = spheres[id+1];
-        let normalize = (vec3: vector3) =>{
-            let __divisor = Math.max(Math.abs(vec3.x),Math.abs(vec3.y),Math.abs(vec3.z));
-            if(__divisor === 0){
-                return vec3;
-            }
-
-            return {x: vec3.x/__divisor, y: vec3.y/__divisor, z: vec3.z/__divisor};
-        };
-        let greatest = (vec3: vector3) => {
-            let __max = Math.max(Math.abs(vec3.x),Math.abs(vec3.y),Math.abs(vec3.z));    
-
-            return (__max===vec3.x)?0:(__max===vec3.y)?1:2;
-        };
-
-        let rotateByMat = (vec3: vector3, mat:number[][]) => {
-            return multiplyMatVec(mat,vec3);
-        };
-
-        //OK
-        let multiplyMatMat = (m1:number[][],m2:number[][]) => {
-            let mat = [];
-            for(let m1r=0;m1r<3;m1r++){
-                let row = [];
-                for(let m2c=0;m2c<3;m2c++){
-                    let a = 0;
-                    for(let m2r=0;m2r<3;m2r++){
-                        a+=m1[m1r][m2r]*m2[m2r][m2c];
-                    }
-                    row.push(a);
-                }
-                mat.push(row);
-            }
-            return mat;
-        };
-
-        let tstMat1 = [
-            [1,2,3],
-            [4,5,6],
-            [7,8,9]
-        ];
-        let tstMat2 = [
-            [9,8,7],
-            [6,5,4],
-            [3,2,1]
-        ];
-
-        //console.log("TSTMAT:");
-        //console.log(multiplyMatMat(tstMat1,tstMat2));
-
-        //OK
-        let multiplyMatVec = (m:number[][],v:vector3) => {
-            let __u:number[] = [];
-            for(let row=0;row<3;row++){
-                __u.push(m[row][0]*v.x + m[row][1]*v.y + m[row][2]*v.z);
-            }
-            return {
-                x: __u[0],
-                y: __u[1],
-                z: __u[2]
-            };
-        };
-
-        //console.log("TSTMATVEC:");
-        //console.log(multiplyMatVec(tstMat1,{x:1,y:2,z:3}));
-
-        let toRad = (degrees:number) => {
-            return (degrees*Math.PI)/180;
-        };
-
-        let Rx = (radFi:number) => {
-            return [
-                [1,0,0],
-                [0,Math.cos(radFi),-Math.sin(radFi)],
-                [0,Math.sin(radFi),Math.cos(radFi)]
-            ]
-        };
-        let Ry = (radFi:number) => {
-            return [
-                [Math.cos(radFi),0,Math.sin(radFi)],
-                [0,1,0],
-                [-Math.sin(radFi),0,Math.cos(radFi)]
-            ]
-        };
-        let Rz = (radFi:number) => {
-            return [
-                [Math.cos(radFi),-Math.sin(radFi),0],
-                [Math.sin(radFi),Math.cos(radFi),0],
-                [0,0,1]
-            ]
-        };
-
-        let Rxy = (radFi:number) => {
-            return multiplyMatMat(Rx(radFi),Ry(radFi))
-        };
-        let Ryz = (radFi:number) => {
-            return multiplyMatMat(Ry(radFi),Rz(radFi))
-        };
-        let Rxz = (radFi:number) => {
-            return multiplyMatMat(Rx(radFi),Rz(radFi))
-        };
-
-        let n = {
-            x: nextSphere.X-prevSphere.X,
-            y: nextSphere.Y-prevSphere.Y,
-            z: nextSphere.Z-prevSphere.Z
-        }
-
-        n = normalize(n);
-
-        let majorAxis = greatest(n);
-        let v;
-        switch(majorAxis){
-            case 0:
-                v = rotateByMat(n,Rz(toRad(90)));
-                break;
-            case 1:
-                v = rotateByMat(n,Rx(toRad(90)));
-                break;
-            default:
-                v = rotateByMat(n,Ry(toRad(90)));
-                break;
-        }
-
-        let radius = (2*Math.PI*sphere.Radius)/parts;
-        for(let i=0;i<parts;i++){
-            let u:vector3;            
-            switch(majorAxis){
-                case 0:
-                    u = rotateByMat(n,Rxy(toRad(i*(360/parts))));
-                    break;
-                case 1:
-                    u = rotateByMat(n,Ryz(toRad(i*(360/parts))));
-                    break;
-                default:
-                    u = rotateByMat(n,Rxz(toRad(i*(360/parts))));
-                    break;
-            }
-            u = normalize(u);
-            let center = [
-                sphere.X+u.x*sphere.Radius,
-                sphere.Y+u.y*sphere.Radius,
-                sphere.Z+u.z*sphere.Radius
-            ];
-
-            s.add({ type: 'Sphere', id, radius:1, center, tessalation: 2 });
-        }
-    }
-    
-    //Added
-    function createTunnelSurfaceWithLayers(sphereArray: DataInterface.Profile[], layers:DataInterface.Layers){        
-        //let layerProfileMap = new Map<number,>
+    }    
         
-        let id = 0;
-        //let promises = [];
-        let s = Visualization.Primitive.Builder.create();
-        for (let sphere of sphereArray) {
-            buildRingSurface(s,sphereArray,id++);
-        }
-        return s.buildSurface().run();
-
-/*
-        return Promise.all(promises).then(res => {
-            let s = Visualization.Primitive.Builder.create();
-            for(let i = 0;i<res.length;i++){
-                s.add({type:'Surface', surface: res[i], id:i}); 
-            }
-            return s.buildSurface().run();
-        });
-  */      
-    }
-
-    
     function getSurfaceColorByType(type:string){
         switch(type){
-            case 'Cavity': return ColorScheme.Colors.get(ColorScheme.Enum.Cavity);
+            /*case 'Cavity': return ColorScheme.Colors.get(ColorScheme.Enum.Cavity);
             case 'MolecularSurface': return ColorScheme.Colors.get(ColorScheme.Enum.Surface);
-            case 'Void': return ColorScheme.Colors.get(ColorScheme.Enum.Void);
+            case 'Void': return ColorScheme.Colors.get(ColorScheme.Enum.Void);*/
             default : return ColorScheme.Colors.get(ColorScheme.Enum.DefaultColor);
         }
     }
@@ -648,11 +452,29 @@ namespace LiteMol.Example.Channels.State {
 
             if (!visible) {
                 plugin.command(Bootstrap.Command.Tree.RemoveNode, element.__id);
-            } else {
+            }else if(type==="Cavity"){
+                const boundarySurface = createTriangleSurface(element.Mesh.Boundary);
+ 
+                const group = t.add('mole-data', Transformer.Basic.CreateGroup, { }, { ref: element.__id, isHidden: true });
+                group.then(Transformer.Basic.CreateSurfaceVisual, {
+                    label: label(element),
+                    tag: <SurfaceTag>{ kind: 'Cavity-boundary', element, surface: boundarySurface },
+                    surface: boundarySurface,
+                    theme: Behaviour.CavityTheme.boundary
+                });
+                group.then(Transformer.Basic.CreateSurfaceVisual, {
+                    label: label(element),
+                    tag: <SurfaceTag>{ kind: 'Cavity-inner', element },
+                    surface: createSurface(element.Mesh.Inner),
+                    theme: Behaviour.CavityTheme.inner
+                });
+                needsApply = true;
+            } 
+            else {
                 let surface = createSurface(element.Mesh);
                 t.add('mole-data', CreateSurface, {
                     label: label(element),
-                    tag: { type, element },
+                    tag: <SurfaceTag>{ kind:type, element },
                     surface,
                     color: element.__color as Visualization.Color,
                     isInteractive: true,
@@ -692,7 +514,7 @@ namespace LiteMol.Example.Channels.State {
         __color:Visualization.Color,
         __isBusy:boolean
     };
-    //Modified
+    
     export function showChannelVisuals(plugin: Plugin.Controller, channels: DataInterface.Tunnel[]&TunnelMetaInfo[], visible: boolean, forceRepaint?:boolean): Promise<any> {
         let label = (channel: any) => `${channel.Type} ${CommonUtils.Tunnels.getName(channel)}`;
         /*let type = "Channel";*/
@@ -739,7 +561,7 @@ namespace LiteMol.Example.Channels.State {
                         let t = plugin.createTransform();                        
                         t.add('mole-data', CreateSurface, {
                             label: label(channel),
-                            tag: { type:channel.Type, element: channel },
+                            tag: <SurfaceTag>{ kind:"Channel", element: channel },
                             surface: surface/*.surface*/,
                             color: channel.__color as Visualization.Color,
                             isInteractive: true,
@@ -798,7 +620,7 @@ namespace LiteMol.Example.Channels.State {
                 let t = plugin.createTransform()
                     .add('mole-data', CreateSurface, {
                         label: 'Origins (' + origins.Type + ')',
-                        tag: { type: 'Origins', element: origins },
+                        tag: <SurfaceTag>{ kind: 'Origins', element: origins },
                         surface,
                         isInteractive: true,
                         color: origins.__color as Visualization.Color

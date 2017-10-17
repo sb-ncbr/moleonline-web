@@ -65597,7 +65597,7 @@ var LiteMol;
 (function (LiteMol) {
     var Visualization;
     (function (Visualization) {
-        Visualization.VERSION = { number: "1.7.3", date: "Aug 26 2017" };
+        Visualization.VERSION = { number: "1.7.3", date: "Sep 18 2017" };
     })(Visualization = LiteMol.Visualization || (LiteMol.Visualization = {}));
 })(LiteMol || (LiteMol = {}));
 var LiteMol;
@@ -67786,6 +67786,8 @@ var LiteMol;
                 Pick.prototype.getPickInfo = function () {
                     if (!this.current)
                         return this.current;
+                    if (this.current.elements && !this.current.elements.length)
+                        return null;
                     return {
                         model: this.current.model,
                         elements: this.current.elements,
@@ -68498,12 +68500,15 @@ var LiteMol;
         (function (Surface) {
             "use strict";
             Surface.DefaultSurfaceModelParameters = {
-                isWireframe: false
+                isWireframe: false,
+                mapPickElements: void 0
             };
             var Model = (function (_super) {
                 __extends(Model, _super);
                 function Model() {
-                    return _super !== null && _super.apply(this, arguments) || this;
+                    var _this = _super !== null && _super.apply(this, arguments) || this;
+                    _this._mapPickElements = void 0;
+                    return _this;
                 }
                 Model.prototype.applySelectionInternal = function (indices, action) {
                     var buffer = this.geometry.vertexStateBuffer, array = buffer.array, map = this.geometry.elementToVertexMap, vertexRanges = map.vertexRanges, changed = false;
@@ -68526,7 +68531,7 @@ var LiteMol;
                 };
                 Model.prototype.highlightElement = function (pickId, highlight) {
                     if (this.surface.annotation) {
-                        return this.applySelection(this.getPickElements(pickId), highlight ? 3 /* Highlight */ : 4 /* RemoveHighlight */);
+                        return this.applySelection([pickId - 1], highlight ? 3 /* Highlight */ : 4 /* RemoveHighlight */);
                     }
                     else {
                         return this.highlightInternal(highlight);
@@ -68537,7 +68542,10 @@ var LiteMol;
                 };
                 Model.prototype.getPickElements = function (pickId) {
                     if (!pickId)
-                        return [];
+                        return [0];
+                    if (this._mapPickElements) {
+                        return this._mapPickElements(pickId - 1) || [];
+                    }
                     return [pickId - 1];
                 };
                 Model.prototype.getBoundingSphereOfSelection = function (indices) {
@@ -68659,6 +68667,7 @@ var LiteMol;
                                 case 1:
                                     geometry = _a.sent();
                                     ret = new Model();
+                                    ret._mapPickElements = parameters.mapPickElements;
                                     ret.surface = surface;
                                     ret.material = Visualization.MaterialsHelper.getMeshMaterial(Visualization.THREE.FlatShading, !!parameters.isWireframe); //new THREE.MeshPhongMaterial({ specular: 0xAAAAAA, /*ambient: 0xffffff, */shininess: 1, shading: THREE.FlatShading, side: THREE.DoubleSide, vertexColors: THREE.VertexColors });
                                     ret.geometry = geometry;
@@ -71676,7 +71685,7 @@ var LiteMol;
 (function (LiteMol) {
     var Bootstrap;
     (function (Bootstrap) {
-        Bootstrap.VERSION = { number: "1.4.1", date: "June 22 2017" };
+        Bootstrap.VERSION = { number: "1.4.2", date: "Sep 18 2017" };
     })(Bootstrap = LiteMol.Bootstrap || (LiteMol.Bootstrap = {}));
 })(LiteMol || (LiteMol = {}));
 /*
@@ -72688,6 +72697,7 @@ var LiteMol;
             var Common;
             (function (Common) {
                 Common.LayoutChanged = Event.create('bs.Common.LayoutChanged', Lane.Slow);
+                Common.ComponentsChanged = Event.create('bs.Common.ComponentsChanged', Lane.Slow);
             })(Common = Event.Common || (Event.Common = {}));
             var Task;
             (function (Task) {
@@ -73667,7 +73677,17 @@ var LiteMol;
                 Info.selection = selection;
             })(Info = Interactivity.Info || (Interactivity.Info = {}));
             function isEmpty(info) {
-                return info.kind === 0 /* Empty */ || !info.source.tree;
+                if (info.kind === 0 /* Empty */ || !info.source.tree)
+                    return true;
+                if (info.source.type.info.typeClass === Bootstrap.Entity.VisualClass && info.source.type === Bootstrap.Entity.Molecule.Visual) {
+                    var modelOrSelection = Bootstrap.Utils.Molecule.findModelOrSelection(info.source);
+                    if (modelOrSelection) {
+                        if (!info.elements || !info.elements.length) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
             }
             Interactivity.isEmpty = isEmpty;
             function isSelection(info) {
@@ -76551,10 +76571,10 @@ var LiteMol;
                 });
             }
             Behaviour.ApplySelectionToVisual = ApplySelectionToVisual;
-            function ApplyInteractivitySelection(context) {
+            function _applyInteractivitySelection(stream, context) {
                 var latestIndices = void 0;
                 var latestModel = void 0;
-                context.behaviours.click.subscribe(function (info) {
+                stream.subscribe(function (info) {
                     if (latestModel) {
                         latestModel.applySelection(latestIndices, 2 /* RemoveSelect */);
                         latestModel = void 0;
@@ -76567,7 +76587,16 @@ var LiteMol;
                     latestModel.applySelection(latestIndices, 1 /* Select */);
                 });
             }
+            function ApplyInteractivitySelection(context) {
+                _applyInteractivitySelection(context.behaviours.click, context);
+            }
             Behaviour.ApplyInteractivitySelection = ApplyInteractivitySelection;
+            function FilteredApplyInteractivitySelection(filter) {
+                return function (context) {
+                    _applyInteractivitySelection(context.behaviours.click.filter(function (e) { return filter(e, context); }), context);
+                };
+            }
+            Behaviour.FilteredApplyInteractivitySelection = FilteredApplyInteractivitySelection;
             function UnselectElementOnRepeatedClick(context) {
                 var latest = Bootstrap.Interactivity.Info.empty;
                 Bootstrap.Event.Visual.VisualSelectElement.getStream(context).subscribe(function (e) {
@@ -76618,15 +76647,24 @@ var LiteMol;
                     context.scene.camera.focusOnModel(m);
                 }
             }
-            function FocusCameraOnSelect(context) {
-                context.behaviours.click.subscribe(function (e) {
+            function focusCamera(stream, context) {
+                stream.subscribe(function (e) {
                     if (Bootstrap.Interactivity.Molecule.isMoleculeModelInteractivity(e))
                         updateCameraModel(context, e);
                     else
                         updateCameraVisual(context, e);
                 });
             }
+            function FocusCameraOnSelect(context) {
+                focusCamera(context.behaviours.click, context);
+            }
             Behaviour.FocusCameraOnSelect = FocusCameraOnSelect;
+            function FilteredFocusCameraOnSelect(filter) {
+                return function (context) {
+                    focusCamera(context.behaviours.click.filter(function (e) { return filter(e, context); }), context);
+                };
+            }
+            Behaviour.FilteredFocusCameraOnSelect = FilteredFocusCameraOnSelect;
         })(Behaviour = Bootstrap.Behaviour || (Bootstrap.Behaviour = {}));
     })(Bootstrap = LiteMol.Bootstrap || (LiteMol.Bootstrap = {}));
 })(LiteMol || (LiteMol = {}));
@@ -77316,6 +77354,11 @@ var LiteMol;
                         this.context.logger.error('Layout change error, you might have to reload the page.');
                         console.log('Layout change error, you might have to reload the page.', e);
                     }
+                };
+                Layout.prototype.updateTargets = function (targets) {
+                    var _this = this;
+                    this.targets = targets;
+                    this.dispatcher.schedule(function () { return Bootstrap.Event.Common.ComponentsChanged.dispatch(_this.context, {}); });
                 };
                 return Layout;
             }(Components.Component));
@@ -78270,7 +78313,7 @@ var LiteMol;
 (function (LiteMol) {
     var Plugin;
     (function (Plugin) {
-        Plugin.VERSION = { number: "1.3.3", date: "June 18 2017" };
+        Plugin.VERSION = { number: "1.3.4", date: "September 7 2017" };
     })(Plugin = LiteMol.Plugin || (LiteMol.Plugin = {}));
 })(LiteMol || (LiteMol = {}));
 /*
@@ -79394,6 +79437,10 @@ var LiteMol;
                 function Layout() {
                     return _super !== null && _super.apply(this, arguments) || this;
                 }
+                Layout.prototype.componentDidMount = function () {
+                    var _this = this;
+                    this.subscribe(LiteMol.Bootstrap.Event.Common.ComponentsChanged.getStream(this.controller.context), function () { return _this.forceUpdate(); });
+                };
                 Layout.prototype.renderTarget = function (name, target) {
                     var statics = [];
                     var scrollable = [];
@@ -81027,7 +81074,6 @@ var LiteMol;
             function Instance(spec, target) {
                 this.spec = spec;
                 this.target = target;
-                this.componentMap = LiteMol.Core.Utils.FastMap.create();
                 this.transformersInfo = LiteMol.Core.Utils.FastMap.create();
                 this.context = new LiteMol.Bootstrap.Context(this);
                 this.init();
@@ -81041,7 +81087,6 @@ var LiteMol;
                         continue;
                     this.context.settings.set(s, this.spec.settings[s]);
                 }
-                var targets = LiteMol.Bootstrap.Components.makeEmptyTargets();
                 for (var _b = 0, _c = (this.spec.behaviours || []); _b < _c.length; _b++) {
                     var b = _c[_b];
                     b(this.context);
@@ -81051,30 +81096,19 @@ var LiteMol;
                     this.context.transforms.add(t.transformer);
                     this.transformersInfo.set(t.transformer.info.id, t);
                 }
-                for (var _f = 0, _g = this.spec.components; _f < _g.length; _f++) {
-                    var cs = _g[_f];
+            };
+            Instance.prototype.prepareTargets = function () {
+                var targets = LiteMol.Bootstrap.Components.makeEmptyTargets();
+                var componentMap = LiteMol.Core.Utils.FastMap.create();
+                for (var _i = 0, _a = this.spec.components; _i < _a.length; _i++) {
+                    var cs = _a[_i];
                     var info = cs(this.context);
-                    if (this.componentMap.has(info.key)) {
+                    if (componentMap.has(info.key)) {
                         throw "Component with key '" + info.key + "' was already added. Fix your spec.";
                     }
                     targets[info.region].components.push(info);
-                    this.componentMap.set(info.key, info);
+                    componentMap.set(info.key, info);
                 }
-                return targets;
-            };
-            Instance.prototype.getTransformerInfo = function (transformer) {
-                return this.transformersInfo.get(transformer.info.id);
-            };
-            Instance.prototype.destroy = function () {
-                this.context.dispatcher.finished();
-                Plugin.ReactDOM.unmountComponentAtNode(this.target);
-                this.context = void 0;
-                this.componentMap = void 0;
-                this.spec = void 0;
-                this.target = void 0;
-            };
-            Instance.prototype.init = function () {
-                var targets = this.compose();
                 if (this.spec.tree) {
                     targets[this.spec.tree.region].components.push({
                         key: 'lm-internal-tree',
@@ -81091,6 +81125,26 @@ var LiteMol;
                     view: this.spec.viewport.view,
                     isStatic: true
                 });
+                return targets;
+            };
+            Instance.prototype.getTransformerInfo = function (transformer) {
+                return this.transformersInfo.get(transformer.info.id);
+            };
+            Instance.prototype.destroy = function () {
+                this.context.dispatcher.finished();
+                Plugin.ReactDOM.unmountComponentAtNode(this.target);
+                this.context = void 0;
+                this.spec = void 0;
+                this.target = void 0;
+            };
+            Instance.prototype.setComponents = function (components) {
+                this.spec.components = components;
+                var targets = this.prepareTargets();
+                this.context.layout.updateTargets(targets);
+            };
+            Instance.prototype.init = function () {
+                this.compose();
+                var targets = this.prepareTargets();
                 this.context.createLayout(targets, this.target);
             };
             return Instance;

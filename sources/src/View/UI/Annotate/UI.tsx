@@ -296,38 +296,41 @@ namespace Annotate.UI{
                     <ResidueAnnotations form={this} items={data.ResidueAnnotations}/>
                 );
             }
-            return <div className={`annotate-form${(this.props.visible)?"":" hidden"}`}>
-                {infoMsg}
-                {errorMsg}
-                <div className="scroll-container">
-                <form className="form-horizontal" onSubmit={(e)=>{
-                        e.preventDefault();
-                        e.stopPropagation();
-                        this.submit(e);
-                    }}>
-                    
-                    {items}                    
+            return <div>
+                <div className={`annotate-form-fade ${(this.props.visible)?"visible":''}`}></div>
+                <div className={`annotate-form${(this.props.visible)?"":" hidden"}`}>
+                    {infoMsg}
+                    {errorMsg}
+                    <div className="scroll-container">
+                    <form className="form-horizontal" onSubmit={(e)=>{
+                            e.preventDefault();
+                            e.stopPropagation();
+                            this.submit(e);
+                        }}>
+                        
+                        {items}                    
 
-                    <div className="buttons">
-                        <input type="submit" className="btn btn-primary" value="Submit to ChannelsDB" disabled={!this.canSubmit()} />
+                        <div className="buttons">
+                            <input type="submit" className="btn btn-primary" value="Submit to ChannelsDB" disabled={!this.canSubmit()} />
+                        </div>
+                        <div title="Close" className="btn btn-link close-button glyphicon glyphicon-remove" onClick={
+                                (e)=>{
+                                    //Reset form data
+                                    const sLocal = this.state;
+                                    sLocal.data = this.getDefaultWorkingItem();
+                                    sLocal.errorMsg = void 0;
+                                    sLocal.infoMsg = void 0;
+                                    this.setState(sLocal);
+
+                                    Events.invokeOnClear();
+
+                                    const s = this.props.app.state;
+                                    s.annotationFormVisible = false;
+                                    this.props.app.setState(s);
+                                }
+                            }/>
+                    </form>
                     </div>
-                    <div title="Close" className="btn btn-link close-button glyphicon glyphicon-remove" onClick={
-                            (e)=>{
-                                //Reset form data
-                                const sLocal = this.state;
-                                sLocal.data = this.getDefaultWorkingItem();
-                                sLocal.errorMsg = void 0;
-                                sLocal.infoMsg = void 0;
-                                this.setState(sLocal);
-
-                                Events.invokeOnClear();
-
-                                const s = this.props.app.state;
-                                s.annotationFormVisible = false;
-                                this.props.app.setState(s);
-                            }
-                        }/>
-                </form>
                 </div>
             </div>
         }
@@ -574,7 +577,11 @@ namespace Annotate.UI{
                 return false;
             }
 
-            if(this.state.currentWorkingItem.Description.length===0){
+            if(this.state.currentWorkingItem.Reference.length===0){
+                return false;
+            }
+
+            if(this.state.currentWorkingItem.ReferenceType.length===0){
                 return false;
             }
 
@@ -655,7 +662,7 @@ namespace Annotate.UI{
                 Name:"",
                 Description:"",
                 Reference:"",
-                ReferenceType:""
+                ReferenceType:"DOI"
             }
         }
 
@@ -678,13 +685,13 @@ namespace Annotate.UI{
                         <TextBox id="ChannelName" placeholder="Name of the channel" onInvalid={(()=>{this.updateCurrentElementName("")}).bind(this)} onValueChange={this.updateCurrentElementName.bind(this)} isValid={notEmpty.bind(this)} value={cwi.Name} />
                     </td>
                     <td>
-                        <TextBox id="ChannelDescription" placeholder="Description of channel function" onInvalid={(()=>{this.updateCurrentElementDescription("")}).bind(this)} onValueChange={this.updateCurrentElementDescription.bind(this)} isValid={notEmpty.bind(this)}  value={cwi.Description}/>
+                        <TextBox id="ChannelDescription" placeholder="Description of channel function" onInvalid={(()=>{this.updateCurrentElementDescription("")}).bind(this)} onValueChange={this.updateCurrentElementDescription.bind(this)} value={cwi.Description}/>
                     </td>
                     <td>
-                        <TextBox id="ChannelReference" placeholder="DOI or Pubmed ID" onValueChange={this.updateCurrentElementReference.bind(this)}  value={cwi.Reference} />
+                        <TextBox id="ChannelReference" placeholder="DOI or Pubmed ID" onInvalid={(()=>{this.updateCurrentElementReference("")}).bind(this)} onValueChange={this.updateCurrentElementReference.bind(this)} isValid={notEmpty.bind(this)} value={cwi.Reference} />
                     </td>
                     <td>
-                        <Combobox id="ReferenceTypeCombobox" items={[{value:"",label:"None"},{value:"DOI",label:"DOI"},{value:"Pubmed",label:"Pubmed"}]} onValueChange={this.updateCurrentElementReferenceType.bind(this)} value={(cwi.ReferenceType==="")?void 0:cwi.ReferenceType} />
+                        <Combobox id="ReferenceTypeCombobox" items={[{value:"DOI",label:"DOI"},{value:"Pubmed",label:"Pubmed"}]} onValueChange={this.updateCurrentElementReferenceType.bind(this)} value={(cwi.ReferenceType==="")?void 0:cwi.ReferenceType} />
                     </td>
                     <td>
                         <div className={`btn btn-success glyphicon glyphicon-plus${(this.canAddCurrentWorkingItem())?'':' disabled'}`} onClick={((e:React.MouseEvent<HTMLDivElement>)=>{
@@ -896,7 +903,7 @@ namespace Annotate.UI{
                 Chain:"",
                 Text:"",
                 Reference:"",
-                ReferenceType:""
+                ReferenceType:"DOI"
             }
         }
 
@@ -935,6 +942,14 @@ namespace Annotate.UI{
             }
 
             if(this.state.currentWorkingItem.Text.length===0){
+                return false;
+            }
+
+            if(this.state.currentWorkingItem.Reference.length===0){
+                return false;
+            }
+
+            if(this.state.currentWorkingItem.ReferenceType.length===0){
                 return false;
             }
 
@@ -1045,10 +1060,10 @@ namespace Annotate.UI{
                         <TextBox id="ResidueText" placeholder="Annotation of residue function" onInvalid={(()=>{this.updateCurrentElementText("")}).bind(this)} onValueChange={this.updateCurrentElementText.bind(this)} isValid={notEmpty.bind(this)}  value={cwi.Text}/>
                     </td>
                     <td>
-                        <TextBox id="ResidueReference" placeholder="DOI or Pubmed ID" onValueChange={this.updateCurrentElementReference.bind(this)}  value={cwi.Reference} />
+                        <TextBox id="ResidueReference" placeholder="DOI or Pubmed ID" onInvalid={(()=>this.updateCurrentElementReference("")).bind(this)} onValueChange={this.updateCurrentElementReference.bind(this)} isValid={notEmpty.bind(this)} value={cwi.Reference} />
                     </td>
                     <td>
-                        <Combobox id="ResidueReferenceTypeCombobox" items={[{value:"",label:"None"},{value:"DOI",label:"DOI"},{value:"Pubmed",label:"Pubmed"}]} onValueChange={this.updateCurrentElementReferenceType.bind(this)} value={(cwi.ReferenceType==="")?void 0:cwi.ReferenceType} />
+                        <Combobox id="ResidueReferenceTypeCombobox" items={[{value:"DOI",label:"DOI"},{value:"Pubmed",label:"Pubmed"}]} onValueChange={this.updateCurrentElementReferenceType.bind(this)} value={(cwi.ReferenceType==="")?void 0:cwi.ReferenceType} />
                     </td>
                     <td>
                         <div className={`btn btn-success glyphicon glyphicon-plus${(this.canAddCurrentWorkingItem())?'':' disabled'}`} onClick={(e)=>{
@@ -1151,10 +1166,13 @@ namespace Annotate.UI{
         let rv = [];
         
         let seqNumReg = new RegExp(/^[0-9]+$/);
-        let chainReg = new RegExp(/^[A-Z][\-][\d]*$|^[A-Z]{1}$/);
+        let chainReg = new RegExp(/^\D+\S*$/);
 
         for(let item of items){
             let r = item.split(' ');
+            if(r.length>2){
+                continue;
+            }
             let seqNum;
             let chain;
             for(let part of r){

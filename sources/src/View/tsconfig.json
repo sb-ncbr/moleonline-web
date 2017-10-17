@@ -99,6 +99,7 @@
     "UI/Annotate/UI.tsx",
 
     //Main UI
+    "Behaviour.ts",
     "State.ts",
     "UI/LiteMolControl/UI.tsx",
     "Spec.ts",

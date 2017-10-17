@@ -270,7 +270,8 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
                 })
                 .then((rawResponse)=>{
                     let filename = this.getFilenameFromResponseHeader(rawResponse);
-                    console.log(filename);
+                    if(this.DEBUG_MODE)
+                        console.log(filename);
                     if(this.DEBUG_MODE)
                         console.timeEnd('protein-raw');
                     if(!rawResponse.ok){

@@ -11866,6 +11866,7 @@ declare namespace LiteMol.Visualization.Surface {
 declare namespace LiteMol.Visualization.Surface {
     interface Parameters {
         isWireframe?: boolean;
+        mapPickElements?: (pickId: number) => (number[] | undefined);
     }
     const DefaultSurfaceModelParameters: Parameters;
     class Model extends Visualization.Model {
@@ -11873,6 +11874,7 @@ declare namespace LiteMol.Visualization.Surface {
         private geometry;
         private material;
         private pickMaterial;
+        private _mapPickElements;
         protected applySelectionInternal(indices: number[], action: Selection.Action): boolean;
         highlightElement(pickId: number, highlight: boolean): boolean;
         protected highlightInternal(isOn: boolean): boolean;
@@ -12539,6 +12541,7 @@ declare namespace LiteMol.Bootstrap.Event {
     const Log: Type<Service.Logger.Entry>;
     namespace Common {
         const LayoutChanged: Type<{}>;
+        const ComponentsChanged: Type<{}>;
     }
     namespace Task {
         const Started: Type<Bootstrap.Task.Info>;
@@ -13262,9 +13265,13 @@ declare namespace LiteMol.Bootstrap.Entity {
         const Selection: Type<{
             indices: number[];
         }>;
-        interface Visual extends Entity<Visual.Props<Bootstrap.Visualization.Molecule.Type>> {
+        interface Visual extends Entity<Visual.Props<Bootstrap.Visualization.Molecule.Type> & {
+            tag?: any;
+        }> {
         }
-        const Visual: Type<Visual.Props<"Surface" | "Cartoons" | "Calpha" | "BallsAndSticks" | "VDWBalls">>;
+        const Visual: Type<Visual.Props<"Surface" | "Cartoons" | "Calpha" | "BallsAndSticks" | "VDWBalls"> & {
+            tag?: any;
+        }>;
         namespace CoordinateStreaming {
             interface Behaviour extends Entity<Behaviour.Props<Bootstrap.Behaviour.Molecule.CoordinateStreaming>> {
             }
@@ -13576,8 +13583,10 @@ declare namespace LiteMol.Bootstrap.Behaviour {
     function CreateVisualWhenModelIsAdded(context: Context): void;
     function ApplySelectionToVisual(context: Context): void;
     function ApplyInteractivitySelection(context: Context): void;
+    function FilteredApplyInteractivitySelection(filter: (e: Interactivity.Info, ctx: Context) => boolean): (context: Context) => void;
     function UnselectElementOnRepeatedClick(context: Context): void;
     function FocusCameraOnSelect(context: Context): void;
+    function FilteredFocusCameraOnSelect(filter: (e: Interactivity.Info, ctx: Context) => boolean): (context: Context) => void;
 }
 declare namespace LiteMol.Bootstrap.Behaviour.Molecule {
     /** An ugly hack that will be removed when the time comes */
@@ -13691,6 +13700,7 @@ declare namespace LiteMol.Bootstrap.Components {
         private expandedViewport;
         private getScrollElement();
         private handleExpand();
+        updateTargets(targets: LayoutTarget[]): void;
         constructor(context: Context, targets: LayoutTarget[], root: HTMLElement);
     }
 }
@@ -13887,8 +13897,11 @@ declare namespace LiteMol.Bootstrap.Plugin {
         view: any;
         initiallyCollapsed?: boolean;
     }
+    type BehaviourProvider = (stack: Context) => void;
+    type ComponentProvider = (context: Context) => Bootstrap.Components.ComponentInfo;
     interface Instance {
         getTransformerInfo(transformer: Bootstrap.Tree.Transformer.Any): TransformerInfo;
+        setComponents(components: ComponentProvider[]): void;
         readonly context: Context;
         destroy(): void;
     }
@@ -14212,6 +14225,7 @@ declare namespace LiteMol.Plugin.Views {
 }
 declare namespace LiteMol.Plugin.Views {
     class Layout extends View<Bootstrap.Components.Layout, {}, {}> {
+        componentDidMount(): void;
         private renderTarget(name, target);
         private updateTarget(name, regionType, layout);
         render(): JSX.Element;
@@ -14523,13 +14537,11 @@ declare namespace LiteMol.Plugin {
         view: ViewDefinition;
         initiallyCollapsed?: boolean;
     }
-    type BehaviourProvider = (stack: Context) => void;
-    type ComponentProvider = (context: Context) => Bootstrap.Components.ComponentInfo;
     interface Specification {
         settings: {
             [key: string]: any;
         };
-        behaviours: BehaviourProvider[];
+        behaviours: Bootstrap.Plugin.BehaviourProvider[];
         transforms: TransformerInfo[];
         layoutView: ViewDefinition;
         tree: {
@@ -14540,17 +14552,18 @@ declare namespace LiteMol.Plugin {
             view: ViewDefinition;
             controlsView: ViewDefinition;
         };
-        components: ComponentProvider[];
+        components: Bootstrap.Plugin.ComponentProvider[];
     }
     class Instance implements Bootstrap.Plugin.Instance {
         private spec;
         private target;
-        private componentMap;
         private transformersInfo;
         context: Bootstrap.Context;
         private compose();
+        private prepareTargets();
         getTransformerInfo(transformer: Bootstrap.Tree.Transformer.Any): TransformerInfo;
         destroy(): void;
+        setComponents(components: Bootstrap.Plugin.ComponentProvider[]): void;
         private init();
         constructor(spec: Specification, target: HTMLElement);
     }

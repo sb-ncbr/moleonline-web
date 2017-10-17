@@ -62,6 +62,12 @@ namespace LiningResidues.UI{
                 state.data = null;
                 this.setState(state);
             });
+
+            MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId(()=>{
+                let state = this.state;
+                state.data = null;
+                this.setState(state);
+            });
         }
         /*
         private dataWaitHandler(){

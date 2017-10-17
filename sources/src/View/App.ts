@@ -40,7 +40,7 @@ namespace LiteMol.Example.Channels {
 
         MoleOnlineWebUI.Bridge.Instances.setPlugin(plugin);
 
-        CommonUtils.Selection.SelectionHelper.attachClearSelectionToEventHandler(plugin);
+        CommonUtils.Selection.SelectionHelper.attachSelectionHelperHandlerToEventHandler(plugin);
 
         UI.render(plugin, document.getElementById('ui') !);
         

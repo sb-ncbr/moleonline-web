@@ -235,6 +235,21 @@ namespace LiteMol.Example.Channels.UI {
                     label: <div className="columns">{elements}</div>
                 });
             }).bind(this));
+
+            CommonUtils.Selection.SelectionHelper.attachOnPointBulkSelectHandler(((points:CommonUtils.Selection.StringPoint[])=>{
+                let elements = [];
+                for(let e of points){
+                    elements.push(
+                        <div>
+                            [{Number(e.x).toFixed(2)},&nbsp;{Number(e.y).toFixed(2)},&nbsp;{Number(e.z).toFixed(2)}]
+                        </div>
+                    );
+                }
+                this.setState({ 
+                    label: <div className="columns points">{elements}</div>
+                });
+            }).bind(this));
+
             CommonUtils.Selection.SelectionHelper.attachOnClearSelectionHandler((()=>{
                 this.setState({ label: void 0});
             }).bind(this));
@@ -244,20 +259,14 @@ namespace LiteMol.Example.Channels.UI {
                     this.setState({ label: void 0})
                 } else {
                     let r = e.data.residues[0];
-                    this.setState({ label: `${r.name} ${r.authSeqNumber} ${r.chain.authAsymId}` });
-                }
-            });
-
-            this.observer = this.props.plugin.subscribe(Bootstrap.Event.Molecule.ModelSelect, e => {
-                if (e.data) {
-                    let r = e.data.residues[0];
                     CommonUtils.Selection.SelectionHelper.addResidueToSelection(r.authSeqNumber,r.chain.authAsymId);
                     if(!CommonUtils.Selection.SelectionHelper.isSelectedAny()){
                         this.setState({ label: void 0})
                     }
+                    this.setState({ label: `${r.name} ${r.authSeqNumber} ${r.chain.authAsymId}` });
                 }
             });
-            
+
             this.observerChannels = this.props.plugin.subscribe(Bootstrap.Event.Visual.VisualSelectElement, e => {
                 let eventData = e.data as ChannelEventInfo;
                 if(e.data !== void 0 && eventData.source !== void 0 && eventData.source.props !== void 0 && eventData.source.props.tag === void 0){

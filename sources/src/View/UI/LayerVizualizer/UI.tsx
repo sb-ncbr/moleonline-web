@@ -453,6 +453,19 @@ namespace LayersVizualizer.UI{
                     $( window ).trigger('contentResize');
                 },1);
             });
+
+            MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId(()=>{
+                let state = this.state;
+                state.data= [];
+                state.hasData=false;
+                state.isDOMReady=false;
+                state.currentTunnelRef= "";
+                state.isLayerSelected= false;
+                this.setState(state);
+                setTimeout(function(){
+                    $( window ).trigger('contentResize');
+                },1);
+            });
             
             $( window ).on("lvContentResize",(()=>{
                 this.forceUpdate();
