@@ -21,8 +21,8 @@ namespace Config{
         }
 
         public static ANNOTATION_API_URL:any = {
-            "webchemdev":"https://webchemdev.ncbr.muni.cz/API/ChannelsDB/UploadAnnotations/Mole",
-            "webchem":"https://webchem.ncbr.muni.cz/API/ChannelsDB/UploadAnnotations/Mole"
+            "webchemdev":"https://webchemdev.ncbr.muni.cz/API/ChannelsDB",
+            "webchem":"https://webchem.ncbr.muni.cz/API/ChannelsDB"
         }
 
         public static MODE = "unknown";

@@ -12,3 +12,6 @@
 .cofactor-pick-box-item.has-data:hover{
     font-weight: bold;
 }
+.cofactor-pick-box-item.no-data{
+    padding-top:7px;
+}

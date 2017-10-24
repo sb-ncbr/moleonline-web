@@ -130,10 +130,16 @@ namespace LiteMol.Example.Channels.UI {
     export class Data extends React.Component<State, {}> {
         render() {          
             let channels = new Map<String,any>();
-            channels.set('Merged pores', this.props.data.Channels.MergedPores);
-            channels.set('Paths', this.props.data.Channels.Paths);
-            channels.set('Pores', this.props.data.Channels.Pores);
-            channels.set('Tunnels', this.props.data.Channels.Tunnels);
+            channels.set('Merged pores', (!this.props.data.Channels.MergedPores)?[]:this.props.data.Channels.MergedPores);
+            channels.set('Paths', (!this.props.data.Channels.Paths)?[]:this.props.data.Channels.Paths);
+            channels.set('Pores', (!this.props.data.Channels.Pores)?[]:this.props.data.Channels.Pores);
+            channels.set('Tunnels', (!this.props.data.Channels.Tunnels)?[]:this.props.data.Channels.Tunnels);
+            
+            let channelsDBChannels = this.props.data.Channels as DataInterface.ChannelsDBChannels;
+            channels.set('Reviewed Channels', (!channelsDBChannels.ReviewedChannels)?[]:channelsDBChannels.ReviewedChannels);
+            channels.set('CSA Tunnels', (!channelsDBChannels.CSATunnels)?[]:channelsDBChannels.CSATunnels);
+            channels.set('Transmembrane Pores', (!channelsDBChannels.TransmembranePores)?[]:channelsDBChannels.TransmembranePores);
+            channels.set('Cofactor Tunnels', (!channelsDBChannels.CofactorTunnels)?[]:channelsDBChannels.CofactorTunnels);
 
             let channelsControls:any[] = [];
             channels.forEach((val,key,map)=>{
@@ -145,11 +151,13 @@ namespace LiteMol.Example.Channels.UI {
             });
 
             let noChannelsData = <div className="no-channels-data">There are no channels available...</div>
-
+            
             let cavities = new Map<String,any>();
-            cavities.set('Surface', [this.props.data.Cavities.Surface]);
-            cavities.set('Cavities', this.props.data.Cavities.Cavities);
-            cavities.set('Voids', this.props.data.Cavities.Voids);
+            if(this.props.data.Cavities!==void 0){
+                cavities.set('Surface', [this.props.data.Cavities.Surface]);
+                cavities.set('Cavities', this.props.data.Cavities.Cavities);
+                cavities.set('Voids', this.props.data.Cavities.Voids);
+            }
 
             let cavitiesControls:any[] = [];
             cavities.forEach((val,key,map)=>{
@@ -159,6 +167,25 @@ namespace LiteMol.Example.Channels.UI {
                     );
                 }
             });
+            let noCavitiesData = <div className="no-channels-data">There are no cavities available...</div>
+
+            let originsControls:any[] = [];
+            if(this.props.data.Origins.User!==void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.User} {...this.props} label='User Specifed (optimized)' />);
+            if(this.props.data.Origins.InputOrigins!==void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.InputOrigins} {...this.props} label='User Specifed' />);
+            if(this.props.data.Origins.Computed!==void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.Computed} {...this.props} label='Computed' />);
+            if(this.props.data.Origins.Databse!==void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.Database} {...this.props} label='Database' />);
+            if(this.props.data.Origins.InputExits!==void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.InputExits} {...this.props} label='Input Exits' />);
+            if(this.props.data.Origins.InputFoundExits!==void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.InputFoundExits} {...this.props} label='Input Found Exits' />);
+            if(this.props.data.Origins.CSAOrigins!==void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.CSAOrigins} {...this.props} label='CSA Origins' />);
+            
+            let noOriginsData = <div className="no-channels-data">There are no origins available...</div>
 
             return <div>
                 <Selection {...this.props} />
@@ -174,20 +201,14 @@ namespace LiteMol.Example.Channels.UI {
                     Origins
                 </div>
                 <div>
-                    <Origins origins={this.props.data.Origins.User} {...this.props} label='User Specifed (optimized)' />
-                    <Origins origins={this.props.data.Origins.InputOrigins} {...this.props} label='User Specifed' />                
-                    <Origins origins={this.props.data.Origins.Computed} {...this.props} label='Computed' />
-                    <Origins origins={this.props.data.Origins.Database} {...this.props} label='Database' />
-                    <Origins origins={this.props.data.Origins.InputExits} {...this.props} label='Input Exits' />
-		            <Origins origins={this.props.data.Origins.InputFoundExits} {...this.props} label='Input Found Exits' />
-                    <Origins origins={this.props.data.Origins.CSAOrigins} {...this.props} label='CSA Origins' />
+                    {(originsControls.length===0)?noOriginsData:originsControls}
                 </div>
 
                 <div className="ui-header cavities">
                     Cavities
                 </div>
                 <div>
-                    {cavitiesControls}
+                    {(cavitiesControls.length===0)?noCavitiesData:cavitiesControls}
                 </div>
             </div>;
         }
@@ -278,13 +299,13 @@ namespace LiteMol.Example.Channels.UI {
                         let name = CommonUtils.Tunnels.getName(c);
                         let namePart = (name===void 0)?'':` (${name})`;
                         //let bneck = CommonUtils.Tunnels.getBottleneck(c);
-                        let annotation = Annotation.AnnotationDataProvider.getChannelAnnotation(c.Id);
-                        if(annotation === void 0 || annotation === null){
+                        /*let annotation = Annotation.AnnotationDataProvider.getChannelAnnotation(c.Id);
+                        if(annotation === void 0 || annotation === null){*/
                             this.setState({ label: <span><b>{c.Type}{namePart}</b>, {`Length: ${len} Å`}</span> });
-                        }
+                        /*}
                         else{
                             this.setState({ label: <span><b>{annotation.text}</b>, Length: {len} Å</span> });
-                        }
+                        }*/
                     }
                     else if(!CommonUtils.Selection.SelectionHelper.isSelectedAny()){
                         $("#left-tabs li a[href='#left-tabs-1']")
@@ -414,7 +435,7 @@ namespace LiteMol.Example.Channels.UI {
             let state = this.state;
             state.isWaitingForData = true;
             this.setState(state);
-            Annotation.AnnotationDataProvider.subscribeForData(this.dataWaitHandler.bind(this));
+            //Annotation.AnnotationDataProvider.subscribeForData(this.dataWaitHandler.bind(this));
         }
 
         render() {

@@ -67,7 +67,7 @@ namespace MoleOnlineWebUI.Service.AnnotationToChannelsDBService{
         }
 
         public static sendAnnotation(data:AnnotationData):Promise<ChannelsDBResponse>{
-            let url = `${this.baseUrl}`;
+            let url = `${this.baseUrl}/UploadAnnotations/Mole`;
             if(this.DEBUG_MODE){
                 console.log(url);
             }

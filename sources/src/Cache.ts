@@ -1,4 +1,7 @@
 namespace MoleOnlineWebUI.Cache{
+
+    import ChannelsDBAPI = MoleOnlineWebUI.Service.ChannelsDBAPI;
+
     export class TunnelName{
         private static cache:Map<string,string>;
 
@@ -52,6 +55,137 @@ namespace MoleOnlineWebUI.Cache{
         }
         public static get():DataInterface.Layers{
             return this.data;
+        }
+    }
+
+    export class ChannelsDBData{
+        private static channelAnnotationCache:LiteMol.Core.Utils.FastMap<string,ChannelsDBAPI.ChannelAnnotation[]>;
+        private static channelDataCache:DataInterface.ChannelsDBChannels;
+        private static liningResiduesCache:string[];
+        private static residueAnnotationCache:LiteMol.Core.Utils.FastMap<string,ChannelsDBAPI.ResidueAnnotation[]>;        
+
+        public static reload(pdbid:string){
+            let channelsData = ChannelsDBAPI.ApiService.getChannelsData(pdbid);
+            let proteinData = ChannelsDBAPI.ApiService.getProteinData(pdbid);
+
+            channelsData.then(val=>{
+                this.channelAnnotationCache = val.channelsAnnotations;
+                this.channelDataCache = val.channelsData;
+                this.liningResiduesCache = val.liningResidues;
+            });
+
+            proteinData.then(val=>{
+                this.residueAnnotationCache = val.residueData;
+            });
+
+            return Promise.all(
+                [
+                    channelsData,
+                    proteinData
+                ]
+            );
+        }
+
+        public static isCached(){
+            return this.channelAnnotationCache!==void 0 
+                && this.channelDataCache!==void 0
+                && this.liningResiduesCache!==void 0
+                && this.residueAnnotationCache!==void 0;
+        }
+
+        public static getChannelAnnotations(pdbid:string,channelId:string){
+
+            if(this.isCached()){
+                return Promise.resolve(this.channelAnnotationCache.get(channelId));
+            }
+
+            return new Promise<ChannelsDBAPI.ChannelAnnotation[] | undefined>((res,rej)=>{
+                this.reload(pdbid)
+                    .then(val=>{
+                        res(this.channelAnnotationCache.get(channelId));
+                    })
+                    .catch(err=>rej(err));
+            });
+        }
+
+        public static getChannelsAnnotations(pdbid:string){
+            
+            if(this.isCached()){
+                return Promise.resolve(this.channelAnnotationCache);
+            }
+
+            return new Promise<LiteMol.Core.Utils.FastMap<string,ChannelsDBAPI.ChannelAnnotation[]>>((res,rej)=>{
+                this.reload(pdbid)
+                    .then(val=>{
+                        res(this.channelAnnotationCache);
+                    })
+                    .catch(err=>rej(err));
+            });
+        }
+
+        public static getChannelsData(pdbid:string){
+            
+            if(this.isCached()){
+                return Promise.resolve(this.channelDataCache);
+            }
+
+            return new Promise<DataInterface.ChannelsDBChannels>((res,rej)=>{
+                this.reload(pdbid)
+                    .then(val=>{
+                        res(this.channelDataCache);
+                    })
+                    .catch(err=>rej(err));
+            });
+        }
+
+        public static getResidueAnnotations(pdbid:string,seqNumberAndChain:string){
+            
+            if(this.isCached()){
+                return Promise.resolve(this.residueAnnotationCache.get(seqNumberAndChain));
+            }
+
+            return new Promise<ChannelsDBAPI.ResidueAnnotation[] | undefined>((res,rej)=>{
+                this.reload(pdbid)
+                    .then(val=>{
+                        res(this.residueAnnotationCache.get(seqNumberAndChain));
+                    })
+                    .catch(err=>rej(err));
+            });
+        }
+
+        public static getResiduesAnnotations(pdbid:string){
+            
+            if(this.isCached()){
+                return Promise.resolve(this.residueAnnotationCache);
+            }
+
+            return new Promise<LiteMol.Core.Utils.FastMap<string, ChannelsDBAPI.ResidueAnnotation[]>>((res,rej)=>{
+                this.reload(pdbid)
+                    .then(val=>{
+                        res(this.residueAnnotationCache);
+                    })
+                    .catch(err=>rej(err));
+            });
+        }
+
+        public static getLiningResidues(pdbid:string){
+            
+            if(this.isCached()){
+                return Promise.resolve(this.liningResiduesCache.slice());
+            }
+
+            return new Promise<string[] | undefined>((res,rej)=>{
+                this.reload(pdbid)
+                    .then(val=>{
+                        if(this.liningResiduesCache===void 0){
+                            res(void 0);
+                        }
+                        else{
+                            res(this.liningResiduesCache.slice());
+                        }
+                    })
+                    .catch(err=>rej(err));
+            });
         }
     }
 }

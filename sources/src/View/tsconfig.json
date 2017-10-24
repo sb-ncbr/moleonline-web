@@ -36,11 +36,12 @@
     "CommonUtils/Tooltips.ts",  
 
     //Annotation data provider
-    "../AnnotationDataProvider.ts", 
+    /*"../AnnotationDataProvider.ts", */
 
     "../StaticData.ts",
     "../SimpleRouter.ts",
     "../MoleAPIService.ts",
+    "../ChannelsDBAPIService.ts",
     "../PatternQueryAPIService.ts",
     "../AnnotationToChannelsDBService.ts",
     "../DataProxy.ts",
@@ -78,10 +79,10 @@
     "UI/LiningResidues/UI.tsx", 
 
     //Residue Annotations
-    "UI/ResidueAnnotations/UI.tsx", 
+    /*"UI/ResidueAnnotations/UI.tsx", */
 
     //Protein Annotations
-    "UI/ProteinAnnotations/UI.tsx",
+    /*"UI/ProteinAnnotations/UI.tsx",*/
 
     //Submit Settings
     "UI/Controls/UI.tsx",

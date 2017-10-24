@@ -116,9 +116,9 @@ namespace MoleOnlineWebUI.StaticData{
                     case Enum.ComputedOrigin: return LiteMol.Visualization.Color.fromRgb(128,128,255);
                     case Enum.OtherOrigin: return LiteMol.Visualization.Color.fromRgb(255,128,128);
 
-                    case Enum.CavityBoundary: return LiteMol.Visualization.Color.fromRgb(171,0,0);
-                    case Enum.CavityInner: return LiteMol.Visualization.Color.fromRgb(89,255,105);
-                    case Enum.CavitySelectable: return LiteMol.Visualization.Color.fromRgb(171,0,0);
+                    case Enum.CavityBoundary: return LiteMol.Visualization.Color.fromHex(0x90ee90);/*LiteMol.Visualization.Color.fromRgb(171,0,0);*/
+                    case Enum.CavityInner: return LiteMol.Visualization.Color.fromHex(0x999999);/*LiteMol.Visualization.Color.fromRgb(89,255,105);*/
+                    case Enum.CavitySelectable: return LiteMol.Visualization.Color.fromHex(0x90ee90);/*LiteMol.Visualization.Color.fromRgb(171,0,0);*/
                     /*
                     case Enum.Cavity: return LiteMol.Visualization.Molecule.Colors.DefaultPallete[99];
                     case Enum.Surface: return LiteMol.Visualization.Molecule.Colors.DefaultPallete[25];

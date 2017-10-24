@@ -655,9 +655,15 @@ namespace Controls.UI{
             }
 
             let contents;
-
+            let cofactors = [];
             if(!this.state.isLoading&&this.state.data !== null){
-                contents = this.generateItems(this.state.data);
+                cofactors = this.generateItems(this.state.data);
+                if(cofactors.length>0){
+                    contents = cofactors;
+                }
+                else{
+                    contents = <CofactorPickBoxItem outputRefId="" />
+                }
             }
 
             if(this.state.isLoading){
@@ -707,10 +713,10 @@ namespace Controls.UI{
     export class CofactorPickBoxItem extends React.Component<{outputRefId:string, label?:Service.ResidueName, value?:Service.PatternQueryExpression, isLoading?:boolean},{}>{
         render(){
             if(this.props.isLoading===true){
-                return <div className="cofactor-pick-box-item no-data">Loading...</div>
+                return <div className="cofactor-pick-box-item no-data"><span className="glyphicon glyphicon-refresh"/> Loading...</div>
             }
             if(this.props.value===void 0){
-                return <div className="cofactor-pick-box-item no-data">No cofactor starting points available...</div>
+                return <div className="cofactor-pick-box-item no-data"><span className="glyphicon glyphicon-info-sign"/> No cofactor starting points available...</div>
             }
 
             let value = this.props.value;
@@ -738,6 +744,64 @@ namespace Controls.UI{
                     </div>
                 </div>
             );
+        }
+    }
+
+    class OptionlParameters extends React.Component<{id:string,items:JSX.Element[]},{}>{
+        render(){
+            return <div className="panel-group optional-parameters">
+            <div className="panel">
+                <div className="panel-heading">
+                    <a data-toggle="collapse" href={`#${this.props.id}`} onClick={(e)=>{                                                    
+                                    if(e.currentTarget.attributes.getNamedItem("aria-expanded").value==="true"){
+                                        $('.panel-title .glyphicon',e.currentTarget).removeClass("glyphicon-menu-down");
+                                        $('.panel-title .glyphicon',e.currentTarget).addClass("glyphicon-menu-up");
+                                    }
+                                    else{
+                                        $('.panel-title .glyphicon',e.currentTarget).removeClass("glyphicon-menu-up");
+                                        $('.panel-title .glyphicon',e.currentTarget).addClass("glyphicon-menu-down");
+                                    }
+                                }}>
+                        <span className="col-md-12 panel-title">
+                            More Options <span className={`glyphicon glyphicon-menu-down`} />
+                        </span>
+                    </a>
+                </div>
+                <div id={this.props.id} className="panel-collapse collapse">
+                    <div className="panel-body">
+                        {this.props.items}
+                    </div>
+                </div>
+            </div>
+        </div>
+        }
+    }
+
+    class OptionalCategory extends React.Component<{id:string,title:string,items:JSX.Element[]},{}>{
+        render(){
+            return <div className="panel-group optional-category">
+            <div className="panel">
+                <div className="panel-heading">
+                    <a data-toggle="collapse" href={`#${this.props.id}`} onClick={(e)=>{                                                    
+                                    if(e.currentTarget.attributes.getNamedItem("aria-expanded").value==="true"){
+                                        $('.panel-title .glyphicon',e.currentTarget).removeClass("glyphicon-menu-down");
+                                        $('.panel-title .glyphicon',e.currentTarget).addClass("glyphicon-menu-up");
+                                    }
+                                    else{
+                                        $('.panel-title .glyphicon',e.currentTarget).removeClass("glyphicon-menu-up");
+                                        $('.panel-title .glyphicon',e.currentTarget).addClass("glyphicon-menu-down");
+                                    }
+                                }}>
+                            <h4 className="panel-title">{this.props.title} <span className={`glyphicon glyphicon-menu-down`} /></h4>
+                        </a>
+                </div>
+                <div id={`${this.props.id}`} className="panel-collapse collapse">
+                    <div className="panel-body">
+                        {this.props.items}
+                    </div>
+                </div>
+            </div>
+        </div>
         }
     }
 
@@ -913,56 +977,37 @@ namespace Controls.UI{
             /*<LabelBox label="Structure" text={this.state.data.PdbId} id="pdbid" classNames={css} />*/
             return <div className="settings-form basic-settings">
                         <h3>Mole</h3>
+
                         <h4>Active Atoms/Residues</h4>
-                        <CheckBox label="Ignore Hydrogens" defaultChecked={false} id="ignoreHydrogens" tooltip={TooltipText.get("ignoreHydrogens")} classNames={chckColClasses} />
                         <CheckBox label="Ignore HETATMs" defaultChecked={true} id="ignoreAllHetatm" tooltip={TooltipText.get("ignoreAllHetatm")} classNames={chckColClasses} />
-                        <TextBox label="Query Filter" id="queryFilter" tooltip={TooltipText.get("queryFilter")} classNames={css} placeholder="Residues('GOL')" hint={this.getPatternQueryHint()} onValidateCustom={this.validatePatternQuery} />                        
-                        <CheckBox label="Read All Models" defaultChecked={false} id="readAllModels" tooltip={TooltipText.get("readAllModels")} classNames={chckColClasses} />
-                        <ResiduesBox label="Ignored Residues" id="nonActiveResidues" tooltip={TooltipText.get("nonActiveResidues")} classNames={css} placeholder="A 69, A 386, ..." onValidate={this.validateResidueSimpleArray} />
-                        <TextBox label="Specific Chains" id="specificChains" tooltip={TooltipText.get("specificChains")} classNames={css} placeholder="A, B, ..." onValidate={this.validateChainsArray}/>                  
+                        <OptionlParameters id="optionalResidueSettings" items={[
+                            <CheckBox label="Ignore Hydrogens" defaultChecked={false} id="ignoreHydrogens" tooltip={TooltipText.get("ignoreHydrogens")} classNames={chckColClasses} />,
+                            <TextBox label="Query Filter" id="queryFilter" tooltip={TooltipText.get("queryFilter")} classNames={css} placeholder="Residues('GOL')" hint={this.getPatternQueryHint()} onValidateCustom={this.validatePatternQuery} />,
+                            <CheckBox label="Read All Models" defaultChecked={false} id="readAllModels" tooltip={TooltipText.get("readAllModels")} classNames={chckColClasses} />,
+                            <ResiduesBox label="Ignored Residues" id="nonActiveResidues" tooltip={TooltipText.get("nonActiveResidues")} classNames={css} placeholder="A 69, A 386, ..." onValidate={this.validateResidueSimpleArray} />,
+                            <TextBox label="Specific Chains" id="specificChains" tooltip={TooltipText.get("specificChains")} classNames={css} placeholder="A, B, ..." onValidate={this.validateChainsArray}/>
+                        ]} />
 
-                        <h4>Cavity Parameters</h4>
-                        <NumberBox label="Probe Radius" id="probeRadius" tooltip={TooltipText.get("probeRadius")} classNames={css} min={1.4} max={20} defaultValue={5} step={0.01} />
-                        <NumberBox label="Interior Treshold" id="interiorTreshold" tooltip={TooltipText.get("interiorTreshold")} classNames={css} min={0.8} max={2.4} defaultValue={1.1} step={0.01} />                      
+                        <OptionalCategory id="optionalCavitySettings" title="Cavity Parameters" items={[
+                            <NumberBox label="Probe Radius" id="probeRadius" tooltip={TooltipText.get("probeRadius")} classNames={css} min={1.4} max={20} defaultValue={5} step={0.01} />,
+                            <NumberBox label="Interior Treshold" id="interiorTreshold" tooltip={TooltipText.get("interiorTreshold")} classNames={css} min={0.8} max={2.4} defaultValue={1.1} step={0.01} />                      
+                        ]} />
 
-                        <h4>Channel Parameters</h4>
-                        <NumberBox label="Origin Radius" id="originRadius" tooltip={TooltipText.get("originRadius")} classNames={css} min={0.1} max={10} defaultValue={5} step={0.05}/>
-                        <NumberBox label="Surface Cover Radius" id="surfaceCoverRadius" tooltip={TooltipText.get("surfaceCoverRadius")} classNames={css} min={5} max={20} defaultValue={10} step={0.5} />                    
-                        <ComboBox label="Weight Function" id="tunnelWeightFunction" tooltip={TooltipText.get("tunnelWeightFunction")} items={MoleOnlineWebUI.StaticData.WeightFunctions.get()} classNames={css} />
-                    
-                        <div className="panel-group optional-channel-parameters">
-                            <div className="panel">
-                                <div className="panel-heading">
-                                    <a data-toggle="collapse" href="#optionalChannelParameters" onClick={(e)=>{                                                    
-                                                    if(e.currentTarget.attributes.getNamedItem("aria-expanded").value==="true"){
-                                                        $('.panel-title .glyphicon',e.currentTarget).removeClass("glyphicon-menu-down");
-                                                        $('.panel-title .glyphicon',e.currentTarget).addClass("glyphicon-menu-up");
-                                                    }
-                                                    else{
-                                                        $('.panel-title .glyphicon',e.currentTarget).removeClass("glyphicon-menu-up");
-                                                        $('.panel-title .glyphicon',e.currentTarget).addClass("glyphicon-menu-down");
-                                                    }
-                                                }}>
-                                        <span className="col-md-5 panel-title">
-                                            
-                                        </span>
-                                        <span className="col-md-7 panel-title">
-                                            Channel Filtering <span className={`glyphicon glyphicon-menu-down`} />
-                                        </span>
-                                    </a>
-                                </div>
-                                <div id="optionalChannelParameters" className="panel-collapse collapse">
-                                    <div className="panel-body">
-                                        <NumberBox label="Bottleneck Radius" id="bottleneckRadius" tooltip={TooltipText.get("bottleneckRadius")} classNames={css} min={0.8} max={5} defaultValue={1.2} step={0.01} />
-                                        <NumberBox label="Bottleneck Tolerance" id="bottleneckTolerance" tooltip={TooltipText.get("bottleneckTolerance")} classNames={css} min={0} max={5} defaultValue={3.0} step={0.1} />
-                                        <NumberBox label="Max Tunnel Similarity" id="maxTunnelSimilarity" tooltip={TooltipText.get("maxTunnelSimilarity")} classNames={css} min={0} max={1} defaultValue={0.7} step={0.05} />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <OptionalCategory id="optionalChannelsSettings" title="Channel Parameters" items={[
+                            <NumberBox label="Origin Radius" id="originRadius" tooltip={TooltipText.get("originRadius")} classNames={css} min={0.1} max={10} defaultValue={5} step={0.05}/>,
+                            <NumberBox label="Surface Cover Radius" id="surfaceCoverRadius" tooltip={TooltipText.get("surfaceCoverRadius")} classNames={css} min={5} max={20} defaultValue={10} step={0.5} />,
+                            <ComboBox label="Weight Function" id="tunnelWeightFunction" tooltip={TooltipText.get("tunnelWeightFunction")} items={MoleOnlineWebUI.StaticData.WeightFunctions.get()} classNames={css} />,
                         
-                        <CheckBox label="Merge Pores" defaultChecked={false} id="mergePores" tooltip={TooltipText.get("mergePores")} classNames={chckColClasses} />
-                        <CheckBox label="Automatic Pores" defaultChecked={false} id="automaticPores" tooltip={TooltipText.get("automaticPores")} classNames={chckColClasses} />
+                            <OptionlParameters id="OptionalChannelParameters" items={[
+                                <NumberBox label="Bottleneck Radius" id="bottleneckRadius" tooltip={TooltipText.get("bottleneckRadius")} classNames={css} min={0.8} max={5} defaultValue={1.2} step={0.01} />,
+                                <NumberBox label="Bottleneck Tolerance" id="bottleneckTolerance" tooltip={TooltipText.get("bottleneckTolerance")} classNames={css} min={0} max={5} defaultValue={3.0} step={0.1} />,
+                                <NumberBox label="Max Tunnel Similarity" id="maxTunnelSimilarity" tooltip={TooltipText.get("maxTunnelSimilarity")} classNames={css} min={0} max={1} defaultValue={0.7} step={0.05} />
+                            ]} />,
+                            
+                            <CheckBox label="Merge Pores" defaultChecked={false} id="mergePores" tooltip={TooltipText.get("mergePores")} classNames={chckColClasses} />,
+                            <CheckBox label="Automatic Pores" defaultChecked={false} id="automaticPores" tooltip={TooltipText.get("automaticPores")} classNames={chckColClasses} />
+
+                        ]} />
                         
                         <h4>Selection</h4>
                         <CSAPickBox label="Active Sites From CSA" id="csaActiveSites" tooltip={TooltipText.get("csaActiveSites")} classNames={css} outputRefId="originResidues" computationId={this.props.initialData.ComputationId} />
@@ -971,7 +1016,9 @@ namespace Controls.UI{
                         <ResidueArraysBox label="End Point" id="customExitsResidues" tooltip={TooltipText.get("customExitsResidues")} classNames={css} placeholder="[A 69, A 386], [A 137, A 136]" onValidate={this.validateResidueDoubleArray} />
                         <PointsBox label="End Point [x,y,z]" id="customExitsPoints" tooltip={TooltipText.get("customExitsPoints")} classNames={css} placeholder="[-1,0,4],[3.5,1,3]" onValidate={this.validatePoints}  />
                         <CofactorPickBox label="Cofactor Starting Points" id="cofactorActiveSites" tooltip={TooltipText.get("cofactorActiveSites")} classNames={css} outputRefId="queryExpresion" />
-                        <TextBox label="Query" id="queryExpresion" tooltip={TooltipText.get("queryExpresion")} classNames={css} placeholder="Atoms('Fe')" hint={this.getPatternQueryHint()} onValidateCustom={this.validatePatternQuery} />
+                        <OptionlParameters id="OptionalSelectionParameters" items={[
+                                <TextBox label="Query" id="queryExpresion" tooltip={TooltipText.get("queryExpresion")} classNames={css} placeholder="Atoms('Fe')" hint={this.getPatternQueryHint()} onValidateCustom={this.validatePatternQuery} />
+                        ]} />,
 
                         <input type="hidden" id="mode" value="Mole" />
                     </div>
@@ -1963,18 +2010,19 @@ namespace Controls.UI{
 
         private prepareSubmissionItems():SubmissionCoboboxItem[]{
             let submissions = this.getSubmissions(); 
-            if(submissions.length===0){
-                return [];
-            }
-
+            
             let rv = [];
-
+            
             rv.push(
-                    {
-                        label:`-`,
-                        value:'0'
-                    }
-                );
+                {
+                    label:`-`,
+                    value:'0'
+                }
+            );
+            
+            if(submissions.length===0){
+                return rv;
+            }
 
             for(let item of submissions){
                 rv.push(

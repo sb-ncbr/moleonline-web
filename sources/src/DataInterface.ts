@@ -56,20 +56,24 @@ namespace DataInterface{
         GUID:string
     };
     export interface MoleData{
-        Channels:{
-            Tunnels:Tunnel[],
-            MergedPores:Tunnel[],
-            Pores:Tunnel[],
-            Paths:Tunnel[]
-        }
+        Channels:MoleChannels
     };
+    export interface MoleChannels{
+        Tunnels:Tunnel[],
+        MergedPores:Tunnel[],
+        Pores:Tunnel[],
+        Paths:Tunnel[]
+    };
+
+    export interface ChannelsDBChannels{
+        ReviewedChannels: Tunnel[],
+        CSATunnels: Tunnel[],
+        TransmembranePores: Tunnel[],
+        CofactorTunnels: Tunnel[]
+    };
+
     export interface ChannelsDBData{
-        Channels:{
-            ReviewedChannels: Tunnel[],
-            CSATunnels: Tunnel[],
-            TransmembranePores: Tunnel[],
-            CofactorTunnels: Tunnel[]
-        },
+        Channels:ChannelsDBChannels,
         Annotations:AnnotationObject[]
     }
 /*
@@ -84,8 +88,11 @@ namespace DataInterface{
     }*/
 
     export interface AnnotationObject{
-        Annotation: any,
+        Id: string
+        Name: string
+        Description: string
         Reference: string
+        ReferenceType: string
     };
 
     //--

@@ -215,12 +215,13 @@ namespace LiningResidues.UI{
 
     class DGBody extends React.Component<State,{}>{ 
 
-         private generateLink(annotation:Annotation.ResidueAnnotation){
+        /*
+        private generateLink(annotation:Annotation.ResidueAnnotation){
             if(annotation.reference===""){
                 return (annotation.text!== void 0 && annotation.text !== null)?<span>{annotation.text}</span>:<span className="no-annotation"/>;
             }
             return <a target="_blank" href={annotation.link} dangerouslySetInnerHTML={{__html:annotation.text}}></a>
-        }    
+        }*/   
 
         private shortenBackbone(residue:string){
             return residue.replace(/Backbone/g,'');

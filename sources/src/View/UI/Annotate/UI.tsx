@@ -539,12 +539,19 @@ namespace Annotate.UI{
                 this.clear();
             }).bind(this));
 
-            MoleOnlineWebUI.Bridge.Events.subscribeChannelDataLoaded(((data:DataInterface.MoleData)=>{
+            MoleOnlineWebUI.Bridge.Events.subscribeChannelDataLoaded(((data:DataInterface.MoleData|DataInterface.ChannelsDBData)=>{
                 let tunnelData:DataInterface.Tunnel[] = [];
-                tunnelData = tunnelData.concat(data.Channels.Tunnels);
-                tunnelData = tunnelData.concat(data.Channels.Paths);
-                tunnelData = tunnelData.concat(data.Channels.Pores);
-                tunnelData = tunnelData.concat(data.Channels.MergedPores);
+
+                let moleChannels = data.Channels as DataInterface.MoleChannels;
+
+                tunnelData = CommonUtils.Tunnels.concatTunnelsSafe(tunnelData,moleChannels.Tunnels);
+                tunnelData = CommonUtils.Tunnels.concatTunnelsSafe(tunnelData,moleChannels.Paths);
+                tunnelData = CommonUtils.Tunnels.concatTunnelsSafe(tunnelData,moleChannels.Pores);
+                tunnelData = CommonUtils.Tunnels.concatTunnelsSafe(tunnelData,moleChannels.MergedPores);
+                
+                if(tunnelData.length===0){
+                    return;
+                }
                 const s = this.state;
                 s.tunnelData = tunnelData;
                 this.tunnelNameCache = null;

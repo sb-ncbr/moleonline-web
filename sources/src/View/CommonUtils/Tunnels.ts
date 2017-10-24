@@ -20,7 +20,18 @@ namespace CommonUtils{
         }
 
         public static getName(tunnel: DataInterface.Tunnel):string|undefined{
+            if(tunnel===void 0){
+                return void 0;
+            }
             return MoleOnlineWebUI.Cache.TunnelName.get(tunnel.GUID);
+        }
+
+        public static concatTunnelsSafe(origin:DataInterface.Tunnel[],newTunnels:DataInterface.Tunnel[]|undefined){
+            if(newTunnels===void 0){
+                return origin;
+            }
+    
+            return origin.concat(newTunnels);
         }
 
         /*

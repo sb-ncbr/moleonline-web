@@ -29,18 +29,32 @@ namespace LiteMol.Example.Channels.State {
     function showDefaultVisuals(plugin: Plugin.Controller, data: any) {
         return new Promise(res => {
             let toShow = [];
-     
-            if(data.MergedPores.length > 0){
+            
+            //-- MoleOnline
+            if(data.MergedPores && data.MergedPores.length > 0){
                 toShow = data.MergedPores;
             }
-            else if(data.Paths.length > 0){
+            else if(data.Paths && data.Paths.length > 0){
                 toShow = data.Paths;
             }
-            else if(data.Pores.length > 0){
+            else if(data.Pores && data.Pores.length > 0){
                 toShow = data.Pores;
             }
-            else if(data.Tunnels.length > 0){
+            else if(data.Tunnels && data.Tunnels.length > 0){
                 toShow = data.Tunnels;
+            }
+            //-- ChannelsDB
+            else if(data.ReviewedChannels && data.ReviewedChannels.length > 0){
+                toShow = data.ReviewedChannels;
+            }
+            else if(data.CSATunnels && data.CSATunnels.length > 0){
+                toShow = data.CSATunnels;
+            }
+            else if(data.TransmembranePores && data.TransmembranePores.length > 0){
+                toShow = data.TransmembranePores;
+            }
+            else if(data.ReviewedChannels && data.ReviewedChannels.length > 0){
+                toShow = data.ReviewedChannels;
             }
 
             return showChannelVisuals(plugin, toShow.slice(0,5), true).then(() => {
@@ -121,20 +135,29 @@ namespace LiteMol.Example.Channels.State {
         });
     }
 
-    function generateGuid(moleData:DataInterface.MoleData){
-        let f:(channels:DataInterface.Tunnel[])=>DataInterface.Tunnel[] = (channels:DataInterface.Tunnel[])=>{
-            for(let idx=0;idx<channels.length;idx++){
-                channels[idx].GUID = Bootstrap.Utils.generateUUID();
-            }
-            return channels;
-        };
+    function generateGuid(tunnels:DataInterface.Tunnel[]){
+        for(let idx=0;idx<tunnels.length;idx++){
+            tunnels[idx].GUID = Bootstrap.Utils.generateUUID();
+        }
+        return tunnels;
+    }
 
-        moleData.Channels.MergedPores = f(moleData.Channels.MergedPores);
-        moleData.Channels.Paths = f(moleData.Channels.Paths);
-        moleData.Channels.Pores = f(moleData.Channels.Pores);
-        moleData.Channels.Tunnels = f(moleData.Channels.Tunnels);
-        
-        return moleData;
+    function generateGuidMole(moleData:DataInterface.MoleData){
+        moleData.Channels.MergedPores = generateGuid(moleData.Channels.MergedPores);
+        moleData.Channels.Paths = generateGuid(moleData.Channels.Paths);
+        moleData.Channels.Pores = generateGuid(moleData.Channels.Pores);
+        moleData.Channels.Tunnels = generateGuid(moleData.Channels.Tunnels);
+
+        return moleData
+    }
+
+    function generateGuidChannelsDB(moleData:DataInterface.ChannelsDBData){
+        moleData.Channels.CofactorTunnels = generateGuid(moleData.Channels.CofactorTunnels);
+        moleData.Channels.CSATunnels = generateGuid(moleData.Channels.CSATunnels);
+        moleData.Channels.ReviewedChannels = generateGuid(moleData.Channels.ReviewedChannels);
+        moleData.Channels.TransmembranePores = generateGuid(moleData.Channels.TransmembranePores);
+
+        return moleData
     }
 
     function downloadChannelsData(plugin:Plugin.Controller, computationId:string, submitId:number){
@@ -146,14 +169,14 @@ namespace LiteMol.Example.Channels.State {
                 plugin.applyTransform(channels)
                     .then(() => {
                         let parsedData = plugin.context.select('mole-data')[0] as Bootstrap.Entity.Data.Json;
-
+                        
                         if (!parsedData){
                             rej('Data not available.');
                         }
                         else {
                             let data_ = parsedData.props.data as DataInterface.MoleData;
-                            data_ = generateGuid(data_);
-                            MoleOnlineWebUI.Cache.TunnelName.reload(data_);
+                            data_ = generateGuidMole(data_);
+                            MoleOnlineWebUI.Cache.TunnelName.reload(data_);              
                             MoleOnlineWebUI.Bridge.Events.invokeChannelDataLoaded(data_);
                             showDefaultVisuals(plugin, data_.Channels)
                                 .then(() =>{ 
@@ -162,7 +185,46 @@ namespace LiteMol.Example.Channels.State {
                         }
                     })
                     .catch(error=>rej(error));
-            });
+            })
+            .catch(err=>rej(err))
+        });
+    }
+
+    function downloadChannelsDBData(plugin:Plugin.Controller, computationId:string){
+        removeChannelsData(plugin);
+        return new Promise<any>((res,rej)=>{
+            ApiService.getComputationInfoList(computationId).then(val=>{
+                if(val.PdbId!==null){
+                    MoleOnlineWebUI.Cache.ChannelsDBData.getChannelsData(val.PdbId).then(data=>{
+                        let channels = plugin.createTransform().add(plugin.root, Transformer.Data.FromData, { data:JSON.stringify({Channels:data} as Object), id: 'Computation Results' }, { isHidden: false, ref:'mole-data-object' })
+                        .then(Transformer.Data.ParseJson, { id: 'Objects' }, { ref: 'mole-data', isHidden:false });
+                        
+                        plugin.applyTransform(channels)
+                        .then(() => {
+                            let parsedData = plugin.context.select('mole-data')[0] as Bootstrap.Entity.Data.Json;
+                            console.log(parsedData);
+                            if (!parsedData){
+                                rej('Data not available.');
+                            }
+                            else {
+                                let data_ = parsedData.props.data as DataInterface.ChannelsDBData;
+                                console.log("beforeGuidGen");
+                                data_ = generateGuidChannelsDB(data_);
+                                //MoleOnlineWebUI.Cache.TunnelName.reload(data_);              
+                                console.log("beforeInvoke");
+                                MoleOnlineWebUI.Bridge.Events.invokeChannelDataLoaded(data_);
+                                console.log("beforeVisuals");
+                                showDefaultVisuals(plugin, data_.Channels)
+                                    .then(() =>{ 
+                                        console.log("visuals OK");
+                                        res();
+                                    }).catch(err=>console.log(err))
+                            }
+                        })
+                        .catch(error=>rej(error));
+                    }).catch(err=>rej(err))
+                }
+            }).catch(err=>rej(err))
         });
     }
 
@@ -203,7 +265,7 @@ namespace LiteMol.Example.Channels.State {
     }
 
     export function loadData(plugin: Plugin.Controller) {
-        
+
             //plugin.clear();
             if(Config.CommonOptions.DEBUG_MODE)
                 console.profile("loadData");
@@ -301,6 +363,7 @@ namespace LiteMol.Example.Channels.State {
             if(Config.CommonOptions.DEBUG_MODE)
                 console.log("reloading channels");
             promises.push(downloadChannelsData(plugin, computationId, submitId));
+            //promises.push(downloadChannelsDBData(plugin, computationId));
         }
 
         Promise.all(promises)

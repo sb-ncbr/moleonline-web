@@ -36,10 +36,19 @@ namespace AglomeredParameters.UI{
             MoleOnlineWebUI.Bridge.Events.subscribeChannelDataLoaded((data)=>{
                 let toShow:DataInterface.Tunnel[] = [];
                 /*let data = e.data.props.data as DataInterface.MoleOnlineData;*/
-                toShow = toShow.concat(data.Channels.Tunnels);
-                toShow = toShow.concat(data.Channels.Paths);
-                toShow = toShow.concat(data.Channels.Pores);
-                toShow = toShow.concat(data.Channels.MergedPores);
+                let channelsDbTunnels = data.Channels as DataInterface.ChannelsDBChannels;
+                let moleTunnels = data.Channels as DataInterface.MoleChannels;
+
+                toShow = CommonUtils.Tunnels.concatTunnelsSafe(toShow,moleTunnels.Tunnels);
+                toShow = CommonUtils.Tunnels.concatTunnelsSafe(toShow,moleTunnels.Paths);
+                toShow = CommonUtils.Tunnels.concatTunnelsSafe(toShow,moleTunnels.Pores);
+                toShow = CommonUtils.Tunnels.concatTunnelsSafe(toShow,moleTunnels.MergedPores);
+
+                toShow = CommonUtils.Tunnels.concatTunnelsSafe(toShow,channelsDbTunnels.ReviewedChannels);
+                toShow = CommonUtils.Tunnels.concatTunnelsSafe(toShow,channelsDbTunnels.CSATunnels);                
+                toShow = CommonUtils.Tunnels.concatTunnelsSafe(toShow,channelsDbTunnels.TransmembranePores);
+                toShow = CommonUtils.Tunnels.concatTunnelsSafe(toShow,channelsDbTunnels.CofactorTunnels);
+
                 let state = this.state;
                 state.data = toShow;
                 this.setState(state);

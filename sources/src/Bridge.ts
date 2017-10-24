@@ -21,7 +21,7 @@ namespace MoleOnlineWebUI.Bridge{
     export type ChannelSelectHandler = (channelId:number)=>void;
     export type ChangeHasKillableHandler = (hasKillable:boolean)=>void;
     export type NotifyMessageHandler = (e:MessageInfo)=>void;
-    export type ChannelDataLoadedHandler = (data:DataInterface.MoleData)=>void;
+    export type ChannelDataLoadedHandler = (data:DataInterface.MoleData|DataInterface.ChannelsDBData)=>void;
     export type ProteinDataLoadedHandler = (data:DataInterface.ProteinData)=>void;
 
     namespace HandlerTypes{
@@ -149,7 +149,7 @@ namespace MoleOnlineWebUI.Bridge{
             this.handlers.set(HandlerTypes.ChannelDataLoadedType, list);
         }
 
-        public static invokeChannelDataLoaded(data:DataInterface.MoleData){
+        public static invokeChannelDataLoaded(data:DataInterface.MoleData|DataInterface.ChannelsDBData){
             let hndlrs = this.handlers.get(HandlerTypes.ChannelDataLoadedType);
             if(hndlrs!==void 0){
                 for(let h of hndlrs){

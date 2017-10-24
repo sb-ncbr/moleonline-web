@@ -113,14 +113,14 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
         }
         private static sendGET(url:string):Promise<any>{
             if(Config.CommonOptions.DEBUG_MODE)
-                console.time(`sendGET '${url}'`);
-            return this.handleResponse(fetch(url, {
-                method: "GET"
-            }), url).then((val)=>{
-                if(Config.CommonOptions.DEBUG_MODE)
-                    console.timeEnd(`sendGET '${url}'`);
-                return val;
-            });
+                console.time(`sendGET '${url}'`);     
+                return this.handleResponse(fetch(url, {
+                    method: "GET"
+                }), url).then((val)=>{
+                    if(Config.CommonOptions.DEBUG_MODE)
+                        console.timeEnd(`sendGET '${url}'`);
+                    return val;
+                });                            
         }
         private static handleResponse(response:Promise<Response>,url:string){
             return new Promise<any>((res,rej)=>{
@@ -130,9 +130,10 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
                             console.log(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
                         }
                         rej(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
-                        return;
                     }
-                    res(rawResponse.json());
+                    else{
+                        res(rawResponse.json());
+                    }
                 })
                 .catch(err=>{
                     rej(err);
@@ -162,17 +163,7 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
 
             return `${this.baseUrl}/Init/${pores}${pdbid}${optional}`;
         }
-        /*
-        private static mockInitResponse(){
-            return new Promise<any>((res,rej)=>{
-                res({
-                    ComputationId: "DjcRaVhHHEqgrd1tI44zGQ",
-                    SubmitId: 1,
-                    Status: "Initializing",
-                    ErrorMsg: ""
-                });
-            });
-        }*/
+
         public static initWithParams(pdbid:string,usePores:boolean,assemblyId?:string):Promise<InitResponse>{
             let url = this.prepareInitUrl(pdbid,usePores,assemblyId);
             if(this.DEBUG_MODE){
