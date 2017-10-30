@@ -176,6 +176,20 @@ namespace MoleOnlineWebUI.Cache{
             });
         }
 
+        public static getResidueAnnotationsImmediate(seqNumberAndChain:string){
+            
+            if(!this.isCached()){
+                return null;
+            }
+
+            let annotations = this.residueAnnotationCache.get(seqNumberAndChain);
+            if(annotations===void 0){
+                return null;
+            }
+
+            return annotations;
+        }
+
         public static getResiduesAnnotations(pdbid:string){
             
             if(this.isCached()){

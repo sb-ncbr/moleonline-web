@@ -287,6 +287,8 @@ namespace LiteMol.Example.Channels.UI {
 
             CommonUtils.Selection.SelectionHelper.attachOnClearSelectionHandler((()=>{
                 this.setState({ label: void 0});
+                $("#left-tabs li a[href='#left-tabs-1']")
+                    .text("Channel profile");
             }).bind(this));
 
             this.observerChannels = this.props.plugin.subscribe(Bootstrap.Event.Visual.VisualSelectElement, e => {

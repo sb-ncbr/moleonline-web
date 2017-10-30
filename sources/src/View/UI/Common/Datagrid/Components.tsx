@@ -60,15 +60,16 @@ namespace Datagrid.Components{
             }
             let title = getTitle(this.props.title,columnsCount);
 
+            let colSpan = 1+(columnsCount-columns.length);
             if(forceHtml){
                 tds.push(
-                    <td title={title[i]} className={`col col-${i+1} ${tdClass}`} colSpan={columnsCount-columns.length} dangerouslySetInnerHTML={html}>
+                    <td title={title[i]} className={`col col-${i+1} ${tdClass}`} colSpan={colSpan} dangerouslySetInnerHTML={html}>
                     </td>    
                 );  
             }
             else{
                 tds.push(
-                    <td title={title[i]} className={`col col-${i+1} ${tdClass}`} colSpan={columnsCount-columns.length}>
+                    <td title={title[i]} className={`col col-${i+1} ${tdClass}`} colSpan={colSpan}>
                         {columns[i]}
                     </td>    
                 );  
@@ -123,13 +124,14 @@ namespace Datagrid.Components{
             if(this.props.columnsCount !== void 0){
                 columnsCount = this.props.columnsCount;
             }
+            let colSpan = 1+(columnsCount-columns.length);
             let title = getTitle(this.props.title,columnsCount);
 
             let tds = [];
             for(let i=0;i<columns.length;i++){
                 if(i===columns.length-1 && columns.length !== columnsCount){
                     tds.push(
-                        <td title={title[i]} className={`col col-${i+1} ${tdClass}`} colSpan={columnsCount-columns.length}>
+                        <td title={title[i]} className={`col col-${i+1} ${tdClass}`} colSpan={colSpan}>
                             {columns[i]}
                         </td>    
                     );    

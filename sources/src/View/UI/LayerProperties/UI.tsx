@@ -76,6 +76,7 @@ namespace LayerProperties.UI{
             });
             CommonUtils.Selection.SelectionHelper.attachOnChannelSelectHandler((data)=>{
                 let state = this.state;
+                state.layerIdx = -1;
                 state.data = data.LayersInfo;
                 this.setState(state);
             });

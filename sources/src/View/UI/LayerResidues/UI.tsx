@@ -58,6 +58,7 @@ namespace LayerResidues.UI{
             });
             CommonUtils.Selection.SelectionHelper.attachOnChannelSelectHandler((data)=>{
                 let state = this.state;
+                state.layerIdx = -1;
                 state.data = data.LayersInfo;
                 this.setState(state);
             });
@@ -154,10 +155,53 @@ namespace LayerResidues.UI{
         private isBackbone(residue:string){
             return residue.indexOf("Backbone") >= 0;
         }
+
+        private getAnnotationLinkOrText(annotation:MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation){
+            if(annotation.reference===""){
+                return (annotation.text!== void 0 && annotation.text !== null)?<span>{annotation.text}</span>:<span className="no-annotation"/>;
+            }
+            return <a target="_blank" href={annotation.link} dangerouslySetInnerHTML={{__html:annotation.text}}></a>
+        }
+
+        private generateSpannedRows(residue:string, annotations: MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation[]){
+            let trs:JSX.Element[] = [];
+
+            let residueNameEl = residue;//(this.isBackbone(residue))?<i><strong>{this.shortenBackbone(residue)}</strong></i>:<span>{residue}</span>;
+
+            let first = true;
+            for(let annotation of annotations){
+                if(first === true){
+                    first = false;
+                    trs.push(
+                        <tr title={(this.isBackbone(residue)?residue:"")} className={(this.isBackbone(residue)?"help":"")}>
+                            <td className={`col col-1`} rowSpan={(annotations.length>1)?annotations.length:void 0}>
+                                {residueNameEl}
+                            </td>    
+                            <td className={`col col-2`} >
+                                {this.getAnnotationLinkOrText(annotation)}
+                            </td>
+                        </tr>
+                    );
+                }
+                else{
+                   trs.push(
+                        <tr>    
+                            <td className={`col col-2`} >
+                                {this.getAnnotationLinkOrText(annotation)}
+                            </td>
+                        </tr>
+                    ); 
+                }
+            }
+            return trs;
+        }
         
         private generateRows(){
+            let channelsDBMode = CommonUtils.Router.isInChannelsDBMode();
+            let columnCount = DGTABLE_COLS_COUNT+((channelsDBMode)?1:0);
+
             if(this.props.data === null){
-                return <DGComponents.DGNoDataInfoRow columnsCount={DGTABLE_COLS_COUNT} infoText={NO_DATA_MESSAGE}/>;
+                return <DGComponents.DGNoDataInfoRow columnsCount={columnCount} infoText={NO_DATA_MESSAGE}/>;
             }
 
             let layerData = CommonUtils.Residues.sort(this.props.data[this.props.layerIdx].Residues,void 0, true, true);
@@ -165,12 +209,33 @@ namespace LayerResidues.UI{
             
             for(let residue of layerData){
                 let residueId = residue.split(" ").slice(1,3).join(" ");
-                let residueNameEl = (this.isBackbone(residue))?<span>{residue}</span>:<strong>{residue}</strong>;
-                rows.push(
-                        <DGComponents.DGElementRow columns={[residueNameEl]} title={[(this.isBackbone(residue)?residue:""),""]} trClass={(this.isBackbone(residue)?"help":"")} />
-                    );
+                let residueInfo = CommonUtils.Residues.parseResidues([residue],true);
+                let columns = [];
+                columns.push(
+                    (this.isBackbone(residue))?<span>{residue}</span>:<strong>{residue}</strong>
+                );
+                let seqNumberAndChain = `${residueInfo[0].authSeqNumber} ${residueInfo[0].chain.authAsymId}`;
+                let annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getResidueAnnotationsImmediate(seqNumberAndChain);
+                if(channelsDBMode&&annotations!==null&&annotations.length>0){
+                    if(annotations.length>1){
+                        rows = rows.concat(this.generateSpannedRows(residueId,annotations));
+                    }
+                    else{
+                        columns.push(
+                            this.getAnnotationLinkOrText(annotations[0])
+                        );
+                        rows.push(
+                            <DGComponents.DGElementRow columns={columns} columnsCount={columnCount} title={[(this.isBackbone(residue)?residue:""),""]} trClass={(this.isBackbone(residue)?"help":"")} />
+                        );
+                    }
+                }
+                else{
+                    rows.push(
+                            <DGComponents.DGElementRow columns={columns} columnsCount={columnCount} title={[(this.isBackbone(residue)?residue:""),""]} trClass={(this.isBackbone(residue)?"help":"")} />
+                        );
+                }
             }            
-            rows.push(<DGComponents.DGRowEmpty columnsCount={DGTABLE_COLS_COUNT} />);
+            rows.push(<DGComponents.DGRowEmpty columnsCount={columnCount} />);
 
             return rows;
         }
