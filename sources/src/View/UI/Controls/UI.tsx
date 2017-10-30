@@ -1055,11 +1055,12 @@ namespace Controls.UI{
 
     interface ComputationsState{
         computationInfo:Service.CompInfo|null,
-        loading:boolean
+        loading:boolean,
+        channelsDBData:DataInterface.ChannelsDBChannels|null
     };
     export class Submissions extends React.Component<{computationInfo:Service.CompInfo,onResubmit:(info:Service.CompInfo)=>void},ComputationsState>{
         
-        state:ComputationsState = {computationInfo:null,loading:true}
+        state:ComputationsState = {computationInfo:null,loading:true,channelsDBData:null}
         private hasKillable = false;
         
         componentWillReceiveProps(nextProps:{computationInfo:Service.CompInfo}){
@@ -1072,6 +1073,24 @@ namespace Controls.UI{
             this.setState(state_);
             
             let hasKillable = false;
+
+            if(computationInfo.PdbId!==null&&computationInfo.PdbId!==null){
+                MoleOnlineWebUI.Cache.ChannelsDBData.doWhenCached(computationInfo.PdbId)
+                    .then(()=>{
+                        MoleOnlineWebUI.Cache.ChannelsDBData.getChannelsData(computationInfo.PdbId)
+                            .then(val=>{
+                                let s = this.state;
+                                s.channelsDBData = val;
+                                this.setState(s);
+                            })
+                            .catch(err=>{
+                                console.log(err);
+                            })
+                    })
+                    .catch(err=>{
+                        console.log(err);
+                    });
+            }
 
             for(let submission of computationInfo.Submissions){
                 if(submission.Status!=="Initializing"&&submission.Status!=="Running"){
@@ -1142,10 +1161,19 @@ namespace Controls.UI{
                 let submissions:JSX.Element[] = [];
                 let submissionsData = this.state.computationInfo.Submissions;
                 let submitId = 1;
+                let isChannelsDBSelected = false;
                 let params = CommonUtils.Router.getParameters();
                 if(params!==null){
-                    submitId=params.submitId;
+                    submitId=(params.isChannelsDB)?-1:params.submitId;
+                    isChannelsDBSelected = params.isChannelsDB;
                 }
+
+                if(this.state.channelsDBData!==null){
+                    submissions.push(
+                        <ChannelsDBSubmission pdbid={this.state.computationInfo.PdbId} isSelected={isChannelsDBSelected} computationId={this.props.computationInfo.ComputationId}/>
+                    );
+                }
+
                 for(let s of submissionsData.sort((a,b)=>{
                     return a.SubmitId-b.SubmitId;
                 })){
@@ -1380,7 +1408,7 @@ namespace Controls.UI{
         private reSubmit(){
             if(this.isMoleJob(this.props.data)){
                 Service.ApiService.submitMoleJob(this.props.computationId,this.props.data.MoleConfig).then((result)=>{
-                    CommonUtils.Router.fakeRedirect(result.ComputationId, Number(result.SubmitId));
+                    CommonUtils.Router.fakeRedirect(result.ComputationId, String(result.SubmitId));
                     LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
 
                     Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
@@ -1402,7 +1430,7 @@ namespace Controls.UI{
             }
             else{
                 Service.ApiService.submitPoresJob(this.props.computationId,this.props.data.PoresConfig).then((result)=>{
-                    CommonUtils.Router.fakeRedirect(result.ComputationId, Number(result.SubmitId));
+                    CommonUtils.Router.fakeRedirect(result.ComputationId, String(result.SubmitId));
                     LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
 
                     Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
@@ -1425,8 +1453,47 @@ namespace Controls.UI{
         }
     }
 
+    export class ChannelsDBSubmission extends React.Component<{pdbid:string, computationId:string, isSelected:boolean},{}>{
+        
+        componentDidMount(){
+        }
+
+        render(){
+            let isSelected = this.props.isSelected;
+            let link = `${Config.CommonOptions.CHANNELSDB_LINK_DETAIL_URL}/${this.props.pdbid}`;
+            let contents = <div className="panel-body">See <a target="_blank" href={link}>{link}</a> for more info.</div>
+            return(
+                <div className="panel panel-default">
+                    <div className="panel-heading">
+                        <a data-toggle="collapse" href={`#submit-data-ChannelsDB`} onClick={(e)=>{
+                                if(e.currentTarget.attributes.getNamedItem('aria-expanded').value==='true'){
+                                    if(!this.props.isSelected){
+                                        changeSubmitId(this.props.computationId, -1);
+                                    }
+                                }
+                            }}>
+                            <h4 className="panel-title">
+                                #ChannelsDB
+                            </h4>
+                            <div className="submission-state">
+                            </div>
+                        </a>
+                    </div>
+                    <div id={`submit-data-ChannelsDB`} className={`panel-collapse collapse${(isSelected)?' in':''}`}>
+                        {contents}
+                    </div>
+                </div>
+            );
+        }
+    }
+
     function changeSubmitId(computationId:string, submitId:number){
-        CommonUtils.Router.fakeRedirect(computationId, (submitId>0)?submitId:void 0);
+        if(submitId===-1){
+            CommonUtils.Router.fakeRedirect(computationId, "ChannelsDB");
+        }
+        else{
+            CommonUtils.Router.fakeRedirect(computationId, (submitId>0)?String(submitId):void 0);
+        }
         LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
         MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(submitId);
     }
@@ -1886,7 +1953,7 @@ namespace Controls.UI{
                         })
                     }
                     else{
-                        CommonUtils.Router.fakeRedirect(result.ComputationId, Number(result.SubmitId));
+                        CommonUtils.Router.fakeRedirect(result.ComputationId, String(result.SubmitId));
                         LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
 
                         Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
@@ -2019,6 +2086,15 @@ namespace Controls.UI{
                     value:'0'
                 }
             );
+
+            if(this.props.computationInfo!==void 0){
+                if(this.props.computationInfo.PdbId!==null&&this.props.computationInfo.PdbId!==""){
+                    rv.push({
+                        label: 'ChDB',
+                        value: '-1'
+                    });
+                }
+            }
             
             if(submissions.length===0){
                 return rv;
@@ -2111,6 +2187,14 @@ namespace Controls.UI{
             return this.canShift(true);
         }
 
+        private getNextIdx(idx:number):number{
+            return idx+1;
+        }
+
+        private getPrevIdx(idx:number):number{
+            return idx-1;
+        }
+
         render(){            
             let canKill = (this.props.computationInfo!==void 0&&this.state.hasKillable);
             let items=this.prepareSubmissionItems(); 
@@ -2121,9 +2205,9 @@ namespace Controls.UI{
                     <input className="btn btn-primary submit" type="submit" value="Submit" />
                     <span className="btn btn-primary kill-job-button" disabled={!canKill} onClick={(e=>{if($(e.currentTarget).attr("disabled")!=="disabled"){$('#killJobDialog').modal('show');}})}>Kill</span>
                     <span className="btn btn-primary delete-project-button" data-toggle="modal" data-target="#deleteProjectDialog" onClick={(e=>{e.preventDefault();return false;})}>Delete</span>
-                    <input className="btn btn-primary submit-arrow" type="button" value=">" disabled={(!canShiftNext)?true:void 0} data-value={(!canShiftNext||idx===void 0)?void 0:items[idx+1].value} onClick={this.changeSubmitIdByStep.bind(this)} />
+                    <input className="btn btn-primary submit-arrow" type="button" value=">" disabled={(!canShiftNext)?true:void 0} data-value={(!canShiftNext||idx===void 0)?void 0:items[this.getNextIdx(idx)].value} onClick={this.changeSubmitIdByStep.bind(this)} />
                     <Common.Controls.SimpleComboBox id="submissionComboSwitch" items={items} defaultSelectedIndex={idx} className="form-control submit-combo" onSelectedChange={this.onSubmitIdComboSelectChange.bind(this)} />
-                    <input className="btn btn-primary submit-arrow" type="button" value="<" disabled={(!canShiftPrev)?true:void 0} data-value={(!canShiftPrev||idx==void 0)?void 0:items[idx-1].value} onClick={this.changeSubmitIdByStep.bind(this)} />
+                    <input className="btn btn-primary submit-arrow" type="button" value="<" disabled={(!canShiftPrev)?true:void 0} data-value={(!canShiftPrev||idx==void 0)?void 0:items[this.getPrevIdx(idx)].value} onClick={this.changeSubmitIdByStep.bind(this)} />
                     <ModalDialog id="killJobDialog" header="Do you really want to kill running job?" body={this.prepareKillJobDialogBody()}/>
                     <ModalDialog id="deleteProjectDialog" header="Do you really want to delete whole computation project?" body={this.prepareDeleteDialogBody()}/>
                 </div>

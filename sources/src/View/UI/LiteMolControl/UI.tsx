@@ -20,12 +20,17 @@ namespace LiteMol.Example.Channels.UI {
         private currentProteinId:string;
 
         componentDidMount() {
-            this.load();
+            let params = CommonUtils.Router.getParameters();
+            let channelsDB = false;
+            if(params!==null){
+                channelsDB = params.isChannelsDB;
+            }
+            this.load(channelsDB);
             $(window).on("contentResize", this.onContentResize.bind(this));
 
             MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId((submitId)=>{
                 try{
-                    this.load();
+                    this.load(submitId===-1);
                 }catch(ex){
                     if(Config.CommonOptions.DEBUG_MODE)
                         console.log(ex);
@@ -40,11 +45,9 @@ namespace LiteMol.Example.Channels.UI {
             this.props.plugin.setLayoutState(prevState);
         }
 
-        load() {
-            this.currentProteinId = SimpleRouter.GlobalRouter.getCurrentPid();
-
+        load(channelsDB:boolean) {
             this.setState({ isLoading: true, error: void 0 });      //https://webchem.ncbr.muni.cz/API/ChannelsDB/PDB/1tqn
-            State.loadData(this.props.plugin)
+            State.loadData(this.props.plugin,channelsDB)
                 .then(data => {
                     if(Config.CommonOptions.DEBUG_MODE)
                         console.log("loading done ok");
@@ -106,7 +109,12 @@ namespace LiteMol.Example.Channels.UI {
                                 </div>
                             </div>);
                     }
-                    controls.push(<button className="reload-data btn btn-primary" onClick={() => this.load()}>Reload Data</button>);
+                    let params = CommonUtils.Router.getParameters();
+                    let channelsDB = false;
+                    if(params!==null){
+                        channelsDB = params.isChannelsDB;
+                    }
+                    controls.push(<button className="reload-data btn btn-primary" onClick={() => this.load(channelsDB)}>Reload Data</button>);
                 }
 
                 return <div>{controls}</div>;
@@ -291,21 +299,23 @@ namespace LiteMol.Example.Channels.UI {
                     if(CommonUtils.Selection.SelectionHelper.isSelectedAnyChannel()){
                         let data = e.data as ChannelEventInfo;
                         let c = data.source.props.tag.element;
-
-                        $("#left-tabs li a[href='#left-tabs-1']")
-                            .text(`Channel profile (${CommonUtils.Tunnels.getName(c)})`);
-
+                        let tunnelName = CommonUtils.Tunnels.getName(c);
                         let len = CommonUtils.Tunnels.getLength(c);
-                        let name = CommonUtils.Tunnels.getName(c);
-                        let namePart = (name===void 0)?'':` (${name})`;
-                        //let bneck = CommonUtils.Tunnels.getBottleneck(c);
-                        /*let annotation = Annotation.AnnotationDataProvider.getChannelAnnotation(c.Id);
-                        if(annotation === void 0 || annotation === null){*/
-                            this.setState({ label: <span><b>{c.Type}{namePart}</b>, {`Length: ${len} Å`}</span> });
-                        /*}
+                        if(CommonUtils.Router.isInChannelsDBMode()){
+                            let annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getChannelAnnotationsImmediate(c.Id);
+                            if(annotations!==null&&annotations.length>0){
+                                tunnelName = annotations[0].name;
+                            }
+                            $("#left-tabs li a[href='#left-tabs-1']")
+                                .text(`Channel profile (${tunnelName})`);
+                            this.setState({ label: <span><b>{tunnelName}</b>, {`Length: ${len} Å`}</span> });
+                        }
                         else{
-                            this.setState({ label: <span><b>{annotation.text}</b>, Length: {len} Å</span> });
-                        }*/
+                            $("#left-tabs li a[href='#left-tabs-1']")
+                                .text(`Channel profile (${tunnelName})`);
+                            let namePart = (tunnelName===void 0)?'':` (${tunnelName})`;
+                            this.setState({ label: <span><b>{c.Type}{namePart}</b>, {`Length: ${len} Å`}</span> });
+                        }
                     }
                     else if(!CommonUtils.Selection.SelectionHelper.isSelectedAny()){
                         $("#left-tabs li a[href='#left-tabs-1']")
@@ -361,7 +371,8 @@ namespace LiteMol.Example.Channels.UI {
         }
     }
 
-    export class Renderable extends React.Component<{ label: string | JSX.Element, element: any, toggle: (plugin: Plugin.Controller, elements: any[], visible: boolean) => Promise<any> } & State, { }> {
+    /*
+    export class Renderable extends React.Component<{ label: string | JSX.Element, annotations?:MoleOnlineWebUI.Service.ChannelsDBAPI.ChannelAnnotation[], element: any, toggle: (plugin: Plugin.Controller, elements: any[], visible: boolean) => Promise<any> } & State, { }> {
     
         private toggle() {
             this.props.element.__isBusy = true;
@@ -381,6 +392,68 @@ namespace LiteMol.Example.Channels.UI {
                 <label className="ui-label-element" onMouseEnter={() => this.highlight(true)} onMouseLeave={() => this.highlight(false)} >
                      {this.props.label}
                 </label>
+            </div>
+        }
+    }*/
+
+    export class Renderable extends React.Component<{ label: string | JSX.Element, element: any, annotations?: MoleOnlineWebUI.Service.ChannelsDBAPI.ChannelAnnotation[], toggle: (plugin: Plugin.Controller, elements: any[], visible: boolean) => Promise<any> } & State, { isAnnotationsVisible:boolean }> {
+        
+        state = {isAnnotationsVisible: false};
+
+        private toggle() {
+            this.props.element.__isBusy = true;
+            this.forceUpdate(() =>
+                this.props.toggle(this.props.plugin, [this.props.element], !this.props.element.__isVisible)
+                    .then(() => this.forceUpdate()).catch(() => this.forceUpdate()));
+        }
+
+        private highlight(isOn: boolean) {
+            this.props.plugin.command(Bootstrap.Command.Entity.Highlight, { entities: this.props.plugin.context.select(this.props.element.__id), isOn });
+        }
+
+        private toggleAnnotations(e:any){
+            this.setState({isAnnotationsVisible:!this.state.isAnnotationsVisible});
+        }
+
+        private getAnnotationToggler(){
+            return [(this.state.isAnnotationsVisible)
+                ?<span className="hand glyphicon glyphicon-chevron-up" title="Hide list annotations for this channel" onClick={this.toggleAnnotations.bind(this)} />
+            :<span className="hand glyphicon glyphicon-chevron-down" title="Show all annotations available for this channel" onClick={this.toggleAnnotations.bind(this)} />];
+        }
+
+        private getAnnotationsElements(){
+            if(this.props.annotations === void 0){
+                return [];
+            }
+            if(!this.state.isAnnotationsVisible){
+                return [];
+            }
+            let elements:JSX.Element[] = [];
+            for(let annotation of this.props.annotations){
+                let reference = <i>(No reference provided)</i>;
+                if(annotation.reference!==""){
+                    reference = <a target="_blank" href={annotation.link}>{annotation.reference} <span className="glyphicon glyphicon-new-window"/></a>;
+                }
+                elements.push(
+                    <div className="annotation-line">
+                        <span className="bullet"/> <b>{annotation.name}</b>, {reference}
+                    </div>
+                );
+            }
+            return elements;
+        }
+
+        render() { 
+            let emptyToggler;
+            if(CommonUtils.Router.isInChannelsDBMode()){
+                emptyToggler = <span className="disabled glyphicon glyphicon-chevron-down" title="No annotations available for this channel" onClick={this.toggleAnnotations.bind(this)} />
+            }
+            return <div className="ui-label">
+                <input type='checkbox' checked={!!this.props.element.__isVisible} onChange={() => this.toggle()} disabled={!!this.props.element.__isBusy} />
+                <label className="ui-label-element" onMouseEnter={() => this.highlight(true)} onMouseLeave={() => this.highlight(false)} >
+                     {(this.props.annotations!==void 0 && this.props.annotations.length>0)?this.getAnnotationToggler():emptyToggler} {this.props.label}
+                </label>
+                {this.getAnnotationsElements()}
             </div>
         }
     }
@@ -442,15 +515,23 @@ namespace LiteMol.Example.Channels.UI {
             let c = this.props.channel as DataInterface.Tunnel;
             let len = CommonUtils.Tunnels.getLength(c);
             let name = MoleOnlineWebUI.Cache.TunnelName.get(c.GUID);
-            let namePart = (name===void 0)?'':` (${name})`;        
-            return <Renderable label={<span><b><a onClick={this.selectChannel.bind(this)}>{c.Type}{namePart}</a></b><ColorPicker tunnel={this.props.channel}/>, {`Length: ${len} Å`}</span>} element={c} toggle={(p:LiteMol.Plugin.Controller,ch:DataInterface.Tunnel[]&State.TunnelMetaInfo[],v:boolean)=>{                
-                    return State.showChannelVisuals(p,ch,v)
-                        .then(res=>{
-                            this.props.channel = ch[0];
-                            this.forceUpdate();
-                        })
-                }
-            } {...this.props.state} />
+            let namePart = (name===void 0)?'':` (${name})`; 
+            
+            let annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getChannelAnnotationsImmediate(c.Id);
+            if(annotations!==null && annotations !== void 0){
+                let annotation = annotations[0];
+                return <Renderable annotations={annotations} label={<span><b><a onClick={this.selectChannel.bind(this)}>{annotation.name}</a></b><ColorPicker tunnel={this.props.channel}/>, Length: {len} Å</span>} element={c} toggle={State.showChannelVisuals} {...this.props.state} />
+            }
+            else{
+                return <Renderable label={<span><b><a onClick={this.selectChannel.bind(this)}>{c.Type}{namePart}</a></b><ColorPicker tunnel={this.props.channel}/>, {`Length: ${len} Å`}</span>} element={c} toggle={(p:LiteMol.Plugin.Controller,ch:DataInterface.Tunnel[]&State.TunnelMetaInfo[],v:boolean)=>{                
+                        return State.showChannelVisuals(p,ch,v)
+                            .then(res=>{
+                                this.props.channel = ch[0];
+                                this.forceUpdate();
+                            })
+                    }
+                } {...this.props.state} />
+            }
         }
 
         private selectChannel(){

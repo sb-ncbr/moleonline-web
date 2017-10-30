@@ -1,6 +1,7 @@
 namespace CommonUtils.Router{
-    export function getParameters(/*suppressDefaultSubmitId?:boolean*/):{submitId:number, computationId:string}|null{
+    export function getParameters(/*suppressDefaultSubmitId?:boolean*/):{submitId:number, computationId:string, isChannelsDB:boolean}|null{
         /*let suppressDefaultSubmitId_ = (suppressDefaultSubmitId===void 0)?false:suppressDefaultSubmitId;*/
+        let parametersChannelsDBTest = SimpleRouter.GlobalRouter.getParametersByRegex(/\/online\/([a-zA-Z0-9]+)\/ChannelsDB/g);
         let parameters = SimpleRouter.GlobalRouter.getParametersByRegex(/\/online\/([a-zA-Z0-9]+)\/*([0-9]*)/g);
         let computationId = null;
         let submitId = 0;//(suppressDefaultSubmitId_)?0:1;
@@ -16,7 +17,8 @@ namespace CommonUtils.Router{
 
         return {
             submitId,
-            computationId
+            computationId,
+            isChannelsDB:parametersChannelsDBTest!==null&&parametersChannelsDBTest.length>0
         };
     }
 
@@ -24,12 +26,17 @@ namespace CommonUtils.Router{
         SimpleRouter.GlobalRouter.redirect(`/${computationId}/${submitId}`,true);
     }
 
-    export function fakeRedirect(computationId:string, submitId?:number){
+    export function fakeRedirect(computationId:string, submitId?:string){
         if(submitId!==void 0){
             SimpleRouter.GlobalRouter.fakeRedirect(`/${computationId}/${submitId}`,true);
         }
         else{
             SimpleRouter.GlobalRouter.fakeRedirect(`/${computationId}/`,true);
         }
+    }
+
+    export function isInChannelsDBMode(){
+        let params = CommonUtils.Router.getParameters();
+        return params!==null&&params.isChannelsDB;
     }
 }

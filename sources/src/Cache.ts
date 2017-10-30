@@ -86,6 +86,15 @@ namespace MoleOnlineWebUI.Cache{
             );
         }
 
+        public static doWhenCached(pdbid:string){
+            if(this.isCached()){
+                return Promise.resolve();
+            }
+            return new Promise<void>((res,rej)=>{
+                this.reload(pdbid).then(val=>res()).catch(err=>rej(err));
+            });
+        }
+
         public static isCached(){
             return this.channelAnnotationCache!==void 0 
                 && this.channelDataCache!==void 0
@@ -106,6 +115,20 @@ namespace MoleOnlineWebUI.Cache{
                     })
                     .catch(err=>rej(err));
             });
+        }
+
+        public static getChannelAnnotationsImmediate(channelId:string){
+            if(!this.isCached()){
+                return null;
+            }
+
+            let annotations = this.channelAnnotationCache.get(channelId);
+
+            if(annotations===void 0){
+                return null;
+            }
+
+            return annotations;
         }
 
         public static getChannelsAnnotations(pdbid:string){

@@ -195,14 +195,16 @@ namespace AglomeredParameters.UI{
             let namePart = (name===void 0)?'X':` (${name})`;
             let tunnelID = this.props.tunnel.Type+namePart;
 
-            /*let annotation = Annotation.AnnotationDataProvider.getChannelAnnotation(this.props.tunnel.Id);
-            if(annotation!== void 0 && annotation !== null){
-                tunnelID = annotation.text;
+            if(CommonUtils.Router.isInChannelsDBMode()){
+                let annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getChannelAnnotationsImmediate(this.props.tunnel.Id);
+                if(annotations!==null&&annotations.length>0){
+                    tunnelID = annotations[0].name;
+                }
+                else{
+                    tunnelID = this.props.tunnel.Type;
+                }
             }
 
-            if(annotation === void 0){
-                this.props.app.invokeDataWait();
-            }*/
             return (
                     <tr>
                         <td className="col col-1">

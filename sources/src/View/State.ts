@@ -202,21 +202,15 @@ namespace LiteMol.Example.Channels.State {
                         plugin.applyTransform(channels)
                         .then(() => {
                             let parsedData = plugin.context.select('mole-data')[0] as Bootstrap.Entity.Data.Json;
-                            console.log(parsedData);
                             if (!parsedData){
                                 rej('Data not available.');
                             }
                             else {
                                 let data_ = parsedData.props.data as DataInterface.ChannelsDBData;
-                                console.log("beforeGuidGen");
                                 data_ = generateGuidChannelsDB(data_);
-                                //MoleOnlineWebUI.Cache.TunnelName.reload(data_);              
-                                console.log("beforeInvoke");
                                 MoleOnlineWebUI.Bridge.Events.invokeChannelDataLoaded(data_);
-                                console.log("beforeVisuals");
                                 showDefaultVisuals(plugin, data_.Channels)
                                     .then(() =>{ 
-                                        console.log("visuals OK");
                                         res();
                                     }).catch(err=>console.log(err))
                             }
@@ -264,7 +258,7 @@ namespace LiteMol.Example.Channels.State {
         });
     }
 
-    export function loadData(plugin: Plugin.Controller) {
+    export function loadData(plugin: Plugin.Controller, channelsDB:boolean) {
 
             //plugin.clear();
             if(Config.CommonOptions.DEBUG_MODE)
@@ -301,14 +295,14 @@ namespace LiteMol.Example.Channels.State {
                         if(Config.CommonOptions.DEBUG_MODE)
                             console.log("Waiting for status change");
                     }
-                    else if(status.Status === "Initialized"){
-                        acquireData(computationId,submitId,plugin,res,rej,!proteinLoaded,submitId==0);
+                    else if(status.Status === "Initialized"){                        
+                        acquireData(computationId,submitId,plugin,res,rej,!proteinLoaded,submitId==0,channelsDB);
                     }
                     else if(status.Status === "FailedInitialization" || status.Status === "Error" || status.Status === "Deleted" || status.Status === "Aborted"){
                         rej(status.ErrorMsg);
                     }
                     else if(status.Status === "Finished"){
-                        acquireData(computationId,submitId,plugin,res,rej,!proteinLoaded,true);
+                        acquireData(computationId,submitId,plugin,res,rej,!proteinLoaded,true,channelsDB);
                     }                        
                 }),(err)=>rej(err));
             })
@@ -333,7 +327,7 @@ namespace LiteMol.Example.Channels.State {
         return false;
     }
 
-    function acquireData(computationId:string, submitId:number, plugin:LiteMol.Plugin.Controller, res:any, rej:any, protein:boolean, channels:boolean){
+    function acquireData(computationId:string, submitId:number, plugin:LiteMol.Plugin.Controller, res:any, rej:any, protein:boolean, channels:boolean, channelsDB:boolean){
         let promises = [];
 
         if(protein){
@@ -359,11 +353,13 @@ namespace LiteMol.Example.Channels.State {
             
             promises.push(proteinAndCSA);
         }
-        if(channels){
+        if(channels&&!channelsDB){
             if(Config.CommonOptions.DEBUG_MODE)
                 console.log("reloading channels");
             promises.push(downloadChannelsData(plugin, computationId, submitId));
-            //promises.push(downloadChannelsDBData(plugin, computationId));
+        }
+        if(channelsDB){
+            promises.push(downloadChannelsDBData(plugin, computationId));
         }
 
         Promise.all(promises)

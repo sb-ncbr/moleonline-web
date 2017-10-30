@@ -32,6 +32,7 @@ namespace Config{
 
     export class CommonOptions{
         public static DEBUG_MODE=false;
+        public static CHANNELSDB_LINK_DETAIL_URL = "https://webchemdev.ncbr.muni.cz/ChannelsDB/detail";
     }
     /*
     export let ROUTING_OPTIONS:any = {

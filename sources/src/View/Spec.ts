@@ -32,9 +32,15 @@ namespace LiteMol.Example.Channels {
                     let tunnel = e as DataInterface.Tunnel;
                     let len = CommonUtils.Tunnels.getLength(tunnel);
                     let bneck = CommonUtils.Tunnels.getBottleneck(tunnel);
-                    let name = MoleOnlineWebUI.Cache.TunnelName.get(tunnel.GUID);
-                    let namePart = (name===void 0)?'':` (${name})`;
-                    return `<b>${tunnel.Type}${namePart}</b>, Length: ${len} Å | Bottleneck: ${bneck} Å`;                    
+                    let annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getChannelAnnotationsImmediate(tunnel.Id);
+                    if(CommonUtils.Router.isInChannelsDBMode()&&annotations!==null&&annotations.length>0){
+                        return `<b>${annotations[0].name}</b>, Length: ${len} Å | Bottleneck: ${bneck} Å`;                                            
+                    }
+                    else{
+                        let name = MoleOnlineWebUI.Cache.TunnelName.get(tunnel.GUID);
+                        let namePart = (name===void 0)?'':` (${name})`;
+                        return `<b>${tunnel.Type}${namePart}</b>, Length: ${len} Å | Bottleneck: ${bneck} Å`;                    
+                    }
                 }
                 case 'Origins': {
                     let o = e.Points[info.elements[0]];
