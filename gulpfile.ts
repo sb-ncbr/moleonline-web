@@ -70,7 +70,13 @@ function buildViewResources(){
         let images = gulp.src([sourcesPath + '/images/*'])
         .pipe(gulp.dest(destDir + '/images'));
 
-        return plugins.merge()([src, cssMin, css, jsMin, js, fonts, images]);
+        let templates = gulp.src([sourcesPath + '/templates/*'])
+        .pipe(gulp.dest(destDir + '/templates'));
+
+        let bootstrapStandalone = gulp.src([sourcesPath + '/css/bootstrap.min.css'])
+        .pipe(gulp.dest(destDir + '/css'));
+
+        return plugins.merge()([src, cssMin, css, jsMin, js, fonts, images, templates, bootstrapStandalone]);
 }
 
 function buildInitResources(){

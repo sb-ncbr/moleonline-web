@@ -35,6 +35,7 @@ namespace CommonUtils.Selection{
         private static interactionEventStream: LiteMol.Bootstrap.Rx.IDisposable | undefined = void 0;
 
         private static selectedChannelRef: string|undefined;
+        private static selectedChannelId: string|undefined;
         private static selectedBulkResidues:LightResidueInfo[]|undefined;
         private static selectedPoints:StringPoint[]|undefined;
         private static selectedTPoint:Point|undefined;
@@ -155,6 +156,7 @@ namespace CommonUtils.Selection{
                 deselectTunnelByRef(plugin,this.selectedChannelRef);
                     this.selectedChannelRef = void 0;
                     this.selectedChannelData = void 0;
+                    this.selectedChannelId = void 0;
             }
             LiteMol.Bootstrap.Event.Visual.VisualSelectElement.dispatch(plugin.context, LiteMol.Bootstrap.Interactivity.Info.empty);
             this.clearAltSelection(plugin);
@@ -241,6 +243,7 @@ namespace CommonUtils.Selection{
             CommonUtils.Selection.SelectionHelper.clearSelectionPrivate(plugin);
             this.selectedChannelRef = void 0;
             this.selectedChannelData = void 0;
+            this.selectedChannelId = void 0;
             this.selectedBulkResidues = void 0;
             this.clearSelectedPoints();
             //this.resetScene(plugin);           
@@ -543,6 +546,7 @@ namespace CommonUtils.Selection{
             CommonUtils.Selection.SelectionHelper.clearSelectionPrivate(plugin);
             this.selectedChannelRef = void 0;
             this.selectedChannelData = void 0;
+            this.selectedChannelId = void 0;
             this.selectedBulkResidues = void 0;
             this.selectedPoints = void 0;
 
@@ -559,6 +563,10 @@ namespace CommonUtils.Selection{
 
         public static getSelectedChannelRef(){
             return (this.selectedChannelRef===void 0)?"":this.selectedChannelRef;
+        }
+
+        public static getSelectedChannelId(){
+            return (this.selectedChannelId===void 0)?"":this.selectedChannelId;
         }
 
         public static attachSelectionHelperHandlerToEventHandler(plugin:LiteMol.Plugin.Controller){
@@ -683,6 +691,7 @@ namespace CommonUtils.Selection{
                 this.clearSelectionPrivate(plugin);
                 this.selectedChannelRef = void 0;
                 this.selectedChannelData = void 0;
+                this.selectedChannelId = void 0;
                 this.invokeOnChannelDeselectHandlers();
                 //return;
             }
@@ -693,6 +702,7 @@ namespace CommonUtils.Selection{
                 }
                 this.selectedChannelRef = i.source.ref;
                 this.selectedChannelData = i.source.props.tag.element.Layers;
+                this.selectedChannelId = i.source.props.tag.element.Id;
                 if(this.selectedChannelData!==void 0){
                     selectTunnelByRef(plugin,this.selectedChannelRef);
                     this.clearAltSelection(plugin);

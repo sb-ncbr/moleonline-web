@@ -906,7 +906,7 @@ namespace LayersVizualizer.UI{
     }
 
     class ExportTypeButton extends React.Component<{instanceId:number,exportType:string},{}>{
-        
+
         private export(e: React.MouseEvent<HTMLAreaElement>){
             let targetElement = (e.target as HTMLElement);
             let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
@@ -933,8 +933,7 @@ namespace LayersVizualizer.UI{
                     throw new Error(`Unsupported export type '${exportType}'`);
             }
 
-            var win = window.open(imgDataUrl, '_blank');
-            win.focus();
+            CommonUtils.Misc.triggerDownload(imgDataUrl,`export-2D.${exportType.toLowerCase()}`);
         }
 
         render(){

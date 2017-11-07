@@ -1,0 +1,29 @@
+.loading-screen{
+    display:none;
+    position: fixed;
+    z-index: 1;
+    width: 75vw;
+    left: 0;
+    text-align: center;
+    background-color: #616161;
+    opacity: 0.9;
+    padding-top: 1.5vh;
+    padding-bottom: 1.5vh;
+    color: white;
+}
+
+.loading-screen.visible{
+    display: block;
+}
+
+.loading-screen .message{
+    font-weight: bold;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 10px;
+}
+
+.loading-screen img {
+    display: inline-block;
+    margin: auto auto;
+}

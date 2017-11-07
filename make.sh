@@ -11,6 +11,7 @@ sudo cp -r ./build/online/js /var/www/html/assets
 sudo cp -r ./build/online/css /var/www/html/assets
 sudo cp -r ./build/online/images /var/www/html/assets
 sudo cp -r ./build/online/fonts /var/www/html/assets
+sudo cp -r ./build/online/templates /var/www/html/assets
 sudo cp -r ./build/online/MoleOnlineWebUI-Core-Init.js /var/www/html/assets
 sudo cp -r ./build/online/MoleOnlineWebUI-Core-View.js /var/www/html/assets
 

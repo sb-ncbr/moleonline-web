@@ -250,6 +250,11 @@ only screen and (max-height: 600px) {
     /*border-bottom: 1px solid #aaa;*/
     border-right: 1px solid #aaa;
 }
+
+.lm-plugin .lm-viewport-controls{
+    z-index:2;
+}
+
 .plugin.bottom-panel-toggled{
 	height:25vh;
 }

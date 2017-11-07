@@ -24,8 +24,6 @@
     //Data Interface
     "../DataInterface.ts",
 
-    "../Bridge.ts",
-
     //Common Utils
     "CommonUtils/Tunnels.ts",  
     "CommonUtils/Numbers.ts", 
@@ -34,6 +32,7 @@
     "CommonUtils/Router.ts", 
     "CommonUtils/Tabs.ts",
     "CommonUtils/Tooltips.ts",  
+    "CommonUtils/Misc.ts",
 
     //Annotation data provider
     /*"../AnnotationDataProvider.ts", */
@@ -44,6 +43,7 @@
     "../ChannelsDBAPIService.ts",
     "../PatternQueryAPIService.ts",
     "../AnnotationToChannelsDBService.ts",
+    "../TemplateService.ts",
     "../DataProxy.ts",
     "../Cache.ts",
 
@@ -53,6 +53,11 @@
     "LayerVizualizer/Vizualizer.ts", 
     "LayerVizualizer/Components.ts", 
     "LayerVizualizer/Colors.ts", 
+
+    "../Bridge.ts",
+
+    //LoadingScreen
+    "UI/LoadingScreen/UI.tsx",
 
     //Alert messages
     "../Common/UI/AlertMessages/UI.tsx",

@@ -82,6 +82,21 @@ namespace Controls.UI{
         $(el).focus();
     }
 
+    type OnClearEventHandler = ()=>void;
+    class Events{
+        private static handlers:OnClearEventHandler[] = [];
+        
+        public static attachOnClearEventHandler(h:()=>void){
+            this.handlers.push(h);
+        }
+
+        public static invokeOnClear(){
+            for(let h of this.handlers){
+                h();
+            }
+        }
+    }
+
     interface TextBoxProps{
         label: string, 
         id:string, 
@@ -340,7 +355,12 @@ namespace Controls.UI{
         classNames?:string[],
         tooltip?:string
     }
-    export class CheckBox extends React.Component<CheckBoxProps,{}>{
+    interface CheckBoxState{};
+    export class CheckBox extends React.Component<CheckBoxProps,CheckBoxState>{
+
+        componentDidMount(){
+        }
+        
         render(){
             let classNames = [""];
             if(this.props.classNames!==void 0){
@@ -353,11 +373,13 @@ namespace Controls.UI{
                 CommonUtils.Tooltips.initWhenReady(`${this.props.id}_label`);
             }
 
+            let checked = (this.props.defaultChecked===void 0)?false:this.props.defaultChecked;
+
             return (
                 <div className="form-group">                
-                    <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}</label>
+                    <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}:</label>
                     <div className={`${classNames[1]}`}>
-                        <input type="checkbox" className="checkbox" id={this.props.id} defaultChecked={this.props.defaultChecked} />
+                        <input type="checkbox" className="checkbox" id={this.props.id} defaultChecked={checked} />
                     </div>
                 </div>
             );
@@ -372,7 +394,13 @@ namespace Controls.UI{
         classNames?:string[],
         tooltip?:string
     }
-    export class ComboBox extends React.Component<ComboBoxProps,{}>{
+    interface ComboBoxState{}
+    export class ComboBox extends React.Component<ComboBoxProps,ComboBoxState>{
+        state: ComboBoxState = {}
+
+        componentDidMount(){
+        }
+
         render(){
             let classNames = [""];
             if(this.props.classNames!==void 0){
@@ -401,7 +429,7 @@ namespace Controls.UI{
 
             return (
                 <div className="form-group">                
-                    <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}</label>
+                    <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}:</label>
                     <div className={`${classNames[1]}`}>
                         <select id={this.props.id} className="form-control">
                             {items}
@@ -422,7 +450,10 @@ namespace Controls.UI{
         tooltip?:string
     }
     export class NumberBox extends React.Component<NumberBoxProps,{}>{
-        
+    
+        componentDidMount(){
+        }
+
         render(){
             let classNames = ["",""];
             if(this.props.classNames!==void 0){
@@ -580,7 +611,7 @@ namespace Controls.UI{
             return (
                 <div className="form-group">
                     <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} htmlFor={this.props.id} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}:</label>
-                    <div className={`${classNames[1]}`}>
+                    <div className={`${classNames[1]} controls-option-like-list`}>
                         {contents}
                     </div>
                 </div>
@@ -643,9 +674,14 @@ namespace Controls.UI{
         state:CofactorPickBoxState = {isLoading:true, data:null};
 
         componentDidMount(){
-            MoleOnlineWebUI.Bridge.Events.subscribeProteinDataLoaded(()=>{
+            if(MoleOnlineWebUI.DataProxy.Cofactors.DataProvider.hasData()){
                 this.getData();
-            })
+            }
+            else{
+                MoleOnlineWebUI.Bridge.Events.subscribeProteinDataLoaded(()=>{
+                    this.getData();
+                })
+            }
         }
 
         render(){
@@ -682,7 +718,7 @@ namespace Controls.UI{
             return (
                 <div className="form-group">
                     <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} htmlFor={this.props.id} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}:</label>
-                    <div className={`${classNames[1]}`}>
+                    <div className={`${classNames[1]} controls-option-like-list`}>
                         {contents}
                     </div>
                 </div>
@@ -903,7 +939,7 @@ namespace Controls.UI{
                 return {valid:true, message:""};
             }
 
-            value = value.replace(/\]\s,\s\[/g,'],[');
+            value = value.replace(/\]\s*,\s*\[/g,'],[');
             
             let arrays = value.split("],[");
 
@@ -996,7 +1032,7 @@ namespace Controls.UI{
                         <OptionalCategory id="optionalChannelsSettings" title="Channel Parameters" items={[
                             <NumberBox label="Origin Radius" id="originRadius" tooltip={TooltipText.get("originRadius")} classNames={css} min={0.1} max={10} defaultValue={5} step={0.05}/>,
                             <NumberBox label="Surface Cover Radius" id="surfaceCoverRadius" tooltip={TooltipText.get("surfaceCoverRadius")} classNames={css} min={5} max={20} defaultValue={10} step={0.5} />,
-                            <ComboBox label="Weight Function" id="tunnelWeightFunction" tooltip={TooltipText.get("tunnelWeightFunction")} items={MoleOnlineWebUI.StaticData.WeightFunctions.get()} classNames={css} />,
+                            <ComboBox label="Weight Function" id="tunnelWeightFunction" tooltip={TooltipText.get("tunnelWeightFunction")} items={MoleOnlineWebUI.StaticData.WeightFunctions.get()} defaultSelectedIndex={0} classNames={css} />,
                         
                             <OptionlParameters id="OptionalChannelParameters" items={[
                                 <NumberBox label="Bottleneck Radius" id="bottleneckRadius" tooltip={TooltipText.get("bottleneckRadius")} classNames={css} min={0.8} max={5} defaultValue={1.2} step={0.01} />,
@@ -1016,13 +1052,17 @@ namespace Controls.UI{
                         <ResidueArraysBox label="End Point" id="customExitsResidues" tooltip={TooltipText.get("customExitsResidues")} classNames={css} placeholder="[A 69, A 386], [A 137, A 136]" onValidate={this.validateResidueDoubleArray} />
                         <PointsBox label="End Point [x,y,z]" id="customExitsPoints" tooltip={TooltipText.get("customExitsPoints")} classNames={css} placeholder="[-1,0,4],[3.5,1,3]" onValidate={this.validatePoints}  />
                         <CofactorPickBox label="Cofactor Starting Points" id="cofactorActiveSites" tooltip={TooltipText.get("cofactorActiveSites")} classNames={css} outputRefId="queryExpresion" />
-                        <OptionlParameters id="OptionalSelectionParameters" items={[
-                                <TextBox label="Query" id="queryExpresion" tooltip={TooltipText.get("queryExpresion")} classNames={css} placeholder="Atoms('Fe')" hint={this.getPatternQueryHint()} onValidateCustom={this.validatePatternQuery} />
-                        ]} />,
+                        <TextBox label="Query" id="queryExpresion" tooltip={TooltipText.get("queryExpresion")} classNames={css} placeholder="Atoms('Fe')" hint={this.getPatternQueryHint()} onValidateCustom={this.validatePatternQuery} />
 
                         <input type="hidden" id="mode" value="Mole" />
                     </div>
         }
+
+        /*
+        <OptionlParameters id="OptionalSelectionParameters" items={[
+                                <TextBox label="Query" id="queryExpresion" tooltip={TooltipText.get("queryExpresion")} classNames={css} placeholder="Atoms('Fe')" hint={this.getPatternQueryHint()} onValidateCustom={this.validatePatternQuery} />
+                        ]} />,
+        */
 
         getPoresForm(){
             let doubleColClasses = ["col-md-5","col-md-7"];
@@ -1692,6 +1732,10 @@ namespace Controls.UI{
                 state.submitId = submitId;
                 this.setState(state);
             });
+
+            Events.attachOnClearEventHandler(()=>{
+                $('#submission-form')[0].reset();
+            })
         }
 
         nullIfEmpty(data:any[][]){
@@ -1959,6 +2003,10 @@ namespace Controls.UI{
                         Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
                             MoleOnlineWebUI.DataProxy.JobStatus.Watcher.registerOnChangeHandler(result.ComputationId,result.SubmitId,(status)=>{
                                 if(checkCanSubmit(status.Status)){
+                                    MoleOnlineWebUI.Bridge.Events.invokeToggleLoadingScreen({
+                                        message:"",
+                                        visible:false
+                                    });
                                     let s = this.state;
                                     s.canSubmit=true;
                                     this.setState(s);
@@ -1975,11 +2023,17 @@ namespace Controls.UI{
                             
                             MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
                             MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
+                            Events.invokeOnClear();
+
                         }).bind(this), true);
                         MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
                             messageType: "Success",
                             message: "Job was successfully submited."
                         })
+                        MoleOnlineWebUI.Bridge.Events.invokeToggleLoadingScreen({
+                            message:"Submited job in progress...",
+                            visible:true
+                        });
                     }
                 })
                 .catch((err:any)=>{
@@ -2020,7 +2074,7 @@ namespace Controls.UI{
             }
             return (
                 <div className="submit-form-container">
-                    <form className="form-horizontal" onSubmit={this.handleSubmit.bind(this)}>
+                    <form className="form-horizontal" id="submission-form" onSubmit={this.handleSubmit.bind(this)}>
                         <Common.Tabs.BootstrapTabs.TabbedContainer header={["Submission settings","Submissions"]} tabContents={tabs} namespace="right-panel-tabs-" htmlClassName="tabs" htmlId="right-panel-tabs" activeTab={this.props.activeTab}/>
                         <ControlButtons submitId={this.state.submitId} computationInfo={this.state.data} />
                     </form>

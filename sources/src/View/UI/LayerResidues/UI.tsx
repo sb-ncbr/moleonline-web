@@ -5,7 +5,7 @@ namespace LayerResidues.UI{
     import LiteMoleEvent = LiteMol.Bootstrap.Event;
     import TunnelUtils = CommonUtils.Tunnels;
     
-    let DGTABLE_COLS_COUNT = 1;
+    let DGTABLE_COLS_COUNT = 2;
     let NO_DATA_MESSAGE = "Hover over channel(2D) for details...";
 
     declare function $(p:any): any;
@@ -197,8 +197,8 @@ namespace LayerResidues.UI{
         }
         
         private generateRows(){
-            let channelsDBMode = CommonUtils.Router.isInChannelsDBMode();
-            let columnCount = DGTABLE_COLS_COUNT+((channelsDBMode)?1:0);
+            /*let channelsDBMode = CommonUtils.Router.isInChannelsDBMode();*/
+            let columnCount = DGTABLE_COLS_COUNT;/*+((channelsDBMode)?1:0);*/
 
             if(this.props.data === null){
                 return <DGComponents.DGNoDataInfoRow columnsCount={columnCount} infoText={NO_DATA_MESSAGE}/>;
@@ -216,7 +216,7 @@ namespace LayerResidues.UI{
                 );
                 let seqNumberAndChain = `${residueInfo[0].authSeqNumber} ${residueInfo[0].chain.authAsymId}`;
                 let annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getResidueAnnotationsImmediate(seqNumberAndChain);
-                if(channelsDBMode&&annotations!==null&&annotations.length>0){
+                if(/*channelsDBMode&&*/annotations!==null&&annotations.length>0){
                     if(annotations.length>1){
                         rows = rows.concat(this.generateSpannedRows(residueId,annotations));
                     }

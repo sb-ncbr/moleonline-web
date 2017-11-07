@@ -1,6 +1,7 @@
 namespace MoleOnlineWebUI.Bridge{
     export class Instances{
         private static plugin:LiteMol.Plugin.Controller;
+        private static layerVizualizer:any;
 
         public static setPlugin(plugin:LiteMol.Plugin.Controller){
             this.plugin = plugin;
@@ -9,10 +10,19 @@ namespace MoleOnlineWebUI.Bridge{
         public static getPlugin():LiteMol.Plugin.Controller{
             return this.plugin;
         }
+
+        public static setLayersVizualizer(instance:any){
+            this.layerVizualizer = instance;
+        }
+
+        public static getLayersVizualizer():any{
+            return this.layerVizualizer;
+        }
     }
     
     export type MessageType = "Success" | "Info" | "Warning" | "Danger";
     export interface MessageInfo{message:string, messageType:MessageType};
+    export interface ToggleLoadingScreenParams{message:string,visible:boolean};
 
     type SimpleHandler = (args?:any)=>any;
 
@@ -23,6 +33,7 @@ namespace MoleOnlineWebUI.Bridge{
     export type NotifyMessageHandler = (e:MessageInfo)=>void;
     export type ChannelDataLoadedHandler = (data:DataInterface.MoleData|DataInterface.ChannelsDBData)=>void;
     export type ProteinDataLoadedHandler = (data:DataInterface.ProteinData)=>void;
+    export type ToggleLoadingScreenHandler = (params:ToggleLoadingScreenParams)=>void;
 
     namespace HandlerTypes{
         export const NewSubmitType = "NEW-SUBMIT";
@@ -32,6 +43,7 @@ namespace MoleOnlineWebUI.Bridge{
         export const NotifyMessageType = "NOTIFY-MESSAGE";
         export const ChannelDataLoadedType = "CHANNEL-DATA-LOADED";
         export const ProteinDataLoadedType = "PROTEIN-DATA-LOADED";
+        export const ToggleLoadingScreenType = "TOGGLE-LOADING-SCREEN";
         
         export type NewSubmit = "NEW-SUBMIT";
         export type ChangeSubmitId = "CHANGE-SUBMIT-ID";
@@ -40,10 +52,11 @@ namespace MoleOnlineWebUI.Bridge{
         export type NotifyMessage = "NOTIFY-MESSAGE";
         export type ChannelDataLoaded = "CHANNEL-DATA-LOADED";
         export type ProteinDataLoaded = "PROTEIN-DATA-LOADED";
+        export type ToggleLoadingScreen = "TOGGLE-LOADING-SCREEN";
         
     };
 
-    type HandlerType = HandlerTypes.NewSubmit | HandlerTypes.ChangeSubmitId | HandlerTypes.ChannelSelect | HandlerTypes.ChangeHasKillable | HandlerTypes.NotifyMessage | HandlerTypes.ChannelDataLoaded | HandlerTypes.ProteinDataLoaded;
+    type HandlerType = HandlerTypes.NewSubmit | HandlerTypes.ChangeSubmitId | HandlerTypes.ChannelSelect | HandlerTypes.ChangeHasKillable | HandlerTypes.NotifyMessage | HandlerTypes.ChannelDataLoaded | HandlerTypes.ProteinDataLoaded | HandlerTypes.ToggleLoadingScreen;
 
     export class Events{
         private static handlers = new Map<HandlerType,SimpleHandler[]>();
@@ -172,6 +185,24 @@ namespace MoleOnlineWebUI.Bridge{
             if(hndlrs!==void 0){
                 for(let h of hndlrs){
                     h(data);
+                }
+            }
+        }
+
+        public static subscribeToggleLoadingScreen(h:ToggleLoadingScreenHandler){
+            let list = this.handlers.get(HandlerTypes.ToggleLoadingScreenType);
+            if(list===void 0){
+                list = [];
+            }
+            list.push(h);
+            this.handlers.set(HandlerTypes.ToggleLoadingScreenType, list);
+        }
+
+        public static invokeToggleLoadingScreen(params:ToggleLoadingScreenParams){
+            let hndlrs = this.handlers.get(HandlerTypes.ToggleLoadingScreenType);
+            if(hndlrs!==void 0){
+                for(let h of hndlrs){
+                    h(params);
                 }
             }
         }

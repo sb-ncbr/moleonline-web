@@ -438,6 +438,10 @@ namespace MoleOnlineWebUI.DataProxy{
 
                 this.attachHandler(handler);
             }
+
+            public static hasData(){
+                return this.data!==void 0;
+            }
         }
     }
 }

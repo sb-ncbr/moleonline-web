@@ -4,7 +4,8 @@
     width: 100%;
     text-align: right;
     padding-right: 18px;
-    margin-top: 40px;
+    margin-top: 25px;
+    margin-bottom: 5px;
 }
 
 .ResidueArraysBox-useSelection,
@@ -15,4 +16,9 @@
 .ResidueArraysBox-useSelection .useCurrentSelectionIcon,
 .PointsArraysBox-useSelection .useCurrentSelectionIcon{
     margin-right: 3px;
+}
+
+.controls-option-like-list{
+    padding-top: 5px;
+    padding-bottom: 5px;
 }

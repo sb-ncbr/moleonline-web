@@ -26,7 +26,8 @@ namespace LiteMol.Example.Channels {
 
         //Create instance of layer vizualizer
         let layerVizualizer = new LayersVizualizer.Vizualizer('layer-vizualizer-ui', lvSettings);    
-
+        MoleOnlineWebUI.Bridge.Instances.setLayersVizualizer(layerVizualizer);
+        
         let plugin = Plugin.create({
             target: '#plugin',
             viewportBackground: '#fff',
@@ -71,5 +72,7 @@ namespace LiteMol.Example.Channels {
         AlertMessages.UI.render(document.getElementById("alert-messages") !);
 
         SequenceViewer.UI.render(document.getElementById("sequence-viewer") !, plugin);
+
+        LoadingScreen.UI.render(document.getElementById("loading-screen") !);
     })();
 }

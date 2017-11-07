@@ -19,22 +19,26 @@
     margin-top: 5px;
     margin-left: 3px;
 }
+.submit-form-container .form-horizontal .checkbox{
+    margin-top:0px;
+}
 
 .submit-form-container .settings-form{
     padding-top:1vh;
     margin-top: -34px;
+    font-size:11px;
 }
 
 .submit-form-container .settings-form h4{
-    font-size: 18px;
+    font-size: 13px;
     border-bottom: 1px solid #777;
-    padding-bottom: 3px;
+    padding-bottom: 0px;
 }
 
 .submit-form-container .settings-form h3{
     font-weight: bold;
     margin-top: -3px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .submit-form-container .tab-content{
@@ -109,6 +113,25 @@
     border-bottom-color: #9a9a9a;
 }
 
+.submit-form-container .panel-group,
+.submit-form-container .form-group,
+.submit-form-container .optional-category.panel-group{
+    margin-bottom: 2px;
+}
+.submit-form-container h4{
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.submit-form-container .form-control{
+    height:24px;
+}
+
+.submit-form-container select.form-control{
+    padding-top:2px;
+    padding-bottom: 2px;
+}
+
 #right-panel-tabs-2{
     padding-top:1vh;
 }
@@ -173,13 +196,14 @@
     padding-left: 10px;
     padding-right: 10px;
     float: right;
+    height: initial;
 }
 
 .submit-parent .submit-combo{
     width: auto;
     margin-left: 5px;
     margin-right: 5px;
-    padding-top: 5px;
+    padding-top: 5px !important;
     padding-left: 5px;
     padding-right: 2px;
 /*
@@ -237,6 +261,7 @@
     font-weight: bold;
     font-size: 10pt;
     padding-left: 0;
+    padding-right: 0;
 }
 
 .optional-category .optional-parameters{
@@ -257,8 +282,9 @@
 .optional-category .glyphicon-menu-down,
 .optional-category .glyphicon-menu-up{
     display: block;
-    margin-top: -20px;
+    margin-top: -14px;
     text-align: right;
+    padding-bottom: 2px;
 }
 
 .optional-category .optional-parameters .glyphicon-menu-down,
@@ -271,7 +297,7 @@
 .optional-parameters .panel-heading,
 .optional-category .panel-heading{
     padding:0 0;
-    height: 30px;
+    height: 20px;
 }
 
 .optional-parameters .panel-heading a,
