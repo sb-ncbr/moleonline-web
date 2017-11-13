@@ -538,6 +538,7 @@ namespace LiteMol.Example.Channels.State {
         let alpha = 1.0;
 
         let promises = [];
+        let visibleChannels:DataInterface.Tunnel[] = [];
         for (let channel of channels) {
             // Stejné jako v Examples/Channels
             if (!channel.__id) channel.__id = Bootstrap.Utils.generateUUID();
@@ -555,6 +556,7 @@ namespace LiteMol.Example.Channels.State {
             if (!visible) {
                 plugin.command(Bootstrap.Command.Tree.RemoveNode, channel.__id);
             } else {
+                visibleChannels.push(channel);
                 //Zde se volá mnou vytvořená funkce pro generování povrchu podle koulí z JSONu(u nás zatím Centerline, u Vás Profile)
                 let sphereSurfacePromise = createTunnelSurface(channel.Profile);//createTunnelSurfaceWithLayers(channel.Profile, channel.Layers);
                 
@@ -590,6 +592,8 @@ namespace LiteMol.Example.Channels.State {
                 }));
             }
         }
+
+        MoleOnlineWebUI.Cache.LastVisibleChannels.set(visibleChannels);
 
         return Promise.all(promises).then(()=>{
             for(let channel of channels){

@@ -248,7 +248,7 @@ namespace Controls.UI{
                             currentResidues = [];
                         }
                         currentResidues.push(newResidues);
-                        $(`#${this.props.id}`).val(flattenResiduesArray(currentResidues));
+                        $(`#${this.props.id}`).val(CommonUtils.Misc.flattenResiduesArray(currentResidues));
                     }
                 }
             }
@@ -292,7 +292,7 @@ namespace Controls.UI{
                         }
                         let currentResidues = parseResidues(currentValue);
                         currentResidues = currentResidues.concat(newResidues);
-                        $(`#${this.props.id}`).val(flattenResidues(currentResidues));
+                        $(`#${this.props.id}`).val(CommonUtils.Misc.flattenResidues(currentResidues));
                     }
                 }
             }
@@ -649,7 +649,7 @@ namespace Controls.UI{
 
             return <div className="csa-pick-box-item has-data" onClick={()=>{
                 let output = $(`#${this.props.outputRefId}`)[0] as HTMLInputElement;
-                let toAdd = '['+flattenResidues(value)+']';
+                let toAdd = '['+CommonUtils.Misc.flattenResidues(value)+']';
                 if(output.value.indexOf(toAdd)!==-1){
                     return;
                 }
@@ -657,7 +657,7 @@ namespace Controls.UI{
                     output.value += ", ";
                 }
                 output.value += toAdd;
-            }}>{flattenResidues(value)}</div>
+            }}>{CommonUtils.Misc.flattenResidues(value)}</div>
         }
     }
 
@@ -1266,11 +1266,11 @@ namespace Controls.UI{
             }
         }
     }
-    
-    function flattenResiduesArray(residuesArrayy:Service.MoleConfigResidue[][]):string{
+    /*
+    function flattenResiduesArray(residuesArray:Service.MoleConfigResidue[][]):string{
         let rv = "";
         let idx=0;
-        for(let array of residuesArrayy){
+        for(let array of residuesArray){
             if(idx>0){
                 rv = `${rv}, `;
             }
@@ -1289,7 +1289,7 @@ namespace Controls.UI{
             rv+=`${r.Chain} ${r.SequenceNumber}`;
         }
         return rv;
-    }
+    }*/
 
     function checkCanKill(status:Service.ComputationStatus){
         let result = false;
@@ -1354,7 +1354,7 @@ namespace Controls.UI{
                 Ignore HETATMa: {(data.MoleConfig.Cavity===void 0)?"False":(data.MoleConfig.Cavity.IgnoreHETAtoms)?"True":"False"}<br/>
                 Query Filter: {(data.MoleConfig.QueryFilter===void 0)?"":data.MoleConfig.QueryFilter}<br/>
                 Read All Models: {(data.MoleConfig.Input===void 0)?"False":(data.MoleConfig.Input.ReadAllModels)?"True":"False"}<br/>
-                Ignored Residues: {(data.MoleConfig.NonActiveResidues===void 0||data.MoleConfig.NonActiveResidues===null)?"":flattenResidues(data.MoleConfig.NonActiveResidues)}<br/>                
+                Ignored Residues: {(data.MoleConfig.NonActiveResidues===void 0||data.MoleConfig.NonActiveResidues===null)?"":CommonUtils.Misc.flattenResidues(data.MoleConfig.NonActiveResidues)}<br/>                
                 Specific Chains: {(data.MoleConfig.Input===void 0)?"":data.MoleConfig.Input.SpecificChains}<br/>                
                 <h4>Cavity Parameters</h4>
                 Probe Radius: {(data.MoleConfig.Cavity===void 0)?"":data.MoleConfig.Cavity.ProbeRadius}<br/>
@@ -1369,10 +1369,10 @@ namespace Controls.UI{
                 Merge Pores: {(data.MoleConfig.PoresMerged===void 0 || data.MoleConfig.PoresMerged===null)?"False":(data.MoleConfig.PoresMerged)?"True":"False"}<br/>
                 Automatic Pores: {(data.MoleConfig.PoresAuto===void 0 || data.MoleConfig.PoresAuto===null)?"False":(data.MoleConfig.PoresAuto)?"True":"False"}<br/>               
                 <h4>Selection</h4>
-                Starting Point: {(data.MoleConfig.Origin===void 0 || data.MoleConfig.Origin===null)?"":(data.MoleConfig.Origin.Residues===void 0 || data.MoleConfig.Origin.Residues===null || data.MoleConfig.Origin.Residues.length===0)?"":flattenResiduesArray(data.MoleConfig.Origin.Residues)}<br/>
-                Starting Point[x,y,z]: {(data.MoleConfig.Origin===void 0 || data.MoleConfig.Origin===null)?"":(data.MoleConfig.Origin.Points===void 0 || data.MoleConfig.Origin.Points===null)?"":pointsToString(data.MoleConfig.Origin.Points)}<br/>
-                End Point: {(data.MoleConfig.CustomExits===void 0 || data.MoleConfig.CustomExits===null)?"":(data.MoleConfig.CustomExits.Residues===void 0 || data.MoleConfig.CustomExits.Residues===null || data.MoleConfig.CustomExits.Residues.length===0)?"":flattenResiduesArray(data.MoleConfig.CustomExits.Residues)}<br/>
-                End Point[x,y,z]: {(data.MoleConfig.CustomExits===void 0 || data.MoleConfig.CustomExits===null)?"":(data.MoleConfig.CustomExits.Points===void 0 || data.MoleConfig.CustomExits.Points===null)?"":pointsToString(data.MoleConfig.CustomExits.Points)}<br/>
+                Starting Point: {(data.MoleConfig.Origin===void 0 || data.MoleConfig.Origin===null)?"":(data.MoleConfig.Origin.Residues===void 0 || data.MoleConfig.Origin.Residues===null || data.MoleConfig.Origin.Residues.length===0)?"":CommonUtils.Misc.flattenResiduesArray(data.MoleConfig.Origin.Residues)}<br/>
+                Starting Point[x,y,z]: {(data.MoleConfig.Origin===void 0 || data.MoleConfig.Origin===null)?"":(data.MoleConfig.Origin.Points===void 0 || data.MoleConfig.Origin.Points===null)?"":CommonUtils.Misc.pointsToString(data.MoleConfig.Origin.Points)}<br/>
+                End Point: {(data.MoleConfig.CustomExits===void 0 || data.MoleConfig.CustomExits===null)?"":(data.MoleConfig.CustomExits.Residues===void 0 || data.MoleConfig.CustomExits.Residues===null || data.MoleConfig.CustomExits.Residues.length===0)?"":CommonUtils.Misc.flattenResiduesArray(data.MoleConfig.CustomExits.Residues)}<br/>
+                End Point[x,y,z]: {(data.MoleConfig.CustomExits===void 0 || data.MoleConfig.CustomExits===null)?"":(data.MoleConfig.CustomExits.Points===void 0 || data.MoleConfig.CustomExits.Points===null)?"":CommonUtils.Misc.pointsToString(data.MoleConfig.CustomExits.Points)}<br/>
                 Query: {(data.MoleConfig.Origin===void 0 || data.MoleConfig.Origin===null)?"":(data.MoleConfig.Origin.QueryExpression===void 0 || data.MoleConfig.Origin.QueryExpression===null)?"":data.MoleConfig.Origin.QueryExpression}<br/>
             </div>
         }
@@ -1385,23 +1385,6 @@ namespace Controls.UI{
             </div>
         }
 
-        isMoleJob(data: Service.Submission){
-            if(data.MoleConfig===void 0 || data.MoleConfig===null){
-                return false;
-            }
-
-            let c = data.MoleConfig;
-            return !(c.Cavity===void 0 
-                && c.CustomExits === void 0
-                && c.Input === void 0
-                && c.NonActiveResidues === void 0
-                && c.Origin === void 0
-                && c.PoresAuto === void 0
-                && c.PoresMerged === void 0
-                && c.QueryFilter === void 0
-                && c.Tunnel === void 0);
-        }
-
         render(){
             let currentSubmitId = this.props.currentSubmitId;
             let data = this.props.data;
@@ -1410,7 +1393,7 @@ namespace Controls.UI{
             let canResubmit = checkCanResubmit(this.props.status as Service.ComputationStatus);
 
             let contents;
-            if(this.isMoleJob(data)){
+            if(CommonUtils.Misc.isMoleJob(data)){
                 contents = this.getMoleJob(data);
             }            
             else{
@@ -1446,7 +1429,7 @@ namespace Controls.UI{
         }
 
         private reSubmit(){
-            if(this.isMoleJob(this.props.data)){
+            if(CommonUtils.Misc.isMoleJob(this.props.data)){
                 Service.ApiService.submitMoleJob(this.props.computationId,this.props.data.MoleConfig).then((result)=>{
                     CommonUtils.Router.fakeRedirect(result.ComputationId, String(result.SubmitId));
                     LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
@@ -1536,17 +1519,6 @@ namespace Controls.UI{
         }
         LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
         MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(submitId);
-    }
-
-    function pointsToString(points: Service.MoleConfigPoint[]):string{
-        let rv = "";
-        for(let p of points){
-            if(rv!==""){
-                rv+=",";
-            }
-            rv+=`[${p.X},${p.Y},${p.Z}]`;
-        }
-        return rv;
     }
 
     function parseChainsArray(value:string){

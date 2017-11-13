@@ -58,6 +58,16 @@ namespace MoleOnlineWebUI.Cache{
         }
     }
 
+    export class LastVisibleChannels{
+        private static data:DataInterface.Tunnel[];
+        public static set(data:DataInterface.Tunnel[]){
+            this.data=data;
+        }
+        public static get():DataInterface.Tunnel[]{
+            return this.data;
+        }
+    }
+
     export class ChannelsDBData{
         private static channelAnnotationCache:LiteMol.Core.Utils.FastMap<string,ChannelsDBAPI.ChannelAnnotation[]>;
         private static channelDataCache:DataInterface.ChannelsDBChannels;

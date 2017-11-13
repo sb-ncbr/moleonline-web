@@ -1,134 +1,17 @@
-<div class='report-body x2'>
-<!--<link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />-->
-	<style>
-		.report-body{
-		    width: 210mm;
-			height: 297mm;
-			margin: 0;
-			padding: 2mm 2.5mm;
-			font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
-		}
-		body{
-			width: 210mm;
-			height: 297mm;
-			margin:0;
-			padding:0;	
-		}
-		.report-tunnel-name{
-			text-align: right;
-			font-size: 24pt;
-			font-weight: bold;
-			margin-bottom: 2mm;
-		}
-		.report-3D-view,
-		.report-2D-view{
-			display:none;
-		}
-		.report-3D-view.visible,
-		.report-2D-view.visible{
-			display:block;
-		}
-		.report-3D-view-title,
-		.report-2D-view-title,
-		.report-lining-residues-title{
-			font-weight: bold;
-			font-size: 15pt;
-			margin-bottom: 0.5mm;
-		}	
-		.report-3D-screen-img-container,
-		.report-2D-screen-img-container,
-		.report-lining-residues-container  {
-			border: 1px solid #aaa;
-			margin-bottom:15px;
-			height:auto;
-		}
-		.report-lining-residues-container{
-			margin-bottom:0;
-		}	
-
-		.report-3D-screen-img-container img,
-		.report-2D-screen-img-container img{
-    		width: 100%;
-		}
-
-		.report-2D-screen-img-container img{
-    		margin-left:2%;
-			margin-top:2%;
-			margin-bottom:2%;
-		}
-
-		.report-lining-residues-container table{
-			height:36%;		
-			width:100%;
-			margin-bottom:0;
-		}
-
-		.report-lining-residues-container table tr td,
-		.report-lining-residues-container table tr th{
-			line-height:8pt;			
-			height:9pt;
-			font-size:8pt;
-		}
-		.report-lining-residues-container table tr td{
-			padding-top: 4px;
-			padding-bottom: 4px;
-		}
-		.report-lining-residues-container table tr th:nth-child(1){
-			width:60px;
-		}
-		.report-lining-residues-container table tr th:nth-child(2){
-			width:70px;
-			text-align:center;
-		}
-		.report-lining-residues-container table tr th:nth-child(3){
-			width:62px;
-		}
-		.report-lining-residues-container table tr th:nth-child(4){
-			width:93px;
-		}
-		.report-lining-residues-container table tr:last-child td{
-			height:auto;
-		}
-
-		.report-ok-icon{
-			background-image: url('/assets/images/accept.gif');
-			width:8pt;
-			height:8pt;
-			background-size: 8pt 8pt;
-			background-repeat: no-repeat;
-		}
-
-		/*Temporary*/
-		/*
-		.report-body{
-			border-right: 1px solid #ccc; 
-		}
-
-		
-		.test{
-			position:absolute;
-			top:295mm;
-			margin-top:-12px;
-			font-size:12px;	
-			height:	12px;
-		}
-		
-		*/
-			
-	</style>
+<div class='report-body'>
 	<div class='report-tunnel-name'>
-		<!--TUNNEL-NAME-->
+		[[TUNNEL-NAME]]
 	</div>
-	<div class='report-3D-view <!--report-3D-view-visible-->'>
+	<div class='report-3D-view [[report-3D-view-visible]]'>
 		<div class='report-3D-view-title'>3D view</div>
 		<div class='report-3D-screen-img-container'>
-			<img src='<!--3D-SCREEN-SRC-->' />
+			<img src='[[3D-SCREEN-SRC]]' />
 		</div>
 	</div>
-	<div class='report-2D-view <!--report-2D-view-visible-->'>
+	<div class='report-2D-view [[report-2D-view-visible]]'>
 		<div class='report-2D-view-title'>2D view</div>
 		<div class='report-2D-screen-img-container'>
-			<img src='<!--2D-SCREEN-SRC-->' />
+			<img src='[[2D-SCREEN-SRC]]' />
 		</div>
 	</div>
 	<div class='report-lining-residues'>
@@ -139,11 +22,10 @@
 				<tr><th>Name</th><th>Seq. num.</th><th>Chain</th><th>Backbone</th><th>Annotation</th></tr>
 				</thead>
 				<tbody>
-				<!--LINING-RESIDUES-TABLE-ROWS-->
+				[[LINING-RESIDUES-TABLE-ROWS]]
 				<tr><td colspan="6"/></tr>
 				</tbody>
 			</table>
 		</div>
 	</div>
-	<!--<div class="test">this should be the last line on the pdf file</div>-->
 </div>

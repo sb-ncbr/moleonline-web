@@ -488,12 +488,12 @@ namespace LiteMol.Example.Channels.UI {
         state = { isVisible: false, isWaitingForData: false };
 
         componentDidMount(){
-            /*
+            
             MoleOnlineWebUI.Bridge.Events.subscribeChannelSelect(((channelId:string)=>{
                 if(this.props.channel.Id === channelId){
-                    this.selectChannel();
+                    this.selectChannel(false);
                 }
-            }).bind(this));*/
+            }).bind(this));
         }
 
         private dataWaitHandler(){
@@ -536,16 +536,20 @@ namespace LiteMol.Example.Channels.UI {
             }
         }
 
-        private selectChannel(){
+        private selectChannel(updateUI?:boolean){
+            if(updateUI===void 0){
+                updateUI = true;
+            }
             let entity = this.props.state.plugin.context.select(this.props.channel.__id)[0];
             if(entity === void 0 || entity.ref === "undefined"){
-                State.showChannelVisuals(this.props.state.plugin,[this.props.channel],true);
-                let state = this.state;
-                state.isVisible=true;
-                this.setState(state);
-                window.setTimeout((()=>{
-                    this.selectChannel();
-                }).bind(this),50);
+                State.showChannelVisuals(this.props.state.plugin,[this.props.channel],true).then(()=>{
+                if(updateUI){
+                    let state = this.state;
+                    state.isVisible=true;
+                    this.setState(state);
+                }
+                this.selectChannel(updateUI);
+                });
                 return;
             }
             let channelRef = entity.ref;

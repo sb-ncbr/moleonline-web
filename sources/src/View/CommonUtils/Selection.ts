@@ -118,6 +118,11 @@ namespace CommonUtils.Selection{
             }
         }
 
+        //For PDF report
+        public static forceInvokeOnChannelDeselectHandlers(){
+            this.invokeOnChannelDeselectHandlers();
+        }
+
         public static attachOnPointBulkSelectHandler(handler:(points:StringPoint[])=>void){
             if(this.onPointSelectHandlers===void 0){
                 this.onPointSelectHandlers = [];

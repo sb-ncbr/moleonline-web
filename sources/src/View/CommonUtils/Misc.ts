@@ -27,4 +27,70 @@ namespace CommonUtils.Misc{
         a.click();
         setTimeout(function () { return a.remove(); }, 20000);
     }
+
+    export function flattenResiduesArray(residuesArray:MoleOnlineWebUI.Service.MoleAPI.MoleConfigResidue[][]):string{
+        let rv = "";
+        let idx=0;
+        for(let array of residuesArray){
+            if(idx>0){
+                rv = `${rv}, `;
+            }
+            rv = `${rv}[${flattenResidues(array)}]`;
+            idx++;
+        }
+        return rv;
+    }
+
+    export function flattenResidues(residues:MoleOnlineWebUI.Service.MoleAPI.MoleConfigResidue[]):string{
+        let rv = "";
+        for(let r of residues){
+            if(rv !== ""){
+                rv+=", ";
+            }
+            rv+=`${r.Chain} ${r.SequenceNumber}`;
+        }
+        return rv;
+    }
+
+    export function flattenPoints(pointsArray:CommonUtils.Selection.StringPoint[]):string{
+        let rv = "";
+        for(let p of pointsArray){
+            let group = `[${p.x},${p.y},${p.z}]`;
+            
+            if(rv.length!==0){
+                rv+=",";
+            }
+            rv+=group;
+        }
+
+        return rv;
+    }
+
+    export function pointsToString(points: MoleOnlineWebUI.Service.MoleAPI.MoleConfigPoint[]):string{
+        let rv = "";
+        for(let p of points){
+            if(rv!==""){
+                rv+=",";
+            }
+            rv+=`[${p.X},${p.Y},${p.Z}]`;
+        }
+        return rv;
+    }
+
+    export function isMoleJob(data: MoleOnlineWebUI.Service.MoleAPI.Submission){
+        if(data.MoleConfig===void 0 || data.MoleConfig===null){
+            return false;
+        }
+
+        let c = data.MoleConfig;
+        return !(c.Cavity===void 0 
+            && c.CustomExits === void 0
+            && c.Input === void 0
+            && c.NonActiveResidues === void 0
+            && c.Origin === void 0
+            && c.PoresAuto === void 0
+            && c.PoresMerged === void 0
+            && c.QueryFilter === void 0
+            && c.Tunnel === void 0);
+    }
 }

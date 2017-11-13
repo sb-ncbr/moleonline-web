@@ -72,14 +72,11 @@ namespace DownloadReport.UI{
         }
     }
 
-    interface PDFWithYPos{
-        pdf: jsPDF,
-        y: number
-    };
     interface DownloadPDFReportDropdownMenuItemState{
         data:DataInterface.MoleData|DataInterface.ChannelsDBData|null,
-        pdf: jsPDF|null
-        y:number
+        reportContent: string|null
+        inProgress:boolean,
+        progress:number
     }
     class DownloadPDFReportDropdownMenuItem extends React.Component<{linkText:string},DownloadPDFReportDropdownMenuItemState>{
         private a4width = 210;
@@ -87,71 +84,35 @@ namespace DownloadReport.UI{
         private lineColor = "0.7";
         private lineWidth = 0.3;
 
-        public static templateCache:string|null = null;
+        public static templateCache:MoleOnlineWebUI.Service.Templates.PDFTemplate|null = null;
 
-        state:DownloadPDFReportDropdownMenuItemState = {data:null,pdf:null,y:0};
+        state:DownloadPDFReportDropdownMenuItemState = {data:null,reportContent:null,inProgress:false,progress:0};
 
         componentDidMount(){
             MoleOnlineWebUI.Bridge.Events.subscribeChannelDataLoaded(data=>{
-                console.log("DATA loaded!!!");
                 let state = this.state;
                 state.data = data;
                 this.setState(state);
             });
         }
 
-        private getMMByPercent(percent:number,horizontal:boolean){
-            let p;
-            if(horizontal){
-                p = this.a4width/100;
-            }
-            else{
-                p = this.a4height/100;
-            }
-
-            return p*percent;
-        }
-
         private addCurrentLMScreen(template:string){
             let plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
             let litemolCanvas = (plugin.context.scene.scene.parentElement.children[0] as HTMLCanvasElement);
             let litemol_screenshot = litemolCanvas.toDataURL('image/png');
-            template = template.replace("<!--3D-SCREEN-SRC-->",litemol_screenshot);
-            return template.replace("<!--report-3D-view-visible-->","visible");
+            template = template.replace("[[3D-SCREEN-SRC]]",litemol_screenshot);
+            return template.replace("[[report-3D-view-visible]]","visible");
         }
 
         private addCurrentLVZScreen(template:string){
             let lvz = (MoleOnlineWebUI.Bridge.Instances.getLayersVizualizer() as LayersVizualizer.Vizualizer);
             let screenshot = lvz.exportImage();
-            template = template.replace("<!--2D-SCREEN-SRC-->",screenshot);
-            return template.replace("<!--report-2D-view-visible-->","visible");
-        }
-        
-        private addHTML(pdf:jsPDF, html:HTMLElement, y:number){
-            return new Promise<PDFWithYPos>((res,rej)=>{
-                try{
-                    html2canvas(html,{dpi:900}).then((canvas)=>{
-                        let origWidth = canvas.width;
-                        let origHeight = canvas.height;
-                        let ratio = origWidth/origHeight;
-                        let screenshot = canvas.toDataURL();
-                        let x = 0;
-                        let w = this.getMMByPercent(100,true);
-                        let h = w/ratio;
-                        let max_h = this.getMMByPercent(100,false)-y;
-                        h = (h>max_h)?max_h:h;
-                        //console.log(screenshot);
-                        pdf.addImage(screenshot,"PNG",x,y,w,h);
-                        res({pdf,y:y+h});
-                    });
-                }catch(err){
-                    rej(err);
-                }
-            });
+            template = template.replace("[[2D-SCREEN-SRC]]",screenshot);
+            return template.replace("[[report-2D-view-visible]]","visible");
         }
 
         private addTunnelName(template:string, text:string):string{
-            return template.replace("<!--TUNNEL-NAME-->",text);
+            return template.replace("[[TUNNEL-NAME]]",text);
         }
 
         private addLiningResidues(template:string, residues:string[]){
@@ -161,27 +122,42 @@ namespace DownloadReport.UI{
                         let name = resInfo[0].name;
                         let seq = resInfo[0].authSeqNumber;
                         let chain = resInfo[0].chain.authAsymId;
-                        let backbone = (resInfo[0].backbone)?'<div class="report-ok-icon"/>':'';
-                        let annotation = ''; //TODO: add annotations
-                        rows += `<tr><td>${name}</td><td>${seq}</td><td>${chain}</td><td>${backbone}</td><td>${annotation}</td></tr>`;
+                        let backbone = (resInfo[0].backbone)?'<img class="report-ok-icon" src="/assets/images/accept.gif"/>':'';
+                        let annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getResidueAnnotationsImmediate(`${seq} ${chain}`);
+                        if(annotations===null){
+                            rows += `<tr><td>${name}</td><td>${seq}</td><td>${chain}</td><td>${backbone}</td><td></td></tr>`;    
+                        }
+                        else{
+                            for(let annotation of annotations){
+                                rows += `<tr><td>${name}</td><td>${seq}</td><td>${chain}</td><td>${backbone}</td><td>${annotation.text} ${((annotation.reference!=="")?"("+annotation.reference+")":"")}</td></tr>`;
+                            }
+                        }
                     }
-                    return template.replace("<!--LINING-RESIDUES-TABLE-ROWS-->",rows);    
+                    return template.replace("[[LINING-RESIDUES-TABLE-ROWS]]",rows);    
         }
 
-        private selectChannel(channel:DataInterface.Tunnel){
+        private selectChannel(channel:DataInterface.Tunnel, allChannels:DataInterface.Tunnel[]){
             let plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
-            let entity = plugin.context.select((channel as any).__id)[0];
-            if(entity === void 0 || entity.ref === "undefined"){
-                LiteMol.Example.Channels.State.showChannelVisuals(plugin,[channel as any],true);
-                window.setTimeout(()=>{
-                    this.selectChannel(channel);
-                },10)
-                return;
-            }
-            let channelRef = entity.ref;
-            
-            plugin.command(LiteMol.Bootstrap.Command.Entity.Focus, plugin.context.select(channelRef));
-            plugin.command(LiteMol.Bootstrap.Event.Visual.VisualSelectElement, LiteMol.Bootstrap.Interactivity.Info.selection(entity, [0]));
+            return new Promise<any>((res,rej)=>{
+                try{
+                    LiteMol.Example.Channels.State.showChannelVisuals(plugin,allChannels as any,false).then(()=>{
+                        MoleOnlineWebUI.Bridge.Events.invokeChannelSelect(channel.Id);
+                        
+                        let waitToResolve = ()=>{
+                            window.setTimeout(()=>{
+                                if(CommonUtils.Selection.SelectionHelper.getSelectedChannelId()==channel.Id){
+                                    window.setTimeout(()=>{res()},100);
+                                    return;
+                                }
+                                waitToResolve();
+                            },20);
+                        };
+                        waitToResolve();
+                    })
+                }catch(err){
+                    rej(err);
+                }
+            });
         }
 
         private generateChannelReport(channelData:DataInterface.Tunnel){
@@ -191,190 +167,433 @@ namespace DownloadReport.UI{
                     rej("No template!!!");
                     return;
                 }
-                let notNullTemplate = template.slice();
+                let notNullTemplate = template.html.slice();
 
                 let templateInstance = notNullTemplate.slice();
 
                 let residues = CommonUtils.Residues.sort(channelData.Layers.ResidueFlow.slice(),void 0, true, true);
-                //console.log(residues);
                 if(residues===void 0){
                     return;
                 }
 
-                let tunnelName = "Error";
                 let name_ = CommonUtils.Tunnels.getName(channelData);
-                if(name_!==void 0){
+                let chdb_annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getChannelAnnotationsImmediate(channelData.Id);
+                let length = CommonUtils.Tunnels.getLength(channelData);
+                let tunnelName = `${channelData.Type}, Length: ${length} Å`;
+                if(chdb_annotations!==null&&chdb_annotations.length>0){
+                    tunnelName = chdb_annotations[0].name;                    
+                }
+                else if(name_!==void 0){
                     tunnelName = name_;
                 }
-                console.log(tunnelName);
+
                 templateInstance = this.addTunnelName(templateInstance,tunnelName);
                 templateInstance = this.addCurrentLMScreen(templateInstance);
                 templateInstance = this.addCurrentLVZScreen(templateInstance);
                 templateInstance = this.addLiningResidues(templateInstance,residues.slice(0,19));
 
-                let html = $(templateInstance)[0];
-                document.body.appendChild(html);
                 let state = this.state;
-                let pdf;
-                if(state.pdf===null){
-                    pdf = new jsPDF();
-                }
-                else{
-                    pdf = state.pdf;
+                let reportContent="";
+                if(state.reportContent!==null){
+                    reportContent = state.reportContent;
                 }
 
-                this.addHTML(pdf,html,0).then(info=>{
-                    //info.pdf.output("save","Report.pdf");
-                    document.body.removeChild(html);
-
-                    if(residues.length>19){
-                        console.log("residues>19");
-                        let templInst = notNullTemplate.slice();
-                        templInst = this.addTunnelName(templInst,tunnelName);
-                        templInst = this.addLiningResidues(templInst,residues.slice(19));
-                        let nHtml = $(templInst)[0];
-                        document.body.appendChild(nHtml);
-                        info.pdf.addPage();
-                        console.log("about to add next page of residues");
-                        this.addHTML(info.pdf,nHtml,0).then(info=>{
-                            document.body.removeChild(nHtml);
-                            let state = this.state;
-                            state.pdf = info.pdf;
-                            this.setState(state);
-                            res();
-                        });
-                    }
-                    else{
-                        let state = this.state;
-                        state.pdf = info.pdf;
-                        this.setState(state);
-                        res();
-                    }
-                });
+                reportContent += templateInstance;
+                if(residues.length>19){
+                    let templInst = notNullTemplate.slice();
+                    templInst = this.addTunnelName(templInst,tunnelName);
+                    templInst = this.addLiningResidues(templInst,residues.slice(19));
+                    reportContent+= templInst;
+                }
+                state.reportContent = reportContent;
+                this.setState(state);
+                res();
             });
         }
 
-
-
-        private generateChannelReportWrapper(channelData:DataInterface.Tunnel){
+        private generateChannelReportWrapper(channelData:DataInterface.Tunnel, allChannels:DataInterface.Tunnel[]){
             return new Promise<void>((res,rej)=>{
                 if(this.state.data===null){
                     rej("No data!");
                 }
                 let selectedChannelId = CommonUtils.Selection.SelectionHelper.getSelectedChannelId();
                 let canvas = $(".layer-vizualizer-canvas");
-                //console.log(selectedChannelId);
                 if(canvas.length===0||selectedChannelId!==channelData.Id){
                     if(selectedChannelId!==channelData.Id){
-                        this.selectChannel(channelData);
-                    }
-                    window.setTimeout(()=>{
-                        this.generateChannelReportWrapper(channelData)
+                        this.selectChannel(channelData,allChannels).then(()=>{
+                            this.generateChannelReportWrapper(channelData, allChannels)
                             .then(()=>{
                                 res();
                             })
-                            .catch(err=>console.log(err))
-                    },100);
+                            .catch(err=>rej(err));
+                        });
+                    }
                     return;
                 }
-                
                 this.generateChannelReport(channelData).then(
                     ()=>res()
                 );
             });
         }
 
+        private replacePlaceholder(template:string,placeholder:string,value:string){
+            let regexp = new RegExp("\\[\\["+placeholder+"\\]\\]","g");
+            return template.replace(regexp,value);   
+        }
+
+        private addParamsPageCommon(template:string, urlParams:CommonUtils.Router.URLParams|null){
+            let emptyPlaceholders:string[] = [];
+            if(urlParams!==null){
+                template = this.replacePlaceholder(template, "COMP-ID",urlParams.computationId);
+                template = this.replacePlaceholder(template, "SUBMIT-ID",String(urlParams.submitId));
+            }
+            else{
+                emptyPlaceholders.push("COMP-ID");
+                emptyPlaceholders.push("SUBMIT-ID");
+            }
+            template = this.replacePlaceholder(template, "URL",CommonUtils.Router.getCurrentUrl());
+
+            template = this.replaceEmptyPlaceholders(template,emptyPlaceholders);
+
+            return template;
+        }
+
+        //Replace all not filled placeholders with empty strings
+        private replaceEmptyPlaceholders(template:string, placeholders:string[]){
+            for(let emptyPlaceholder of placeholders){
+                template = this.replacePlaceholder(template, emptyPlaceholder,""); 
+            }
+
+            return template;
+        }
+
+        private addParamsPageMole(template:string, params:MoleOnlineWebUI.Service.MoleAPI.MoleConfig){
+            template = this.replacePlaceholder(template, "MOLE-PARAMS-VISIBLE","visible");
+            let emptyPlaceholders:string[] = [];
+            let input = params.Input;
+            let cavity = params.Cavity;
+            let exits = params.CustomExits;
+            let nonactiveResidues = params.NonActiveResidues;
+            let origin = params.Origin;
+            let tunnel = params.Tunnel;
+            if(input!==void 0){
+                template = this.replacePlaceholder(template, "READ-ALL-MODELS",(input.ReadAllModels)?"Yes":"No");
+                template = this.replacePlaceholder(template, "SPECIFIC-CHAINS",input.SpecificChains);
+            }
+            else{
+                emptyPlaceholders.push("READ-ALL-MODELS");
+                emptyPlaceholders.push("SPECIFIC-CHAINS");
+            }
+            if(cavity!==void 0){
+                template = this.replacePlaceholder(template, "IGNORE-HYDROGENS",(cavity.IgnoreHydrogens)?"Yes":"No");
+                template = this.replacePlaceholder(template, "IGNORE-HETATMS",(cavity.IgnoreHETAtoms)?"Yes":"No");
+                template = this.replacePlaceholder(template, "INTERIOR-TRESHOLD",String(cavity.InteriorThreshold));
+                template = this.replacePlaceholder(template, "PROBE-RADIUS",String(cavity.ProbeRadius));
+            }
+            else{
+                emptyPlaceholders.push("IGNORE-HYDROGENS");
+                emptyPlaceholders.push("IGNORE-HETATMS");
+                emptyPlaceholders.push("INTERIOR-TRESHOLD");
+                emptyPlaceholders.push("PROBE-RADIUS");
+            }
+            if(origin!==void 0&&origin!==null){
+                let points = origin.Points;
+                if(points!==null){
+                    template = this.replacePlaceholder(template, "STARTING-POINT-XYZ",CommonUtils.Misc.pointsToString(points));    
+                }
+                else{
+                    emptyPlaceholders.push("STARTING-POINT-XYZ");    
+                }
+                let residues = origin.Residues;
+                if(residues!==null){
+                    template = this.replacePlaceholder(template, "STARTING-POINT",CommonUtils.Misc.flattenResiduesArray(residues));    
+                }
+                else{
+                    emptyPlaceholders.push("STARTING-POINT");    
+                }
+                if(origin.QueryExpression!==null){
+                    template = this.replacePlaceholder(template, "QUERY-FILTER",origin.QueryExpression);
+                }
+                else{
+                    emptyPlaceholders.push("QUERY-FILTER");    
+                }
+            }
+            else{
+                emptyPlaceholders.push("STARTING-POINT-XYZ");
+                emptyPlaceholders.push("STARTING-POINT");
+                emptyPlaceholders.push("QUERY-FILTER");
+            }
+            if(exits!==void 0&&exits!==null){
+                let points = exits.Points;
+                if(points!==null){
+                    template = this.replacePlaceholder(template, "END-POINT-XYZ",CommonUtils.Misc.pointsToString(points));  
+                }
+                else{
+                    emptyPlaceholders.push("END-POINT-XYZ");
+                }
+                let residues = exits.Residues;
+                if(residues!==null){
+                    template = this.replacePlaceholder(template, "END-POINT",CommonUtils.Misc.flattenResiduesArray(residues));  
+                }
+                else{
+                    emptyPlaceholders.push("END-POINT");
+                }
+                if(exits.QueryExpression!==null){
+                    template = this.replacePlaceholder(template, "QUERY",exits.QueryExpression);  
+                }
+                else{
+                    emptyPlaceholders.push("QUERY");
+                }
+            }
+            else{
+                emptyPlaceholders.push("END-POINT-XYZ");
+                emptyPlaceholders.push("END-POINT");
+                emptyPlaceholders.push("QUERY");
+            }
+            if(nonactiveResidues!==void 0&&nonactiveResidues!==null){
+                template = this.replacePlaceholder(template, "IGNORED-RESIDUES",CommonUtils.Misc.flattenResidues(nonactiveResidues));  
+            }
+            else{
+                emptyPlaceholders.push("IGNORED-RESIDUES");
+            }
+            if(tunnel!==void 0&&tunnel!==null){
+                template = this.replacePlaceholder(template, "BOTTLENECK-RADIUS",String(tunnel.BottleneckRadius));                  
+                template = this.replacePlaceholder(template, "BOTTLENECK-TOLERANCE",String(tunnel.BottleneckTolerance));
+                template = this.replacePlaceholder(template, "MAX-TUNNEL-SIMILARITY",String(tunnel.MaxTunnelSimilarity));
+                template = this.replacePlaceholder(template, "ORIGIN-RADIUS",String(tunnel.OriginRadius));
+                template = this.replacePlaceholder(template, "SURFACE-COVER-RADIUS",String(tunnel.SurfaceCoverRadius));
+                template = this.replacePlaceholder(template, "WEIGHT-FUNCTION",String(tunnel.WeightFunction));
+            }
+            else{
+                emptyPlaceholders.push("BOTTLENECK-RADIUS");
+                emptyPlaceholders.push("BOTTLENECK-TOLERANCE");
+                emptyPlaceholders.push("MAX-TUNNEL-SIMILARITY");
+                emptyPlaceholders.push("ORIGIN-RADIUS");
+                emptyPlaceholders.push("SURFACE-COVER-RADIUS");
+                emptyPlaceholders.push("WEIGHT-FUNCTION");
+            }
+            if(params.PoresAuto!==void 0){
+                template = this.replacePlaceholder(template, "AUTOMATIC-PORES",(params.PoresAuto)?"Yes":"No"); 
+            }
+            else{
+                emptyPlaceholders.push("AUTOMATIC-PORES");
+            }
+            if(params.PoresMerged!==void 0){
+                template = this.replacePlaceholder(template, "MERGE-PORES",(params.PoresMerged)?"Yes":"No"); 
+            }
+            else{
+                emptyPlaceholders.push("MERGE-PORES");
+            }
+
+            template = this.replaceEmptyPlaceholders(template,emptyPlaceholders);
+
+            return template;
+        }
+        
+        private addParamsPagePores(template:string, params:MoleOnlineWebUI.Service.MoleAPI.PoresConfig){
+            template = this.replacePlaceholder(template, "PORES-PARAMS-VISIBLE","visible");
+            template = this.replacePlaceholder(template, "BETA-STRUCTURE",(params.IsBetaBarel)?"Yes":"No");
+            template = this.replacePlaceholder(template, "MEMBRANE-REGION",(params.IsBetaBarel)?"Yes":"No");
+            template = this.replacePlaceholder(template, "SPECIFIC-CHAINS",params.Chains);
+
+            return template;
+        }
+
         private generateReport(){
-            MoleOnlineWebUI.Service.Templates.Service.getPDFReportTemplateData().then(template=>{
-            DownloadPDFReportDropdownMenuItem.templateCache = template;
-            if(this.state.data===null){
-                console.log("genereateReport has no data!");
+            let urlParams = CommonUtils.Router.getParameters();
+            if(urlParams===null){
+                console.log("URL parameters cannot be parsed!");
                 return;
             }
-            let data = this.state.data.Channels as any;
-
-            let channels:DataInterface.Tunnel[] = [];
-            //-- MoleOnline
-            if(data.MergedPores && data.MergedPores.length > 0){
-                channels = data.MergedPores;
-            }
-            if(data.Paths && data.Paths.length > 0){
-                channels = data.Paths;
-            }
-            if(data.Pores && data.Pores.length > 0){
-                channels = data.Pores;
-            }
-            if(data.Tunnels && data.Tunnels.length > 0){
-                channels = data.Tunnels;
-            }
-            //-- ChannelsDB
-            if(data.ReviewedChannels && data.ReviewedChannels.length > 0){
-                channels = data.ReviewedChannels;
-            }
-            if(data.CSATunnels && data.CSATunnels.length > 0){
-                channels = data.CSATunnels;
-            }
-            if(data.TransmembranePores && data.TransmembranePores.length > 0){
-                channels = data.TransmembranePores;
-            }
-            if(data.ReviewedChannels && data.ReviewedChannels.length > 0){
-                channels = data.ReviewedChannels;
-            }
-
-            // create a new jsPDF instance
-            let pdf = new jsPDF();
+            $("#download-report .dropdown").addClass("open-programaticaly");
             let state = this.state;
-            state.pdf = pdf;
+            state.inProgress = true;
             this.setState(state);
 
-            let split = (tunnels:DataInterface.Tunnel[])=>{
-                if(tunnels.length===0){
-                    return {
-                        current:null,
-                        remaining: []
-                    };
-                }
-                
-                return {
-                    current: tunnels[0],
-                    remaining: tunnels.slice(1)
-                }
+            let channelsDBMode = CommonUtils.Router.isInChannelsDBMode();
+            let configParamsPromise;
+            if(channelsDBMode){
+                configParamsPromise = Promise.resolve(null as MoleOnlineWebUI.Service.MoleAPI.Submission|null);
+            }
+            else{
+                configParamsPromise = new Promise<MoleOnlineWebUI.Service.MoleAPI.Submission|null>((res,rej)=>{
+                    if(urlParams===null){
+                        rej("URL parameters cannot be parsed");
+                        return;
+                    }
+                    MoleOnlineWebUI.DataProxy.ComputationInfo.DataProvider.get(urlParams.computationId,(compId,info)=>{
+                        if(urlParams===null){
+                            rej("URL parameters cannot be parsed");
+                        }
+                        else{
+                            if(compId===urlParams.computationId){
+                                for(let s of info.Submissions){
+                                    if(String(s.SubmitId)===String(urlParams.submitId)){
+                                        res(s);
+                                        return;
+                                    }
+                                }
+                                rej("Submission was not found!");
+                            }
+                        }
+                    });
+                });
             }
 
-            let generate = (tunnels:DataInterface.Tunnel[])=>{
-                let d = split(tunnels);
-                if(d.current===null){
-                    console.log("Saving file...");
-                    if(this.state.pdf!==null){
-                        this.state.pdf.output("save","Report.pdf");
+            configParamsPromise.then((val)=>{
+                let originalVisibleChannels = MoleOnlineWebUI.Cache.LastVisibleChannels.get();
+                MoleOnlineWebUI.Service.Templates.Service.getPDFReportTemplateData().then(template=>{
+                    DownloadPDFReportDropdownMenuItem.templateCache = template;
+                    if(this.state.data===null){
+                        console.log("genereateReport has no data!");
+                        return;
                     }
-                    return;
-                }
-                this.generateChannelReportWrapper(d.current).then(res=>{
-                    let tunnelId = (d.current===null)?"<Err>":d.current.Id;
-                    console.log(`Current tunnel: ${tunnelId}`);
-                    console.log(`${d.remaining.length} tunnels remaining of ${channels.length}`);
-                    if(d.remaining.length>0){
-                        let pdf_ = this.state.pdf;
-                        if(pdf_!==null){
-                            pdf_.addPage();
-                            let s = this.state;
-                            s.pdf = pdf_;
-                            this.setState(s);
+                    let data = this.state.data.Channels as any;
+
+                    let channels:DataInterface.Tunnel[] = [];
+                    //-- MoleOnline
+                    if(data.MergedPores && data.MergedPores.length > 0){
+                        channels = data.MergedPores;
+                    }
+                    if(data.Paths && data.Paths.length > 0){
+                        channels = data.Paths;
+                    }
+                    if(data.Pores && data.Pores.length > 0){
+                        channels = data.Pores;
+                    }
+                    if(data.Tunnels && data.Tunnels.length > 0){
+                        channels = data.Tunnels;
+                    }
+                    //-- ChannelsDB
+                    if(data.ReviewedChannels && data.ReviewedChannels.length > 0){
+                        channels = data.ReviewedChannels;
+                    }
+                    if(data.CSATunnels && data.CSATunnels.length > 0){
+                        channels = data.CSATunnels;
+                    }
+                    if(data.TransmembranePores && data.TransmembranePores.length > 0){
+                        channels = data.TransmembranePores;
+                    }
+                    if(data.ReviewedChannels && data.ReviewedChannels.length > 0){
+                        channels = data.ReviewedChannels;
+                    }
+
+                    let reportContent = "";
+
+                    if(!channelsDBMode&&val!==null){
+                        let modeMole = CommonUtils.Misc.isMoleJob(val);
+                        let paramsPageTemplate = template.paramsPageHtml.slice();
+                        paramsPageTemplate = this.addParamsPageCommon(paramsPageTemplate,urlParams);
+
+                        if(modeMole){
+                            paramsPageTemplate = this.addParamsPageMole(paramsPageTemplate,val.MoleConfig);
+                        }
+                        else{
+                            paramsPageTemplate = this.addParamsPagePores(paramsPageTemplate,val.PoresConfig);
+                        }
+                        reportContent += paramsPageTemplate;
+                    }
+
+                    let state = this.state;
+                    state.reportContent = reportContent;
+                    this.setState(state);
+
+                    let split = (tunnels:DataInterface.Tunnel[])=>{
+                        if(tunnels.length===0){
+                            return {
+                                current:null,
+                                remaining: []
+                            };
+                        }
+                        
+                        return {
+                            current: tunnels[0],
+                            remaining: tunnels.slice(1)
                         }
                     }
-                    generate(d.remaining);
-                })
-                .catch(err=>console.log(err));
-            };
 
-            generate(channels);
-            
-            });
-            
+                    let generate = (tunnels:DataInterface.Tunnel[])=>{
+                        let d = split(tunnels);
+                        if(d.current===null){
+                            if(Config.CommonOptions.DEBUG_MODE)
+                                console.log("Saving file...");
+                            if(this.state.reportContent!==null&&DownloadPDFReportDropdownMenuItem.templateCache!==null){
+                                let css = '<style>'+DownloadPDFReportDropdownMenuItem.templateCache.css+"</style>";
+                                let reportWrapperId = "report-wrapper";
+                                let jsConstants = `<script>var report_idToRemoveAfterPrint = '${reportWrapperId}';</script>`;
+                                let toPrint = `<div id='${reportWrapperId}'>`+css+this.state.reportContent+'</div>';
+                                let toPrintHtml = $(toPrint)[0];
+                                $(document.body.children).addClass("no-print");
+                                document.body.appendChild(toPrintHtml);
+                                window.setTimeout(()=>{                        
+                                    let afterPrint = (()=>{
+                                        let reportWrapper = $('#'+reportWrapperId)[0];
+                                        if(reportWrapper!==void 0&&reportWrapper!==null){
+                                            document.body.removeChild(reportWrapper);
+                                        }
+                                        $(document.body.children).removeClass("no-print");
+                                        $("#download-report .dropdown").removeClass("open-programaticaly");
+                                        let state = this.state;
+                                        state.progress = 0;
+                                        state.inProgress = false;
+                                        this.setState(state);
+                                
+                                    }).bind(this);
+                                
+                                    if (window.matchMedia) {
+                                        let mediaQueryList = window.matchMedia('print');
+                                        mediaQueryList.addListener(function(mql) {
+                                            if (!mql.matches) {
+                                                afterPrint();
+                                            }
+                                        });
+                                    }
+                                
+                                    window.onafterprint = afterPrint;
+
+                                    let plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
+                                    
+                                    LiteMol.Example.Channels.State.showChannelVisuals(plugin,channels as any,false).then(()=>{
+                                        LiteMol.Example.Channels.State.showChannelVisuals(plugin,originalVisibleChannels as any,true).then(()=>{
+                                            CommonUtils.Selection.SelectionHelper.resetScene(plugin);
+                                            CommonUtils.Selection.SelectionHelper.clearSelection(plugin);
+                                            CommonUtils.Selection.SelectionHelper.forceInvokeOnChannelDeselectHandlers();
+                                            window.print();        
+                                        });
+                                    });
+                                });
+                            }
+                            return;
+                        }
+                        this.generateChannelReportWrapper(d.current,channels).then(res=>{
+                            let tunnelId = (d.current===null)?"<Err>":d.current.Id;
+                            if(Config.CommonOptions.DEBUG_MODE){
+                                console.log(`Current tunnel: ${tunnelId}`);
+                                console.log(`${d.remaining.length} tunnels remaining of ${channels.length}`);
+                            }
+                            let s = this.state;
+                            s.progress = Math.floor(((channels.length-d.remaining.length)/channels.length)*100);
+                            this.setState(s);
+                            generate(d.remaining);
+                        })
+                        .catch(err=>console.log(err));
+                    };
+
+                    generate(channels);
+                
+                });
+            })
+            .catch(err=>console.log(err))
         }
         
         render(){
+            if(this.state.inProgress){
+                let progress = this.state.progress;
+                return <li><div className="pdf-report-inprogress-overlay">
+                        <img src="/assets/images/ajax-loader.gif"/>
+                        <div className="pdf-report-inprogress-progress">Generating PDF report ({progress}%)...</div>
+                    </div></li>
+            }
             return(
                 <li><a onClick={(()=>{this.generateReport()}).bind(this)}>{this.props.linkText}</a></li>
             );
@@ -432,12 +651,10 @@ namespace DownloadReport.UI{
                 );
                 items.push(
                     <BootstrapDropDownMenuItem linkText="Report" link={`${linkBase}&format=report`} targetBlank={true} />
-                );
-                //TODO: viz TODO_MOLEONLINE
-                /*
+                );                
                 items.push(
                     <DownloadPDFReportDropdownMenuItem linkText="PDF report" />
-                );*/
+                );
             }
             return <BootstrapDropDownMenuButton label="Download report" items={items} />
         }
