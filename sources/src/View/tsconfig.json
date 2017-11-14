@@ -104,6 +104,9 @@
     //Annotate
     "UI/Annotate/UI.tsx",
 
+    //Quick Help
+    "UI/QuickHelp/UI.tsx",
+
     //Main UI
     "Behaviour.ts",
     "State.ts",

@@ -433,7 +433,7 @@ namespace DownloadReport.UI{
                                         return;
                                     }
                                 }
-                                rej("Submission was not found!");
+                                rej("Submission data not available!");
                             }
                         }
                     });
@@ -576,16 +576,35 @@ namespace DownloadReport.UI{
                             this.setState(s);
                             generate(d.remaining);
                         })
-                        .catch(err=>console.log(err));
+                        .catch(err=>{
+                            this.afterError(err);
+                        });
                     };
 
                     generate(channels);
                 
+                }).catch(err=>{
+                    this.afterError(err);    
                 });
             })
-            .catch(err=>console.log(err))
+            .catch(err=>{
+                this.afterError(err);
+            });
         }
         
+        private afterError(err:any){
+            $(document.body.children).removeClass("no-print");
+            $("#download-report .dropdown").removeClass("open-programaticaly");
+            let state = this.state;
+            state.progress = 0;
+            state.inProgress = false;
+            this.setState(state);
+            MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                messageType: "Danger",
+                message: `PDF Report generation aborted. Reason: ${err}`
+            })
+        }
+
         render(){
             if(this.state.inProgress){
                 let progress = this.state.progress;

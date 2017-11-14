@@ -109,8 +109,10 @@
 	padding-right: 2vw;
 	font-size: 24pt;
 	font-weight: bold;
-	color: darkkhaki;
-	text-shadow: 1px 1px #333;
+	/*color: darkkhaki;
+	text-shadow: 1px 1px #333;*/
+	color: #333;
+    text-shadow: 1px 1px #aaa;
 	display:block;
 }
 

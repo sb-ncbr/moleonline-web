@@ -1,3 +1,7 @@
+body{
+    background: #f8f8f8 url('/assets/images/init-bg-compound-transparent.png') 0 0 no-repeat;
+}
+
 .InitForm table tr td:first-child{
     width:150px;
     vertical-align:middle;
@@ -9,6 +13,20 @@
 
 .InitForm .buttons{
     padding:0;
+}
+a {
+    color: #337ab7;
+    text-decoration: none; 
+}
+
+a:focus, a:hover {
+    color: #23527c;
+    text-decoration: underline; 
+}
+
+a:focus {
+    outline: 5px auto -webkit-focus-ring-color;
+    outline-offset: -2px; 
 }
 
 #topmenu a {
