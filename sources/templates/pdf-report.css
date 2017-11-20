@@ -10,16 +10,21 @@
 	.report-body{
 		display:block;
 	    width: 210mm;
-		height: 297mm;
+		/*height: 297mm;*/
 		margin: 0;
 		padding: 2mm 2.5mm;
 		font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+		page-break-after:always;
+	}
+	.report-body.params-page{
+		page-break-after:avoid;
 	}
 	.report-body.params-page h1{
 		text-align:center;
 	}
 	.report-body.params-page .report-params-table{
 		width:100%;
+		border-color:transparent;
 	}
 	.report-body.params-page .report-params-table table{
 		width:100%;
@@ -61,9 +66,6 @@
 		font-size: 15pt;
 		margin-bottom: 0.5mm;
 	}
-	.report-lining-residues{
-		page-break-after: always;
-	}	
 	.report-3D-screen-img-container,
 	.report-2D-screen-img-container,
 	.report-lining-residues-container  {
@@ -73,6 +75,7 @@
 	}
 	.report-lining-residues-container{
 		margin-bottom:0;
+		border:0;
 	}	
 
 	.report-3D-screen-img-container img,
@@ -90,14 +93,33 @@
 		height:36%;		
 		width:100%;
 		margin-bottom:0;
+		border-color:blue;
+	}
+
+	.report-lining-residues-container table thead:before{
+		page-break-before: auto;
+		border:0;
+		display:block;
+		color:transparent;
+	}
+
+	.report-lining-residues-container table thead{
+		page-break-before: avoid;
+	}
+
+	.report-lining-residues-container table tr{
+		page-break-inside:avoid; 
+		page-break-after:auto
 	}
 
 	.report-lining-residues-container table tr td,
 	.report-lining-residues-container table tr th{
 		line-height:8pt;			
 		height:9pt;
+		max-height:9pt;
 		font-size:8pt;
 	}
+
 	.report-lining-residues-container table tr td{
 		padding-top: 4px;
 		padding-bottom: 4px;

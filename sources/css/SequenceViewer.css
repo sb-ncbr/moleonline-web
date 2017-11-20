@@ -1,3 +1,7 @@
+.sequence-viewer{
+    margin-top:-12px;
+}
+
 .sequence-viewer .seq-container{
     overflow-y: scroll;
     height: 8vh;
@@ -5,11 +9,10 @@
     border-right: 1px solid #aaa;
     border-top: 1px solid #aaa;
     line-height:1px;
+    background-color:white;
 }
 
 .sequence-viewer .sequence-viewer-header{
-    position: absolute;
-    margin-top: -25px;
     padding-left: 4px;
     border-top-right-radius: 10px;
     border-top: 1px solid #aaa;
@@ -17,9 +20,10 @@
     padding-right: 8px;
     padding-top: 3px;
     z-index: 900;
-    background-color: transparent;
+    background-color: white;
     padding-bottom: 4px;
     line-height:initial;
+    width: 125px;
 }
 .sequence-viewer .seq-header{
     font-size: 8pt;

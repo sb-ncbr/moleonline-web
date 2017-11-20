@@ -215,6 +215,19 @@ namespace MoleOnlineWebUI.Cache{
             });
         }
 
+        public static getResiduesAnnotationsImmediate(){
+            if(!this.isCached()){
+                return null;
+            }
+
+            let annotations = this.residueAnnotationCache;
+            if(annotations===void 0){
+                return null;
+            }
+
+            return <Map<string,ChannelsDBAPI.ResidueAnnotation[]>>annotations;
+        }
+
         public static getLiningResidues(pdbid:string){
             
             if(this.isCached()){

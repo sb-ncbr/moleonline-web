@@ -1998,10 +1998,10 @@ namespace Controls.UI{
                             Events.invokeOnClear();
 
                         }).bind(this), true);
-                        MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                        /*MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
                             messageType: "Success",
                             message: "Job was successfully submited."
-                        })
+                        })*/
                         MoleOnlineWebUI.Bridge.Events.invokeToggleLoadingScreen({
                             message:"Submited job in progress...",
                             visible:true

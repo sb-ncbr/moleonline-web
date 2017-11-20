@@ -115,22 +115,20 @@ namespace DownloadReport.UI{
             return template.replace("[[TUNNEL-NAME]]",text);
         }
 
-        private addLiningResidues(template:string, residues:string[]){
+        private addLiningResidues(template:string, residueLines:{residue: string,annotation: MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation | null}[]){
                     let rows = "";
-                    for(let i=0;i<residues.length;i++){
-                        let resInfo = CommonUtils.Residues.parseResidues([residues[i]],true);
+                    for(let i=0;i<residueLines.length;i++){
+                        let resInfo = CommonUtils.Residues.parseResidues([residueLines[i].residue],true);
                         let name = resInfo[0].name;
                         let seq = resInfo[0].authSeqNumber;
                         let chain = resInfo[0].chain.authAsymId;
-                        let backbone = (resInfo[0].backbone)?'<img class="report-ok-icon" src="/assets/images/accept.gif"/>':'';
-                        let annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getResidueAnnotationsImmediate(`${seq} ${chain}`);
-                        if(annotations===null){
+                        let backbone = (resInfo[0].backbone)?'<img class="report-ok-icon" src="/assets/images/accept.gif"/>':'';                        
+                        let annotation = residueLines[i].annotation;
+                        if(annotation===null){
                             rows += `<tr><td>${name}</td><td>${seq}</td><td>${chain}</td><td>${backbone}</td><td></td></tr>`;    
                         }
                         else{
-                            for(let annotation of annotations){
-                                rows += `<tr><td>${name}</td><td>${seq}</td><td>${chain}</td><td>${backbone}</td><td>${annotation.text} ${((annotation.reference!=="")?"("+annotation.reference+")":"")}</td></tr>`;
-                            }
+                            rows += `<tr><td>${name}</td><td>${seq}</td><td>${chain}</td><td>${backbone}</td><td>${annotation.text} ${((annotation.reference!=="")?"("+annotation.reference+")":"")}</td></tr>`;
                         }
                     }
                     return template.replace("[[LINING-RESIDUES-TABLE-ROWS]]",rows);    
@@ -160,6 +158,55 @@ namespace DownloadReport.UI{
             });
         }
 
+        private splitResiduesPages(residues:string[],annotations:Map<string, MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation[]> | null):{residue:string,annotation:MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation|null}[][]{
+            let pages:{residue:string, annotation:MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation|null}[][] = [];
+            let pageLines = 0;
+            let maxLines = 19;
+            let notFirstPageMaxLines = 42;
+            let page:{residue:string, annotation:MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation|null}[] = [];
+            
+            let nextPageHndl = (futureLineCount:number)=>{
+                if(futureLineCount>maxLines){
+                    pages.push(page);
+                    page = [];
+                    
+                    if(pages.length===1){
+                        maxLines = notFirstPageMaxLines;
+                    }
+
+                    return 0;
+                }
+                else{
+                    return futureLineCount;
+                }
+            }
+            
+            for(let r of residues){
+                if(annotations===null){
+                    pageLines = nextPageHndl(pageLines+1);
+                    page.push({residue:r,annotation:null});
+                    continue;
+                }
+                let info = CommonUtils.Residues.parseResidues([r],true);
+                let a = annotations.get(`${info[0].authSeqNumber} ${info[0].chain.authAsymId}`);
+                if(a===void 0||a===null||a.length===0){
+                    pageLines = nextPageHndl(pageLines+1);
+                    page.push({residue:r,annotation:null});
+                    continue;
+                }
+                for(let ca of a){
+                    pageLines = nextPageHndl(pageLines+1);
+                    page.push({residue:r,annotation:ca});
+                }
+            }
+
+            if(page.length>0){
+                pages.push(page);
+            }
+
+            return pages;
+        }
+
         private generateChannelReport(channelData:DataInterface.Tunnel){
             return new Promise<any>((res,rej)=>{
                 let template = DownloadPDFReportDropdownMenuItem.templateCache;
@@ -186,11 +233,18 @@ namespace DownloadReport.UI{
                 else if(name_!==void 0){
                     tunnelName = name_;
                 }
+                
+                let residueAnnotations = MoleOnlineWebUI.Cache.ChannelsDBData.getResiduesAnnotationsImmediate();
+                let residuesPages = this.splitResiduesPages(residues,residueAnnotations);
+                let residuesList:{residue: string, annotation: MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation | null }[] = [];
+                for(let p of residuesPages){
+                    residuesList = residuesList.concat(p);
+                }
 
                 templateInstance = this.addTunnelName(templateInstance,tunnelName);
                 templateInstance = this.addCurrentLMScreen(templateInstance);
                 templateInstance = this.addCurrentLVZScreen(templateInstance);
-                templateInstance = this.addLiningResidues(templateInstance,residues.slice(0,19));
+                templateInstance = this.addLiningResidues(templateInstance,residuesList/*residuesPages[0]*/);
 
                 let state = this.state;
                 let reportContent="";
@@ -199,12 +253,14 @@ namespace DownloadReport.UI{
                 }
 
                 reportContent += templateInstance;
-                if(residues.length>19){
+                /*
+                for(let i=1;i<residuesPages.length;i++){
                     let templInst = notNullTemplate.slice();
                     templInst = this.addTunnelName(templInst,tunnelName);
-                    templInst = this.addLiningResidues(templInst,residues.slice(19));
+                    templInst = this.addLiningResidues(templInst,residuesPages[i]);
                     reportContent+= templInst;
                 }
+                */
                 state.reportContent = reportContent;
                 this.setState(state);
                 res();
@@ -225,14 +281,40 @@ namespace DownloadReport.UI{
                             .then(()=>{
                                 res();
                             })
-                            .catch(err=>rej(err));
+                            .catch(err=>{
+                                rej(err)
+                                console.log(err);
+                            });
                         });
                     }
-                    return;
+                    else{
+                        let waitForCanvas = (timeout?:number)=>{
+                            let canvas = $(".layer-vizualizer-canvas");
+                            if(canvas.length===0){
+                                window.setTimeout(()=>waitForCanvas((timeout===void 0)?20:timeout+10),(timeout===void 0)?20:timeout);
+                            }
+                            else{
+                                this.generateChannelReport(channelData)
+                                .then(
+                                    ()=>res()
+                                ).catch(err=>{
+                                    rej(err)
+                                    console.log(err);
+                                });
+                                res();
+                            }
+                        };
+                        waitForCanvas();
+                    }
                 }
-                this.generateChannelReport(channelData).then(
-                    ()=>res()
-                );
+                else{
+                    this.generateChannelReport(channelData).then(
+                        ()=>res()
+                    ).catch(err=>{
+                        rej(err)
+                        console.log(err);
+                    });
+                }
             });
         }
 

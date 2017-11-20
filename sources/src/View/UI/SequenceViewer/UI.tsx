@@ -40,7 +40,7 @@ namespace SequenceViewer.UI{
         }
 
         render() {
-            return <div>
+            return <div className="sequence-viewer">
                     <Header />
                     <div className="seq-container">
                         {(this.state.data===null)?<div className="seq-waiting-for-data">Waiting for protein data...</div>:<Sequence data={this.state.data} app={this}/>}

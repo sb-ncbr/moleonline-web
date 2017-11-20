@@ -504,6 +504,13 @@ only screen and (max-height: 600px) {
 .ui-selection .columns.points {
     column-count: 2;
 }
+.ui-selection-clear{
+    right: 0;
+    position: absolute;
+    margin-right: 25px;
+    margin-top: 1vh;
+    max-height: 3vh;
+}
 
 .ui-header{
     margin-top: 0.25vh;
@@ -548,11 +555,11 @@ only screen and (max-height: 600px) {
 }
 
 .ui-item-container{
-    border-bottom: #9a9a9a 1px solid;
+    border-bottom: #ddd 1px solid;
 }
 
 .ui-item-container:first-child{
-    border-top: #9a9a9a 1px solid;
+    /*border-top: #9a9a9a 1px solid;*/
     margin-top: 1vh;
 }
 
@@ -560,10 +567,10 @@ only screen and (max-height: 600px) {
     font-size: 10pt;
     width: 100%;
     /*padding-left: 2px;*/
-    padding-top: 3px;
-    padding-bottom: 3px;
+    padding-top: 5px;
+    /*padding-bottom: 3px;*/
     margin-bottom: 0;
-    border-top: #9a9a9a 1px solid;
+    border-top: #ddd 1px solid;
     padding-left: 19px;
 }
 
@@ -665,6 +672,10 @@ span.ATable-label {
     height:80px;
 }
 
+.ui label{
+    font-weight: normal;
+}
+
 
 @media only screen and (max-width: 1360px){
     #dg-aglomered-parameters.datagrid .col.col-4{
@@ -718,6 +729,9 @@ only screen and (max-height: 900px) {
     }
     .right-tabs.bottom-tabs-toggled{
         width:61%;
+    }
+    .ui-selection-clear{
+        margin-top: 0.5vh;
     }
 }
 .right-panel .toggler {

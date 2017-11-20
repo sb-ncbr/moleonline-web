@@ -343,11 +343,11 @@ namespace LiteMol.Example.Channels.UI {
             return <div>
                 <div className="ui-selection-header">
                     <span>Selection</span>
-                    <div className="btn btn-xs btn-basic ui-selection-clear" onClick={(e)=>{
+                    <div className="btn btn-xs btn-default ui-selection-clear" onClick={(e)=>{
                         let plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
                         CommonUtils.Selection.SelectionHelper.clearSelection(plugin);
                         //CommonUtils.Selection.SelectionHelper.clearAltSelection(plugin);
-                        }}>(Clear selection)</div>
+                        }} title="Clear selection"><span className="glyphicon glyphicon-trash"/></div>
                 </div>  
                 <div className="ui-selection">{ !this.state.label 
                     ? <i>Click on atom residue or channel</i>
@@ -522,10 +522,10 @@ namespace LiteMol.Example.Channels.UI {
             let annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getChannelAnnotationsImmediate(c.Id);
             if(annotations!==null && annotations !== void 0){
                 let annotation = annotations[0];
-                return <Renderable annotations={annotations} label={<span><b><a onClick={this.selectChannel.bind(this)}>{annotation.name}</a></b><ColorPicker tunnel={this.props.channel}/>, Length: {len} Å</span>} element={c} toggle={State.showChannelVisuals} {...this.props.state} />
+                return <Renderable annotations={annotations} label={<span><b><a onClick={this.selectChannel.bind(this)}>{annotation.name}</a></b><ColorPicker tunnel={this.props.channel}/>, Length: <b>{len} Å</b></span>} element={c} toggle={State.showChannelVisuals} {...this.props.state} />
             }
             else{
-                return <Renderable label={<span><b><a onClick={this.selectChannel.bind(this)}>{c.Type}{namePart}</a></b><ColorPicker tunnel={this.props.channel}/>, {`Length: ${len} Å`}</span>} element={c} toggle={(p:LiteMol.Plugin.Controller,ch:DataInterface.Tunnel[]&State.TunnelMetaInfo[],v:boolean)=>{                
+                return <Renderable label={<span><b><a onClick={this.selectChannel.bind(this)}>{c.Type}{namePart}</a></b><ColorPicker tunnel={this.props.channel}/>, Length: <b>{`${len | 0} Å`}</b></span>} element={c} toggle={(p:LiteMol.Plugin.Controller,ch:DataInterface.Tunnel[]&State.TunnelMetaInfo[],v:boolean)=>{                
                         return State.showChannelVisuals(p,ch,v)
                             .then(res=>{
                                 this.props.channel = ch[0];
@@ -589,12 +589,12 @@ namespace LiteMol.Example.Channels.UI {
         render() {
             let c = this.props.cavity;
             return <div>
-                <Renderable label={<span><b>{c.Id}</b>, {`Volume: ${c.Volume | 0} Å`}<sup>3</sup></span>} element={c} toggle={State.showCavityVisuals} {...this.props.state} />
+                <Renderable label={<span><b>{c.Id}</b>, Volume: <b>{`${c.Volume | 0} Å`}<sup>3</sup></b></span>} element={c} toggle={State.showCavityVisuals} {...this.props.state} />
             </div>
         }
     }
 
-     export class Origins extends React.Component<{ label: string | JSX.Element, origins: any } & State, { }> {
+    export class Origins extends React.Component<{ label: string | JSX.Element, origins: any } & State, { }> {
         private toggle() {
             this.props.origins.__isBusy = true;
             this.forceUpdate(() =>

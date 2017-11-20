@@ -469,7 +469,7 @@ namespace LiteMol.Example.Channels.State {
 
             if (!visible) {
                 plugin.command(Bootstrap.Command.Tree.RemoveNode, element.__id);
-            }else if(type==="Cavity"){
+            }else if(type==="Cavity"&&(!!element.Mesh.Boundary||!!element.Mesh.Inner)){
                 const boundarySurface = createTriangleSurface(element.Mesh.Boundary);
  
                 const group = t.add('mole-data', Transformer.Basic.CreateGroup, { }, { ref: element.__id, isHidden: true });
