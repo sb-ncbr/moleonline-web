@@ -8,8 +8,8 @@
     "declaration": false,
     "strictNullChecks": true,
     "noImplicitThis": true,
-    "lib": [ "es5", "es2015.collection", "dom", "es2015.promise"],
-    "target": "es5",
+    "lib": [ "es6", "es2015.collection", "dom", "es2015.promise"],
+    "target": "es6",
     "jsx": "react",
     "module": "system",
     "types": [],
@@ -67,6 +67,9 @@
 
     //Datagrid components
     "UI/Common/Datagrid/Components.tsx",
+
+    //From LiteMol
+    "UI/Common/Controls/FromLiteMol.tsx",
     
     //Common UI components
     "UI/Common/Tabs/BootstrapTabs.tsx",

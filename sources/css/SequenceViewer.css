@@ -1,5 +1,5 @@
 .sequence-viewer{
-    margin-top:-12px;
+    margin-top:-30px;
 }
 
 .sequence-viewer .seq-container{
@@ -24,6 +24,7 @@
     padding-bottom: 4px;
     line-height:initial;
     width: 125px;
+    box-sizing: content-box;
 }
 .sequence-viewer .seq-header{
     font-size: 8pt;

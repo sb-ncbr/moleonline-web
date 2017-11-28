@@ -39,7 +39,7 @@ namespace MoleOnlineWebUI.StaticData{
             "tooltip-Charge": "",
             "tooltip-specificChains":"Specific chains - Select chains to be included in computation. No value, all is included.",
             "tooltip-nonActiveResidues":"Ignored residues - List residues to be discarded prior to the calculation.",
-            "tooltip-queryFilter":"Query filter - Enter PatterQuery expression for discarding parts of the structure.",
+            "tooltip-queryFilter":"Query filter - Enter PatternQuery expression for discarding parts of the structure.",
             "tooltip-readAllModels":"Read all models - If not checked just a first model is considered for computation.",
             "tooltip-ignoreHydrogens":"Ignore hydrogens - All hydrogens will be discarded from the computation.",
             "tooltip-ignoreAllHetatm":"Ignore HETATMs - All HETATMs will be discarded from the computation.",

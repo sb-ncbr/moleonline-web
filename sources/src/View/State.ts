@@ -525,14 +525,14 @@ namespace LiteMol.Example.Channels.State {
         return showSurfaceVisuals(plugin, cavities, visible, 'Cavity', (cavity: any) => `${cavity.Type} ${cavity.Id}`, 0.33);
     }
 
-    export interface TunnelMetaInfo{
+    export interface TunnelMetaInfo extends DataInterface.Tunnel{
         __id:string,
         __isVisible:boolean,
         __color:Visualization.Color,
         __isBusy:boolean
     };
     
-    export function showChannelVisuals(plugin: Plugin.Controller, channels: DataInterface.Tunnel[]&TunnelMetaInfo[], visible: boolean, forceRepaint?:boolean): Promise<any> {
+    export function showChannelVisuals(plugin: Plugin.Controller, channels: TunnelMetaInfo[], visible: boolean, forceRepaint?:boolean): Promise<any> {
         let label = (channel: any) => `${channel.Type} ${CommonUtils.Tunnels.getName(channel)}`;
         /*let type = "Channel";*/
         let alpha = 1.0;

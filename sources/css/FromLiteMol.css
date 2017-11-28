@@ -1,0 +1,55 @@
+.litemol-controls-wrapper{
+    position:relative;
+    width:100%;
+    height:auto;
+}
+
+.litemol-controls-wrapper .hint{
+    margin-right: -1px;
+    color: #333;
+}
+
+.litemol-controls-wrapper .hint .glyphicon{
+    vertical-align: text-top;
+    margin-left: 3px;
+}
+
+.litemol-controls-wrapper .lm-plugin .lm-control-row > span{
+    width:180px;
+}
+.litemol-controls-wrapper .lm-plugin .lm-control-row > div{
+    left: 180px;
+}
+
+.litemol-controls-wrapper .lm-plugin .lm-control-row button{
+    text-align:right;
+    background-color: transparent;
+}
+
+.litemol-controls-wrapper .lm-plugin .starting-point-result-box{
+    margin-bottom:5px;
+}
+
+.litemol-controls-wrapper .lm-plugin .starting-point-result-box .lm-control-row button{
+    text-align: left;
+}
+
+.litemol-controls-wrapper .lm-plugin .starting-point-result-box .lm-control-row div.empty,
+.litemol-controls-wrapper .lm-plugin .starting-point-from-cofactor .lm-control-row div.info{
+    line-height: 30px;
+    padding-left:10px;
+    padding-right:10px;
+    overflow: hidden;
+}
+
+.litemol-controls-wrapper .lm-plugin .starting-point-result-box .lm-control-row:first-child > span{
+    width: 100%;
+    text-align: center;
+}
+
+.litemol-controls-wrapper .lm-plugin .starting-point-result-box .lm-control-row button span.glyphicon{
+    position: absolute;
+    right: 0;
+    margin-right: 10px;
+    margin-top: 8px;
+}

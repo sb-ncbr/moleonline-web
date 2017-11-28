@@ -8,6 +8,8 @@ namespace Controls.UI{
 
     declare function $(p:any,p1?:any): any;
 
+    let validationGroup = "SettingsFormValidatonGroup";
+
     interface State{
         app: App
     };
@@ -83,776 +85,676 @@ namespace Controls.UI{
     }
 
     type OnClearEventHandler = ()=>void;
+    type OnSubmitEventHandler = ()=>void;
+
     class Events{
-        private static handlers:OnClearEventHandler[] = [];
+        private static handlers_onClear:OnClearEventHandler[] = [];
         
         public static attachOnClearEventHandler(h:()=>void){
-            this.handlers.push(h);
+            this.handlers_onClear.push(h);
         }
 
         public static invokeOnClear(){
-            for(let h of this.handlers){
+            for(let h of this.handlers_onClear){
+                h();
+            }
+        }
+
+        //--
+        
+        private static handlers_onSubmit:OnSubmitEventHandler[] = [];
+        
+        public static attachOnSubmitEventHandler(h:()=>void){
+            this.handlers_onSubmit.push(h);
+        }
+
+        public static invokeOnSubmit(){
+            for(let h of this.handlers_onSubmit){
                 h();
             }
         }
     }
 
-    interface TextBoxProps{
-        label: string, 
-        id:string, 
-        placeholder?:string, 
-        classNames?:string[], 
-        hint?:JSX.Element,
-        tooltip?:string,
-        onValidate?:(value:string)=>{valid:boolean,message:string}
-        onValidateCustom?:(event:any)=>void
-    };
-    export class TextBox extends React.Component<TextBoxProps,{}>{
-    
-        private validators:((value:string)=>{valid:boolean,message:string})[]=[];
+    //--
 
-        private validate(e:EventTarget & HTMLInputElement){
-            let value = e.value;
-            if(this.validators===void 0){
-                return true;
-            }
+    class Cavity implements Service.MoleConfigCavity{
+        public IgnoreHETAtoms:boolean
+        public IgnoreHydrogens:boolean
+        public InteriorThreshold:number
+        public ProbeRadius:number
 
-            for(let v of this.validators){
-                let validationState = v(value);
-                if(!validationState.valid){
-                    e.setCustomValidity(validationState.message);
-                    window.setTimeout(()=>{
-                        $(e.form).find("input[type=submit].submit").click(); //Enforces validation message popup. Form will not be submited due to validation errors.
-                    });                    
-                    return false;
-                }
-                else{
-                    e.setCustomValidity("");
-                }
-            }
-
-            return true;
+        public constructor(){
+            this.IgnoreHETAtoms=false;
+            this.IgnoreHydrogens=false;
+            this.InteriorThreshold=1.1;
+            this.ProbeRadius=5;
         }
+    }
 
-        componentWillReceiveProps(nextProps:TextBoxProps){
-            if(nextProps.onValidate!==void 0)
-                this.validators.push(nextProps.onValidate);
+    class Input implements Service.MoleConfigInput{
+        public ReadAllModels:boolean
+        public SpecificChains:string
+
+        public constructor(){
+            this.ReadAllModels=false;
+            this.SpecificChains="";
         }
+    }
 
-        componentDidMount(){
-            if(this.props.onValidate!==void 0)
-                this.validators.push(this.props.onValidate);
+    class Tunnel implements Service.MoleConfigTunnel{
+        public WeightFunction: string;
+        public BottleneckRadius: number;
+        public BottleneckTolerance: number;
+        public MaxTunnelSimilarity:number;
+        public OriginRadius:number;
+        public SurfaceCoverRadius:number;
+        public UseCustomExitsOnly:boolean;
+
+        public constructor(){
+            this.WeightFunction = "VoronoiScale";
+            this.BottleneckRadius = 1.2;
+            this.BottleneckTolerance = 3;
+            this.MaxTunnelSimilarity = 0.7;
+            this.OriginRadius = 5;
+            this.SurfaceCoverRadius = 10;
+            this.UseCustomExitsOnly = false;
         }
+    }
 
-        prepareRenderParameters(){
-            let classNames = ["",""];
-            if(this.props.classNames!==void 0){
-                classNames = this.props.classNames;
-            }
-            let hint;
-            if(this.props.hint!==void 0){
-                hint = <div className="TextBox-hint">
-                    {this.props.hint}
-                </div>
-            }
+    class Origin implements Service.MoleConfigOrigin{
+        Points:Service.MoleConfigPoint[]|null;
+        Residues:Service.MoleConfigResidue[][]|null;
+        QueryExpression:string|null;
 
-            let tooltip;
-            if(this.props.tooltip!==void 0){
-                tooltip = this.props.tooltip;
-                CommonUtils.Tooltips.initWhenReady(`${this.props.id}_label`);
-            }
+        public constructor(){
+            this.Points = null;
+            this.Residues = null;
+            this.QueryExpression = null;
+        }
+    }
 
-            let onKeyDown=(e:any)=>{
-                if(e.keyCode===13){
-                    if(!this.validate(e.currentTarget)){
-                        e.preventDefault();
-                        return false;
-                    }
-                }
-            };
+    class MoleFormData{
+        private Input: Service.MoleConfigInput|null
+        private Cavity: Service.MoleConfigCavity|null
+        private Tunnel: Service.MoleConfigTunnel|null
+        private NonActiveResidues: Service.MoleConfigResidue[]|null
+        private QueryFilter: string|null
+        private Origin: Service.MoleConfigOrigin|null
+        private CustomExits: Service.MoleConfigOrigin|null
+        private PoresMerged: boolean
+        private PoresAuto: boolean
 
-            let onBlur=(e:any)=>{
-                this.validate(e.currentTarget);
-            };
-
-            if(this.props.onValidateCustom!==void 0){
-                let validateCustom = this.props.onValidateCustom;
-                onKeyDown = (e:any)=>{
-                    if(e.keyCode===13){
-                        if(!validateCustom(e)){
-                            e.preventDefault();
-                            return false;
-                        }
-                    }
+        public constructor(data?:Service.MoleConfig){
+            if(data!==void 0&&data.Cavity!==null&&data.Cavity!==void 0){
+                this.Cavity = {
+                    IgnoreHETAtoms:data.Cavity.IgnoreHETAtoms,
+                    InteriorThreshold: data.Cavity.InteriorThreshold,
+                    IgnoreHydrogens: data.Cavity.IgnoreHydrogens,
+                    ProbeRadius: data.Cavity.ProbeRadius
                 };
-
-                onBlur=(e:any)=>{
-                    validateCustom(e);
-                };
-            }
-
-            return {
-                classNames,
-                hint,
-                tooltip,
-                onKeyDown,
-                onBlur
-            }
-        }
-
-        render(){
-            let renderParameters = this.prepareRenderParameters();
-
-            return (
-                <div className="form-group">
-                    <label id={`${this.props.id}_label`} className={`control-label ${renderParameters.classNames[0]}`} htmlFor={this.props.id} data-toggle={(renderParameters.tooltip===void 0)?void 0:'tooltip'} data-original-title={renderParameters.tooltip}>{this.props.label}:</label>
-                    <div className={`${renderParameters.classNames[1]}`}>
-                        <input type="text" className="form-control" id={this.props.id} placeholder={this.props.placeholder} onBlur={renderParameters.onBlur} onKeyDown={renderParameters.onKeyDown} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,this.props.id)} />
-                    </div>
-                    {renderParameters.hint}
-                </div>
-            );
-        }
-    }
-
-    export class ResidueArraysBox extends TextBox{
-        componentDidMount(){
-            super.componentDidMount();
-            CommonUtils.Selection.SelectionHelper.attachOnClearSelectionHandler(()=>{
-                this.forceUpdate();
-            });
-
-            CommonUtils.Selection.SelectionHelper.attachOnResidueBulkSelectHandler(()=>{
-                this.forceUpdate();
-            });
-        }
-
-        getUseSelectionButtonOnClick(){
-            return (e:React.MouseEvent<HTMLDivElement>)=>{
-                if(e.currentTarget.attributes.getNamedItem("disabled")===null){
-                    let residues = CommonUtils.Selection.SelectionHelper.getSelectedResidues();
-                    if(residues.length>0){
-                        let currentValue = $(`#${this.props.id}`).val();
-                        let newResidues:{
-                            Chain: string;
-                            SequenceNumber: number;
-                        }[] = [];
-                        for(let r of residues){
-                            newResidues.push({
-                                SequenceNumber: r.info.authSeqNumber,
-                                Chain: r.info.chain.authAsymId
-                            });
-                        }
-                        let currentResidues = parseResiduesArray(currentValue);
-                        if(currentResidues.length===1&&currentResidues[0].length===0){
-                            currentResidues = [];
-                        }
-                        currentResidues.push(newResidues);
-                        $(`#${this.props.id}`).val(CommonUtils.Misc.flattenResiduesArray(currentResidues));
-                    }
-                }
-            }
-        }
-
-        render(){
-            let renderParameters = this.prepareRenderParameters();
-            let hasSelection = CommonUtils.Selection.SelectionHelper.getSelectedResidues().length>0;
-            let useSelectionEl = <div className="ResidueArraysBox-useSelection">
-                    <div className="btn btn-default btn-xs" onClick={this.getUseSelectionButtonOnClick()} disabled={!hasSelection}><span className="glyphicon glyphicon-plus useCurrentSelectionIcon"/>Use current selection</div>
-                </div>
-            return (
-                <div className="form-group">
-                    <label id={`${this.props.id}_label`} className={`control-label ${renderParameters.classNames[0]}`} htmlFor={this.props.id} data-toggle={(renderParameters.tooltip===void 0)?void 0:'tooltip'} data-original-title={renderParameters.tooltip}>{this.props.label}:</label>
-                    <div className={`${renderParameters.classNames[1]}`}>
-                        <input type="text" className="form-control" id={this.props.id} placeholder={this.props.placeholder} onBlur={renderParameters.onBlur} onKeyDown={renderParameters.onKeyDown} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,this.props.id)} />
-                    </div>
-                    {useSelectionEl}
-                    {renderParameters.hint}
-                </div>
-            );
-        }
-    }
-
-    export class ResiduesBox extends ResidueArraysBox{
-        getUseSelectionButtonOnClick(){
-            return (e:React.MouseEvent<HTMLDivElement>)=>{
-                if(e.currentTarget.attributes.getNamedItem("disabled")===null){
-                    let residues = CommonUtils.Selection.SelectionHelper.getSelectedResidues();
-                    if(residues.length>0){
-                        let currentValue = $(`#${this.props.id}`).val();
-                        let newResidues:{
-                            Chain: string;
-                            SequenceNumber: number;
-                        }[] = [];
-                        for(let r of residues){
-                            newResidues.push({
-                                SequenceNumber: r.info.authSeqNumber,
-                                Chain: r.info.chain.authAsymId
-                            });
-                        }
-                        let currentResidues = parseResidues(currentValue);
-                        currentResidues = currentResidues.concat(newResidues);
-                        $(`#${this.props.id}`).val(CommonUtils.Misc.flattenResidues(currentResidues));
-                    }
-                }
-            }
-        }
-    }
-
-    export class PointsBox extends TextBox{
-        componentDidMount(){
-            super.componentDidMount();
-            CommonUtils.Selection.SelectionHelper.attachOnClearSelectionHandler(()=>{
-                this.forceUpdate();
-            });
-
-            CommonUtils.Selection.SelectionHelper.attachOnPointBulkSelectHandler(()=>{
-                this.forceUpdate();
-            });
-        }
-
-        getUseSelectionButtonOnClick(){
-            return (e:React.MouseEvent<HTMLDivElement>)=>{
-                if(e.currentTarget.attributes.getNamedItem("disabled")===null){
-                    let points = CommonUtils.Selection.SelectionHelper.getSelectedPoints();
-                    if(points.length>0){
-                        let currentValue = $(`#${this.props.id}`).val();
-                        let newPoints:CommonUtils.Selection.StringPoint[] = [];
-                        for(let p of points){
-                            newPoints.push(p);
-                        }
-                        let currentPoints = parsePoints(currentValue);
-                        currentPoints = currentPoints.concat(newPoints);
-                        $(`#${this.props.id}`).val(flattenPoints(currentPoints));
-                    }
-                }
-            }
-        }
-
-        render(){
-            let renderParameters = this.prepareRenderParameters();
-            let hasSelection = CommonUtils.Selection.SelectionHelper.getSelectedPoints().length>0;
-            let useSelectionEl = <div className="PointsArraysBox-useSelection">
-                    <div className="btn btn-default btn-xs" onClick={this.getUseSelectionButtonOnClick()} disabled={!hasSelection}><span className="glyphicon glyphicon-plus useCurrentSelectionIcon"/>Use current selection</div>
-                </div>
-            return (
-                <div className="form-group">
-                    <label id={`${this.props.id}_label`} className={`control-label ${renderParameters.classNames[0]}`} htmlFor={this.props.id} data-toggle={(renderParameters.tooltip===void 0)?void 0:'tooltip'} data-original-title={renderParameters.tooltip}>{this.props.label}:</label>
-                    <div className={`${renderParameters.classNames[1]}`}>
-                        <input type="text" className="form-control" id={this.props.id} placeholder={this.props.placeholder} onBlur={renderParameters.onBlur} onKeyDown={renderParameters.onKeyDown} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,this.props.id)} />
-                    </div>
-                    {useSelectionEl}
-                    {renderParameters.hint}
-                </div>
-            );
-        }
-    }
-    
-    interface CheckBoxProps{
-        label: string, 
-        id:string, 
-        defaultChecked?:boolean, 
-        classNames?:string[],
-        tooltip?:string
-    }
-    interface CheckBoxState{};
-    export class CheckBox extends React.Component<CheckBoxProps,CheckBoxState>{
-
-        componentDidMount(){
-        }
-        
-        render(){
-            let classNames = [""];
-            if(this.props.classNames!==void 0){
-                classNames = this.props.classNames;
-            }
-            
-            let tooltip;
-            if(this.props.tooltip!==void 0){
-                tooltip = this.props.tooltip;
-                CommonUtils.Tooltips.initWhenReady(`${this.props.id}_label`);
-            }
-
-            let checked = (this.props.defaultChecked===void 0)?false:this.props.defaultChecked;
-
-            return (
-                <div className="form-group">                
-                    <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}:</label>
-                    <div className={`${classNames[1]}`}>
-                        <input type="checkbox" className="checkbox" id={this.props.id} defaultChecked={checked} />
-                    </div>
-                </div>
-            );
-        }
-    }
-
-    interface ComboBoxProps{
-        label: string, 
-        id:string, 
-        items:{label:string,value:string}[], 
-        defaultSelectedIndex?:number, 
-        classNames?:string[],
-        tooltip?:string
-    }
-    interface ComboBoxState{}
-    export class ComboBox extends React.Component<ComboBoxProps,ComboBoxState>{
-        state: ComboBoxState = {}
-
-        componentDidMount(){
-        }
-
-        render(){
-            let classNames = [""];
-            if(this.props.classNames!==void 0){
-                classNames = this.props.classNames;
-            }
-
-            let selectedIdx = 0;
-            if(this.props.defaultSelectedIndex!==void 0){
-                selectedIdx = this.props.defaultSelectedIndex;
-            }
-
-            let items = [];
-            let idx = 0;
-            for(let item of this.props.items){
-                items.push(
-                    <option value={item.value} selected={(idx===selectedIdx)}>{item.label}</option>
-                );
-                idx++;
-            }
-
-            let tooltip;
-            if(this.props.tooltip!==void 0){
-                tooltip = this.props.tooltip;
-                CommonUtils.Tooltips.initWhenReady(`${this.props.id}_label`);
-            }
-
-            return (
-                <div className="form-group">                
-                    <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}:</label>
-                    <div className={`${classNames[1]}`}>
-                        <select id={this.props.id} className="form-control">
-                            {items}
-                        </select>
-                    </div>
-                </div>
-            );
-        }
-    }
-
-    interface NumberBoxProps{
-        label: string, 
-        id:string, 
-        defaultValue?:number, 
-        min?:number, max?:number, 
-        step?:number, 
-        classNames?:string[],
-        tooltip?:string
-    }
-    export class NumberBox extends React.Component<NumberBoxProps,{}>{
-    
-        componentDidMount(){
-        }
-
-        render(){
-            let classNames = ["",""];
-            if(this.props.classNames!==void 0){
-                classNames = this.props.classNames;
-            }
-
-            let step = (this.props.step===void 0)?1:this.props.step;
-            let defaultValue = (this.props.defaultValue===void 0)?0:this.props.defaultValue;
-
-            let tooltip;
-            if(this.props.tooltip!==void 0){
-                tooltip = this.props.tooltip;
-                CommonUtils.Tooltips.initWhenReady(`${this.props.id}_label`);
-            }
-
-            return (
-                <div className="form-group">
-                    <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} htmlFor={this.props.id} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}:</label>
-                    <div className={`${classNames[1]}`}>
-                        <input type="number" min={this.props.min} max={this.props.max} className="form-control" id={this.props.id} step={step} defaultValue={defaultValue.toString()} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,this.props.id)} />
-                    </div>
-                </div>
-            );
-        }
-    }
-    interface XYZBoxProps{
-        label: string, 
-        id:string, 
-        defaultValue?:{x:number,y:number,z:number}, 
-        classNames?:string[], 
-        placeholder?:{x:number,y:number,z:number},
-        tooltip?:string
-    }
-    export class XYZBox extends React.Component<XYZBoxProps,{}>{
-
-        private validateIsNumber(value:string){
-            let valid = !isNaN(Number(value));
-            let message = (!valid)?"Value must be numeric!":"";
-            return {
-                valid,
-                message
-            }
-        }
-
-        private validators:((value:string)=>{valid:boolean,message:string})[]=[
-            this.validateIsNumber
-        ];
-
-        private validate(e:EventTarget & HTMLInputElement){
-            let value = e.value;
-            if(this.validators===void 0){
-                return true;
-            }
-
-            for(let v of this.validators){
-                let validationState = v(value);
-                if(!validationState.valid){
-                    e.setCustomValidity(validationState.message);
-                    window.setTimeout(()=>{
-                        $(e.form).find("input[type=submit].submit").click(); //Enforces validation message popup. Form will not be submited due to validation errors.
-                    });                    
-                    return false;
-                }
-                else{
-                    e.setCustomValidity("");
-                }
-            }
-
-            return true;
-        }
-        
-        render(){
-            let classNames = ["",""];
-            if(this.props.classNames!==void 0){
-                classNames = this.props.classNames;
-            }
-
-            let defaultValue = this.props.defaultValue;
-            let placeholder = this.props.placeholder;
-
-            let tooltip;
-            if(this.props.tooltip!==void 0){
-                tooltip = this.props.tooltip;
-                CommonUtils.Tooltips.initWhenReady(`${this.props.id}_label`);
-            }
-
-            let onKeyDown=(e:any)=>{
-                if(e.keyCode===13){
-                    if(!this.validate(e.currentTarget)){
-                        e.preventDefault();
-                        return false;
-                    }
-                }
-            };
-
-            let onBlur=(e:any)=>{
-                this.validate(e.currentTarget);
-            };
-
-            return (
-                <div className="form-group">
-                    <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} htmlFor={this.props.id} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}:</label>
-                    <div className={`${classNames[1]}`}>
-                        <input type="text" className="form-control form-3-input" id={`${this.props.id}_x`} defaultValue={(defaultValue===void 0)?void 0:defaultValue.x.toString()} placeholder={(placeholder===void 0)?void 0:placeholder.x.toString()} onKeyDown={onKeyDown} onBlur={onBlur} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,`${this.props.id}_x`)} />
-                        <input type="text" className="form-control form-3-input" id={`${this.props.id}_y`} defaultValue={(defaultValue===void 0)?void 0:defaultValue.y.toString()} placeholder={(placeholder===void 0)?void 0:placeholder.y.toString()} onKeyDown={onKeyDown} onBlur={onBlur} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,`${this.props.id}_y`)} />
-                        <input type="text" className="form-control form-3-input" id={`${this.props.id}_z`} defaultValue={(defaultValue===void 0)?void 0:defaultValue.z.toString()} placeholder={(placeholder===void 0)?void 0:placeholder.z.toString()} onKeyDown={onKeyDown} onBlur={onBlur} onFocus={(e)=>onFocusReplaceDefaultValidationPopup(e,`${this.props.id}_z`)} />
-                    </div>
-                </div>
-            );
-        }
-    }
-
-    interface CSAPickBoxProps{
-        label: string, 
-        id:string,
-        outputRefId:string, 
-        computationId:string, 
-        classNames?:string[],
-        tooltip?:string
-    }
-    interface CSAPickBoxState{isLoading:boolean, data:Service.CSAResidues|null};
-    export class CSAPickBox extends React.Component<CSAPickBoxProps,CSAPickBoxState>{
-        
-        state:CSAPickBoxState = {isLoading:true, data:null};
-
-        componentDidMount(){
-            this.getData();
-        }
-
-        render(){
-            let classNames = ["",""];
-            if(this.props.classNames!==void 0){
-                classNames = this.props.classNames;
-            }
-
-            let contents;
-
-            if(!this.state.isLoading&&this.state.data !== null){
-                contents = this.generateItems(this.state.data);
-            }
-
-            if(this.state.isLoading){
-                contents = <CSAPickBoxItem outputRefId="" isLoading={true} />
-            }
-            else if(!this.state.isLoading&&this.state.data === null){
-                contents = <CSAPickBoxItem outputRefId="" />
-            }
-            
-            let tooltip;
-            if(this.props.tooltip!==void 0){
-                tooltip = this.props.tooltip;
-                CommonUtils.Tooltips.initWhenReady(`${this.props.id}_label`);
-            }
-
-            return (
-                <div className="form-group">
-                    <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} htmlFor={this.props.id} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}:</label>
-                    <div className={`${classNames[1]} controls-option-like-list`}>
-                        {contents}
-                    </div>
-                </div>
-            );
-        }
-
-        getData(){
-            MoleOnlineWebUI.DataProxy.CSAResidues.DataProvider.get(this.props.computationId,(compid,residues)=>{
-                this.setState({isLoading:false,data:residues});
-            });
-        }
-
-        generateItems(activeResidues:Service.CSAResidues){
-            let items = [];
-            for(let item of activeResidues){
-                items.push(
-                    <CSAPickBoxItem outputRefId={this.props.outputRefId} value={item} />
-                );
-            }
-
-            return items;
-        }
-    }
-
-    export class CSAPickBoxItem extends React.Component<{outputRefId:string, value?:Service.MoleConfigResidue[], isLoading?:boolean},{}>{
-        render(){
-            if(this.props.isLoading===true){
-                return <div className="csa-pick-box-item no-data">Loading...</div>
-            }
-            if(this.props.value===void 0){
-                return <div className="csa-pick-box-item no-data">No active sites available...</div>
-            }
-
-            let value = this.props.value;
-
-            return <div className="csa-pick-box-item has-data" onClick={()=>{
-                let output = $(`#${this.props.outputRefId}`)[0] as HTMLInputElement;
-                let toAdd = '['+CommonUtils.Misc.flattenResidues(value)+']';
-                if(output.value.indexOf(toAdd)!==-1){
-                    return;
-                }
-                if(output.value.length>0){
-                    output.value += ", ";
-                }
-                output.value += toAdd;
-            }}>{CommonUtils.Misc.flattenResidues(value)}</div>
-        }
-    }
-
-    interface CofactorPickBoxProps{
-        label: string, 
-        id:string,
-        outputRefId:string, 
-        classNames?:string[],
-        tooltip?:string
-    }
-    interface CofactorPickBoxState{isLoading:boolean, data:Service.Cofactors|null};
-    export class CofactorPickBox extends React.Component<CofactorPickBoxProps,CofactorPickBoxState>{
-        
-        state:CofactorPickBoxState = {isLoading:true, data:null};
-
-        componentDidMount(){
-            if(MoleOnlineWebUI.DataProxy.Cofactors.DataProvider.hasData()){
-                this.getData();
             }
             else{
-                MoleOnlineWebUI.Bridge.Events.subscribeProteinDataLoaded(()=>{
-                    this.getData();
-                })
-            }
-        }
-
-        render(){
-            let classNames = ["",""];
-            if(this.props.classNames!==void 0){
-                classNames = this.props.classNames;
+                this.Cavity=null;
             }
 
-            let contents;
-            let cofactors = [];
-            if(!this.state.isLoading&&this.state.data !== null){
-                cofactors = this.generateItems(this.state.data);
-                if(cofactors.length>0){
-                    contents = cofactors;
-                }
-                else{
-                    contents = <CofactorPickBoxItem outputRefId="" />
+            if(data!==void 0&&data.CustomExits!==null&&data.CustomExits!==void 0){
+                this.CustomExits = {
+                    Points: (data.CustomExits.Points!==null)?data.CustomExits.Points.slice():null,
+                    QueryExpression: data.CustomExits.QueryExpression,
+                    Residues: (data.CustomExits.Residues!==null)?data.CustomExits.Residues.slice():null
                 }
             }
-
-            if(this.state.isLoading){
-                contents = <CofactorPickBoxItem outputRefId="" isLoading={true} />
-            }
-            else if(!this.state.isLoading&&this.state.data === null){
-                contents = <CofactorPickBoxItem outputRefId="" />
-            }
-            
-            let tooltip;
-            if(this.props.tooltip!==void 0){
-                tooltip = this.props.tooltip;
-                CommonUtils.Tooltips.initWhenReady(`${this.props.id}_label`);
+            else{
+                this.CustomExits = null;
             }
 
-            return (
-                <div className="form-group">
-                    <label id={`${this.props.id}_label`} className={`control-label ${classNames[0]}`} htmlFor={this.props.id} data-toggle={(tooltip===void 0)?void 0:'tooltip'} data-original-title={tooltip}>{this.props.label}:</label>
-                    <div className={`${classNames[1]} controls-option-like-list`}>
-                        {contents}
-                    </div>
-                </div>
-            );
-        }
-
-        getData(){
-            MoleOnlineWebUI.DataProxy.Cofactors.DataProvider.get((cofactors)=>{
-                this.setState({isLoading:false,data:cofactors});
-            });
-        }
-
-        generateItems(cofactors:Service.Cofactors){
-            let items:JSX.Element[] = [];
-            cofactors.forEach((value,key,map)=>{
-                if(!CommonUtils.Residues.currentContextHasResidue(key)){
-                    return;
+            if(data!==void 0&&data.Input!==null&&data.Input!==void 0){
+                this.Input = {
+                    ReadAllModels: data.Input.ReadAllModels,
+                    SpecificChains: data.Input.SpecificChains
                 }
-                items.push(
-                    <CofactorPickBoxItem outputRefId={this.props.outputRefId} label={key} value={value} />
-                );
-            });
-
-            return items;
-        }
-    }
-
-    export class CofactorPickBoxItem extends React.Component<{outputRefId:string, label?:Service.ResidueName, value?:Service.PatternQueryExpression, isLoading?:boolean},{}>{
-        render(){
-            if(this.props.isLoading===true){
-                return <div className="cofactor-pick-box-item no-data"><span className="glyphicon glyphicon-refresh"/> Loading...</div>
             }
-            if(this.props.value===void 0){
-                return <div className="cofactor-pick-box-item no-data"><span className="glyphicon glyphicon-info-sign"/> No cofactor starting points available...</div>
+            else{
+                this.Input = null;
             }
 
-            let value = this.props.value;
-
-            return <div className="cofactor-pick-box-item has-data" onClick={()=>{
-                let output = $(`#${this.props.outputRefId}`)[0] as HTMLInputElement;
-                
-                output.value = value;
-            }}>{this.props.label}</div>
-        }
-    }
-
-    export class LabelBox extends React.Component<{label: string, text:string, id:string, classNames?:string[]},{}>{
-        render(){
-            let classNames = ["",""];
-            if(this.props.classNames!==void 0){
-                classNames = this.props.classNames;
+            if(data!==void 0&&data.NonActiveResidues!==null&&data.NonActiveResidues!==void 0){
+                this.NonActiveResidues = data.NonActiveResidues.slice();
+            }
+            else{
+                this.NonActiveResidues = null;
             }
 
-            return (
-                <div className="form-group">
-                    <label className={`control-label ${classNames[0]}`} htmlFor={this.props.id}>{this.props.label}:</label>
-                    <div className={`${classNames[1]} control-text`}>
-                        <span>{this.props.text}</span>
-                    </div>
-                </div>
-            );
+            if(data!==void 0&&data.Origin!==null&&data.Origin!==void 0){
+                this.Origin = {
+                    Points: (data.Origin.Points!==null)?data.Origin.Points.slice():null,
+                    QueryExpression: data.Origin.QueryExpression,
+                    Residues: (data.Origin.Residues!==null)?data.Origin.Residues.slice():null
+                }
+            }
+            else{
+                this.Origin = null;
+            }
+
+            if(data!==void 0&&data.PoresAuto!==null&&data.PoresAuto!==void 0){
+                this.PoresAuto = data.PoresAuto;
+            }
+            else{
+                this.PoresAuto = false;
+            }
+
+            if(data!==void 0&&data.PoresMerged!==null&&data.PoresMerged!==void 0){
+                this.PoresMerged = data.PoresMerged;
+            }
+            else{
+                this.PoresMerged = false;
+            }
+
+            if(data!==void 0&&data.QueryFilter!==null&&data.QueryFilter!==void 0){
+                this.QueryFilter = data.QueryFilter;
+            }
+            else{
+                this.QueryFilter = null;
+            }
+
+            if(data!==void 0&&data.Tunnel!==null&&data.Tunnel!==void 0){
+                this.Tunnel = {
+                    BottleneckRadius: data.Tunnel.BottleneckRadius,
+                    BottleneckTolerance: data.Tunnel.BottleneckTolerance,
+                    MaxTunnelSimilarity: data.Tunnel.MaxTunnelSimilarity,
+                    OriginRadius: data.Tunnel.OriginRadius,
+                    SurfaceCoverRadius: data.Tunnel.SurfaceCoverRadius,
+                    UseCustomExitsOnly: data.Tunnel.UseCustomExitsOnly,
+                    WeightFunction: data.Tunnel.WeightFunction
+                }
+            }
+            else{
+                this.Tunnel = null;
+            }            
+        }
+
+        public setIgnoreHETATMs(value:boolean){
+            if(this.Cavity===null){
+                this.Cavity = new Cavity();
+            }
+            this.Cavity.IgnoreHETAtoms = value;
+        }
+
+        public getIgnoreHETATMs(){
+            if(this.Cavity===null){
+                return null;
+            }
+
+            return this.Cavity.IgnoreHETAtoms;
+        }
+
+        public setIgnoreHydrogens(value:boolean){
+            if(this.Cavity===null){
+                this.Cavity = new Cavity();
+            }
+            this.Cavity.IgnoreHydrogens = value;
+        }
+
+        public getIgnoreHydrogens(){
+            if(this.Cavity===null){
+                return null;
+            }
+
+            return this.Cavity.IgnoreHydrogens;
+        }
+
+        public setInteriorThreshold(value:number){
+            if(this.Cavity===null){
+                this.Cavity = new Cavity();
+            }
+            this.Cavity.InteriorThreshold = value;
+        }
+
+        public getInteriorThreshold(){
+            if(this.Cavity===null){
+                return null;
+            }
+            return this.Cavity.InteriorThreshold;
+        }
+
+        public setProbeRadius(value:number){
+            if(this.Cavity===null){
+                this.Cavity = new Cavity();
+            }
+            this.Cavity.ProbeRadius = value;
+        }
+
+        public getProbeRadius(){
+            if(this.Cavity===null){
+                return null;
+            }
+            return this.Cavity.ProbeRadius;
+        }
+
+        public setReadAllModels(value:boolean){
+            if(this.Input===null){
+                this.Input = new Input();
+            }
+            this.Input.ReadAllModels = value;
+        }
+
+        public getReadAllModels(){
+            if(this.Input===null){
+                return null;
+            }
+            return this.Input.ReadAllModels;
+        }
+
+        public setSpecificChains(value:string){
+            if(this.Input===null){
+                this.Input = new Input();
+            }
+            this.Input.SpecificChains = value;
+        }
+
+        public getSpecificChains(){
+            if(this.Input===null){
+                return null;
+            }
+            return this.Input.SpecificChains;
+        }
+
+        public setOriginRadius(value:number){
+            if(this.Tunnel===null){
+                this.Tunnel = new Tunnel();
+            }
+            this.Tunnel.OriginRadius = value;
+        }
+
+        public getOriginRadius(){
+            if(this.Tunnel===null){
+                return null;
+            }
+            return this.Tunnel.OriginRadius;
+        }
+
+        public setSurfaceCoverRadius(value:number){
+            if(this.Tunnel===null){
+                this.Tunnel = new Tunnel();
+            }
+            this.Tunnel.SurfaceCoverRadius = value;
+        }
+
+        public getSurfaceCoverRadius(){
+            if(this.Tunnel===null){
+                return null;
+            }
+            return this.Tunnel.SurfaceCoverRadius;
+        }
+
+        public setWeightFunction(value:string){
+            if(this.Tunnel===null){
+                this.Tunnel = new Tunnel();
+            }
+            this.Tunnel.WeightFunction = value;
+        }
+
+        public getWeightFunction(){
+            if(this.Tunnel===null){
+                return null;
+            }
+            return this.Tunnel.WeightFunction;
+        }
+
+        public setBottleneckRadius(value:number){
+            if(this.Tunnel===null){
+                this.Tunnel = new Tunnel();
+            }
+            this.Tunnel.BottleneckRadius = value;
+        }
+
+        public getBottleneckRadius(){
+            if(this.Tunnel===null){
+                return null;
+            }
+            return this.Tunnel.BottleneckRadius;
+        }
+
+        public setBottleneckTolerance(value:number){
+            if(this.Tunnel===null){
+                this.Tunnel = new Tunnel();
+            }
+            this.Tunnel.BottleneckTolerance = value;
+        }
+
+        public getBottleneckTollerance(){
+            if(this.Tunnel===null){
+                return null;
+            }
+            return this.Tunnel.BottleneckTolerance;
+        }
+
+        public setMaxTunnelSimilarity(value:number){
+            if(this.Tunnel===null){
+                this.Tunnel = new Tunnel();
+            }
+            this.Tunnel.MaxTunnelSimilarity = value;
+        }
+
+        public getMaxTunnelSimilarity(){
+            if(this.Tunnel===null){
+                return null;
+            }
+            return this.Tunnel.MaxTunnelSimilarity;
+        }
+
+        public setMergePores(value:boolean){
+            this.PoresMerged = value;
+        }
+
+        public getMergePores(){
+            return this.PoresMerged;
+        }
+
+        public setAutomaticPores(value:boolean){
+            this.PoresAuto = value;
+        }
+
+        public getAutomaticPores(){
+            return this.PoresAuto;
+        }
+
+        public setIgnoredResidues(value:Service.MoleConfigResidue[]){
+            this.NonActiveResidues = value.slice();
+        }
+
+        public getIgnoredResidues(){
+            return this.NonActiveResidues;
+        }
+
+        public setQueryFilter(value:string){
+            this.QueryFilter = value;
+        }
+
+        public getQueryFilter(){
+            return this.QueryFilter;
+        }
+
+        public setPoints(value:Common.Controls.FromLiteMol.StartingPoint[], isStart:boolean){
+            let points:Service.MoleConfigPoint[] = [];
+            let residues:Service.MoleConfigResidue[][] = [];
+            let query = null;
+
+            for(let p of value){
+                switch(p.type){
+                    case "Point":
+                        points.push(p.value);
+                        break;
+                    case "Residue":
+                        let rp = (p as Common.Controls.FromLiteMol.StartingPointResidue);
+                        rp.value
+                        residues.push(rp.value.map((val,idx,arr)=>{return {
+                            SequenceNumber: val.seqId,
+                            Chain: val.chain
+                        } as Service.MoleConfigResidue}));
+                        break;
+                    case "Query":
+                        query = p.value;
+                }
+            }
+
+            if(isStart){
+                if(this.Origin===null){
+                    this.Origin = new Origin();
+                }
+
+                this.Origin.Points = (points.length>0)?points:null;
+                this.Origin.Residues = (residues.length>0)?residues:null;
+                this.Origin.QueryExpression = query;            
+            }
+            else{
+                if(this.CustomExits===null){
+                    this.CustomExits = new Origin();
+                }
+    
+                this.CustomExits.Points = (points.length>0)?points:null;
+                this.CustomExits.Residues = (residues.length>0)?residues:null;
+                this.CustomExits.QueryExpression = query;           
+            }
+        }
+
+        public setStartingPoints(value:Common.Controls.FromLiteMol.StartingPoint[]){
+            this.setPoints(value,true);
+        }
+
+        public setEndPoints(value:Common.Controls.FromLiteMol.StartingPoint[]){
+            this.setPoints(value,false);
+        }
+
+        //--
+
+        public getPackage():Service.MoleConfig{
+            return {
+                Cavity: (this.Cavity===null)?void 0:this.Cavity,
+                CustomExits: this.CustomExits,
+                Input: (this.Input===null)?void 0:this.Input,
+                NonActiveResidues: this.NonActiveResidues,
+                Origin: this.Origin,
+                PoresAuto: this.PoresAuto,
+                PoresMerged: this.PoresMerged,
+                QueryFilter: this.QueryFilter,
+                Tunnel: (this.Tunnel===null)?void 0:this.Tunnel
+            }
         }
     }
 
-    class OptionlParameters extends React.Component<{id:string,items:JSX.Element[]},{}>{
-        render(){
-            return <div className="panel-group optional-parameters">
-            <div className="panel">
-                <div className="panel-heading">
-                    <a data-toggle="collapse" href={`#${this.props.id}`} onClick={(e)=>{                                                    
-                                    if(e.currentTarget.attributes.getNamedItem("aria-expanded").value==="true"){
-                                        $('.panel-title .glyphicon',e.currentTarget).removeClass("glyphicon-menu-down");
-                                        $('.panel-title .glyphicon',e.currentTarget).addClass("glyphicon-menu-up");
-                                    }
-                                    else{
-                                        $('.panel-title .glyphicon',e.currentTarget).removeClass("glyphicon-menu-up");
-                                        $('.panel-title .glyphicon',e.currentTarget).addClass("glyphicon-menu-down");
-                                    }
-                                }}>
-                        <span className="col-md-12 panel-title">
-                            More Options <span className={`glyphicon glyphicon-menu-down`} />
-                        </span>
-                    </a>
-                </div>
-                <div id={this.props.id} className="panel-collapse collapse">
-                    <div className="panel-body">
-                        {this.props.items}
-                    </div>
-                </div>
-            </div>
-        </div>
+    class PoresFormData{
+        private InMembrane: boolean;
+        private IsBetaBarel: boolean;
+        private Chains: string|null
+
+        public constructor(data?:Service.PoresConfig){
+            if(data!==void 0&&data.InMembrane!==null&&data.InMembrane!==void 0){
+                this.InMembrane = data.InMembrane;
+            }
+            else{
+                this.InMembrane=false;
+            }
+
+            if(data!==void 0&&data.IsBetaBarel!==null&&data.IsBetaBarel!==void 0){
+                this.IsBetaBarel = data.IsBetaBarel;
+            }
+            else{
+                this.IsBetaBarel=false;
+            }
+
+            if(data!==void 0&&data.Chains!==null&&data.Chains!==void 0){
+                this.Chains = data.Chains;
+            }
+            else{
+                this.Chains=null;
+            }
+        }
+
+        public setBetaStructure(value:boolean){
+            this.IsBetaBarel = value;
+        }
+
+        public getBetaStructure(){
+            return this.IsBetaBarel;
+        }
+
+        public setMembraneRegion(value:boolean){
+            this.InMembrane = value;
+        }
+
+        public getMembraneRegion(){
+            return this.InMembrane;
+        }
+
+        public setSpecificChains(value:string){
+            this.Chains = value;
+        }
+
+        public getSpecificChains(){
+            return this.Chains;
+        }
+
+        //--
+
+        public getPackage():Service.PoresConfig{
+            return {
+                Chains: this.Chains,
+                InMembrane: this.InMembrane,
+                IsBetaBarel: this.IsBetaBarel
+            }
         }
     }
 
-    class OptionalCategory extends React.Component<{id:string,title:string,items:JSX.Element[]},{}>{
-        render(){
-            return <div className="panel-group optional-category">
-            <div className="panel">
-                <div className="panel-heading">
-                    <a data-toggle="collapse" href={`#${this.props.id}`} onClick={(e)=>{                                                    
-                                    if(e.currentTarget.attributes.getNamedItem("aria-expanded").value==="true"){
-                                        $('.panel-title .glyphicon',e.currentTarget).removeClass("glyphicon-menu-down");
-                                        $('.panel-title .glyphicon',e.currentTarget).addClass("glyphicon-menu-up");
-                                    }
-                                    else{
-                                        $('.panel-title .glyphicon',e.currentTarget).removeClass("glyphicon-menu-up");
-                                        $('.panel-title .glyphicon',e.currentTarget).addClass("glyphicon-menu-down");
-                                    }
-                                }}>
-                            <h4 className="panel-title">{this.props.title} <span className={`glyphicon glyphicon-menu-down`} /></h4>
-                        </a>
-                </div>
-                <div id={`${this.props.id}`} className="panel-collapse collapse">
-                    <div className="panel-body">
-                        {this.props.items}
-                    </div>
-                </div>
-            </div>
-        </div>
-        }
+    //--
+
+    interface ValidationResult{
+        valid:boolean,
+        message?:string
+    }
+
+    interface SettingsProps{
+        initialData:Service.CompInfo, 
+        submitId:number,
+        parent: ControlTabs
     }
 
     interface SettingsState{
-        data:Service.CompInfo|null,
-        mode:"Mole"|"Pores"
+        pdbid:string,
+        computationId:string,
+        moleFormData:MoleFormData,
+        poresFormData:PoresFormData,
+        mode:"Mole"|"Pores",
     };
-    export class Settings extends React.Component<{initialData:Service.CompInfo, submitId:number},SettingsState>{
-        
-        state:SettingsState = {data:null,mode:"Mole"}
-        
+    export class Settings extends React.Component<SettingsProps,SettingsState>{
+
+        state:SettingsState = {
+            moleFormData:this.getMoleDefaultValues(),
+            poresFormData:this.getPoresDefaultValues(),
+            pdbid:this.props.initialData.PdbId,
+            computationId:this.props.initialData.ComputationId,
+            mode:"Mole"
+        }
+
+        getMoleDefaultValues(){
+            let data = new MoleFormData();
+
+            data.setIgnoreHETATMs(true);
+            data.setIgnoreHydrogens(false);
+            //data.setQueryFilter("");
+            data.setReadAllModels(false);
+            //data.setIgnoredResidues([]);
+            //data.setSpecificChains("");
+            data.setProbeRadius(5);
+            data.setInteriorThreshold(1.1);
+            data.setOriginRadius(5);
+            data.setSurfaceCoverRadius(10);
+            data.setWeightFunction("VoronoiScale");
+            data.setMergePores(false);
+            data.setAutomaticPores(false);
+            data.setBottleneckRadius(1.2);
+            data.setBottleneckTolerance(3);
+            data.setMaxTunnelSimilarity(0.7);
+
+            return data;
+        }
+
+        getPoresDefaultValues(){
+            let data = new PoresFormData();
+
+            data.setBetaStructure(false);
+            data.setMembraneRegion(false);
+            //data.setSpecificChains("");
+
+            return data;
+        }
+
         componentDidMount(){  
-            let state = this.state;
-            state.data = this.props.initialData;
-            this.setState(state); 
+            Events.attachOnSubmitEventHandler(()=>{
+                let promise;
+                
+                if(this.state.mode==="Mole"){
+                    promise = Service.ApiService.submitMoleJob(this.state.computationId, this.state.moleFormData.getPackage())
+                }
+                else{
+                    promise = Service.ApiService.submitPoresJob(this.state.computationId, this.state.poresFormData.getPackage())
+                }
+
+                promise
+                .then((result:any)=>{                    
+                    if(result.Status==="Error"){
+                        let state = this.props.parent.state;
+                        state.canSubmit=true;
+                        this.props.parent.setState(state);
+
+                        MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                            messageType: "Danger",
+                            message: result.ErrorMsg
+                        })
+                    }
+                    else{
+                        CommonUtils.Router.fakeRedirect(result.ComputationId, String(result.SubmitId));
+                        LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
+
+                        Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
+                            MoleOnlineWebUI.DataProxy.JobStatus.Watcher.registerOnChangeHandler(result.ComputationId,result.SubmitId,(status)=>{
+                                if(checkCanSubmit(status.Status)){
+                                    MoleOnlineWebUI.Bridge.Events.invokeToggleLoadingScreen({
+                                        message:"",
+                                        visible:false
+                                    });
+
+                                    let state = this.props.parent.state;
+                                    state.canSubmit=true;
+                                    this.props.parent.setState(state);
+                                }
+                            },(err)=>{
+                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                    messageType: "Danger",
+                                    message: "Job status cannot be tracked. Please try to refresh the page."
+                                })    
+                            })
+
+                            let state = this.props.parent.state;
+                            state.data=info;
+                            this.props.parent.setState(state);
+                            
+                            MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
+                            MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
+                            Events.invokeOnClear();
+
+                        }).bind(this), true);
+                        /*MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                            messageType: "Success",
+                            message: "Job was successfully submited."
+                        })*/
+                        MoleOnlineWebUI.Bridge.Events.invokeToggleLoadingScreen({
+                            message:"Submited job in progress...",
+                            visible:true
+                        });
+                    }
+                })
+                .catch((err:any)=>{
+                    let state = this.props.parent.state;
+                    state.canSubmit=true;
+                    this.props.parent.setState(state);
+
+                    if(Config.CommonOptions.DEBUG_MODE)
+                        console.log(err);
+                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                        messageType: "Danger",
+                        message: "Job submit was not completed succesfully! Please try again later."
+                    })
+                })
+            })
+
+            Events.attachOnClearEventHandler(()=>{
+                Common.Controls.FromLiteMol.ValidationState.reset(validationGroup);
+                let s = this.state;
+                s.moleFormData = this.getMoleDefaultValues();
+                s.poresFormData = this.getPoresDefaultValues();
+                this.setState(s);
+            })
         }
 
         render(){
@@ -877,211 +779,403 @@ namespace Controls.UI{
                     {form}
                 </div>
             );
-            //<CheckBox label="Automatic starting points" defaultChecked={false} id="automaticStartingPoints" classNames={chckColClasses} />
-            //<CheckBox label="Automatic endpoints" defaultChecked={false} id="automaticEndPoints" classNames={chckColClasses} />
-            //<CheckBox label="Use custom exits only" defaultChecked={false} id="useCustomExitsOnly" classNames={chckColClasses} />
-            //<LabelBox label="Active sites from CSA" text="TODO:..." id="activeSites" classNames={doubleColClasses} />
         }
 
         getPatternQueryHint(){
-            return <span><span className="glyphicon glyphicon-info-sign"/>See <a href="https://webchem.ncbr.muni.cz/Wiki/PatternQuery:UserManual" target="_blank">PatternQuery manual</a> for help.</span>
+            return {link:"https://webchem.ncbr.muni.cz/Wiki/PatternQuery:UserManual",title:"See PatternQuery manual for help."}
         } 
             
         validateChainsArray(value:string){
-            if(value.length===0){
-                return {valid:true, message:""};
-            }
+            return new Promise<ValidationResult>((res,rej)=>{
+                if(value.length===0){
+                    res({valid:true, message:""});
+                }
 
-            let reg = new RegExp(/^[A-Z][\-][\d]*$|^[A-Z]{1}$/);
-            value = value.replace(/\s*,\s*/g,",");
-            value = value.replace(/\s*$/g,'');
-            value = value.replace(/^\s*/g,'');
-            let chains = value.split(",");
-            let valid = true;
-            for(let chain of chains){                    
-                valid = valid && reg.test(chain);
-            }
+                let reg = new RegExp(/^[A-Z][\-][\d]*$|^[A-Z]{1}$/);
+                value = value.replace(/\s*,\s*/g,",");
+                value = value.replace(/\s*$/g,'');
+                value = value.replace(/^\s*/g,'');
+                let chains = value.split(",");
+                let valid = true;
+                for(let chain of chains){                    
+                    valid = valid && reg.test(chain);
+                }
 
-            return {
-                valid,
-                message:(!valid)?"List of chains is not in readable format!":""
-            };
+                res({
+                    valid,
+                    message:(!valid)?"List of chains is not in readable format!":""
+                });
+            });
         }
 
         validateResidueSimpleArray(value:string){
-            if(value.length===0){
-                return {valid:true, message:""};
-            }
-            
-            let expectedCount = value.split(',').length;                
-            let valid = parseResidues(value).length===expectedCount
-            
-            return {
-                valid,
-                message:(!valid)?"List of chains is not in readable format!":""};
+            return new Promise<ValidationResult>((res,rej)=>{
+                if(value.length===0){
+                    res({valid:true, message:""});
+                }
+                
+                let expectedCount = value.split(',').length;                
+                let valid = parseResidues(value).length===expectedCount
+                
+                res({
+                    valid,
+                    message:(!valid)?"List of chains is not in readable format!":""
+                });
+            });
         }
 
         validatePoints(value:string){
-            if(value.length===0){
-                return {valid:true, message:""};
-            }
-            let v = removeMultipleWSp(value);
-            let expectedCount = v.split('],[').length;                
-            let valid = parsePoints(value).length===expectedCount
-            
-            return {
-                valid,
-                message:(!valid)?"List of points is not in readable format!":""};
+            return new Promise<ValidationResult>((res,rej)=>{
+                if(value.length===0){
+                    res({valid:true, message:""});
+                }
+                let v = removeMultipleWSp(value);
+                let expectedCount = v.split('],[').length;                
+                let valid = parsePoints(value).length===expectedCount
+                
+                res({
+                    valid,
+                    message:(!valid)?"List of points is not in readable format!":""
+                });
+            });
         }
 
         validateResidueDoubleArray(value:string){
-            if(value.length===0){
-                return {valid:true, message:""};
-            }
+            return new Promise<ValidationResult>((res,rej)=>{
+                if(value.length===0){
+                    res({valid:true, message:""});
+                }
 
-            value = value.replace(/\]\s*,\s*\[/g,'],[');
-            
-            let arrays = value.split("],[");
+                value = value.replace(/\]\s*,\s*\[/g,'],[');
+                
+                let arrays = value.split("],[");
 
-            let expectedCount = value.split(',').length;                
-            let valid = true;
-            let residuesArray = parseResiduesArray(value);
+                let expectedCount = value.split(',').length;                
+                let valid = true;
+                let residuesArray = parseResiduesArray(value);
 
-            if(residuesArray.length!==arrays.length){
-                valid = false;
-            }
-            else{
-                for(let i=0;i<residuesArray.length;i++){
-                    valid = valid && arrays[i].split(",").length===residuesArray[i].length;
-                    if(!valid){
-                        break;
+                if(residuesArray.length!==arrays.length){
+                    valid = false;
+                }
+                else{
+                    for(let i=0;i<residuesArray.length;i++){
+                        valid = valid && arrays[i].split(",").length===residuesArray[i].length;
+                        if(!valid){
+                            break;
+                        }
                     }
                 }
-            }
-            
-            return {
-                valid,
-                message:(!valid)?"Invalid syntax! Should be [A 69, ...], [A 137, ...], ...":""};
+                
+                res({
+                    valid,
+                    message:(!valid)?"Invalid syntax! Should be [A 69, ...], [A 137, ...], ...":""
+                });
+            });
         }
 
-        validatePatternQuery(e:any){
-            let el = e.currentTarget as HTMLInputElement;
-            if(el.value.length===0){
-                $(el.form).find("input[type=submit]").attr("disabled",false);
-                return;
-            }
-            
-            $(el.form).find("input[type=submit]").attr("disabled",true);
-            
-            MoleOnlineWebUI.Service.PatternQueryAPI.ApiService.getValidationResult(el.value)
-                .then((result)=>{
-                    if(result.isOk){
-                        $(el.form).find("input[type=submit]").attr("disabled",false);
-                    }
-                    else{
-                        createCustomValidationPopup(el,(result.error===void 0)?"":result.error);
-                    }
-                })
-                .catch((err)=>{
-                    console.log(err);
-                    createCustomValidationPopup(el,`Error occured during query validation.`);
+        validatePatternQuery(v:string){           
+            return new Promise<{valid:boolean,message?:string}>((res,rej)=>{
+                if(v.length===0){
+                    res({valid:true});
+                }
+                MoleOnlineWebUI.Service.PatternQueryAPI.ApiService.getValidationResult(v)
+                    .then((result)=>{
+                        if(result.isOk){
+                            res({valid:true});
+                        }
+                        else{
+                            res({valid:false,message:(result.error===void 0)?"":result.error});
+                        }
+                    })
+                    .catch((err)=>{
+                        rej(err);
+                    });
                 });
         }
 
         getMoleForm(){
-            let css:string[] = ["col-md-5 controls-panel-label-tooltip","col-md-7"];
-            let chckColClasses:string[] = [];//["col-md-offset-4 col-md-8"];
-            chckColClasses = css;
-
-            if(this.state.data===null){
+            if(this.state.moleFormData===null){
                 return <div/>
             }
 
-            let pdbid = this.state.data.PdbId;
-
-            /*
-            if(this.state.data.Submissions.length>0){
-                let submissionData = this.state.data.Submissions[this.props.submitId];
-                if(submissionData!==void 0){
-                    let moleConfig = submissionData.MoleConfig;
-                    if(moleConfig!==null){
-                        //moleConfig.
-                    }
-                }
-            }*/
-
-            /*<LabelBox label="Structure" text={this.state.data.PdbId} id="pdbid" classNames={css} />*/
+            let pdbid = this.state.pdbid;
+            let data = this.state.moleFormData;
             return <div className="settings-form basic-settings">
                         <h3>Mole</h3>
 
-                        <h4>Active Atoms/Residues</h4>
-                        <CheckBox label="Ignore HETATMs" defaultChecked={true} id="ignoreAllHetatm" tooltip={TooltipText.get("ignoreAllHetatm")} classNames={chckColClasses} />
-                        <OptionlParameters id="optionalResidueSettings" items={[
-                            <CheckBox label="Ignore Hydrogens" defaultChecked={false} id="ignoreHydrogens" tooltip={TooltipText.get("ignoreHydrogens")} classNames={chckColClasses} />,
-                            <TextBox label="Query Filter" id="queryFilter" tooltip={TooltipText.get("queryFilter")} classNames={css} placeholder="Residues('GOL')" hint={this.getPatternQueryHint()} onValidateCustom={this.validatePatternQuery} />,
-                            <CheckBox label="Read All Models" defaultChecked={false} id="readAllModels" tooltip={TooltipText.get("readAllModels")} classNames={chckColClasses} />,
-                            <ResiduesBox label="Ignored Residues" id="nonActiveResidues" tooltip={TooltipText.get("nonActiveResidues")} classNames={css} placeholder="A 69, A 386, ..." onValidate={this.validateResidueSimpleArray} />,
-                            <TextBox label="Specific Chains" id="specificChains" tooltip={TooltipText.get("specificChains")} classNames={css} placeholder="A, B, ..." onValidate={this.validateChainsArray}/>
-                        ]} />
-
-                        <OptionalCategory id="optionalCavitySettings" title="Cavity Parameters" items={[
-                            <NumberBox label="Probe Radius" id="probeRadius" tooltip={TooltipText.get("probeRadius")} classNames={css} min={1.4} max={20} defaultValue={5} step={0.01} />,
-                            <NumberBox label="Interior Treshold" id="interiorTreshold" tooltip={TooltipText.get("interiorTreshold")} classNames={css} min={0.8} max={2.4} defaultValue={1.1} step={0.01} />                      
-                        ]} />
-
-                        <OptionalCategory id="optionalChannelsSettings" title="Channel Parameters" items={[
-                            <NumberBox label="Origin Radius" id="originRadius" tooltip={TooltipText.get("originRadius")} classNames={css} min={0.1} max={10} defaultValue={5} step={0.05}/>,
-                            <NumberBox label="Surface Cover Radius" id="surfaceCoverRadius" tooltip={TooltipText.get("surfaceCoverRadius")} classNames={css} min={5} max={20} defaultValue={10} step={0.5} />,
-                            <ComboBox label="Weight Function" id="tunnelWeightFunction" tooltip={TooltipText.get("tunnelWeightFunction")} items={MoleOnlineWebUI.StaticData.WeightFunctions.get()} defaultSelectedIndex={0} classNames={css} />,
-                        
-                            <OptionlParameters id="OptionalChannelParameters" items={[
-                                <NumberBox label="Bottleneck Radius" id="bottleneckRadius" tooltip={TooltipText.get("bottleneckRadius")} classNames={css} min={0.8} max={5} defaultValue={1.2} step={0.01} />,
-                                <NumberBox label="Bottleneck Tolerance" id="bottleneckTolerance" tooltip={TooltipText.get("bottleneckTolerance")} classNames={css} min={0} max={5} defaultValue={3.0} step={0.1} />,
-                                <NumberBox label="Max Tunnel Similarity" id="maxTunnelSimilarity" tooltip={TooltipText.get("maxTunnelSimilarity")} classNames={css} min={0} max={1} defaultValue={0.7} step={0.05} />
+                        <Common.Controls.FromLiteMol.LMControlWrapper controls={[
+                            <Common.Controls.FromLiteMol.ControlGroup label="Active Atoms/Residues" tooltip="" controls={[
+                                <Common.Controls.FromLiteMol.CheckBox label="Ignore HETATMs" defaultValue={valueOrDefault(data.getIgnoreHETATMs(),true)} tooltip={TooltipText.get("ignoreAllHetatm")} onChange={(v)=>{
+                                    let s = this.state;
+                                    if(s.moleFormData!==null){
+                                        s.moleFormData.setIgnoreHETATMs(v);
+                                    }
+                                }} onMount={(control)=>{
+                                    (()=>{
+                                        Events.attachOnClearEventHandler(()=>{
+                                            control.reset();
+                                        });
+                                    }).bind(control)();
+                                }} />,                                
+                                <Common.Controls.FromLiteMol.ControlGroup label="Advanced options" tooltip="" controls={[
+                                    <Common.Controls.FromLiteMol.CheckBox label="Ignore Hydrogens" defaultValue={valueOrDefault(data.getIgnoreHydrogens(),false)} tooltip={TooltipText.get("ignoreHydrogens")} onChange={(v)=>{
+                                        let s = this.state;
+                                        if(s.moleFormData!==null){
+                                            s.moleFormData.setIgnoreHydrogens(v);
+                                        }
+                                    }} onMount={(control)=>{
+                                        (()=>{
+                                            Events.attachOnClearEventHandler(()=>{
+                                                control.reset();
+                                            });
+                                        }).bind(control)();
+                                    }} />,
+                                    <Common.Controls.FromLiteMol.TextBoxWithHelp label="Query Filter" tooltip={TooltipText.get("queryFilter")} placeholder="Residues('GOL')" hint={this.getPatternQueryHint()} defaultValue={valueOrDefault(data.getQueryFilter(),"")} onChange={(v)=>{
+                                        let s = this.state;
+                                        if(s.moleFormData!==null){
+                                            s.moleFormData.setQueryFilter(v);
+                                        }
+                                    }} onMount={(control)=>{
+                                        (()=>{
+                                            Events.attachOnClearEventHandler(()=>{                                                
+                                                control.reset();
+                                            });
+                                        }).bind(control)();
+                                    }}  validate={this.validatePatternQuery} validationGroup={validationGroup} />,
+                                    <Common.Controls.FromLiteMol.CheckBox label="Read All Models" defaultValue={valueOrDefault(data.getReadAllModels(),false)} tooltip={TooltipText.get("readAllModels")} onChange={(v)=>{
+                                        let s = this.state;
+                                        if(s.moleFormData!==null){
+                                            s.moleFormData.setReadAllModels(v);
+                                        }
+                                    }} onMount={(control)=>{
+                                        (()=>{
+                                            Events.attachOnClearEventHandler(()=>{
+                                                control.reset();
+                                            });
+                                        }).bind(control)();
+                                    }}  />,
+                                    <Common.Controls.FromLiteMol.TextBox label="Ignored Residues" tooltip={TooltipText.get("nonActiveResidues")} placeholder="A 69, A 386, ..." defaultValue={CommonUtils.Misc.flattenResidues(valueOrDefault(data.getIgnoredResidues(),""))} onChange={(v)=>{    
+                                        let s = this.state;
+                                        if(s.moleFormData!==null){
+                                            s.moleFormData.setIgnoredResidues(parseResidues(v));
+                                        }
+                                    }} onMount={(control)=>{
+                                        (()=>{
+                                            Events.attachOnClearEventHandler(()=>{
+                                                control.reset();
+                                            });
+                                        }).bind(control)();
+                                    }}  validate={this.validateResidueSimpleArray} validationGroup={validationGroup} />,
+                                    <Common.Controls.FromLiteMol.TextBox label="Specific Chains" tooltip={TooltipText.get("specificChains")} placeholder="A, B, ..." defaultValue={valueOrDefault(data.getSpecificChains(),"")} onChange={(v)=>{
+                                        let s = this.state;
+                                        if(s.moleFormData!==null){
+                                            s.moleFormData.setSpecificChains(v);
+                                        }
+                                    }} onMount={(control)=>{
+                                        (()=>{
+                                            Events.attachOnClearEventHandler(()=>{
+                                                control.reset();
+                                            });
+                                        }).bind(control)();
+                                    }}  validate={this.validateChainsArray} validationGroup={validationGroup} />
+                                ]} />,
                             ]} />,
-                            
-                            <CheckBox label="Merge Pores" defaultChecked={false} id="mergePores" tooltip={TooltipText.get("mergePores")} classNames={chckColClasses} />,
-                            <CheckBox label="Automatic Pores" defaultChecked={false} id="automaticPores" tooltip={TooltipText.get("automaticPores")} classNames={chckColClasses} />
-
+                            <Common.Controls.FromLiteMol.ControlGroup label="Cavity Parameters" tooltip="" controls={[
+                                <Common.Controls.FromLiteMol.NumberBox label="Probe Radius" tooltip={TooltipText.get("probeRadius")} min={1.4} max={20} defaultValue={valueOrDefault(data.getProbeRadius(),5)} step={0.01} onChange={(v)=>{
+                                    let s = this.state;
+                                    if(s.moleFormData!==null){
+                                        s.moleFormData.setProbeRadius(Number(v).valueOf());
+                                    }
+                                }} onMount={(control)=>{
+                                    (()=>{
+                                        Events.attachOnClearEventHandler(()=>{
+                                            control.reset();
+                                        });
+                                    }).bind(control)();
+                                }}  />,
+                                <Common.Controls.FromLiteMol.NumberBox label="Interior Treshold" tooltip={TooltipText.get("interiorTreshold")} min={0.8} max={2.4} defaultValue={valueOrDefault(data.getInteriorThreshold(),1.1)} step={0.01} onChange={(v)=>{
+                                    let s = this.state;
+                                    if(s.moleFormData!==null){
+                                        s.moleFormData.setInteriorThreshold(Number(v).valueOf());
+                                    }
+                                }} onMount={(control)=>{
+                                    (()=>{
+                                        Events.attachOnClearEventHandler(()=>{
+                                            control.reset();
+                                        });
+                                    }).bind(control)();
+                                }}  />
+                            ]} />,
+                            <Common.Controls.FromLiteMol.ControlGroup label="Channel Parameters" tooltip="" controls={[
+                                <Common.Controls.FromLiteMol.NumberBox label="Origin Radius" tooltip={TooltipText.get("originRadius")} min={0.1} max={10} defaultValue={valueOrDefault(data.getOriginRadius(),5)} step={0.05} onChange={(v)=>{
+                                    let s = this.state;
+                                    if(s.moleFormData!==null){
+                                        s.moleFormData.setOriginRadius(Number(v).valueOf());
+                                    }
+                                }} onMount={(control)=>{
+                                    (()=>{
+                                        Events.attachOnClearEventHandler(()=>{
+                                            control.reset();
+                                        });
+                                    }).bind(control)();
+                                }} />,
+                                <Common.Controls.FromLiteMol.NumberBox label="Surface Cover Radius" tooltip={TooltipText.get("surfaceCoverRadius")} min={5} max={20} defaultValue={valueOrDefault(data.getSurfaceCoverRadius(),10)} step={0.5} onChange={(v)=>{
+                                    let s = this.state;
+                                    if(s.moleFormData!==null){
+                                        s.moleFormData.setSurfaceCoverRadius(Number(v).valueOf());
+                                    }
+                                }} onMount={(control)=>{
+                                    (()=>{
+                                        Events.attachOnClearEventHandler(()=>{
+                                            control.reset();
+                                        });
+                                    }).bind(control)();
+                                }}  />,
+                                <Common.Controls.FromLiteMol.ComboBox label="Weight Function" tooltip={TooltipText.get("tunnelWeightFunction")} items={MoleOnlineWebUI.StaticData.WeightFunctions.get().map((val,idx,arr)=>{return new Common.Controls.FromLiteMol.ComboBoxItem(val.value,val.label)})} selectedValue={valueOrDefault(data.getWeightFunction(),"VoronoiScale")} onChange={(v)=>{
+                                    let s = this.state;
+                                    if(s.moleFormData!==null){
+                                        s.moleFormData.setWeightFunction(v);
+                                    }
+                                }} onMount={(control)=>{
+                                    (()=>{
+                                        Events.attachOnClearEventHandler(()=>{
+                                            control.reset();
+                                        });
+                                    }).bind(control)();
+                                }}  />,                            
+                                <Common.Controls.FromLiteMol.CheckBox label="Merge Pores" defaultValue={valueOrDefault(data.getMergePores(),false)} tooltip={TooltipText.get("mergePores")} onChange={(v)=>{
+                                    let s = this.state;
+                                    if(s.moleFormData!==null){
+                                        s.moleFormData.setMergePores(v);
+                                    }
+                                }} onMount={(control)=>{
+                                    (()=>{
+                                        Events.attachOnClearEventHandler(()=>{
+                                            control.reset();
+                                        });
+                                    }).bind(control)();
+                                }}  />,
+                                <Common.Controls.FromLiteMol.CheckBox label="Automatic Pores" defaultValue={valueOrDefault(data.getAutomaticPores(),false)} tooltip={TooltipText.get("automaticPores")} onChange={(v)=>{
+                                    let s = this.state;
+                                    if(s.moleFormData!==null){
+                                        s.moleFormData.setAutomaticPores(v);
+                                    }
+                                }} onMount={(control)=>{
+                                    (()=>{
+                                        Events.attachOnClearEventHandler(()=>{
+                                            control.reset();
+                                        });
+                                    }).bind(control)();
+                                }}  />,
+                                <Common.Controls.FromLiteMol.ControlGroup label="Advanced options" tooltip="" controls={[
+                                    <Common.Controls.FromLiteMol.NumberBox label="Bottleneck Radius" tooltip={TooltipText.get("bottleneckRadius")} min={0.8} max={5} defaultValue={valueOrDefault(data.getBottleneckRadius(),1.2)} step={0.01} onChange={(v)=>{
+                                        let s = this.state;
+                                        if(s.moleFormData!==null){
+                                            s.moleFormData.setBottleneckRadius(Number(v).valueOf());
+                                        }
+                                    }} onMount={(control)=>{
+                                        (()=>{
+                                            Events.attachOnClearEventHandler(()=>{
+                                                control.reset();
+                                            });
+                                        }).bind(control)();
+                                    }}  />,
+                                    <Common.Controls.FromLiteMol.NumberBox label="Bottleneck Tolerance" tooltip={TooltipText.get("bottleneckTolerance")} min={0} max={5} defaultValue={valueOrDefault(data.getBottleneckTollerance(),3.0)} step={0.1} onChange={(v)=>{
+                                        let s = this.state;
+                                        if(s.moleFormData!==null){
+                                            s.moleFormData.setBottleneckTolerance(Number(v).valueOf());
+                                        }
+                                    }} onMount={(control)=>{
+                                        (()=>{
+                                            Events.attachOnClearEventHandler(()=>{
+                                                control.reset();
+                                            });
+                                        }).bind(control)();
+                                    }}  />,
+                                    <Common.Controls.FromLiteMol.NumberBox label="Max Tunnel Similarity" tooltip={TooltipText.get("maxTunnelSimilarity")} min={0} max={1} defaultValue={valueOrDefault(data.getMaxTunnelSimilarity(),0.7)} step={0.05} onChange={(v)=>{
+                                        let s = this.state;
+                                        if(s.moleFormData!==null){
+                                            s.moleFormData.setMaxTunnelSimilarity(Number(v));
+                                        }
+                                    }} onMount={(control)=>{
+                                        (()=>{
+                                            Events.attachOnClearEventHandler(()=>{
+                                                control.reset();
+                                            });
+                                        }).bind(control)();
+                                    }}  />
+                                ]} />
+                            ]} />,
+                            <Common.Controls.FromLiteMol.ControlGroup label="Selection" tooltip="" controls={[
+                                <Common.Controls.FromLiteMol.StartingPointBox label="Starting Point" tooltip={TooltipText.get("startingPoint")} defaultItems={[]} noDataText={"No starting points selected..."} onChange={(v)=>{
+                                    let s = this.state;
+                                    if(s.moleFormData!==null){
+                                        s.moleFormData.setStartingPoints(v);
+                                    }
+                                }} onMount={(control)=>{
+                                    (()=>{
+                                        Events.attachOnClearEventHandler(()=>{
+                                            control.reset();
+                                        });
+                                    }).bind(control)();
+                                }}  />,
+                                <Common.Controls.FromLiteMol.StartingPointBox label="End Point" tooltip={TooltipText.get("endPoint")} defaultItems={[]} noDataText={"No end points selected..."} onChange={(v)=>{
+                                    let s = this.state;
+                                    if(s.moleFormData!==null){
+                                        s.moleFormData.setEndPoints(v);
+                                    }
+                                }} onMount={(control)=>{
+                                    (()=>{
+                                        Events.attachOnClearEventHandler(()=>{
+                                            control.reset();
+                                        });
+                                    }).bind(control)();
+                                }}  />,
+                            ]} />
                         ]} />
-                        
-                        <h4>Selection</h4>
-                        <CSAPickBox label="Active Sites From CSA" id="csaActiveSites" tooltip={TooltipText.get("csaActiveSites")} classNames={css} outputRefId="originResidues" computationId={this.props.initialData.ComputationId} />
-                        <ResidueArraysBox label="Starting Point" id="originResidues" tooltip={TooltipText.get("originResidues")} classNames={css} placeholder="[A 69, A 386], [A 137, A 136]" onValidate={this.validateResidueDoubleArray} />
-                        <PointsBox label="Starting Point [x,y,z]" id="originPoints" tooltip={TooltipText.get("originPoints")} classNames={css} placeholder="[-1,0,4],[3.5,1,3]" onValidate={this.validatePoints} />
-                        <ResidueArraysBox label="End Point" id="customExitsResidues" tooltip={TooltipText.get("customExitsResidues")} classNames={css} placeholder="[A 69, A 386], [A 137, A 136]" onValidate={this.validateResidueDoubleArray} />
-                        <PointsBox label="End Point [x,y,z]" id="customExitsPoints" tooltip={TooltipText.get("customExitsPoints")} classNames={css} placeholder="[-1,0,4],[3.5,1,3]" onValidate={this.validatePoints}  />
-                        <CofactorPickBox label="Cofactor Starting Points" id="cofactorActiveSites" tooltip={TooltipText.get("cofactorActiveSites")} classNames={css} outputRefId="queryExpresion" />
-                        <TextBox label="Query" id="queryExpresion" tooltip={TooltipText.get("queryExpresion")} classNames={css} placeholder="Atoms('Fe')" hint={this.getPatternQueryHint()} onValidateCustom={this.validatePatternQuery} />
-
-                        <input type="hidden" id="mode" value="Mole" />
                     </div>
         }
 
-        /*
-        <OptionlParameters id="OptionalSelectionParameters" items={[
-                                <TextBox label="Query" id="queryExpresion" tooltip={TooltipText.get("queryExpresion")} classNames={css} placeholder="Atoms('Fe')" hint={this.getPatternQueryHint()} onValidateCustom={this.validatePatternQuery} />
-                        ]} />,
-        */
-
         getPoresForm(){
-            let doubleColClasses = ["col-md-5","col-md-7"];
-            let chckColClasses = doubleColClasses;//["col-md-offset-4 col-md-8"];
 
-            if(this.state.data===null){
+            if(this.state.poresFormData===null){
                 return <div/>
             }
 
-            let pdbid = this.state.data.PdbId;
+            let data = this.state.poresFormData;
+            let chains = data.getSpecificChains();
+            if(chains===null){
+                chains = "";
+            }
+
+            let pdbid = this.state.pdbid;
 
             return <div className="settings-form basic-settings pores">
                         <h3>Pores</h3>
-                        <CheckBox label="Beta Structure" defaultChecked={false} id="poresIsBetaStructure" tooltip={TooltipText.get("poresIsBetaStructure")} classNames={chckColClasses} />
-                        <CheckBox label="Membrane Region" defaultChecked={false} id="poresInMembrane" tooltip={TooltipText.get("poresInMembrane")} classNames={chckColClasses} />
-                        <TextBox label="Specific Chains" id="poresChains" tooltip={TooltipText.get("poresChains")} classNames={doubleColClasses} placeholder="A, B, ..." onValidate={this.validateChainsArray} />
-                        <input type="hidden" id="mode" value="Pores" />
+                        <Common.Controls.FromLiteMol.LMControlWrapper controls={[
+                            <Common.Controls.FromLiteMol.CheckBox label="Beta Structure" defaultValue={data.getBetaStructure()} tooltip={TooltipText.get("poresIsBetaStructure")} onChange={(val)=>{
+                                if(this.state.poresFormData!==null){
+                                    this.state.poresFormData.setBetaStructure(val);
+                                }
+                            }} />,
+                            <Common.Controls.FromLiteMol.CheckBox label="Membrane Region" defaultValue={data.getMembraneRegion()} tooltip={TooltipText.get("poresInMembrane")} onChange={(val)=>{
+                                if(this.state.poresFormData!==null){
+                                    this.state.poresFormData.setMembraneRegion(val);
+                                }
+                            }} />,
+                            <Common.Controls.FromLiteMol.TextBox label="Specific Chains" defaultValue={chains} tooltip={TooltipText.get("poresChains")} placeholder="A, B, ..." /*onValidate={this.validateChainsArray}*/ onChange={(val)=>{
+                                if(this.state.poresFormData!==null){
+                                    this.state.poresFormData.setSpecificChains(val);
+                                }
+                            }} />
+                        ]} />
+
                     </div>
         }
+    }
+
+    function valueOrDefault(value:any|null,def:any){
+        return (value===null)?def:value;
     }
 
     function getSubmissionIdx(compInfo:Service.CompInfo,submitId:number):number|null{
@@ -1351,7 +1445,7 @@ namespace Controls.UI{
             return <div className="panel-body">
                 <h4>Active Atoms/Residues</h4>
                 Ignore Hydrogens: {(data.MoleConfig.Cavity===void 0)?"False":(data.MoleConfig.Cavity.IgnoreHydrogens)?"True":"False"}<br/>
-                Ignore HETATMa: {(data.MoleConfig.Cavity===void 0)?"False":(data.MoleConfig.Cavity.IgnoreHETAtoms)?"True":"False"}<br/>
+                Ignore HETATMs: {(data.MoleConfig.Cavity===void 0)?"False":(data.MoleConfig.Cavity.IgnoreHETAtoms)?"True":"False"}<br/>
                 Query Filter: {(data.MoleConfig.QueryFilter===void 0)?"":data.MoleConfig.QueryFilter}<br/>
                 Read All Models: {(data.MoleConfig.Input===void 0)?"False":(data.MoleConfig.Input.ReadAllModels)?"True":"False"}<br/>
                 Ignored Residues: {(data.MoleConfig.NonActiveResidues===void 0||data.MoleConfig.NonActiveResidues===null)?"":CommonUtils.Misc.flattenResidues(data.MoleConfig.NonActiveResidues)}<br/>                
@@ -1705,9 +1799,17 @@ namespace Controls.UI{
                 this.setState(state);
             });
 
-            Events.attachOnClearEventHandler(()=>{
-                $('#submission-form')[0].reset();
-            })
+            Common.Controls.FromLiteMol.ValidationState.attachOnStateChangeHandler(validationGroup,(prev,curr)=>{
+                let s = this.state;
+                if(curr!=="VALID"){
+                    $("#submission-form").find("input[type=submit]").attr("disabled",true);
+                    s.canSubmit = false;
+                }
+                else{
+                    s.canSubmit = true;
+                }
+                this.setState(s);
+            });
         }
 
         nullIfEmpty(data:any[][]){
@@ -1729,6 +1831,7 @@ namespace Controls.UI{
                 return false;
             }
             */
+
             $(e.target).find("input[type=submit]").attr("disabled",true);
             let currentState = this.state;
             currentState.canSubmit = false;
@@ -1738,287 +1841,7 @@ namespace Controls.UI{
                 return;
             }
 
-            let form = e.target as HTMLFormElement;
-            
-            let mode = "Mole";
-
-            //Mole
-            let specificChains = "";
-            let readAllModels = false;
-            let nonActiveResidues;
-            let queryFilter;
-            let ignoreHydrogens = false;
-            let ignoreAllHetatm = false;
-            let interiorTreshold = 1.25;
-            let probeRadius = 3;
-            let automaticStartingPoints;
-            let originResidues;
-            let originPoints;
-            let automaticEndPoints;
-            let customExitsResidues;
-            let customExitsPoints;
-            let queryExpresion=null;
-            let tunnelWeightFunction="VoronoiScale";
-            let bottleneckRadius=1.2;
-            let bottleneckTolerance=0;
-            let maxTunnelSimilarity=0.9;
-            let originRadius=5;
-            let surfaceCoverRadius=10;
-            let useCustomExitsOnly=false;
-            let mergePores;
-            let automaticPores;
-
-            //Pores
-            let isBetaStructure = false;
-            let inMembrane = false;
-            let chains = "";
-
-            for(let idx = 0;idx<form.length;idx++){
-                let item = form[idx] as HTMLInputElement;
-                let name = item.getAttribute('id');
-                switch(name){
-                    case 'mode':
-                        mode = item.value;
-                        break;
-                    //Mole
-                    case 'specificChains':
-                        specificChains = parseChainsArray(item.value);
-                        break;
-                    case 'readAllModels':
-                        readAllModels = (item.value!=="")?item.checked:false;
-                        break;
-                    case 'nonActiveResidues':
-                        nonActiveResidues = item.value;
-                        break;          
-                    case 'queryFilter':
-                        queryFilter = item.value;
-                        break;  
-                    case 'ignoreHydrogens':
-                        ignoreHydrogens = (item.value!=="")?item.checked:false;
-                        break;
-                    case 'ignoreAllHetatm':
-                        ignoreAllHetatm = (item.value!=="")?item.checked:false;
-                        break;
-                    case 'interiorTreshold':
-                        interiorTreshold = Number(item.value);
-                        break;  
-                    case 'probeRadius':
-                        probeRadius = Number(item.value);
-                        break;  
-                    case 'automaticStartingPoints':
-                        automaticStartingPoints = (item.value!=="")?item.checked:false;
-                        break;
-                    case 'originResidues':
-                        originResidues = item.value;
-                        break;  
-                    case 'originPoints':
-                        originPoints = (item.value==="")?void 0:parsePoints(item.value);
-                        break;  
-                    case 'automaticEndPoints':
-                        automaticEndPoints = (item.value!=="")?item.checked:false;
-                        break;
-                    case 'customExitsResidues':
-                        customExitsResidues = item.value;
-                        break;  
-                    case 'customExitsPoints':
-                        customExitsPoints = (item.value==="")?void 0:parsePoints(item.value);
-                        break;  
-                    case 'queryExpresion':
-                        queryExpresion = item.value;
-                        break; 
-                    case 'tunnelWeightFunction':
-                        tunnelWeightFunction = item.value;
-                        break; 
-                    case 'bottleneckRadius':
-                        bottleneckRadius = Number(item.value);
-                        break; 
-                    case 'bottleneckTolerance':
-                        bottleneckTolerance = Number(item.value);
-                        break; 
-                    case 'maxTunnelSimilarity':
-                        maxTunnelSimilarity = Number(item.value);
-                        break; 
-                    case 'originRadius':
-                        originRadius = Number(item.value);
-                        break;
-                    case 'surfaceCoverRadius':
-                        surfaceCoverRadius = Number(item.value);
-                        break;
-                    case 'useCustomExitsOnly':
-                        useCustomExitsOnly = (item.value!=="")?item.checked:false;
-                        break;
-                    case 'mergePores':
-                        mergePores = (item.value!=="")?item.checked:false;
-                        break;
-                    case 'automaticPores':
-                        automaticPores = (item.value!=="")?item.checked:false;
-                        break;
-                    //Pores
-                    case 'poresChains':
-                        chains = parseChainsArray(item.value);
-                        break;
-                    case 'poresInMembrane':
-                        inMembrane = (item.value!=="")?item.checked:false;
-                        break;
-                    case 'poresIsBetaStructure':
-                        isBetaStructure = (item.value!=="")?item.checked:false;
-                        break;
-                }
-            }
-
-            if(originPoints!==void 0){
-                let out = []
-                for(let p of originPoints){
-                    out.push(
-                        {
-                            X:Number(p.x),
-                            Y:Number(p.y),
-                            Z:Number(p.z),
-                        }
-                    );
-                }
-                originPoints = out;
-            }
-            else{
-                originPoints = null;
-            }
-
-            if(customExitsPoints!==void 0){
-                let out = []
-                for(let p of customExitsPoints){
-                    out.push(
-                        {
-                            X:Number(p.x),
-                            Y:Number(p.y),
-                            Z:Number(p.z),
-                        }
-                    );
-                }
-                customExitsPoints = out;
-            }
-            else{
-                customExitsPoints = null;
-            }
-
-            let customExits;
-            if(customExitsResidues!==void 0 || customExitsPoints!==null){
-                customExits = {
-                    Residues:this.nullIfEmpty(parseResiduesArray(customExitsResidues)),
-                    Points:customExitsPoints,
-                    QueryExpression:null
-                }
-            }
-
-            let promise;
-            if(mode === "Mole"){
-                let moleFormData:Service.MoleConfig = {
-                    Input: {
-                        ReadAllModels: readAllModels,
-                        SpecificChains: specificChains
-                    },
-                    Cavity: {
-                        IgnoreHETAtoms: ignoreAllHetatm,
-                        IgnoreHydrogens: ignoreHydrogens,
-                        InteriorThreshold: interiorTreshold,
-                        ProbeRadius: probeRadius
-                    },
-                    Origin:{
-                        Points: originPoints,
-                        Residues: this.nullIfEmpty(parseResiduesArray(originResidues)),
-                        QueryExpression: queryExpresion
-                    },
-                    Tunnel:{
-                        BottleneckRadius: bottleneckRadius,
-                        BottleneckTolerance: bottleneckTolerance,
-                        MaxTunnelSimilarity: maxTunnelSimilarity,
-                        OriginRadius: originRadius,
-                        SurfaceCoverRadius: surfaceCoverRadius,
-                        UseCustomExitsOnly: useCustomExitsOnly,
-                        WeightFunction: tunnelWeightFunction
-                    },
-                    CustomExits:customExits,
-                    NonActiveResidues:parseResidues(nonActiveResidues),
-                    PoresAuto:automaticPores,
-                    PoresMerged: mergePores,
-                    QueryFilter: queryFilter
-                } 
-
-                promise = Service.ApiService.submitMoleJob(this.state.data.ComputationId, moleFormData)
-                
-            }
-            else{
-                let poresFormData: Service.PoresConfig = {
-                    Chains: chains,
-                    InMembrane: inMembrane,
-                    IsBetaBarel: isBetaStructure
-                };
-
-                promise = Service.ApiService.submitPoresJob(this.state.data.ComputationId, poresFormData);
-            }
-
-            promise
-                .then((result:any)=>{                    
-                    if(result.Status==="Error"){
-                        let state = this.state;
-                        state.canSubmit=true;
-                        this.setState(state);
-
-                        MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                            messageType: "Danger",
-                            message: result.ErrorMsg
-                        })
-                    }
-                    else{
-                        CommonUtils.Router.fakeRedirect(result.ComputationId, String(result.SubmitId));
-                        LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
-
-                        Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
-                            MoleOnlineWebUI.DataProxy.JobStatus.Watcher.registerOnChangeHandler(result.ComputationId,result.SubmitId,(status)=>{
-                                if(checkCanSubmit(status.Status)){
-                                    MoleOnlineWebUI.Bridge.Events.invokeToggleLoadingScreen({
-                                        message:"",
-                                        visible:false
-                                    });
-                                    let s = this.state;
-                                    s.canSubmit=true;
-                                    this.setState(s);
-                                }
-                            },(err)=>{
-                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                                    messageType: "Danger",
-                                    message: "Job status cannot be tracked. Please try to refresh the page."
-                                })    
-                            })
-                            let state = this.state;
-                            state.data = info;
-                            this.setState(state);
-                            
-                            MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
-                            MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
-                            Events.invokeOnClear();
-
-                        }).bind(this), true);
-                        /*MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                            messageType: "Success",
-                            message: "Job was successfully submited."
-                        })*/
-                        MoleOnlineWebUI.Bridge.Events.invokeToggleLoadingScreen({
-                            message:"Submited job in progress...",
-                            visible:true
-                        });
-                    }
-                })
-                .catch((err:any)=>{
-                    let state = this.state;
-                    state.canSubmit = true;
-                    this.setState(state);
-                    if(Config.CommonOptions.DEBUG_MODE)
-                        console.log(err);
-                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                        messageType: "Danger",
-                        message: "Job submit was not completed succesfully! Please try again later."
-                    })
-                })
+            Events.invokeOnSubmit();
         }
 
         render(){ 
@@ -2026,7 +1849,7 @@ namespace Controls.UI{
 
             if(this.state.data !== void 0){
                 tabs.push(
-                    <Settings initialData={this.state.data} submitId={this.state.submitId}/>
+                    <Settings initialData={this.state.data} parent={this} submitId={this.state.submitId}/>
                 );
                 tabs.push(
                     <Submissions computationInfo={this.state.data} onResubmit={(info)=>{
@@ -2044,10 +1867,13 @@ namespace Controls.UI{
             if(this.state.canSubmit){
                 $('#controls .submit-parent').find("input[type=submit]").removeAttr("disabled");
             }
+            else{
+                $('#controls .submit-parent').find("input[type=submit]").attr("disabled",true);
+            }
             return (
                 <div className="submit-form-container">
+                    <Common.Tabs.BootstrapTabs.TabbedContainer header={["Submission settings","Submissions"]} tabContents={tabs} namespace="right-panel-tabs-" htmlClassName="tabs" htmlId="right-panel-tabs" activeTab={this.props.activeTab}/>
                     <form className="form-horizontal" id="submission-form" onSubmit={this.handleSubmit.bind(this)}>
-                        <Common.Tabs.BootstrapTabs.TabbedContainer header={["Submission settings","Submissions"]} tabContents={tabs} namespace="right-panel-tabs-" htmlClassName="tabs" htmlId="right-panel-tabs" activeTab={this.props.activeTab}/>
                         <ControlButtons submitId={this.state.submitId} computationInfo={this.state.data} />
                     </form>
                     <div id="right-panel-toggler" className="toggler glyphicon glyphicon-resize-vertical"></div>
@@ -2062,14 +1888,15 @@ namespace Controls.UI{
     }
     interface ControlButtonsState{
         submitId:number,
-        hasKillable:boolean
+        hasKillable:boolean,
+        canSubmit:boolean
     }
     interface ControlButtonsProps{
         submitId:number,
         computationInfo:Service.CompInfo|undefined
     }
     export class ControlButtons extends React.Component<ControlButtonsProps,ControlButtonsState>{
-        state:ControlButtonsState = {submitId:-1,hasKillable:false}
+        state:ControlButtonsState = {submitId:-1,hasKillable:false, canSubmit:true}
 
         componentDidMount(){
             this.state.submitId = this.props.submitId;

@@ -346,6 +346,25 @@
     margin-bottom:0;
 }
 
+.settings-form input.invalid.lm-form-control {
+    color: red !important;
+    background-color: #ffdfdf !important;
+}
+
+.settings-form .tooltip > .tooltip-inner{
+    min-width:180px;
+    min-height:30px;
+    line-height:15px;
+    color: red !important;
+    background-color: #ffdfdf !important;
+    opacity:0.9;
+    box-shadow: red 0px 0px 1px;
+}
+
+.settings-form .tooltip.bottom > .tooltip-arrow{
+    border-bottom-color: red;
+}
+
 @media only screen and (max-width: 1300px),
 only screen and (max-height: 900px) {
     .submit-form-container .tab-content{

@@ -41,5 +41,30 @@ namespace CommonUtils{
             this.checkLoop();
         }
 
+        public static initImmediate(element:HTMLElement,content?:string){
+            if($(element).length===0){
+                return false;
+            }
+
+            if(content!==void 0){
+                $(element).tooltip({content: content});
+            }
+            else{
+                $(element).tooltip();
+            }
+            
+            return true;
+        }
+
+        public static destroy(element:HTMLElement){
+            if($(element).length===0){
+                return false;
+            }
+
+            $(element).tooltip("destroy");
+            
+            return true;
+        }
+
     }
 }

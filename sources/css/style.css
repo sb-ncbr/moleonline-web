@@ -331,8 +331,8 @@ only screen and (max-height: 600px) {
 .right-tabs .tabs,
 .left-tabs,
 .right-tabs,
-.right-panel .bottom,
-.right-panel .bottom .tabs{
+.right-panel > .bottom,
+.right-panel > .bottom .tabs{
 	height:100%;
 }
 .right-tabs{
@@ -358,14 +358,14 @@ only screen and (max-height: 600px) {
     /*border-bottom-left-radius: 4px;*/
     margin-left: 3px;
 }
-.right-panel .bottom{
+.right-panel > .bottom{
 	position:absolute;
 	bottom:0;
 	right:0;
 	height:34vh;
 	width:100%;
 }
-.right-panel .bottom.toggled{
+.right-panel > .bottom.toggled{
 	height:67vh;
 }
 .right-panel .ui.toggled{
@@ -718,10 +718,10 @@ only screen and (max-height: 900px) {
     .right-panel .ui.toggled{
         height:40vh;
     }
-    .right-panel .bottom{
+    .right-panel > .bottom{
         height:40vh;
     }
-    .right-panel .bottom.toggled{
+    .right-panel > .bottom.toggled{
         height:60vh;
     }
     .left-tabs.bottom-tabs-toggled{
