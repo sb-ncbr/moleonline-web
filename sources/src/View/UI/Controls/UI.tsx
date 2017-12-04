@@ -619,12 +619,22 @@ namespace Controls.UI{
         parent: ControlTabs
     }
 
+    interface ExpandedPanels{
+        activeAtomsResidues:boolean,
+        activeAtomsResiduesAdvanced:boolean,
+        cavityParameters:boolean,
+        channelParameters:boolean,
+        channelParametersAdvanced:boolean,
+        selection:boolean
+    }
+
     interface SettingsState{
         pdbid:string,
         computationId:string,
         moleFormData:MoleFormData,
         poresFormData:PoresFormData,
         mode:"Mole"|"Pores",
+        expandedPanels:ExpandedPanels
     };
     export class Settings extends React.Component<SettingsProps,SettingsState>{
 
@@ -633,7 +643,15 @@ namespace Controls.UI{
             poresFormData:this.getPoresDefaultValues(),
             pdbid:this.props.initialData.PdbId,
             computationId:this.props.initialData.ComputationId,
-            mode:"Mole"
+            mode:"Mole",
+            expandedPanels:{
+                activeAtomsResidues:true,
+                activeAtomsResiduesAdvanced:false,
+                cavityParameters:false,
+                channelParameters:false,
+                channelParametersAdvanced:false,
+                selection:true
+            }
         }
 
         getMoleDefaultValues(){
@@ -978,8 +996,19 @@ namespace Controls.UI{
                                             });
                                         }).bind(control)();
                                     }}  validate={this.validateChainsArray} validationGroup={validationGroup} />
-                                ]} />,
-                            ]} />,
+                                ]} expanded={this.state.expandedPanels.activeAtomsResiduesAdvanced} onChange={(e)=>{
+                                    let s = this.state;
+                                    s.expandedPanels.activeAtomsResiduesAdvanced = e;
+                                    this.setState(s);
+                                }} />,
+                            ]} expanded={this.state.expandedPanels.activeAtomsResidues} onChange={(e)=>{
+                                let s = this.state;
+                                s.expandedPanels.activeAtomsResidues = e;
+                                if(e===false){
+                                    s.expandedPanels.activeAtomsResiduesAdvanced = false;
+                                }
+                                this.setState(s);
+                            }} />,
                             <Common.Controls.FromLiteMol.ControlGroup label="Cavity Parameters" tooltip="" controls={[
                                 <Common.Controls.FromLiteMol.NumberBox label="Probe Radius" tooltip={TooltipText.get("probeRadius")} min={1.4} max={20} defaultValue={valueOrDefault(data.getProbeRadius(),5)} step={0.01} onChange={(v)=>{
                                     let s = this.state;
@@ -1005,7 +1034,11 @@ namespace Controls.UI{
                                         });
                                     }).bind(control)();
                                 }}  />
-                            ]} />,
+                            ]} expanded={this.state.expandedPanels.cavityParameters} onChange={(e)=>{
+                                let s = this.state;
+                                s.expandedPanels.cavityParameters = e;
+                                this.setState(s);
+                            }} />,
                             <Common.Controls.FromLiteMol.ControlGroup label="Channel Parameters" tooltip="" controls={[
                                 <Common.Controls.FromLiteMol.NumberBox label="Origin Radius" tooltip={TooltipText.get("originRadius")} min={0.1} max={10} defaultValue={valueOrDefault(data.getOriginRadius(),5)} step={0.05} onChange={(v)=>{
                                     let s = this.state;
@@ -1104,8 +1137,19 @@ namespace Controls.UI{
                                             });
                                         }).bind(control)();
                                     }}  />
-                                ]} />
-                            ]} />,
+                                ]} expanded={this.state.expandedPanels.channelParametersAdvanced} onChange={(e)=>{
+                                    let s = this.state;
+                                    s.expandedPanels.channelParametersAdvanced = e;
+                                    this.setState(s);
+                                }} />
+                            ]} expanded={this.state.expandedPanels.channelParameters} onChange={(e)=>{
+                                let s = this.state;
+                                s.expandedPanels.channelParameters = e;
+                                if(e===false){
+                                    s.expandedPanels.channelParametersAdvanced = false;
+                                }
+                                this.setState(s);
+                            }} />,
                             <Common.Controls.FromLiteMol.ControlGroup label="Selection" tooltip="" controls={[
                                 <Common.Controls.FromLiteMol.StartingPointBox label="Starting Point" tooltip={TooltipText.get("startingPoint")} defaultItems={[]} noDataText={"No starting points selected..."} onChange={(v)=>{
                                     let s = this.state;
@@ -1131,7 +1175,11 @@ namespace Controls.UI{
                                         });
                                     }).bind(control)();
                                 }}  />,
-                            ]} />
+                            ]} expanded={this.state.expandedPanels.selection} onChange={(e)=>{
+                                let s = this.state;
+                                s.expandedPanels.selection = e;
+                                this.setState(s);
+                            }} />
                         ]} />
                     </div>
         }

@@ -412,33 +412,43 @@ namespace Common.Controls.FromLiteMol{
     interface ControlGroupProps{
         label:string,
         tooltip:string,
-        controls:JSX.Element[]
+        controls:JSX.Element[],
+        expanded?:boolean
+        onChange?:(e:boolean)=>void
     }
     interface ControlGroupState{
         panel:LMControls.Panel, 
         expanded:boolean
     };
     export class ControlGroup extends React.Component<ControlGroupProps,ControlGroupState>{
-        state:ControlGroupState = {panel:this.createPanel(),expanded:false};
+        state:ControlGroupState = {panel:this.createPanel((this.props.expanded)?this.props.expanded:false),expanded:(this.props.expanded)?this.props.expanded:false};
 
-        private createPanel(){
+        private createPanel(expanded:boolean){
             return new LMControls.Panel({
                 header:this.props.label,
                 title:this.props.tooltip,
-                isExpanded:false,
+                isExpanded:expanded,
                 onExpand:this.onPanelExpand.bind(this),
                 //description:"description",
                 children:this.props.controls
             });
         }
 
-        private onPanelExpand(e:boolean){
+        componentWillReceiveProps(nextProps:ControlGroupProps){
+            if(nextProps.expanded!==void 0&&nextProps.expanded!==this.state.expanded){
+                this.onPanelExpand(nextProps.expanded,true);
+            }
+        }
+
+        private onPanelExpand(e:boolean,supressOnChangeInvoke?:boolean){
             let s = this.state;
             s.expanded = e;
-            let ps = this.state.panel.props;
-            ps.isExpanded = e;
-            s.panel.setState(ps);
+            s.panel = this.createPanel(e);
             this.setState(s);
+            
+            if(!supressOnChangeInvoke&&this.props.onChange!==void 0){
+                this.props.onChange(e);
+            }
         }
 
         render(){            
