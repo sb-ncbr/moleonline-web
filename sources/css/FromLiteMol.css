@@ -35,7 +35,7 @@
 }
 
 .litemol-controls-wrapper .lm-plugin .starting-point-result-box .lm-control-row div.empty,
-.litemol-controls-wrapper .lm-plugin .starting-point-from-cofactor .lm-control-row div.info{
+.litemol-controls-wrapper .lm-plugin .starting-point-control-container .lm-control-row div.info{
     line-height: 30px;
     padding-left:10px;
     padding-right:10px;

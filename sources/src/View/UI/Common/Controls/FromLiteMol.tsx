@@ -370,14 +370,22 @@ namespace Common.Controls.FromLiteMol{
             }
         }
 
-        reset(){
+        componentWillReceiveProps(nextProps:ComboBoxProps){
+            if(nextProps.selectedValue!==this.props.selectedValue){
+                let s = this.state;
+                s.value = nextProps.selectedValue;
+                this.setState(s);
+            }
+        }
+
+        reset(){                        
             this.setState({
-                value: this.props.selectedValue
-            });
+                value: this.props.selectedValue,
+            });                
         }
 
         state:ComboBoxState = {
-            value:this.props.selectedValue,
+            value:this.props.selectedValue
         }
         
         private getSelectedItemByValue(value:string){
@@ -516,6 +524,7 @@ namespace Common.Controls.FromLiteMol{
         noDataText:string,
         onChange?:(currentPoints:StartingPoint[])=>void,
         onMount?:(control:StartingPointBox)=>void
+        formGroup:string
     }
     interface StartingPointBoxState{
         items:StartingPoint[],
@@ -529,12 +538,19 @@ namespace Common.Controls.FromLiteMol{
             if(this.props.onMount){
                 this.props.onMount(this);
             }
+
+            CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                if(formGroup===this.props.formGroup){
+                    this.reset();
+                }
+            });
         }
 
         reset(){
+            let newMode = (this.props.defaultMode)?this.props.defaultMode:"Current Selection";
             this.setState({
                 items:this.props.defaultItems, 
-                mode: (this.props.defaultMode)?this.props.defaultMode:"Current Selection"
+                mode: newMode
             });
         }
 
@@ -582,7 +598,7 @@ namespace Common.Controls.FromLiteMol{
         remove(item:StartingPoint){
             let newItems = [];
             for(let i of this.state.items){
-                if(i.type===item.type&&i.uiType===item.uiType&&this.getPointValueAsString(i.value)===this.getPointValueAsString(item)){
+                if(i.type===item.type&&i.uiType===item.uiType&&this.getPointValueAsString(i)===this.getPointValueAsString(item)){
                     continue;
                 }
                 newItems.push(i);
@@ -602,11 +618,21 @@ namespace Common.Controls.FromLiteMol{
 
             let control;
             switch(this.state.mode){
+                case "CSA": 
+                    control = <StartingPointCSABox label="" tooltip="" onChange={this.onChange.bind(this)} />
+                    break;
                 case "Current Selection": 
                     control = <StartingPointCurrentSelectionBox label="" tooltip="" onChange={this.onChange.bind(this)} />
                     break;
                 case "Cofactor":
                     control = <StartingPointCofactorBox label="" tooltip="" onChange={this.onChange.bind(this)} />
+                    break;
+                case "Residue List":
+                    control = <StartingPointResidueListBox label="" tooltip="" onChange={this.onChange.bind(this)} formGroup={this.props.formGroup} />
+                    break;
+                case "3D Point":
+                    control = <StartingPoint3DPointBox label="" tooltip="" onChange={this.onChange.bind(this)} formGroup={this.props.formGroup} />
+                    break;
             }     
 
             return  <div>
@@ -624,7 +650,7 @@ namespace Common.Controls.FromLiteMol{
     interface StartingPointResultsBoxProps{
         items:StartingPoint[],
         onRemove:(item:StartingPoint)=>void,
-        noDataText:string
+        noDataText:string,
     }
     interface StartingPointResultsBoxState{
         //items:StartingPoint[],
@@ -762,7 +788,8 @@ namespace Common.Controls.FromLiteMol{
     interface StartingPointCofactorBoxProps{
         tooltip:string,
         label:string,
-        onChange?:(newPoint:StartingPoint[])=>void
+        onChange?:(newPoint:StartingPoint[])=>void,
+
     }
     interface StartingPointCofactorBoxState{
         cofactors:Map<string,string>|null,
@@ -799,7 +826,7 @@ namespace Common.Controls.FromLiteMol{
 
         private getNoDataMessage(){
             let text = (this.state.isLoading)?"Loading...":"No cofactor starting points available";
-            return <div className="starting-point-from-cofactor">
+            return <div className="starting-point-control-container">
                         <div className="lm-control-row lm-options-group">
                             <span></span>
                             <div className="info" title={text} >{text}</div>
@@ -840,7 +867,260 @@ namespace Common.Controls.FromLiteMol{
                 on:"Add",
             });
 
-            return  <div className="starting-point-from-cofactor">
+            return  <div className="starting-point-control-container">
+                        {combo}
+                        <div className='lm-control-row lm-options-group' title={this.props.tooltip}>
+                            <span>{this.props.label}</span>
+                            <div>
+                                {button}
+                            </div>
+                        </div>
+                    </div>
+        }
+    }
+
+    interface StartingPointResidueListBoxProps{
+        tooltip:string,
+        label:string,
+        onChange?:(newPoint:StartingPoint[])=>void,
+        formGroup:string
+    }
+    interface StartingPointResidueListBoxState{
+        value:string,
+        textbox?: JSX.Element
+    }
+
+    export class StartingPointResidueListBox extends React.Component<StartingPointResidueListBoxProps,StartingPointResidueListBoxState>{
+        
+        state:StartingPointResidueListBoxState = {value:"", textbox:void 0}
+
+        private static instanceCounter = 0;
+
+        private onClearGroup = "";
+
+        componentDidMount(){
+            this.onClearGroup = "StartingPointResidueListBox"+StartingPointResidueListBox.instanceCounter++;
+            CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                if(this.props.formGroup===formGroup||this.onClearGroup===formGroup){
+                    let s = this.state;
+                    s.value = "";
+                    this.setState(s);
+                }
+            });
+        }
+
+        render(){            
+            let button = LMControls.CommitButton({
+                action:()=>{
+                    if(this.props.onChange!==void 0){
+                        let newPointData:Residue[] = [];
+                        let residueList = CommonUtils.Misc.parseResidues(this.state.value);
+                        if(residueList.length===0||residueList.length!==this.state.value.split(",").length){
+                            return;
+                        }
+                        for(let r of residueList){
+                            newPointData.push(new Residue(
+                                r.SequenceNumber,
+                                r.Chain)
+                            );
+                        }
+                        this.props.onChange([{
+                            type: "Residue",
+                            uiType: "Residue List",
+                            value: newPointData,
+                        } as StartingPointResidue]);
+
+                        CommonUtils.FormEvents.Events.invokeOnClear(this.onClearGroup);
+                    }
+                },
+                isOn:true,
+                off:"",
+                on:"Add",
+            });
+
+            return  <div className="starting-point-control-container">
+                        <TextBox defaultValue="" label="Residue list:" placeholder="A 52, B142,..." onChange={(val)=>{
+                            let s = this.state;
+                            s.value = val;
+                            this.setState(s);
+                        }} onMount={(control)=>{
+                            CommonUtils.FormEvents.Events.attachOnClearEventHandler(((formGroup:string)=>{
+                                if(this.props.formGroup===formGroup||this.onClearGroup===formGroup){
+                                    window.setTimeout(()=>control.reset());
+                                }
+                            }).bind(control));
+                        }}/>
+                        <div className='lm-control-row lm-options-group' title={this.props.tooltip}>
+                            <span>{this.props.label}</span>
+                            <div>
+                                {button}
+                            </div>
+                        </div>
+                    </div>
+        }
+    }
+
+    interface StartingPoint3DPointBoxProps{
+        tooltip:string,
+        label:string,
+        onChange?:(newPoint:StartingPoint[])=>void,
+        formGroup:string
+    }
+    interface StartingPoint3DPointBoxState{
+        value:string
+    }
+    export class StartingPoint3DPointBox extends React.Component<StartingPoint3DPointBoxProps,StartingPoint3DPointBoxState>{
+        
+        state:StartingPoint3DPointBoxState = {value:""}
+
+        private static instanceCounter = 0;
+        
+        private onClearGroup = "";
+
+        componentDidMount(){
+            this.onClearGroup = "StartingPoint3DPointBox"+StartingPoint3DPointBox.instanceCounter++;
+            CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                if(this.props.formGroup===formGroup||this.onClearGroup===formGroup){
+                    let s = this.state;
+                    s.value = "";
+                    this.setState(s);
+                }
+            });
+        }
+
+        render(){
+
+            let button = LMControls.CommitButton({
+                action:()=>{
+                    if(this.props.onChange!==void 0){
+                        let newPointData:Residue[] = [];
+                        let point = CommonUtils.Misc.parsePoint(this.state.value);
+                        if(point===void 0){
+                            return;
+                        }
+
+                        this.props.onChange([{
+                            type: "Point",
+                            uiType: "3D Point",
+                            value: new Point(point.x,point.y,point.z),
+                        } as StartingPointXYZ]);
+                    }
+
+                    CommonUtils.FormEvents.Events.invokeOnClear(this.onClearGroup);
+                },
+                isOn:true,
+                off:"",
+                on:"Add",
+            });
+
+            return  <div className="starting-point-control-container">
+                        <TextBox defaultValue={this.state.value} label="3D Point:" placeholder="X, Y, Z" onChange={(val)=>{
+                            let s = this.state;
+                            s.value = val;
+                            this.setState(s);
+                        }} onMount={(control)=>{
+                            CommonUtils.FormEvents.Events.attachOnClearEventHandler(((formGroup:string)=>{
+                                if(this.props.formGroup===formGroup||this.onClearGroup===formGroup){
+                                    window.setTimeout(()=>control.reset());
+                                }
+                            }).bind(control));
+                        }}/>
+                        <div className='lm-control-row lm-options-group' title={this.props.tooltip}>
+                            <span>{this.props.label}</span>
+                            <div>
+                                {button}
+                            </div>
+                        </div>
+                    </div>
+        }
+    }
+
+    interface StartingPointCSABoxProps{
+        tooltip:string,
+        label:string,
+        onChange?:(newPoint:StartingPoint[])=>void,
+
+    }
+    interface StartingPointCSABoxState{
+        data:MoleOnlineWebUI.Service.MoleAPI.CSAResidues|null,
+        isLoading:boolean
+        selected:string|null
+    }
+    export class StartingPointCSABox extends React.Component<StartingPointCSABoxProps,StartingPointCSABoxState>{
+        
+        state:StartingPointCSABoxState = {data:null,isLoading:true,selected:null}
+
+        componentDidMount(){
+            let params = CommonUtils.Router.getParameters();
+            if(params===null){
+                console.error("URL parameters not readable!");
+                return;
+            }
+            MoleOnlineWebUI.DataProxy.CSAResidues.DataProvider.get(params.computationId,(compId,csaData)=>{
+                let selected = null;
+                if(csaData.length>0){
+                    selected = CommonUtils.Misc.flattenResidues(csaData[0]);
+                }
+                this.setState({isLoading:false,data:csaData,selected});
+            });
+        }
+
+        generateItems(csaDataItems:MoleOnlineWebUI.Service.MoleAPI.CSAResidues){
+            let items:ComboBoxItem[] = [];
+            for(let item of csaDataItems){
+                let flatten = CommonUtils.Misc.flattenResidues(item);
+                items.push(
+                    new ComboBoxItem(flatten,flatten)
+                );
+            }
+
+            return items;
+        }
+
+        private getNoDataMessage(){
+            let text = (this.state.isLoading)?"Loading...":"No CSA starting points available";
+            return <div className="starting-point-control-container">
+                        <div className="lm-control-row lm-options-group">
+                            <span></span>
+                            <div className="info" title={text} >{text}</div>
+                        </div>
+                    </div>
+        }   
+
+        render(){
+            if(this.state.isLoading||this.state.data===null){
+                return this.getNoDataMessage();
+            }
+
+            let comboItems = this.generateItems(this.state.data);
+            if(comboItems.length===0){
+                return this.getNoDataMessage();
+            }
+
+            let combo = <ComboBox items={comboItems} label="CSA Active sites" selectedValue={comboItems[0].getValue()} tooltip={this.props.tooltip} onChange={((v:string)=>{
+                let s = this.state;
+                s.selected = v;
+                this.setState(s);
+            }).bind(this)} />    
+
+            let button = LMControls.CommitButton({
+                action:()=>{
+                    if(this.props.onChange!==void 0&&this.state.data!==null&&this.state.selected!==null){
+                        this.props.onChange([{
+                            type: "Residue",
+                            uiType: "CSA",
+                            value: CommonUtils.Misc.parseResidues(this.state.selected).map((val,idx,arr)=>{
+                                return new Residue(val.SequenceNumber,val.Chain);
+                            })
+                        } as StartingPointResidue]);
+                    }
+                },
+                isOn:true,
+                off:"",
+                on:"Add",
+            });
+
+            return  <div className="starting-point-control-container">
                         {combo}
                         <div className='lm-control-row lm-options-group' title={this.props.tooltip}>
                             <span>{this.props.label}</span>

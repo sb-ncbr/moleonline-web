@@ -93,4 +93,124 @@ namespace CommonUtils.Misc{
             && c.QueryFilter === void 0
             && c.Tunnel === void 0);
     }
+
+    export function parseChainsArray(value:string){
+        if(value.length===0){
+            return "";
+        }
+
+        value = value.replace(/\s*,\s*/g,",");
+        value = value.replace(/\s*$/g,'');
+        value = value.replace(/^\s*/g,'');
+        let chains = value.split(",");
+        let rv = "";
+        let idx = 0;
+        for(let chain of chains){                    
+            if(idx!==0){
+                rv+=',';
+            }
+            rv+=chain;
+            idx++;
+        }
+
+        return rv;
+    }
+
+    export function parseResiduesArray(residuesArray:string|undefined):{Chain:string,SequenceNumber:number}[][]{
+        if(residuesArray===void 0){
+            return [];
+        }
+        residuesArray = residuesArray.replace(/\]\s*,\s*\[/g,"],[");
+        let parts = residuesArray.split("],[");
+        let rv = [];
+        for(let part of parts){
+            part = part.replace(/\[/g,"");
+            part = part.replace(/\]/g,"");
+            rv.push(parseResidues(part));
+        }
+        return rv;
+    }
+
+    export function parseResidues(residues:string|undefined):{Chain:string,SequenceNumber:number}[]{
+        if(residues===void 0){
+            return [];
+        }
+
+        residues = residues.replace(/\s*,\s*/g,",");
+        let items = residues.split(',');
+        let rv = [];
+        
+        let seqNumReg = new RegExp(/^[0-9]+$/);
+        let chainReg = new RegExp(/^[A-Z][\-][\d]*$|^[A-Z]{1}$/);
+
+        for(let item of items){
+            let r = item.split(' ');
+            let seqNum;
+            let chain;
+            for(let part of r){
+                if(seqNumReg.test(part)){
+                    seqNum = Number(part);
+                    continue;
+                }
+                if(chainReg.test(part)){
+                    chain = part;
+                    continue;
+                }
+            }
+            if(chain!==void 0 && seqNum!==void 0){
+                rv.push(
+                    {
+                        Chain:chain,
+                        SequenceNumber: seqNum
+                    }
+                );
+            }
+        }
+
+        return rv;
+    }
+
+    export function parsePoint(value:string|undefined):CommonUtils.Selection.StringPoint|undefined{
+        if(value===void 0){
+            return void 0;
+        }
+        value = value.replace(/\s*,\s*/g,",");
+        let parts = value.split(",");
+
+        let x = Number(parts[0]);
+        let y = Number(parts[1]);
+        let z = Number(parts[2]);
+
+        if(isNaN(x)||isNaN(y)||isNaN(z)){
+            return void 0;
+        }
+
+        return {
+            x:parts[0],
+            y:parts[1],
+            z:parts[2]
+        }
+    }
+
+    export function removeMultipleWSp(value:string){
+        let v = value.replace(/\s+/g," ");
+        v = v.replace(/\s*$/g,'');
+        v = v.replace(/^\s*/g,'');
+        return v;
+    }
+    export function parsePoints(value:string){
+        value = value.replace(/\]\s*,\s*\[/g,"],[");
+        value = removeMultipleWSp(value);
+        let parts = value.split("],[");
+        let rv = [];
+        for(let part of parts){
+            part = part.replace(/\[/g,"");
+            part = part.replace(/\]/g,"");
+            let point = parsePoint(part);
+            if(point!==void 0){
+                rv.push(point);
+            }
+        }
+        return rv;
+    }
 }

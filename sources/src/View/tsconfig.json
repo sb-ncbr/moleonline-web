@@ -33,6 +33,7 @@
     "CommonUtils/Tabs.ts",
     "CommonUtils/Tooltips.ts",  
     "CommonUtils/Misc.ts",
+    "CommonUtils/FormEvents.ts",
 
     //Annotation data provider
     /*"../AnnotationDataProvider.ts", */

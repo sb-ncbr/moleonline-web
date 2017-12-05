@@ -84,37 +84,6 @@ namespace Controls.UI{
         $(el).focus();
     }
 
-    type OnClearEventHandler = ()=>void;
-    type OnSubmitEventHandler = ()=>void;
-
-    class Events{
-        private static handlers_onClear:OnClearEventHandler[] = [];
-        
-        public static attachOnClearEventHandler(h:()=>void){
-            this.handlers_onClear.push(h);
-        }
-
-        public static invokeOnClear(){
-            for(let h of this.handlers_onClear){
-                h();
-            }
-        }
-
-        //--
-        
-        private static handlers_onSubmit:OnSubmitEventHandler[] = [];
-        
-        public static attachOnSubmitEventHandler(h:()=>void){
-            this.handlers_onSubmit.push(h);
-        }
-
-        public static invokeOnSubmit(){
-            for(let h of this.handlers_onSubmit){
-                h();
-            }
-        }
-    }
-
     //--
 
     class Cavity implements Service.MoleConfigCavity{
@@ -688,7 +657,10 @@ namespace Controls.UI{
         }
 
         componentDidMount(){  
-            Events.attachOnSubmitEventHandler(()=>{
+            CommonUtils.FormEvents.Events.attachOnSubmitEventHandler((formGroup)=>{
+                if(formGroup!==validationGroup){
+                    return;
+                }
                 let promise;
                 
                 if(this.state.mode==="Mole"){
@@ -739,7 +711,7 @@ namespace Controls.UI{
                             
                             MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
                             MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
-                            Events.invokeOnClear();
+                            CommonUtils.FormEvents.Events.invokeOnClear(validationGroup);
 
                         }).bind(this), true);
                         /*MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
@@ -766,7 +738,10 @@ namespace Controls.UI{
                 })
             })
 
-            Events.attachOnClearEventHandler(()=>{
+            CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                if(formGroup!==validationGroup){
+                    return;
+                }
                 Common.Controls.FromLiteMol.ValidationState.reset(validationGroup);
                 let s = this.state;
                 s.moleFormData = this.getMoleDefaultValues();
@@ -833,7 +808,7 @@ namespace Controls.UI{
                 }
                 
                 let expectedCount = value.split(',').length;                
-                let valid = parseResidues(value).length===expectedCount
+                let valid = CommonUtils.Misc.parseResidues(value).length===expectedCount
                 
                 res({
                     valid,
@@ -847,9 +822,9 @@ namespace Controls.UI{
                 if(value.length===0){
                     res({valid:true, message:""});
                 }
-                let v = removeMultipleWSp(value);
+                let v = CommonUtils.Misc.removeMultipleWSp(value);
                 let expectedCount = v.split('],[').length;                
-                let valid = parsePoints(value).length===expectedCount
+                let valid = CommonUtils.Misc.parsePoints(value).length===expectedCount
                 
                 res({
                     valid,
@@ -870,7 +845,7 @@ namespace Controls.UI{
 
                 let expectedCount = value.split(',').length;                
                 let valid = true;
-                let residuesArray = parseResiduesArray(value);
+                let residuesArray = CommonUtils.Misc.parseResiduesArray(value);
 
                 if(residuesArray.length!==arrays.length){
                     valid = false;
@@ -930,7 +905,10 @@ namespace Controls.UI{
                                     }
                                 }} onMount={(control)=>{
                                     (()=>{
-                                        Events.attachOnClearEventHandler(()=>{
+                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                                            if(formGroup!==validationGroup){
+                                                return;
+                                            }
                                             control.reset();
                                         });
                                     }).bind(control)();
@@ -943,7 +921,10 @@ namespace Controls.UI{
                                         }
                                     }} onMount={(control)=>{
                                         (()=>{
-                                            Events.attachOnClearEventHandler(()=>{
+                                            CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                                                if(formGroup!==validationGroup){
+                                                    return;
+                                                }
                                                 control.reset();
                                             });
                                         }).bind(control)();
@@ -955,7 +936,10 @@ namespace Controls.UI{
                                         }
                                     }} onMount={(control)=>{
                                         (()=>{
-                                            Events.attachOnClearEventHandler(()=>{                                                
+                                            CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{      
+                                                if(formGroup!==validationGroup){
+                                                    return;
+                                                }                                          
                                                 control.reset();
                                             });
                                         }).bind(control)();
@@ -967,7 +951,10 @@ namespace Controls.UI{
                                         }
                                     }} onMount={(control)=>{
                                         (()=>{
-                                            Events.attachOnClearEventHandler(()=>{
+                                            CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                                                if(formGroup!==validationGroup){
+                                                    return;
+                                                }
                                                 control.reset();
                                             });
                                         }).bind(control)();
@@ -975,11 +962,14 @@ namespace Controls.UI{
                                     <Common.Controls.FromLiteMol.TextBox label="Ignored Residues" tooltip={TooltipText.get("nonActiveResidues")} placeholder="A 69, A 386, ..." defaultValue={CommonUtils.Misc.flattenResidues(valueOrDefault(data.getIgnoredResidues(),""))} onChange={(v)=>{    
                                         let s = this.state;
                                         if(s.moleFormData!==null){
-                                            s.moleFormData.setIgnoredResidues(parseResidues(v));
+                                            s.moleFormData.setIgnoredResidues(CommonUtils.Misc.parseResidues(v));
                                         }
                                     }} onMount={(control)=>{
                                         (()=>{
-                                            Events.attachOnClearEventHandler(()=>{
+                                            CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                                                if(formGroup!==validationGroup){
+                                                    return;
+                                                }
                                                 control.reset();
                                             });
                                         }).bind(control)();
@@ -991,7 +981,10 @@ namespace Controls.UI{
                                         }
                                     }} onMount={(control)=>{
                                         (()=>{
-                                            Events.attachOnClearEventHandler(()=>{
+                                            CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                                                if(formGroup!==validationGroup){
+                                                    return;
+                                                }
                                                 control.reset();
                                             });
                                         }).bind(control)();
@@ -1017,7 +1010,10 @@ namespace Controls.UI{
                                     }
                                 }} onMount={(control)=>{
                                     (()=>{
-                                        Events.attachOnClearEventHandler(()=>{
+                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                                            if(formGroup!==validationGroup){
+                                                return;
+                                            }
                                             control.reset();
                                         });
                                     }).bind(control)();
@@ -1029,7 +1025,10 @@ namespace Controls.UI{
                                     }
                                 }} onMount={(control)=>{
                                     (()=>{
-                                        Events.attachOnClearEventHandler(()=>{
+                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                                            if(formGroup!==validationGroup){
+                                                return;
+                                            }
                                             control.reset();
                                         });
                                     }).bind(control)();
@@ -1047,7 +1046,10 @@ namespace Controls.UI{
                                     }
                                 }} onMount={(control)=>{
                                     (()=>{
-                                        Events.attachOnClearEventHandler(()=>{
+                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                                            if(formGroup!==validationGroup){
+                                                return;
+                                            }
                                             control.reset();
                                         });
                                     }).bind(control)();
@@ -1059,7 +1061,10 @@ namespace Controls.UI{
                                     }
                                 }} onMount={(control)=>{
                                     (()=>{
-                                        Events.attachOnClearEventHandler(()=>{
+                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                                            if(formGroup!==validationGroup){
+                                                return;
+                                            }
                                             control.reset();
                                         });
                                     }).bind(control)();
@@ -1071,7 +1076,10 @@ namespace Controls.UI{
                                     }
                                 }} onMount={(control)=>{
                                     (()=>{
-                                        Events.attachOnClearEventHandler(()=>{
+                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                                            if(formGroup!==validationGroup){
+                                                return;
+                                            }
                                             control.reset();
                                         });
                                     }).bind(control)();
@@ -1083,7 +1091,10 @@ namespace Controls.UI{
                                     }
                                 }} onMount={(control)=>{
                                     (()=>{
-                                        Events.attachOnClearEventHandler(()=>{
+                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                                            if(formGroup!==validationGroup){
+                                                return;
+                                            }
                                             control.reset();
                                         });
                                     }).bind(control)();
@@ -1095,7 +1106,10 @@ namespace Controls.UI{
                                     }
                                 }} onMount={(control)=>{
                                     (()=>{
-                                        Events.attachOnClearEventHandler(()=>{
+                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                                            if(formGroup!==validationGroup){
+                                                return;
+                                            }
                                             control.reset();
                                         });
                                     }).bind(control)();
@@ -1108,7 +1122,10 @@ namespace Controls.UI{
                                         }
                                     }} onMount={(control)=>{
                                         (()=>{
-                                            Events.attachOnClearEventHandler(()=>{
+                                            CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                                                if(formGroup!==validationGroup){
+                                                    return;
+                                                }
                                                 control.reset();
                                             });
                                         }).bind(control)();
@@ -1120,7 +1137,10 @@ namespace Controls.UI{
                                         }
                                     }} onMount={(control)=>{
                                         (()=>{
-                                            Events.attachOnClearEventHandler(()=>{
+                                            CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                                                if(formGroup!==validationGroup){
+                                                    return;
+                                                }
                                                 control.reset();
                                             });
                                         }).bind(control)();
@@ -1132,7 +1152,10 @@ namespace Controls.UI{
                                         }
                                     }} onMount={(control)=>{
                                         (()=>{
-                                            Events.attachOnClearEventHandler(()=>{
+                                            CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                                                if(formGroup!==validationGroup){
+                                                    return;
+                                                }
                                                 control.reset();
                                             });
                                         }).bind(control)();
@@ -1156,25 +1179,13 @@ namespace Controls.UI{
                                     if(s.moleFormData!==null){
                                         s.moleFormData.setStartingPoints(v);
                                     }
-                                }} onMount={(control)=>{
-                                    (()=>{
-                                        Events.attachOnClearEventHandler(()=>{
-                                            control.reset();
-                                        });
-                                    }).bind(control)();
-                                }}  />,
+                                }} formGroup={validationGroup} />,
                                 <Common.Controls.FromLiteMol.StartingPointBox label="End Point" tooltip={TooltipText.get("endPoint")} defaultItems={[]} noDataText={"No end points selected..."} onChange={(v)=>{
                                     let s = this.state;
                                     if(s.moleFormData!==null){
                                         s.moleFormData.setEndPoints(v);
                                     }
-                                }} onMount={(control)=>{
-                                    (()=>{
-                                        Events.attachOnClearEventHandler(()=>{
-                                            control.reset();
-                                        });
-                                    }).bind(control)();
-                                }}  />,
+                                }} formGroup={validationGroup} />,
                             ]} expanded={this.state.expandedPanels.selection} onChange={(e)=>{
                                 let s = this.state;
                                 s.expandedPanels.selection = e;
@@ -1663,126 +1674,9 @@ namespace Controls.UI{
         MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(submitId);
     }
 
-    function parseChainsArray(value:string){
-            if(value.length===0){
-                return "";
-            }
+    
 
-            value = value.replace(/\s*,\s*/g,",");
-            value = value.replace(/\s*$/g,'');
-            value = value.replace(/^\s*/g,'');
-            let chains = value.split(",");
-            let rv = "";
-            let idx = 0;
-            for(let chain of chains){                    
-                if(idx!==0){
-                    rv+=',';
-                }
-                rv+=chain;
-                idx++;
-            }
-
-            return rv;
-        }
-
-    function parseResiduesArray(residuesArray:string|undefined):{Chain:string,SequenceNumber:number}[][]{
-        if(residuesArray===void 0){
-            return [];
-        }
-        residuesArray = residuesArray.replace(/\]\s*,\s*\[/g,"],[");
-        let parts = residuesArray.split("],[");
-        let rv = [];
-        for(let part of parts){
-            part = part.replace(/\[/g,"");
-            part = part.replace(/\]/g,"");
-            rv.push(parseResidues(part));
-        }
-        return rv;
-    }
-
-    function parseResidues(residues:string|undefined):{Chain:string,SequenceNumber:number}[]{
-        if(residues===void 0){
-            return [];
-        }
-
-        residues = residues.replace(/\s*,\s*/g,",");
-        let items = residues.split(',');
-        let rv = [];
-        
-        let seqNumReg = new RegExp(/^[0-9]+$/);
-        let chainReg = new RegExp(/^[A-Z][\-][\d]*$|^[A-Z]{1}$/);
-
-        for(let item of items){
-            let r = item.split(' ');
-            let seqNum;
-            let chain;
-            for(let part of r){
-                if(seqNumReg.test(part)){
-                    seqNum = Number(part);
-                    continue;
-                }
-                if(chainReg.test(part)){
-                    chain = part;
-                    continue;
-                }
-            }
-            if(chain!==void 0 && seqNum!==void 0){
-                rv.push(
-                    {
-                        Chain:chain,
-                        SequenceNumber: seqNum
-                    }
-                );
-            }
-        }
-
-        return rv;
-    }
-
-    function parsePoint(value:string|undefined):CommonUtils.Selection.StringPoint|undefined{
-        if(value===void 0){
-            return void 0;
-        }
-        value = value.replace(/\s*,\s*/g,",");
-        let parts = value.split(",");
-
-        let x = Number(parts[0]);
-        let y = Number(parts[1]);
-        let z = Number(parts[2]);
-
-        if(isNaN(x)||isNaN(y)||isNaN(z)){
-            return void 0;
-        }
-
-        return {
-            x:parts[0],
-            y:parts[1],
-            z:parts[2]
-        }
-    }
-
-    function removeMultipleWSp(value:string){
-        let v = value.replace(/\s+/g," ");
-        v = v.replace(/\s*$/g,'');
-        v = v.replace(/^\s*/g,'');
-        return v;
-    }
-    function parsePoints(value:string){
-        value = value.replace(/\]\s*,\s*\[/g,"],[");
-        value = removeMultipleWSp(value);
-        let parts = value.split("],[");
-        let rv = [];
-        for(let part of parts){
-            part = part.replace(/\[/g,"");
-            part = part.replace(/\]/g,"");
-            let point = parsePoint(part);
-            if(point!==void 0){
-                rv.push(point);
-            }
-        }
-        return rv;
-    }
-
+    /*
     function flattenPoints(pointsArray:CommonUtils.Selection.StringPoint[]):string{
         let rv = "";
         for(let p of pointsArray){
@@ -1796,6 +1690,7 @@ namespace Controls.UI{
 
         return rv;
     }
+    */
 
     interface ControlTabState{
         activeTabIdx: Number,
@@ -1889,7 +1784,7 @@ namespace Controls.UI{
                 return;
             }
 
-            Events.invokeOnSubmit();
+            CommonUtils.FormEvents.Events.invokeOnSubmit(validationGroup);
         }
 
         render(){ 
