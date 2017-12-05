@@ -8,14 +8,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1" />
     <title>MoleOnline | Computation detail</title>    
     
-	<link rel="stylesheet" href="\css/provided.css?version=1.4.1" type="text/css" />
-	<link rel="stylesheet" href="\css/styles.css?version=1.4.1" type="text/css" />
+	<link rel="stylesheet" href="\css/provided.css?version=1.4.2" type="text/css" />
+	<link rel="stylesheet" href="\css/styles.css?version=1.4.2" type="text/css" />
 	
-	<script src="\js/provided.js?version=1.4.1"></script>
-	<script src="\js/scripts.js?version=1.4.1"></script>
+	<script src="\js/provided.js?version=1.4.2"></script>
+	<script src="\js/scripts.js?version=1.4.2"></script>
 </head>
 <body>  
-	<div class="home-button" title="Home"><a href="/"><span class="glyphicon glyphicon-home" /></a></div>
+	<div class="home-button" title="Home"><a href="/"> <img src="\images/molelogo.png"><!--<span class="glyphicon glyphicon-home" />--></a></div>
 	<div id="pdbid-sign" class="current-pbdbid-sign"></div>
 	<div id="annotate" class="annotate"></div>
 	<div id="download-report" class="download-button"></div>
@@ -28,7 +28,7 @@
 			<div id="left-tabs">
 				<ul class="nav nav-tabs">
 					<li class="active"><a data-toggle="tab" href="#left-tabs-help"><span class="glyphicon glyphicon-question-sign"/></a></li>
-					<li><a data-toggle="tab" href="#left-tabs-1">Channel profile</a></li>
+					<li><a data-toggle="tab" href="#left-tabs-1">Profile</a></li>
 					<li><a data-toggle="tab" href="#left-tabs-2">Channels properties</a></li>
 				</ul>
 				<div class="tab-content" >
@@ -50,6 +50,8 @@
 				<ul class="nav nav-tabs">
 					<li class="active"><a data-toggle="tab" href="#right-tabs-1">Layer</a></li>
 					<li><a data-toggle="tab"  href="#right-tabs-2">Lining residues</a></li>
+					<!--Temporary hidden-->
+					<li style="display:none;"><a data-toggle="tab" title="Physico-chemical Properties"  href="#right-tabs-3">Phys. Chem. Properties</a></li>
 				</ul>
 				<div class="tab-content" >
 					<div id="right-tabs-1" class="tab-pane fade in active">
@@ -59,6 +61,8 @@
 						</div>
 					</div>
 					<div id="right-tabs-2" class="tab-pane fade">
+					</div>
+					<div id="right-tabs-3" class="tab-pane fade">
 					</div>
 				</div>
 			</div>
@@ -71,6 +75,6 @@
         </div>
 		<div id="controls" class="bottom toggled"></div>
 	</div>
-    <script src="MoleOnlineWebUI-Core-View.js?version=1.4.1"></script>
+    <script src="MoleOnlineWebUI-Core-View.js?version=1.4.2"></script>
 </body>
 </html>

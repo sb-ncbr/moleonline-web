@@ -158,53 +158,26 @@ namespace DownloadReport.UI{
             });
         }
 
-        private splitResiduesPages(residues:string[],annotations:Map<string, MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation[]> | null):{residue:string,annotation:MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation|null}[][]{
-            let pages:{residue:string, annotation:MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation|null}[][] = [];
-            let pageLines = 0;
-            let maxLines = 19;
-            let notFirstPageMaxLines = 42;
-            let page:{residue:string, annotation:MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation|null}[] = [];
-            
-            let nextPageHndl = (futureLineCount:number)=>{
-                if(futureLineCount>maxLines){
-                    pages.push(page);
-                    page = [];
-                    
-                    if(pages.length===1){
-                        maxLines = notFirstPageMaxLines;
-                    }
-
-                    return 0;
-                }
-                else{
-                    return futureLineCount;
-                }
-            }
+        private zipResiduesWithAnnotations(residues:string[],annotations:Map<string, MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation[]> | null):{residue:string,annotation:MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation|null}[]{
+            let result:{residue:string, annotation:MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation|null}[] = [];
             
             for(let r of residues){
                 if(annotations===null){
-                    pageLines = nextPageHndl(pageLines+1);
-                    page.push({residue:r,annotation:null});
+                    result.push({residue:r,annotation:null});
                     continue;
                 }
                 let info = CommonUtils.Residues.parseResidues([r],true);
                 let a = annotations.get(`${info[0].authSeqNumber} ${info[0].chain.authAsymId}`);
                 if(a===void 0||a===null||a.length===0){
-                    pageLines = nextPageHndl(pageLines+1);
-                    page.push({residue:r,annotation:null});
+                    result.push({residue:r,annotation:null});
                     continue;
                 }
                 for(let ca of a){
-                    pageLines = nextPageHndl(pageLines+1);
-                    page.push({residue:r,annotation:ca});
+                    result.push({residue:r,annotation:ca});
                 }
             }
 
-            if(page.length>0){
-                pages.push(page);
-            }
-
-            return pages;
+            return result;
         }
 
         private generateChannelReport(channelData:DataInterface.Tunnel){
@@ -235,7 +208,7 @@ namespace DownloadReport.UI{
                 }
                 
                 let residueAnnotations = MoleOnlineWebUI.Cache.ChannelsDBData.getResiduesAnnotationsImmediate();
-                let residuesPages = this.splitResiduesPages(residues,residueAnnotations);
+                let residuesPages = this.zipResiduesWithAnnotations(residues,residueAnnotations);
                 let residuesList:{residue: string, annotation: MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation | null }[] = [];
                 for(let p of residuesPages){
                     residuesList = residuesList.concat(p);
@@ -244,7 +217,7 @@ namespace DownloadReport.UI{
                 templateInstance = this.addTunnelName(templateInstance,tunnelName);
                 templateInstance = this.addCurrentLMScreen(templateInstance);
                 templateInstance = this.addCurrentLVZScreen(templateInstance);
-                templateInstance = this.addLiningResidues(templateInstance,residuesList/*residuesPages[0]*/);
+                templateInstance = this.addLiningResidues(templateInstance,residuesList);
 
                 let state = this.state;
                 let reportContent="";
@@ -253,14 +226,6 @@ namespace DownloadReport.UI{
                 }
 
                 reportContent += templateInstance;
-                /*
-                for(let i=1;i<residuesPages.length;i++){
-                    let templInst = notNullTemplate.slice();
-                    templInst = this.addTunnelName(templInst,tunnelName);
-                    templInst = this.addLiningResidues(templInst,residuesPages[i]);
-                    reportContent+= templInst;
-                }
-                */
                 state.reportContent = reportContent;
                 this.setState(state);
                 res();
@@ -318,9 +283,9 @@ namespace DownloadReport.UI{
             });
         }
 
-        private replacePlaceholder(template:string,placeholder:string,value:string){
+        private replacePlaceholder(template:string,placeholder:string,value:string|null){
             let regexp = new RegExp("\\[\\["+placeholder+"\\]\\]","g");
-            return template.replace(regexp,value);   
+            return template.replace(regexp,(value===null)?"":value);   
         }
 
         private addParamsPageCommon(template:string, urlParams:CommonUtils.Router.URLParams|null){
@@ -607,6 +572,12 @@ namespace DownloadReport.UI{
                                 let toPrintHtml = $(toPrint)[0];
                                 $(document.body.children).addClass("no-print");
                                 document.body.appendChild(toPrintHtml);
+                                let originalTitle = document.title;
+                                
+                                if(urlParams!==null){
+                                    document.title = `MoleOnline - ${urlParams.computationId}/${urlParams.submitId}`;
+                                }
+
                                 window.setTimeout(()=>{                        
                                     let afterPrint = (()=>{
                                         let reportWrapper = $('#'+reportWrapperId)[0];
@@ -619,6 +590,7 @@ namespace DownloadReport.UI{
                                         state.progress = 0;
                                         state.inProgress = false;
                                         this.setState(state);
+                                        document.title = originalTitle;
                                 
                                     }).bind(this);
                                 
@@ -634,13 +606,13 @@ namespace DownloadReport.UI{
                                     window.onafterprint = afterPrint;
 
                                     let plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
-                                    
+
                                     LiteMol.Example.Channels.State.showChannelVisuals(plugin,channels as any,false).then(()=>{
                                         LiteMol.Example.Channels.State.showChannelVisuals(plugin,originalVisibleChannels as any,true).then(()=>{
                                             CommonUtils.Selection.SelectionHelper.resetScene(plugin);
                                             CommonUtils.Selection.SelectionHelper.clearSelection(plugin);
                                             CommonUtils.Selection.SelectionHelper.forceInvokeOnChannelDeselectHandlers();
-                                            window.print();        
+                                            window.print();
                                         });
                                     });
                                 });
@@ -751,7 +723,7 @@ namespace DownloadReport.UI{
                     <BootstrapDropDownMenuItem linkText="JSON" link={`${linkBase}`} targetBlank={true} />
                 );
                 items.push(
-                    <BootstrapDropDownMenuItem linkText="Report" link={`${linkBase}&format=report`} targetBlank={true} />
+                    <BootstrapDropDownMenuItem linkText="Results" link={`${linkBase}&format=report`} targetBlank={true} />
                 );                
                 items.push(
                     <DownloadPDFReportDropdownMenuItem linkText="PDF report" />

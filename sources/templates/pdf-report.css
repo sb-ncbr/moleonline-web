@@ -16,8 +16,12 @@
 		font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
 		page-break-after:always;
 	}
-	.report-body.params-page{
-		page-break-after:avoid;
+	.report-body.params-page .empty-space,
+	.report-body.params-page .empty-space td{
+		border:0;
+	}
+	.report-body.params-page .empty-space td{
+		height:4pt;
 	}
 	.report-body.params-page h1{
 		text-align:center;
@@ -38,6 +42,34 @@
 	}
 	.report-body.params-page .report-params-table table thead th:first-child{
 		text-align:center;
+	}
+	.report-body.params-page .report-params-table table tbody td{
+		padding-top: 4px;
+		padding-bottom: 4px;
+		line-height:8pt;			
+		height:9pt;
+/*		max-height:9pt;*/
+		font-size:8pt;
+	}
+
+	.report-body.params-page .report-params-table table thead tr:first-child th{
+		border-bottom-style:none;
+	}
+
+	.report-body.params-page .report-params-table table.pores thead tr:first-child th{
+		border-bottom-style:solid;
+		border-bottom-width:2px;
+	}
+
+	.report-body.params-page .report-params-table table tbody th{
+		padding-top: 8px;
+		padding-bottom: 4px;
+		line-height:10pt;			
+		height:10pt;
+		max-height:10pt;
+		font-size:10pt;
+		border-top:0;
+		border-bottom: 2px solid lightgray;
 	}
 	body{
 		width: 210mm;
