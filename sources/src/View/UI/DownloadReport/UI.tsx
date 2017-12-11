@@ -43,19 +43,33 @@ namespace DownloadReport.UI{
         }
     }  
 
-    class BootstrapDropDownMenuItem extends React.Component<{link: string, linkText:string, targetBlank: boolean},{}>{
+    class BootstrapDropDownMenuItem extends React.Component<{link?: string, linkText:string, targetBlank?: boolean, onClick?:()=>void},{}>{
         render(){
-            return(
-                <li><a target={(this.props.targetBlank)?"_blank":""} href={this.props.link}>{this.props.linkText}</a></li>
-            );
+            if(this.props.onClick!==void 0){
+                return(
+                    <li><a onClick={this.props.onClick}>{this.props.linkText}</a></li>
+                );    
+            }
+            else{
+                return(
+                    <li><a target={(this.props.targetBlank)?"_blank":""} href={this.props.link}>{this.props.linkText}</a></li>
+                );
+            }
         }
     }
 
-    class BootstrapDropDownMenuElementItem extends React.Component<{link: string, linkElement:JSX.Element, targetBlank: boolean},{}>{
+    class BootstrapDropDownMenuElementItem extends React.Component<{link?: string, linkElement:JSX.Element, targetBlank?: boolean, onClick?:()=>void},{}>{
         render(){
-            return(
-                <li><a target={(this.props.targetBlank)?"_blank":""} href={this.props.link}>{this.props.linkElement}</a></li>
-            );
+            if(this.props.onClick!==void 0){
+                return(
+                    <li><a onClick={this.props.onClick}>{this.props.linkElement}</a></li>
+                );    
+            }
+            else{
+                return(
+                    <li><a target={(this.props.targetBlank)?"_blank":""} href={this.props.link}>{this.props.linkElement}</a></li>
+                );
+            }
         }
     }
 
@@ -71,7 +85,7 @@ namespace DownloadReport.UI{
                 </div>
         }
     }
-
+/*
     interface DownloadPDFReportDropdownMenuItemState{
         data:DataInterface.MoleData|DataInterface.ChannelsDBData|null,
         reportContent: string|null
@@ -671,7 +685,7 @@ namespace DownloadReport.UI{
                 <li><a onClick={(()=>{this.generateReport()}).bind(this)}>{this.props.linkText}</a></li>
             );
         }
-    }
+    }*/
 
     interface DownloadResultsMenuState{
         computationId:string,
@@ -726,7 +740,7 @@ namespace DownloadReport.UI{
                     <BootstrapDropDownMenuItem linkText="Results" link={`${linkBase}&format=report`} targetBlank={true} />
                 );                
                 items.push(
-                    <DownloadPDFReportDropdownMenuItem linkText="PDF report" />
+                    <BootstrapDropDownMenuItem linkText="PDF report" onClick={()=>{MoleOnlineWebUI.Bridge.Events.invokeRunPDFReport();}}/>
                 );
             }
             return <BootstrapDropDownMenuButton label="Download report" items={items} />

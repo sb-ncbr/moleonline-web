@@ -72,7 +72,7 @@
 }
 
 .submit-form-container .submit{
-    width: 25%;
+    width: 18%;
     max-height: 3.5vh;
     margin-top: 0.75vh;
     margin-bottom: 0.75vh;
@@ -224,6 +224,10 @@
 }
 .submit-parent .delete-project-button{
     margin-left:2px;
+    margin-right:2px;
+}
+.submit-parent .clear-button{
+    margin-left:2px;
 }
 
 .modal-dialog .left-button,
@@ -365,6 +369,12 @@
     border-bottom-color: red;
 }
 
+
+.settings-form .lm-plugin .lm-icon-info:before,
+.settings-form .lm-panel-description-content{
+    display:none !important;
+}
+
 @media only screen and (max-width: 1300px),
 only screen and (max-height: 900px) {
     .submit-form-container .tab-content{
@@ -383,7 +393,8 @@ only screen and (max-height: 900px) {
     .submit-form-container .delete-project-button,
     .submit-form-container .kill-job-button,
     .submit-form-container .submit-arrow,
-    .submit-form-container .submit-combo{
+    .submit-form-container .submit-combo,
+    .submit-form-container .clear-button{
         max-height: 4.5vh;
         margin-top: 0.5vh;
         margin-bottom: 0.5vh;

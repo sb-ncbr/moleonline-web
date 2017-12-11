@@ -2,21 +2,31 @@ namespace Common.Tabs.BootstrapTabs{
     import React = LiteMol.Plugin.React;
     import ReactDOM = LiteMol.Plugin.ReactDOM;
 
-    export class TabbedContainer extends React.Component<{tabContents:JSX.Element[], header: string[], namespace:string, htmlId?:string, htmlClassName?:string, activeTab?:number},{activeTabIdx:number}>{
-        
-        state = {activeTabIdx:0}
+    export interface TabbedContainerProps{
+        tabContents:JSX.Element[], 
+        header: string[], 
+        namespace:string, 
+        htmlId?:string, 
+        htmlClassName?:string, 
+        activeTab:number
+        onChange?:(tabIdx:number)=>void
+    }
+    export class TabbedContainer extends React.Component<TabbedContainerProps,{}>{
 
         componentDidMount(){
-            if(this.props.activeTab!== void 0){
-                this.state.activeTabIdx = this.props.activeTab;
-            }
         }
 
         header(){
             let rv:JSX.Element[] = [];
             for(let idx=0;idx<this.props.header.length;idx++){
                 let header = this.props.header[idx];
-                rv.push(<li className={(idx===this.state.activeTabIdx)?"active":""}><a data-toggle="tab" href={`#${this.props.namespace}${idx+1}`} onClick={(()=>{this.setState({activeTabIdx:idx})}).bind(this)}>{header}</a></li>);
+                rv.push(<li className={(idx===this.props.activeTab)?"active":""}><a data-toggle="tab" href={`#${this.props.namespace}${idx+1}`} onClick={(()=>{
+                    window.setTimeout(()=>{
+                        if(this.props.onChange!==void 0){
+                            this.props.onChange(idx);
+                        }
+                    });
+                }).bind(this)}>{header}</a></li>);
             }
             return rv;
         }
@@ -26,7 +36,7 @@ namespace Common.Tabs.BootstrapTabs{
             for(let idx=0;idx<this.props.tabContents.length;idx++){
                 let contents = this.props.tabContents[idx];
                 rv.push(
-                    <div id={`${this.props.namespace}${idx+1}`} className={`tab-pane fade ${(idx===this.state.activeTabIdx)?"in active":""}`}>
+                    <div id={`${this.props.namespace}${idx+1}`} className={`tab-pane fade ${(idx===this.props.activeTab)?"in active":""}`}>
                         {contents}
                     </div>
                 );

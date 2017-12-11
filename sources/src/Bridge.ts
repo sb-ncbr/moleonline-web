@@ -23,6 +23,11 @@ namespace MoleOnlineWebUI.Bridge{
     export type MessageType = "Success" | "Info" | "Warning" | "Danger";
     export interface MessageInfo{message:string, messageType:MessageType};
     export interface ToggleLoadingScreenParams{message:string,visible:boolean};
+    export interface CopyParametersParams{
+        moleConfig:MoleOnlineWebUI.Service.MoleAPI.MoleConfig|null,
+        poresConfig:MoleOnlineWebUI.Service.MoleAPI.PoresConfig|null,
+        mode:"pores"|"mole"
+    };
 
     type SimpleHandler = (args?:any)=>any;
 
@@ -34,6 +39,8 @@ namespace MoleOnlineWebUI.Bridge{
     export type ChannelDataLoadedHandler = (data:DataInterface.MoleData|DataInterface.ChannelsDBData)=>void;
     export type ProteinDataLoadedHandler = (data:DataInterface.ProteinData)=>void;
     export type ToggleLoadingScreenHandler = (params:ToggleLoadingScreenParams)=>void;
+    export type RunPDFReportHandler = ()=>void;
+    export type CopyParametersHandler = (params:CopyParametersParams)=>void;
 
     namespace HandlerTypes{
         export const NewSubmitType = "NEW-SUBMIT";
@@ -44,6 +51,9 @@ namespace MoleOnlineWebUI.Bridge{
         export const ChannelDataLoadedType = "CHANNEL-DATA-LOADED";
         export const ProteinDataLoadedType = "PROTEIN-DATA-LOADED";
         export const ToggleLoadingScreenType = "TOGGLE-LOADING-SCREEN";
+        export const RunPDFReportType = "RUN-PDF-REPORT";
+        export const CopyParametersType = "COPY-PARAMETERS";
+        export const OnReSubmitType = "ON-RESUBMIT";
         
         export type NewSubmit = "NEW-SUBMIT";
         export type ChangeSubmitId = "CHANGE-SUBMIT-ID";
@@ -53,10 +63,22 @@ namespace MoleOnlineWebUI.Bridge{
         export type ChannelDataLoaded = "CHANNEL-DATA-LOADED";
         export type ProteinDataLoaded = "PROTEIN-DATA-LOADED";
         export type ToggleLoadingScreen = "TOGGLE-LOADING-SCREEN";
-        
+        export type RunPDFReport = "RUN-PDF-REPORT";
+        export type CopyParameters = "COPY-PARAMETERS";
+        export type OnReSubmit = "ON-RESUBMIT";
     };
 
-    type HandlerType = HandlerTypes.NewSubmit | HandlerTypes.ChangeSubmitId | HandlerTypes.ChannelSelect | HandlerTypes.ChangeHasKillable | HandlerTypes.NotifyMessage | HandlerTypes.ChannelDataLoaded | HandlerTypes.ProteinDataLoaded | HandlerTypes.ToggleLoadingScreen;
+    type HandlerType = HandlerTypes.NewSubmit 
+    | HandlerTypes.ChangeSubmitId 
+    | HandlerTypes.ChannelSelect 
+    | HandlerTypes.ChangeHasKillable 
+    | HandlerTypes.NotifyMessage 
+    | HandlerTypes.ChannelDataLoaded 
+    | HandlerTypes.ProteinDataLoaded 
+    | HandlerTypes.ToggleLoadingScreen
+    | HandlerTypes.RunPDFReport
+    | HandlerTypes.CopyParameters
+    | HandlerTypes.OnReSubmit;
 
     export class Events{
         private static handlers = new Map<HandlerType,SimpleHandler[]>();
@@ -203,6 +225,60 @@ namespace MoleOnlineWebUI.Bridge{
             if(hndlrs!==void 0){
                 for(let h of hndlrs){
                     h(params);
+                }
+            }
+        }
+
+        public static subscribeRunGeneratePDFReport(h:RunPDFReportHandler){
+            let list = this.handlers.get(HandlerTypes.RunPDFReportType);
+            if(list===void 0){
+                list = [];
+            }
+            list.push(h);
+            this.handlers.set(HandlerTypes.RunPDFReportType, list);
+        }
+
+        public static invokeRunPDFReport(){
+            let hndlrs = this.handlers.get(HandlerTypes.RunPDFReportType);
+            if(hndlrs!==void 0){
+                for(let h of hndlrs){
+                    h();
+                }
+            }
+        }
+
+        public static subscribeCopyParameters(h:CopyParametersHandler){
+            let list = this.handlers.get(HandlerTypes.CopyParametersType);
+            if(list===void 0){
+                list = [];
+            }
+            list.push(h);
+            this.handlers.set(HandlerTypes.CopyParametersType, list);
+        }
+
+        public static invokeCopyParameters(params:CopyParametersParams){
+            let hndlrs = this.handlers.get(HandlerTypes.CopyParametersType);
+            if(hndlrs!==void 0){
+                for(let h of hndlrs){
+                    h(params);
+                }
+            }
+        }
+
+        public static subscribeOnReSubmit(h:CopyParametersHandler){
+            let list = this.handlers.get(HandlerTypes.OnReSubmitType);
+            if(list===void 0){
+                list = [];
+            }
+            list.push(h);
+            this.handlers.set(HandlerTypes.OnReSubmitType, list);
+        }
+
+        public static invokeOnReSubmit(promise:any){
+            let hndlrs = this.handlers.get(HandlerTypes.OnReSubmitType);
+            if(hndlrs!==void 0){
+                for(let h of hndlrs){
+                    h(promise);
                 }
             }
         }

@@ -47,7 +47,7 @@ namespace CommonUtils.Selection{
         private static onResidueLightSelectHandlers:{handler:(residue:LightResidueInfo)=>void}[];
         private static onResidueBulkSelectHandlers:{handler:(residues:LightResidueInfo[])=>void}[];
         private static onClearSelectionHandlers:{handler:()=>void}[];
-        private static onChannelSelectHandlers:{handler:(data:DataInterface.Layers)=>void}[];
+        private static onChannelSelectHandlers:{handler:(data:DataInterface.Layers,channelId?:string)=>void}[];
         private static onChannelDeselectHandlers:{handler:()=>void}[];
 
         public static attachOnResidueBulkSelectHandler(handler:(residues:LightResidueInfo[])=>void){
@@ -84,20 +84,20 @@ namespace CommonUtils.Selection{
             }
         }
 
-        public static attachOnChannelSelectHandler(handler:(data:DataInterface.Layers)=>void){
+        public static attachOnChannelSelectHandler(handler:(data:DataInterface.Layers,channelId?:string)=>void){
             if(this.onChannelSelectHandlers===void 0){
                 this.onChannelSelectHandlers = [];
             }
 
             this.onChannelSelectHandlers.push({handler});
         }
-        private static invokeOnChannelSelectHandlers(data: DataInterface.Layers){
+        private static invokeOnChannelSelectHandlers(data: DataInterface.Layers, channelId?:string){
             if(this.onChannelSelectHandlers === void 0){
                 return;
             }
 
             for(let h of this.onChannelSelectHandlers){
-                h.handler(data);
+                h.handler(data,channelId);
             }
         }
 
@@ -711,7 +711,7 @@ namespace CommonUtils.Selection{
                 if(this.selectedChannelData!==void 0){
                     selectTunnelByRef(plugin,this.selectedChannelRef);
                     this.clearAltSelection(plugin);
-                    this.invokeOnChannelSelectHandlers(this.selectedChannelData);
+                    this.invokeOnChannelSelectHandlers(this.selectedChannelData,this.selectedChannelId);
                 }
                 //return;
             }

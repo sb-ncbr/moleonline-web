@@ -1,0 +1,14 @@
+#dg-channel-parameters.datagrid .col.col-1,
+#dg-channel-parameters.datagrid * .col.col-1{
+	width:90%;
+	min-width:100px;
+}
+#dg-channel-parameters.datagrid .col.col-2,
+#dg-channel-parameters.datagrid * .col.col-2{
+    min-width: 70px;
+}
+
+#dg-channel-parameters.datagrid .properties-icon{
+    display:inline-block;
+    margin-right:5px;
+}

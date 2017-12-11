@@ -87,11 +87,17 @@
     //Lining Residues
     "UI/LiningResidues/UI.tsx", 
 
+    //Channel Properties
+    "UI/ChannelParameters/UI.tsx",
+
     //Residue Annotations
     /*"UI/ResidueAnnotations/UI.tsx", */
 
     //Protein Annotations
     /*"UI/ProteinAnnotations/UI.tsx",*/
+
+    //PDF Report generátor
+    "UI/PDFReportGenerator/UI.tsx",
 
     //Submit Settings
     "UI/Controls/UI.tsx",

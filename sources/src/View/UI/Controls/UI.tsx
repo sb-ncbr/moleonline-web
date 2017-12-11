@@ -444,7 +444,7 @@ namespace Controls.UI{
             return this.QueryFilter;
         }
 
-        public setPoints(value:Common.Controls.FromLiteMol.StartingPoint[], isStart:boolean){
+        private setPoints(value:Common.Controls.FromLiteMol.StartingPoint[], isStart:boolean){
             let points:Service.MoleConfigPoint[] = [];
             let residues:Service.MoleConfigResidue[][] = [];
             let query = null;
@@ -452,7 +452,8 @@ namespace Controls.UI{
             for(let p of value){
                 switch(p.type){
                     case "Point":
-                        points.push(p.value);
+                        let point = p.value as Common.Controls.FromLiteMol.Point; 
+                        points.push({X:Number(point.x),Y:Number(point.y),Z:Number(point.z.toString())});
                         break;
                     case "Residue":
                         let rp = (p as Common.Controls.FromLiteMol.StartingPointResidue);
@@ -493,6 +494,86 @@ namespace Controls.UI{
 
         public setEndPoints(value:Common.Controls.FromLiteMol.StartingPoint[]){
             this.setPoints(value,false);
+        }
+
+        public getStartingPoints():Common.Controls.FromLiteMol.StartingPoint[]{
+            if(this.Origin===null){
+                return [];
+            }
+
+            let result:Common.Controls.FromLiteMol.StartingPoint[] = [];
+            if(this.Origin.Points!==null){
+                result = result.concat(this.Origin.Points.map((val,idx,arr)=>{
+                    return {
+                        type:"Point",
+                        uiType:"3D Point",
+                        value:new Common.Controls.FromLiteMol.Point(val.X.toString(),val.Y.toString(),val.Z.toString())
+                    } as Common.Controls.FromLiteMol.StartingPointXYZ;
+                }));
+            }
+
+            if(this.Origin.Residues!==null){
+                result = result.concat(this.Origin.Residues.map((val,idx,arr)=>{
+                    return {
+                        type:"Residue",
+                        uiType:"Residue List",
+                        value: val.map((v,i,a)=>{
+                            return new Common.Controls.FromLiteMol.Residue(v.SequenceNumber,v.Chain)
+                        })
+                    } as Common.Controls.FromLiteMol.StartingPointResidue
+                }));
+            }
+            
+            if(this.Origin.QueryExpression!==null){
+                result.push({
+                    type:"Query",
+                    uiType:"Cofactor",
+                    residue: "",
+                    value: this.Origin.QueryExpression
+                } as Common.Controls.FromLiteMol.StartingPointQuery);
+            }
+            
+            return result;
+        }
+
+        public getEndingPoints():Common.Controls.FromLiteMol.StartingPoint[]{
+            if(this.CustomExits===null){
+                return [];
+            }
+
+            let result:Common.Controls.FromLiteMol.StartingPoint[] = [];
+            if(this.CustomExits.Points!==null){
+                result = result.concat(this.CustomExits.Points.map((val,idx,arr)=>{
+                    return {
+                        type:"Point",
+                        uiType:"3D Point",
+                        value:new Common.Controls.FromLiteMol.Point(val.X.toString(),val.Y.toString(),val.Z.toString())
+                    } as Common.Controls.FromLiteMol.StartingPointXYZ;
+                }));
+            }
+
+            if(this.CustomExits.Residues!==null){
+                result = result.concat(this.CustomExits.Residues.map((val,idx,arr)=>{
+                    return {
+                        type:"Residue",
+                        uiType:"Residue List",
+                        value: val.map((v,i,a)=>{
+                            return new Common.Controls.FromLiteMol.Residue(v.SequenceNumber,v.Chain)
+                        })
+                    } as Common.Controls.FromLiteMol.StartingPointResidue
+                }));
+            }
+            
+            if(this.CustomExits.QueryExpression!==null){
+                result.push({
+                    type:"Query",
+                    uiType:"Cofactor",
+                    residue: "",
+                    value: this.CustomExits.QueryExpression
+                } as Common.Controls.FromLiteMol.StartingPointQuery);
+            }
+            
+            return result;
         }
 
         //--
@@ -585,7 +666,7 @@ namespace Controls.UI{
     interface SettingsProps{
         initialData:Service.CompInfo, 
         submitId:number,
-        parent: ControlTabs
+        parent: ControlTabs,
     }
 
     interface ExpandedPanels{
@@ -656,6 +737,75 @@ namespace Controls.UI{
             return data;
         }
 
+        handleSubmitPromise(promise:any){
+            promise
+            .then((result:any)=>{                    
+                if(result.Status==="Error"){
+                    let state = this.props.parent.state;
+                    state.canSubmit=true;
+                    this.props.parent.setState(state);
+
+                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                        messageType: "Danger",
+                        message: result.ErrorMsg
+                    })
+                }
+                else{
+                    CommonUtils.Router.fakeRedirect(result.ComputationId, String(result.SubmitId));
+                    LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
+
+                    Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
+                        MoleOnlineWebUI.DataProxy.JobStatus.Watcher.registerOnChangeHandler(result.ComputationId,result.SubmitId,(status)=>{
+                            if(checkCanSubmit(status.Status)){
+                                MoleOnlineWebUI.Bridge.Events.invokeToggleLoadingScreen({
+                                    message:"",
+                                    visible:false
+                                });
+
+                                let state = this.props.parent.state;
+                                state.canSubmit=true;
+                                this.props.parent.setState(state);
+                            }
+                        },(err)=>{
+                            MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                messageType: "Danger",
+                                message: "Job status cannot be tracked. Please try to refresh the page."
+                            })    
+                        })
+
+                        let state = this.props.parent.state;
+                        state.data=info;
+                        this.props.parent.setState(state);
+                        
+                        MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
+                        MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
+                        //CommonUtils.FormEvents.Events.invokeOnClear(`${validationGroup}/selection`);
+
+                    }).bind(this), true);
+                    /*MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                        messageType: "Success",
+                        message: "Job was successfully submited."
+                    })*/
+                    MoleOnlineWebUI.Bridge.Events.invokeToggleLoadingScreen({
+                        message:"Submited job in progress...",
+                        visible:true
+                    });
+                }
+            })
+            .catch((err:any)=>{
+                let state = this.props.parent.state;
+                state.canSubmit=true;
+                this.props.parent.setState(state);
+
+                if(Config.CommonOptions.DEBUG_MODE)
+                    console.log(err);
+                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                    messageType: "Danger",
+                    message: "Job submit was not completed succesfully! Please try again later."
+                })
+            })
+        }
+
         componentDidMount(){  
             CommonUtils.FormEvents.Events.attachOnSubmitEventHandler((formGroup)=>{
                 if(formGroup!==validationGroup){
@@ -670,72 +820,11 @@ namespace Controls.UI{
                     promise = Service.ApiService.submitPoresJob(this.state.computationId, this.state.poresFormData.getPackage())
                 }
 
-                promise
-                .then((result:any)=>{                    
-                    if(result.Status==="Error"){
-                        let state = this.props.parent.state;
-                        state.canSubmit=true;
-                        this.props.parent.setState(state);
+                this.handleSubmitPromise(promise);
+            })
 
-                        MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                            messageType: "Danger",
-                            message: result.ErrorMsg
-                        })
-                    }
-                    else{
-                        CommonUtils.Router.fakeRedirect(result.ComputationId, String(result.SubmitId));
-                        LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
-
-                        Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
-                            MoleOnlineWebUI.DataProxy.JobStatus.Watcher.registerOnChangeHandler(result.ComputationId,result.SubmitId,(status)=>{
-                                if(checkCanSubmit(status.Status)){
-                                    MoleOnlineWebUI.Bridge.Events.invokeToggleLoadingScreen({
-                                        message:"",
-                                        visible:false
-                                    });
-
-                                    let state = this.props.parent.state;
-                                    state.canSubmit=true;
-                                    this.props.parent.setState(state);
-                                }
-                            },(err)=>{
-                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                                    messageType: "Danger",
-                                    message: "Job status cannot be tracked. Please try to refresh the page."
-                                })    
-                            })
-
-                            let state = this.props.parent.state;
-                            state.data=info;
-                            this.props.parent.setState(state);
-                            
-                            MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
-                            MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
-                            CommonUtils.FormEvents.Events.invokeOnClear(validationGroup);
-
-                        }).bind(this), true);
-                        /*MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                            messageType: "Success",
-                            message: "Job was successfully submited."
-                        })*/
-                        MoleOnlineWebUI.Bridge.Events.invokeToggleLoadingScreen({
-                            message:"Submited job in progress...",
-                            visible:true
-                        });
-                    }
-                })
-                .catch((err:any)=>{
-                    let state = this.props.parent.state;
-                    state.canSubmit=true;
-                    this.props.parent.setState(state);
-
-                    if(Config.CommonOptions.DEBUG_MODE)
-                        console.log(err);
-                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                        messageType: "Danger",
-                        message: "Job submit was not completed succesfully! Please try again later."
-                    })
-                })
+            MoleOnlineWebUI.Bridge.Events.subscribeOnReSubmit((promise)=>{
+                this.handleSubmitPromise(promise);
             })
 
             CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
@@ -748,6 +837,33 @@ namespace Controls.UI{
                 s.poresFormData = this.getPoresDefaultValues();
                 this.setState(s);
             })
+
+            MoleOnlineWebUI.Bridge.Events.subscribeCopyParameters((params:MoleOnlineWebUI.Bridge.CopyParametersParams)=>{
+                    let s1 = this.props.parent.state;            
+                    this.props.parent.setState({
+                        activeTabIdx:0,
+                        submitId:s1.submitId,
+                        canSubmit:s1.canSubmit,
+                        data:s1.data,
+                        err:s1.err
+                    } ,()=>{this.setState({
+                        computationId:this.state.computationId,
+                        pdbid:this.state.pdbid,
+                        moleFormData:this.state.moleFormData,
+                        poresFormData:this.state.poresFormData,
+                        mode:(params.mode==="mole")?"Pores":"Mole", //Change to oposite mode to final desired mode to trigger subcomponent re-render
+                        expandedPanels:this.state.expandedPanels
+                    },()=>{
+                        this.setState({
+                            computationId:this.state.computationId,
+                            pdbid:this.state.pdbid,
+                            moleFormData:(params.mode==="mole"&&params.moleConfig!==null)?new MoleFormData(params.moleConfig):this.getMoleDefaultValues(),
+                            poresFormData:(params.mode==="pores"&&params.poresConfig!==null)?new PoresFormData(params.poresConfig):this.getPoresDefaultValues(), 
+                            mode:(params.mode==="mole")?"Mole":"Pores", //Change to correct and final mode to trigger subcomponent re-render
+                            expandedPanels:this.state.expandedPanels
+                        })});
+                    });
+            });
         }
 
         render(){
@@ -1003,7 +1119,7 @@ namespace Controls.UI{
                                 this.setState(s);
                             }} />,
                             <Common.Controls.FromLiteMol.ControlGroup label="Cavity Parameters" tooltip="" controls={[
-                                <Common.Controls.FromLiteMol.NumberBox label="Probe Radius" tooltip={TooltipText.get("probeRadius")} min={1.4} max={20} defaultValue={valueOrDefault(data.getProbeRadius(),5)} step={0.01} onChange={(v)=>{
+                                <Common.Controls.FromLiteMol.NumberBox label="Probe Radius" tooltip={TooltipText.get("probeRadius")} min={1.4} max={45} defaultValue={valueOrDefault(data.getProbeRadius(),5)} step={0.01} onChange={(v)=>{
                                     let s = this.state;
                                     if(s.moleFormData!==null){
                                         s.moleFormData.setProbeRadius(Number(v).valueOf());
@@ -1018,7 +1134,7 @@ namespace Controls.UI{
                                         });
                                     }).bind(control)();
                                 }}  />,
-                                <Common.Controls.FromLiteMol.NumberBox label="Interior Treshold" tooltip={TooltipText.get("interiorTreshold")} min={0.8} max={2.4} defaultValue={valueOrDefault(data.getInteriorThreshold(),1.1)} step={0.01} onChange={(v)=>{
+                                <Common.Controls.FromLiteMol.NumberBox label="Interior Treshold" tooltip={TooltipText.get("interiorTreshold")} min={0.3} max={3} defaultValue={valueOrDefault(data.getInteriorThreshold(),1.1)} step={0.01} onChange={(v)=>{
                                     let s = this.state;
                                     if(s.moleFormData!==null){
                                         s.moleFormData.setInteriorThreshold(Number(v).valueOf());
@@ -1115,7 +1231,7 @@ namespace Controls.UI{
                                     }).bind(control)();
                                 }}  />,
                                 <Common.Controls.FromLiteMol.ControlGroup label="Advanced options" tooltip="" controls={[
-                                    <Common.Controls.FromLiteMol.NumberBox label="Bottleneck Radius" tooltip={TooltipText.get("bottleneckRadius")} min={0.8} max={5} defaultValue={valueOrDefault(data.getBottleneckRadius(),1.2)} step={0.01} onChange={(v)=>{
+                                    <Common.Controls.FromLiteMol.NumberBox label="Bottleneck Radius" tooltip={TooltipText.get("bottleneckRadius")} min={0} max={5} defaultValue={valueOrDefault(data.getBottleneckRadius(),1.2)} step={0.01} onChange={(v)=>{
                                         let s = this.state;
                                         if(s.moleFormData!==null){
                                             s.moleFormData.setBottleneckRadius(Number(v).valueOf());
@@ -1174,18 +1290,18 @@ namespace Controls.UI{
                                 this.setState(s);
                             }} />,
                             <Common.Controls.FromLiteMol.ControlGroup label="Selection" tooltip="" controls={[
-                                <Common.Controls.FromLiteMol.StartingPointBox label="Starting Point" tooltip={TooltipText.get("startingPoint")} defaultItems={[]} noDataText={"No starting points selected..."} onChange={(v)=>{
+                                <Common.Controls.FromLiteMol.StartingPointBox label="Starting Point" tooltip={TooltipText.get("startingPoint")} defaultItems={this.state.moleFormData.getStartingPoints()} noDataText={"No starting points selected..."} onChange={(v)=>{
                                     let s = this.state;
                                     if(s.moleFormData!==null){
                                         s.moleFormData.setStartingPoints(v);
                                     }
-                                }} formGroup={validationGroup} />,
-                                <Common.Controls.FromLiteMol.StartingPointBox label="End Point" tooltip={TooltipText.get("endPoint")} defaultItems={[]} noDataText={"No end points selected..."} onChange={(v)=>{
+                                }} formGroup={validationGroup} extraClearGroup={`${validationGroup}/selection`} />,
+                                <Common.Controls.FromLiteMol.StartingPointBox label="End Point" tooltip={TooltipText.get("endPoint")} defaultItems={this.state.moleFormData.getEndingPoints()} noDataText={"No end points selected..."} onChange={(v)=>{
                                     let s = this.state;
                                     if(s.moleFormData!==null){
                                         s.moleFormData.setEndPoints(v);
                                     }
-                                }} formGroup={validationGroup} />,
+                                }} formGroup={validationGroup} extraClearGroup={`${validationGroup}/selection`} />,
                             ]} expanded={this.state.expandedPanels.selection} onChange={(e)=>{
                                 let s = this.state;
                                 s.expandedPanels.selection = e;
@@ -1246,14 +1362,18 @@ namespace Controls.UI{
         return null;
     }
 
-    interface ComputationsState{
+    interface SubmissionsProps{
+        computationInfo:Service.CompInfo,
+        onResubmit:(info:Service.CompInfo)=>void
+    };
+    interface SubmissionsState{
         computationInfo:Service.CompInfo|null,
         loading:boolean,
         channelsDBData:DataInterface.ChannelsDBChannels|null
     };
-    export class Submissions extends React.Component<{computationInfo:Service.CompInfo,onResubmit:(info:Service.CompInfo)=>void},ComputationsState>{
+    export class Submissions extends React.Component<SubmissionsProps,SubmissionsState>{
         
-        state:ComputationsState = {computationInfo:null,loading:true,channelsDBData:null}
+        state:SubmissionsState = {computationInfo:null,loading:true,channelsDBData:null}
         private hasKillable = false;
         
         componentWillReceiveProps(nextProps:{computationInfo:Service.CompInfo}){
@@ -1373,7 +1493,18 @@ namespace Controls.UI{
                     let stat = s.Status;
 
                     submissions.push(
-                        <Submission data={s} currentSubmitId={submitId} computationId={this.props.computationInfo.ComputationId} status={(stat===void 0)?"Unknown":stat} onResubmit={this.props.onResubmit}/>
+                        <Submission data={s} currentSubmitId={submitId} computationId={this.props.computationInfo.ComputationId} status={(stat===void 0)?"Unknown":stat} onResubmit={this.props.onResubmit} onCopy={(submitId:number)=>{
+                            for(let submission of this.props.computationInfo.Submissions){
+                                if(submission.SubmitId.toString()===submitId.toString()){
+                                    MoleOnlineWebUI.Bridge.Events.invokeCopyParameters({
+                                        mode:(CommonUtils.Misc.isMoleJob(submission))?"mole":"pores",
+                                        moleConfig:submission.MoleConfig,
+                                        poresConfig:submission.PoresConfig
+                                    });
+                                    return;
+                                }
+                            }
+                        }} />
                     );
                 }
 
@@ -1495,7 +1626,7 @@ namespace Controls.UI{
         return result;
     }
 
-    export class Submission extends React.Component<{data:Service.Submission, computationId:string, status:string, currentSubmitId:number, onResubmit:(info:Service.CompInfo)=>void},{}>{
+    export class Submission extends React.Component<{data:Service.Submission, computationId:string, status:string, currentSubmitId:number, onCopy:(submitId:number)=>void,onResubmit:(info:Service.CompInfo)=>void},{}>{
         
         componentDidMount(){
         }
@@ -1574,7 +1705,7 @@ namespace Controls.UI{
                     <div id={`submit-data-${data.SubmitId}`} className={`panel-collapse collapse${(currentSubmitId.toString()===data.SubmitId.toString())?' in':''}`}>
                         {contents}
                         <div className="panel-footer">
-                            <span className="btn btn-xs btn-primary" disabled={!canResubmit} onClick={(()=>this.reSubmit()).bind(this)}>Resubmit</span>
+                        <span className="btn btn-xs btn-primary" onClick={(()=>this.copyParams(data.SubmitId)).bind(this)}>Copy</span><span className="btn btn-xs btn-primary" disabled={!canResubmit} onClick={(()=>this.reSubmit()).bind(this)}>Resubmit</span>
                         </div>
                     </div>
                 </div>
@@ -1583,7 +1714,11 @@ namespace Controls.UI{
 
         private reSubmit(){
             if(CommonUtils.Misc.isMoleJob(this.props.data)){
-                Service.ApiService.submitMoleJob(this.props.computationId,this.props.data.MoleConfig).then((result)=>{
+                MoleOnlineWebUI.Bridge.Events.invokeOnReSubmit(
+                    Service.ApiService.submitMoleJob(this.props.computationId,this.props.data.MoleConfig)
+                );
+                /*
+                .then((result)=>{
                     CommonUtils.Router.fakeRedirect(result.ComputationId, String(result.SubmitId));
                     LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
 
@@ -1602,10 +1737,14 @@ namespace Controls.UI{
                         messageType:"Danger",
                         message: `Resubmit failed with message: ${err}.`
                     });
-                });
+                });*/
             }
             else{
-                Service.ApiService.submitPoresJob(this.props.computationId,this.props.data.PoresConfig).then((result)=>{
+                MoleOnlineWebUI.Bridge.Events.invokeOnReSubmit(
+                    Service.ApiService.submitPoresJob(this.props.computationId,this.props.data.PoresConfig)
+                );
+                /*
+                .then((result)=>{
                     CommonUtils.Router.fakeRedirect(result.ComputationId, String(result.SubmitId));
                     LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
 
@@ -1625,6 +1764,13 @@ namespace Controls.UI{
                         message: `Resubmit failed with message: ${err}.`
                     });
                 });
+                */
+            }
+        }
+
+        private copyParams(submitId:number){
+            if(this.props.onCopy!==void 0){
+                this.props.onCopy(submitId);
             }
         }
     }
@@ -1693,7 +1839,7 @@ namespace Controls.UI{
     */
 
     interface ControlTabState{
-        activeTabIdx: Number,
+        activeTabIdx: number,
         data?: Service.CompInfo,
         err?: String,
         submitId: number,
@@ -1799,7 +1945,7 @@ namespace Controls.UI{
                         let state = this.state;
                         state.data = info;
                         this.setState(state);
-                        }}/>
+                        }} />
                 );
             } 
             else{
@@ -1815,7 +1961,11 @@ namespace Controls.UI{
             }
             return (
                 <div className="submit-form-container">
-                    <Common.Tabs.BootstrapTabs.TabbedContainer header={["Submission settings","Submissions"]} tabContents={tabs} namespace="right-panel-tabs-" htmlClassName="tabs" htmlId="right-panel-tabs" activeTab={this.props.activeTab}/>
+                    <Common.Tabs.BootstrapTabs.TabbedContainer header={["Submission settings","Submissions"]} tabContents={tabs} namespace="right-panel-tabs-" htmlClassName="tabs" htmlId="right-panel-tabs" activeTab={this.state.activeTabIdx} onChange={((tabIdx:number)=>{
+                        let s = this.state;
+                        s.activeTabIdx = tabIdx;
+                        this.setState(s);
+                    }).bind(this)}/>
                     <form className="form-horizontal" id="submission-form" onSubmit={this.handleSubmit.bind(this)}>
                         <ControlButtons submitId={this.state.submitId} computationInfo={this.state.data} />
                     </form>
@@ -2001,6 +2151,9 @@ namespace Controls.UI{
                     <input className="btn btn-primary submit" type="submit" value="Submit" />
                     <span className="btn btn-primary kill-job-button" disabled={!canKill} onClick={(e=>{if($(e.currentTarget).attr("disabled")!=="disabled"){$('#killJobDialog').modal('show');}})}>Kill</span>
                     <span className="btn btn-primary delete-project-button" data-toggle="modal" data-target="#deleteProjectDialog" onClick={(e=>{e.preventDefault();return false;})}>Delete</span>
+                    <input className="btn btn-primary clear-button" type="button" value="Clear" onClick={()=>{
+                        CommonUtils.FormEvents.Events.invokeOnClear(validationGroup);
+                    }} />
                     <input className="btn btn-primary submit-arrow" type="button" value=">" disabled={(!canShiftNext)?true:void 0} data-value={(!canShiftNext||idx===void 0)?void 0:items[this.getNextIdx(idx)].value} onClick={this.changeSubmitIdByStep.bind(this)} />
                     <Common.Controls.SimpleComboBox id="submissionComboSwitch" items={items} defaultSelectedIndex={idx} className="form-control submit-combo" onSelectedChange={this.onSubmitIdComboSelectChange.bind(this)} />
                     <input className="btn btn-primary submit-arrow" type="button" value="<" disabled={(!canShiftPrev)?true:void 0} data-value={(!canShiftPrev||idx==void 0)?void 0:items[this.getPrevIdx(idx)].value} onClick={this.changeSubmitIdByStep.bind(this)} />

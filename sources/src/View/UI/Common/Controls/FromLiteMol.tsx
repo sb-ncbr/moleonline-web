@@ -524,7 +524,8 @@ namespace Common.Controls.FromLiteMol{
         noDataText:string,
         onChange?:(currentPoints:StartingPoint[])=>void,
         onMount?:(control:StartingPointBox)=>void
-        formGroup:string
+        formGroup:string,
+        extraClearGroup?:string
     }
     interface StartingPointBoxState{
         items:StartingPoint[],
@@ -540,7 +541,7 @@ namespace Common.Controls.FromLiteMol{
             }
 
             CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
-                if(formGroup===this.props.formGroup){
+                if(formGroup===this.props.formGroup||(this.props.extraClearGroup!==void 0 && formGroup===this.props.extraClearGroup)){
                     this.reset();
                 }
             });
@@ -606,6 +607,10 @@ namespace Common.Controls.FromLiteMol{
             let s = this.state;
             s.items = newItems;
             this.setState(s);
+
+            if(this.props.onChange!==void 0){
+                this.props.onChange(newItems.slice());
+            }
         }
 
         render(){
@@ -677,14 +682,17 @@ namespace Common.Controls.FromLiteMol{
                     break;
                 case "Query":
                     let qp = p as StartingPointQuery;
-                    content = `${qp.residue}: ${qp.value}`;
+                    content = `${(qp.residue!=="")?qp.residue+': ':''}${qp.value}`;
                     break;
                 default: 
                     content = "Unknown type!!!"
             }
 
+            let contentMaxLength = 20;
+            let miniContent = content.substr(0,contentMaxLength) + "...";
+
             return <span title={content}>
-                {content.substr(0,15)}...
+                {(content.length>contentMaxLength)?miniContent:content}
             </span>
         }
 

@@ -40,6 +40,7 @@ $( function() {
     fillSpaceOnResize("layer-residues","right-tabs-1","right-tabs",39);
     fillSpaceOnResize("layer-properties","right-tabs-1","right-tabs",59);
     datagridOnResize("dg-lining-residues","right-tabs-2","right-tabs");
+    datagridOnResize("dg-channel-properties","right-tabs-3","right-tabs");
     datagridOnResize("dg-layer-properties","layer-properties","layer-properties");
     datagridOnResize("dg-layer-residues","layer-residues","layer-residues");
     //datagridOnResize("dg-protein-annotations","right-panel-tabs-1","right-panel-tabs");
@@ -49,6 +50,7 @@ function dgResize(){
     fillSpaceOnResize("layer-residues","right-tabs-1","right-tabs",39);
     fillSpaceOnResize("layer-properties","right-tabs-1","right-tabs",59);
     datagridOnResize("dg-lining-residues","right-tabs-2","right-tabs");
+    datagridOnResize("dg-channel-parameters","right-tabs-3","right-tabs");
     datagridOnResize("dg-layer-properties","layer-properties","layer-properties");
     datagridOnResize("dg-layer-residues","layer-residues","layer-residues");
     datagridOnResize("dg-aglomered-parameters","left-tabs-2","left-tabs");

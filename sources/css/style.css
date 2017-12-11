@@ -469,6 +469,7 @@ only screen and (max-height: 600px) {
     min-width: 110px;
 }*/
 
+/*
 #right-tabs-3 .datagrid .col.col-1,
 #right-tabs-3 .datagrid * .col.col-1{
 	width:20%;
@@ -478,7 +479,7 @@ only screen and (max-height: 600px) {
 #right-tabs-3 .datagrid * .col.col-2{
 	width:60%;
 	min-width:125px;
-}
+}*/
 /*
 #right-tabs-3 .datagrid .col.col-3,
 #right-tabs-3 .datagrid * .col.col-3{

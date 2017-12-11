@@ -8,15 +8,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1" />
     <title>MoleOnline | Computation detail</title>    
     
-	<link rel="stylesheet" href="\css/provided.css?version=1.4.2" type="text/css" />
-	<link rel="stylesheet" href="\css/styles.css?version=1.4.2" type="text/css" />
+	<link rel="stylesheet" href="\css/provided.css?version=1.4.3" type="text/css" />
+	<link rel="stylesheet" href="\css/styles.css?version=1.4.3" type="text/css" />
 	
-	<script src="\js/provided.js?version=1.4.2"></script>
-	<script src="\js/scripts.js?version=1.4.2"></script>
+	<script src="\js/provided.js?version=1.4.3"></script>
+	<script src="\js/scripts.js?version=1.4.3"></script>
 </head>
 <body>  
 	<div class="home-button" title="Home"><a href="/"> <img src="\images/molelogo.png"><!--<span class="glyphicon glyphicon-home" />--></a></div>
 	<div id="pdbid-sign" class="current-pbdbid-sign"></div>
+	<div id="pdf-report-generator" class="pdf-report-generator"></div>
 	<div id="annotate" class="annotate"></div>
 	<div id="download-report" class="download-button"></div>
 	<div id="alert-messages" class="detail"></div>
@@ -50,8 +51,7 @@
 				<ul class="nav nav-tabs">
 					<li class="active"><a data-toggle="tab" href="#right-tabs-1">Layer</a></li>
 					<li><a data-toggle="tab"  href="#right-tabs-2">Lining residues</a></li>
-					<!--Temporary hidden-->
-					<li style="display:none;"><a data-toggle="tab" title="Physico-chemical Properties"  href="#right-tabs-3">Phys. Chem. Properties</a></li>
+					<li><a data-toggle="tab" title="Physico-chemical Properties"  href="#right-tabs-3">Phys. Chem. Properties</a></li>
 				</ul>
 				<div class="tab-content" >
 					<div id="right-tabs-1" class="tab-pane fade in active">
@@ -75,6 +75,6 @@
         </div>
 		<div id="controls" class="bottom toggled"></div>
 	</div>
-    <script src="MoleOnlineWebUI-Core-View.js?version=1.4.2"></script>
+    <script src="MoleOnlineWebUI-Core-View.js?version=1.4.3"></script>
 </body>
 </html>

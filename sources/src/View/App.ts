@@ -59,6 +59,8 @@ namespace LiteMol.Example.Channels {
 
         LiningResidues.UI.render(document.getElementById("right-tabs-2") !, plugin);
 
+        ChannelParameters.UI.render(document.getElementById("right-tabs-3") !, plugin);
+
         Controls.UI.render(document.getElementById("controls") !);
 
         //ResidueAnnotations.UI.render(document.getElementById("right-tabs-3") !, plugin);
@@ -66,6 +68,8 @@ namespace LiteMol.Example.Channels {
         //ProteinAnnotations.UI.render(document.getElementById("right-panel-tabs-1") !, plugin);
 
         DownloadReport.UI.render(document.getElementById("download-report") !); 
+
+        PDFReportGenerator.UI.render(document.getElementById("pdf-report-generator") !); 
 
         PdbIdSign.UI.render(document.getElementById("pdbid-sign") !);     
 
