@@ -10,8 +10,6 @@ namespace SequenceViewer.UI{
 
     interface State{
         data: DataType | null,
-        app: App,
-        hasSelection: boolean
     };
 
     export function render(target: Element, plugin: LiteMol.Plugin.Controller) {
@@ -22,16 +20,12 @@ namespace SequenceViewer.UI{
 
         state:State = {
             data: null,
-            app: this,
-            hasSelection: false
         };        
 
         componentDidMount() {
             MoleOnlineWebUI.Bridge.Events.subscribeProteinDataLoaded((data)=>{
                 this.setState({
-                    data,
-                    app:this,
-                    hasSelection:false
+                    data,                    
                 })
             });
         }
@@ -215,20 +209,21 @@ namespace SequenceViewer.UI{
 
         componentDidMount(){
             CommonUtils.Selection.SelectionHelper.attachOnClearSelectionHandler(()=>{
-                this.setState({selected:false});
-                let s = this.props.app.state;
-                if(s.hasSelection){
-                    s.hasSelection = false;
-                    this.props.app.setState(s);
+                if(this.state.selected){
+                    this.setState({selected:false});
                 }
             });
 
             CommonUtils.Selection.SelectionHelper.attachOnResidueBulkSelectHandler(residues=>{
-                this.setState({
-                    selected:residues.some((val,idx,arr)=>{
-                        return val.authSeqNumber===this.props.seqNumber && val.chain.authAsymId === this.props.chainName;
+                let futureSelected = residues.some((val,idx,arr)=>{
+                    return val.authSeqNumber===this.props.seqNumber && val.chain.authAsymId === this.props.chainName;
+                });
+
+                if(futureSelected!==this.state.selected){
+                    this.setState({
+                        selected:futureSelected
                     })
-                })
+                }
             });
         }
 

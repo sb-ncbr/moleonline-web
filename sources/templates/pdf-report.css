@@ -7,6 +7,18 @@
 	body .no-print{
 		display:none;
 	}
+	.report-header table tr td:nth-last-child(1){
+		text-align:right;
+	}
+	.report-header table tr td:nth-last-child(2),
+	.report-header table tr td:nth-first-child(1){
+		text-align:left;
+		width:26mm;
+	}
+	.report-header table tr td{
+		line-height:6pt;
+		height:6pt;
+	}
 	.report-body{
 		display:block;
 	    width: 210mm;
@@ -15,6 +27,22 @@
 		padding: 2mm 2.5mm;
 		font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
 		page-break-after:always;
+	}
+	.report-body .report-tunnel-phys-chem-props table td:nth-first-child(1),
+	.report-body .report-tunnel-phys-chem-props table td:nth-first-child(3){
+		text-align:left;
+		width:15%
+	}
+	.report-body .report-tunnel-phys-chem-props table td:nth-first-child(2),
+	.report-body .report-tunnel-phys-chem-props table td:nth-first-child(4){
+		text-align:right;
+		width:30%
+	}
+	.report-body .report-tunnel-phys-chem-props .bottleneck-black-icon{
+		height:9pt;
+		vertical-align:baseline;
+		margin-right:2px;
+		margin-left:1px;
 	}
 	.report-body.params-page .empty-space,
 	.report-body.params-page .empty-space td{
@@ -93,7 +121,8 @@
 	}
 	.report-3D-view-title,
 	.report-2D-view-title,
-	.report-lining-residues-title{
+	.report-lining-residues-title,
+	.report-tunnel-phys-chem-props-title{
 		font-weight: bold;
 		font-size: 15pt;
 		margin-bottom: 0.5mm;

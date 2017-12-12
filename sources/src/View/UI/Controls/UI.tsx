@@ -1642,7 +1642,7 @@ namespace Controls.UI{
                 Specific Chains: {(data.MoleConfig.Input===void 0)?"":data.MoleConfig.Input.SpecificChains}<br/>                
                 <h4>Cavity Parameters</h4>
                 Probe Radius: {(data.MoleConfig.Cavity===void 0)?"":data.MoleConfig.Cavity.ProbeRadius}<br/>
-                Interior Treshold: {(data.MoleConfig.Cavity===void 0)?"":data.MoleConfig.Cavity.InteriorThreshold}<br/>
+                Interior Threshold: {(data.MoleConfig.Cavity===void 0)?"":data.MoleConfig.Cavity.InteriorThreshold}<br/>
                 <h4>Channel Parameters</h4>
                 Origin Radius: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.OriginRadius}<br/>
                 Surface Cover Radius: {(data.MoleConfig.Tunnel===void 0 || data.MoleConfig.Tunnel===null)?"":data.MoleConfig.Tunnel.SurfaceCoverRadius}<br/>
@@ -1717,54 +1717,11 @@ namespace Controls.UI{
                 MoleOnlineWebUI.Bridge.Events.invokeOnReSubmit(
                     Service.ApiService.submitMoleJob(this.props.computationId,this.props.data.MoleConfig)
                 );
-                /*
-                .then((result)=>{
-                    CommonUtils.Router.fakeRedirect(result.ComputationId, String(result.SubmitId));
-                    LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
-
-                    Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
-                        this.props.onResubmit(info);
-                        MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
-                        MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
-                    }).bind(this), true);
-                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                        messageType: "Success",
-                        message: "Job was successfully resubmited."
-                    })
-                })
-                .catch(err=>{
-                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                        messageType:"Danger",
-                        message: `Resubmit failed with message: ${err}.`
-                    });
-                });*/
             }
             else{
                 MoleOnlineWebUI.Bridge.Events.invokeOnReSubmit(
                     Service.ApiService.submitPoresJob(this.props.computationId,this.props.data.PoresConfig)
                 );
-                /*
-                .then((result)=>{
-                    CommonUtils.Router.fakeRedirect(result.ComputationId, String(result.SubmitId));
-                    LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
-
-                    Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
-                        this.props.onResubmit(info);
-                        MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
-                        MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
-                    }).bind(this), true);
-                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                        messageType: "Success",
-                        message: "Job was successfully resubmited."
-                    })
-                })
-                .catch(err=>{
-                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                        messageType:"Danger",
-                        message: `Resubmit failed with message: ${err}.`
-                    });
-                });
-                */
             }
         }
 

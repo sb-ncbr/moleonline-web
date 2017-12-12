@@ -8,6 +8,8 @@ namespace PDFReportGenerator.UI{
         export function render(target: Element) {
             LiteMol.Plugin.ReactDOM.render(<App />, target);
         }
+
+        interface ConfigPromiseType{submission: MoleOnlineWebUI.Service.MoleAPI.Submission, compInfo: MoleOnlineWebUI.Service.MoleAPI.CompInfo};
     
         interface AppState{
             data:DataInterface.MoleData|DataInterface.ChannelsDBData|null,
@@ -58,6 +60,24 @@ namespace PDFReportGenerator.UI{
     
             private addTunnelName(template:string, text:string):string{
                 return template.replace("[[TUNNEL-NAME]]",text);
+            }
+
+            private addPhysChemProps(template:string, tunnel:DataInterface.Tunnel):string{
+                let length = CommonUtils.Numbers.roundToDecimal(CommonUtils.Tunnels.getLength(tunnel),2).toString();                
+                let bottleneck = CommonUtils.Tunnels.getBottleneck(tunnel);
+                let hydropathy = CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Hydropathy,2).toString();
+                let charge = CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Charge,2).toString();
+                let polarity = CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Polarity,2).toString();                
+                let mutability = CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Mutability,2).toString();
+
+                template = this.replacePlaceholder(template,"TUNNEL-PROPS-LENGTH",length);
+                template = this.replacePlaceholder(template,"TUNNEL-PROPS-BOTTLENECK",bottleneck);
+                template = this.replacePlaceholder(template,"TUNNEL-PROPS-HYDROPATHY",hydropathy);
+                template = this.replacePlaceholder(template,"TUNNEL-PROPS-CHARGE",charge);
+                template = this.replacePlaceholder(template,"TUNNEL-PROPS-POLARITY",polarity);
+                template = this.replacePlaceholder(template,"TUNNEL-PROPS-MUTABILITY",mutability);
+
+                return template;
             }
     
             private addLiningResidues(template:string, residueLines:{residue: string,annotation: MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation | null}[]){
@@ -160,6 +180,7 @@ namespace PDFReportGenerator.UI{
                     }
     
                     templateInstance = this.addTunnelName(templateInstance,tunnelName);
+                    templateInstance = this.addPhysChemProps(templateInstance,channelData);
                     templateInstance = this.addCurrentLMScreen(templateInstance);
                     templateInstance = this.addCurrentLVZScreen(templateInstance);
                     templateInstance = this.addLiningResidues(templateInstance,residuesList);
@@ -233,7 +254,7 @@ namespace PDFReportGenerator.UI{
                 return template.replace(regexp,(value===null)?"":value);   
             }
     
-            private addParamsPageCommon(template:string, urlParams:CommonUtils.Router.URLParams|null){
+            private addParamsPageCommon(template:string, urlParams:CommonUtils.Router.URLParams|null, compInfo:MoleOnlineWebUI.Service.MoleAPI.CompInfo){
                 let emptyPlaceholders:string[] = [];
                 if(urlParams!==null){
                     template = this.replacePlaceholder(template, "COMP-ID",urlParams.computationId);
@@ -244,7 +265,13 @@ namespace PDFReportGenerator.UI{
                     emptyPlaceholders.push("SUBMIT-ID");
                 }
                 template = this.replacePlaceholder(template, "URL",CommonUtils.Router.getCurrentUrl());
-    
+                
+                let isUserStructure = compInfo.PdbId===null;
+
+                template = this.replacePlaceholder(template, "PDBID",(isUserStructure)?"User structure":compInfo.PdbId);
+
+                template = this.replacePlaceholder(template, "ASSEMBLY-ID",(isUserStructure)?"User structure":((compInfo.AssemblyId!==null)?compInfo.AssemblyId:"Asymmetric unit"));
+
                 template = this.replaceEmptyPlaceholders(template,emptyPlaceholders);
     
                 return template;
@@ -405,10 +432,10 @@ namespace PDFReportGenerator.UI{
                 let channelsDBMode = CommonUtils.Router.isInChannelsDBMode();
                 let configParamsPromise;
                 if(channelsDBMode){
-                    configParamsPromise = Promise.resolve(null as MoleOnlineWebUI.Service.MoleAPI.Submission|null);
+                    configParamsPromise = Promise.resolve(null as ConfigPromiseType|null);
                 }
                 else{
-                    configParamsPromise = new Promise<MoleOnlineWebUI.Service.MoleAPI.Submission|null>((res,rej)=>{
+                    configParamsPromise = new Promise<ConfigPromiseType|null>((res,rej)=>{
                         if(urlParams===null){
                             rej("URL parameters cannot be parsed");
                             return;
@@ -421,7 +448,7 @@ namespace PDFReportGenerator.UI{
                                 if(compId===urlParams.computationId){
                                     for(let s of info.Submissions){
                                         if(String(s.SubmitId)===String(urlParams.submitId)){
-                                            res(s);
+                                            res({submission: s, compInfo: info});
                                             return;
                                         }
                                     }
@@ -473,15 +500,15 @@ namespace PDFReportGenerator.UI{
                         let reportContent = "";
     
                         if(!channelsDBMode&&val!==null){
-                            let modeMole = CommonUtils.Misc.isMoleJob(val);
+                            let modeMole = CommonUtils.Misc.isMoleJob(val.submission);
                             let paramsPageTemplate = template.paramsPageHtml.slice();
-                            paramsPageTemplate = this.addParamsPageCommon(paramsPageTemplate,urlParams);
+                            paramsPageTemplate = this.addParamsPageCommon(paramsPageTemplate,urlParams,val.compInfo);
     
                             if(modeMole){
-                                paramsPageTemplate = this.addParamsPageMole(paramsPageTemplate,val.MoleConfig);
+                                paramsPageTemplate = this.addParamsPageMole(paramsPageTemplate,val.submission.MoleConfig);
                             }
                             else{
-                                paramsPageTemplate = this.addParamsPagePores(paramsPageTemplate,val.PoresConfig);
+                                paramsPageTemplate = this.addParamsPagePores(paramsPageTemplate,val.submission.PoresConfig);
                             }
                             reportContent += paramsPageTemplate;
                         }

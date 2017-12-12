@@ -290,7 +290,7 @@ namespace LiteMol.Example.Channels.UI {
                 $("#left-tabs li a[href='#left-tabs-1']")
                     .text("Channel profile");
             }).bind(this));
-
+            
             this.observerChannels = this.props.plugin.subscribe(Bootstrap.Event.Visual.VisualSelectElement, e => {
                 let eventData = e.data as ChannelEventInfo;
                 if(e.data !== void 0 && eventData.source !== void 0 && eventData.source.props !== void 0 && eventData.source.props.tag === void 0){

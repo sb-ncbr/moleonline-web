@@ -13,6 +13,9 @@ namespace MoleOnlineWebUI.Service.Templates{
         private static DEBUG_MODE = Config.CommonOptions.DEBUG_MODE;
         
         private static baseUrl = "/online/templates";
+
+        private static version = 4;
+        private static noCacheMode = true;
         
         private static sendGET(url:string):Promise<any>{
             if(this.DEBUG_MODE)
@@ -45,15 +48,17 @@ namespace MoleOnlineWebUI.Service.Templates{
         }
 
         public static getPDFReportTemplateData():Promise<PDFTemplate>{
-            let urlHTML = `${this.baseUrl}/pdf-report.html`;
+            let cacheToken = (this.noCacheMode)?Math.random():this.version;
+
+            let urlHTML = `${this.baseUrl}/pdf-report.html?version=${cacheToken}`;
             if(this.DEBUG_MODE){
                 console.log(urlHTML);
             }
-            let urlParamsPageHTML = `${this.baseUrl}/pdf-report-params.html`;
+            let urlParamsPageHTML = `${this.baseUrl}/pdf-report-params.html?version=${cacheToken}`;
             if(this.DEBUG_MODE){
                 console.log(urlParamsPageHTML);
             }
-            let urlCSS = `${this.baseUrl}/pdf-report.css`;
+            let urlCSS = `${this.baseUrl}/pdf-report.css?version=${cacheToken}`;
             if(this.DEBUG_MODE){
                 console.log(urlCSS);
             }

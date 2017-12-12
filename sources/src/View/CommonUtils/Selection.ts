@@ -258,7 +258,7 @@ namespace CommonUtils.Selection{
                     return;
                 }
             }
-
+            
             let queries = [];
             for(let residue of residues){
                 queries.push(
@@ -271,7 +271,7 @@ namespace CommonUtils.Selection{
             }
 
             let query = LiteMol.Core.Structure.Query.or(...queries);
-
+            
             let t = plugin.createTransform();
             const visualStyle = LiteMol.Bootstrap.Visualization.Molecule.Default.ForType.get('BallsAndSticks');
             if(visualStyle!==void 0){
@@ -280,7 +280,7 @@ namespace CommonUtils.Selection{
             t.add('polymer-visual', Transformer.Molecule.CreateSelectionFromQuery, { query, name: 'Residues', silent:true }, { ref: CommonUtils.Selection.SelectionHelper.getSelectionVisualRef(), isHidden: true })
                 .then(Transformer.Molecule.CreateVisual, { style: visualStyle }, {isHidden:true});
 
-            plugin.applyTransform(t)
+            plugin.applyTransform(t);
 
             /*.then(()=>{
                 //LiteMol.Bootstrap.Command.Entity.Focus.dispatch(plugin.context, plugin.context.select(CommonUtils.Selection.SelectionHelper.getSelectionVisualRef()));
@@ -292,7 +292,7 @@ namespace CommonUtils.Selection{
             else{
                 this.selectedBulkResidues = void 0;
             }
-
+            
             this.invokeOnResidueBulkSelectHandlers(residues); 
         }
 
