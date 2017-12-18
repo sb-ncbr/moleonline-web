@@ -33,6 +33,10 @@ $( function() {
         $( window ).trigger('contentResize');
     });
 
+    $("#right-panel-toggle-minimize").on("click",function(){
+        $(".chdb-panel.right-panel").toggleClass("minimized");
+    });
+
     //Datagrid
     $( window ).on("resize",dgResize);
     $( window ).on("contentResize",dgResize);

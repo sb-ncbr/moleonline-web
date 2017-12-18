@@ -5,6 +5,8 @@ body{
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-size:10pt;
+    /*min-width:400px;*/
 }
 
 .dropdown-menu a{
@@ -256,13 +258,19 @@ only screen and (max-height: 600px) {
     /*border-bottom: 1px solid #aaa;*/
     border-right: 1px solid #aaa;
 }
+.plugin.sv-minimized{
+    height:65.3vh;
+}
 
 .lm-plugin .lm-viewport-controls{
-    z-index:2;
+    z-index:0;
 }
 
 .plugin.bottom-panel-toggled{
 	height:25vh;
+}
+.plugin.sv-minimized.bottom-panel-toggled{
+    height:32.3vh;
 }
 
 .sequence-viewer{
@@ -355,9 +363,9 @@ only screen and (max-height: 600px) {
 
 .right-panel .ui{
     position:absolute;
-    width:100%;
+    width: 24.7vw;
 	height:66vh;
-    padding: 20px;
+    padding: 10px;
     padding-bottom:1vh;
     overflow-y: auto;
     background: #fff;/*#ccc;*/
@@ -492,14 +500,14 @@ only screen and (max-height: 600px) {
 .ui-selection-header,
 .ui-header{
     background-color: #616161;
-    margin: -20px;
+    margin: -10px;
     padding: 0px;
     margin-bottom: 0.25vh;
-    padding-left: 20px;
-    padding-right: 20px;
+    padding-left: 5px;
+    padding-right: 5px;
     color: white !important;
     text-shadow: none;
-    font-size: 3vh;
+    font-size: 2.5vh;
 }
 
 .ui-selection{
@@ -513,16 +521,22 @@ only screen and (max-height: 600px) {
 .ui-selection .columns.points {
     column-count: 2;
 }
-.ui-selection-clear{
+.ui-selection-clear,
+.ui-selection-clear:hover{
     right: 0;
     position: absolute;
     margin-top: 0.5vh;
     margin-right: 0.5vh;
     max-width: 4vh;
-    height: 3vh;
-    width: 3vh;
-    font-size: 1.5vh;
-    padding: 0.5vh;
+    height: 2.5vh;
+    width: 2.5vh;
+    padding: 0.25vh;
+    
+    background-color: transparent !important;
+    border: none !important;
+    font-size: 1.75vh;
+    margin-top: 0.35vh;
+    color:white;
 }
 
 .ui-header{
@@ -537,9 +551,9 @@ only screen and (max-height: 600px) {
 
 .ui-subheader{
     padding: 0;
-    line-height: 1vh;
-    padding-top: 1.25vh;
-    padding-bottom: 1.25vh;
+    line-height: 2vh;
+    padding-top: 0.5vh;
+    padding-bottom: 0.5vh;
 }
 
 .ui-subheader a{
@@ -554,17 +568,17 @@ only screen and (max-height: 600px) {
     position: absolute;
     right: 0;
     top: 0;
-    height: 3.5vh;
+    height: 2vh;
     padding: 0;
-    line-height: 3.25vh;
 }
 
 .ui-show-all button{
     width: 40px;
-    max-height: 3vh;
+    height: 2vh;
     line-height: 100%;
     margin-right: 1px;
     margin-left: 1px;
+    font-size: 1.25vh;
 }
 
 .ui-item-container{
@@ -573,15 +587,13 @@ only screen and (max-height: 600px) {
 
 .ui-item-container:first-child{
     /*border-top: #9a9a9a 1px solid;*/
-    margin-top: 1vh;
+    margin-top: 0.5vh;
 }
 
 .ui-label{
     font-size: 10pt;
     width: 100%;
-    /*padding-left: 2px;*/
-    padding-top: 5px;
-    /*padding-bottom: 3px;*/
+    padding-top: 2px;
     margin-bottom: 0;
     border-top: #ddd 1px solid;
     padding-left: 19px;
@@ -687,6 +699,25 @@ span.ATable-label {
 
 .ui label{
     font-weight: normal;
+    margin-bottom:2px;
+}
+
+.ui label input[type=checkbox], input[type=radio] {
+    margin-top: 0px;
+    vertical-align: middle;
+}
+
+.submit-form-container .submit-parent, .chdb-panel.right-panel {
+    min-width: 330px;
+}
+.right-panel.minimized{
+    min-width:4px;
+}
+.right-panel .ui{
+    min-width:325px;
+}
+#controls{
+    min-width:330px;
 }
 
 
@@ -706,6 +737,13 @@ only screen and (max-height: 900px) {
     }
     .plugin.bottom-panel-toggled{
         height:30vh;
+    }
+    .plugin.sv-minimized{
+        height:59vh;
+        border-bottom: 1px solid #aaa;
+    }
+    .plugin.sv-minimized.bottom-panel-toggled{
+        height:39vh;
     }
     .sequence-viewer{
         top:50vh;
@@ -743,6 +781,9 @@ only screen and (max-height: 900px) {
     .right-tabs.bottom-tabs-toggled{
         width:61%;
     }
+    .bottom-panel .nav > li > a {
+        padding: 0.5vh 5px !important;
+    }
 }
 .right-panel .toggler {
     margin-bottom: 0;
@@ -765,9 +806,267 @@ only screen and (max-height: 900px) {
     margin-left: 0.5%;
 }
 
+#right-panel-toggle-minimize{
+    display:none;
+}
+
 @media only screen and (max-height: 900px){
     .right-panel .toggler {
         max-height: 4vh;
         line-height: 3.5vh;
+    }
+}
+
+@media only screen and (max-width: 1300px),
+only screen and (max-height: 542px) {
+    .right-panel{
+        width: 45vw;
+        /*z-index: 900;*/
+        background-color: white;
+        border-left: 1px solid #aaa;
+    }
+    .right-panel.minimized{
+        width: 4px;
+    }
+    .plugin,
+    .sequence-viewer,
+    .bottom-panel{
+        width: 99.5vw;
+    }
+
+    .plugin{
+        border-right:none;
+    }
+
+    .current-pbdbid-sign,
+    .download-button,
+    .button.download.dropdown-toggle,
+    .annotate{
+        font-size:10pt;
+    }
+
+    .current-pbdbid-sign{
+        font-size: 10pt;
+        width: 125px;
+        padding-left: 55px;
+        padding-right: 5px;
+        z-index: 945;
+    }
+
+    .annotate{
+        font-size: 10pt;
+        width: 95px;
+        left: 125px;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+    .download-button{
+        font-size: 10pt;
+        width: 155px;
+        left: 220px;
+    }
+
+    #controls{
+        left: 0vw;
+        width: 45vw;
+    }
+
+    .right-panel .ui{
+        width: 44.35vw;
+    }
+
+    .layerVizualizer .common-area{
+        position: absolute !important;
+    }
+
+    .layerVizualizer .control-label{
+        display:none;
+    }
+
+    #bottom-panel-toggler{
+        right: 0px;
+        margin-right: 9px;
+    }
+
+    .left-tabs{
+        width:55%;
+    }
+    .right-tabs{
+        width:45%;
+    }
+    .left-tabs.bottom-tabs-toggled{
+        width:43%;
+    }
+
+    .right-tabs.bottom-tabs-toggled{
+        width:57%;
+    }
+
+    #bottom-tabs-toggler{
+        right: 0px;
+        margin-right: 1px;
+    }
+
+    .layerVizualizer * .controls .control-label{
+        display:none;
+    }
+
+    .lining-residues.select-controls{
+        right: 0.25vw;
+    }
+
+    #right-panel-toggle-minimize{
+        display: block;
+        position: absolute;
+        margin-left: -20px;
+        width: 20px;
+        top: 25vh;
+        border: 1px solid #aaa;
+        border-right: none;
+        background-color: white;
+        line-height: 8vh;
+        text-align: center;
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+        cursor: pointer;
+        padding-left:2px;
+    }
+}
+
+@media only screen and (max-width: 720px){
+    .plugin,
+    .plugin.sv-minimized,
+    .chdb-panel.bottom-panel,
+    .chdb-panel.sequence-viewer{
+        position:relative;
+    }
+
+    .chdb-panel.sequence-viewer{
+        height: 50vh;
+        top: 0vh;
+    }
+    .chdb-panel.bottom-panel{
+        top:25px;
+    }
+
+    .chdb-panel.right-panel{
+        position:fixed;
+    }
+    .chdb-panel.right-panel.has-modal {
+        position: absolute;
+    }
+
+    .plugin,
+    .plugin.sv-minimized,
+    .chdb-panel.bottom-panel .left-tabs,
+    .chdb-panel.bottom-panel .right-tabs{
+        height:100vh;
+        width:100vw;
+        display:block;
+    }
+    .chdb-panel.bottom-panel .right-tabs{
+        top: 100vh;
+    }
+    .sequence-viewer .seq-container{
+        height:50vh;
+    }
+    .sequence-viewer .minimized{
+        height: 50vh;
+        margin-top: 0px;
+    }
+    .sequence-viewer .minimized .seq-container{
+        height:50vh;
+        border-top: 1px solid #aaa;
+        border-bottom: 1px solid #aaa;
+    }
+    .sequence-viewer .sequence-viewer-header .glyphicon{
+        display:none;
+    }
+
+    .layerVizualizer .layer-vizualizer-canvas,
+    .layerVizualizer .canvas-wrapper,
+    .layerVizualizer .fake-canvas{
+        height:80vh;
+    }
+
+    #bottom-panel-toggler,
+    #bottom-tabs-toggler{
+        display:none;
+    }
+    /*
+    .submit-form-container .submit-parent,
+    .chdb-panel.right-panel{
+        min-width:330px;
+    }*/
+    .right-panel.minimized{
+        min-width:4px;
+    }
+    /*
+    .right-panel .ui{
+        min-width:325px;
+    }
+    #controls{
+        min-width:330px;
+    }*/
+    
+}
+@media only screen and (max-width: 700px)
+{
+    .chdb-panel.right-panel{
+        top: 8vh;
+        padding-top: 3px;
+        border-top: 1px solid #aaa;
+        border-bottom: 1px solid #aaa;
+        height: 92vh;
+        padding-bottom:3px;
+
+    }
+    .chdb-panel.right-panel.minimized{
+        width:4px;
+    }
+
+    .submit-form-container .tab-content {
+        max-height: 44.5vh;
+    }
+    .toggled .submit-form-container .tab-content {
+        max-height: 26vh;
+    }
+    
+    .ui{
+        height:36vh !important;
+    }
+    .ui.toggled{
+        height:54vh !important;
+    }
+    #controls{
+        height:54vh !important;
+    }
+    #controls.toggled{
+        height:36vh !important;
+    }
+
+    #controls .submit-parent{
+        height:4vh;
+        border-bottom: 1px solid #aaa;
+        margin-bottom:2px;
+    }
+    
+}
+
+@media only screen and (max-width: 600px)
+{
+    .lm-viewport-controls {
+        margin-top: 35px;
+    }
+    .current-pbdbid-sign .glyphicon,
+    .download-button .glyphicon,
+    .annotate .glyphicon{
+        display: none;
+    }
+}
+@media only screen and (max-width: 400px){
+    .chdb-panel.right-panel{
+        width:85vw;
     }
 }

@@ -1377,8 +1377,8 @@ namespace LayersVizualizer{
             tmpCanvas.style.top="-1000px";
             tmpCanvas.id = this.tmpCanvasId;
 
-            tmpCanvas.width = canvas.width;
-            tmpCanvas.height = canvas.height;
+            tmpCanvas.width = 1882;
+            tmpCanvas.height = 474;
 
             document.body.appendChild(tmpCanvas);
 

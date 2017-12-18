@@ -37,6 +37,17 @@ namespace LiteMol.Example.Channels.UI {
                     this.setState({isLoading:false,data: void 0, error:"Data not available"});
                 }
             });
+
+            MoleOnlineWebUI.Bridge.Events.subscribeOnSequneceViewerToggle((params)=>{
+                if(params.minimized){
+                    $('#plugin').addClass("sv-minimized");
+                }
+                else{
+                    $('#plugin').removeClass("sv-minimized");
+                }
+
+                $( window ).trigger('contentResize');
+            });
         }
 
         private onContentResize(_:any){

@@ -14,8 +14,8 @@ namespace MoleOnlineWebUI.Service.Templates{
         
         private static baseUrl = "/online/templates";
 
-        private static version = 4;
-        private static noCacheMode = true;
+        private static version = 5;
+        private static noCacheMode = false;
         
         private static sendGET(url:string):Promise<any>{
             if(this.DEBUG_MODE)

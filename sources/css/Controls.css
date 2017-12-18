@@ -37,8 +37,9 @@
 
 .submit-form-container .settings-form h3{
     font-weight: bold;
-    margin-top: -3px;
-    margin-bottom: 10px;
+    margin-top: -1px;
+    margin-bottom: 0px;
+    font-size: 15pt;
 }
 
 .submit-form-container .tab-content{
@@ -46,13 +47,13 @@
     overflow-y: auto;
     overflow-x: hidden;
     border-bottom: #ccc 1px solid;
-    padding-left: 13px;
-    padding-right: 15px;
+    padding-left: 5px;
+    padding-right: 5px;
 }
 
 .toggled .submit-form-container .tab-content{
     border-bottom: none;
-    max-height: 57.5vh;
+    max-height: 58vh;
 }
 
 .toggled .submit-form-container .submit-parent{
@@ -63,11 +64,11 @@
     position: absolute;
     bottom: 0px;
     border-top: none;
-    padding-right: 15px;
+    padding-right: 5px;
     left: 0;
     right: 0;
     margin-left: 3px;
-    padding-left: 13px;
+    padding-left: 5px;
     border-left: 1px solid #9a9a9a;
 }
 
@@ -86,7 +87,7 @@
 }
 
 .submit-form-container .nav > li > a {
-    padding: 0.5vh 15px !important;
+    padding: 0.5vh 5px !important;
 }
 
 .submit-form-container .nav-tabs > li > a{
@@ -111,6 +112,11 @@
 .submit-form-container .nav-tabs {
     border-bottom: 1px solid #ddd;
     border-bottom-color: #9a9a9a;
+}
+
+.submit-form-container .btn{
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
 }
 
 .submit-form-container .panel-group,
@@ -203,9 +209,11 @@
     width: auto;
     margin-left: 5px;
     margin-right: 5px;
-    padding-top: 5px !important;
+    /*
+    padding-top: 2px !important;
     padding-left: 5px;
-    padding-right: 2px;
+    padding-right: 2px;*/
+    padding:0 !important;
 /*
     max-height: 3.5vh;
     margin-top: 0.75vh;
@@ -230,6 +238,23 @@
     margin-left:2px;
 }
 
+.submit-form-container .submit,
+.submit-parent .submit-combo,
+.submit-parent .kill-job-button,
+.submit-parent .delete-project-button,
+.submit-parent .clear-button,
+.submit-parent .submit-arrow{
+    height:3vh;
+    line-height: 2.5vh;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+.submit-parent .submit-arrow{
+    padding-bottom: 3px !important;
+    padding-top: 1px !important;
+}
+
+
 .modal-dialog .left-button,
 .modal-dialog .right-button{
     width:49%;
@@ -242,10 +267,11 @@
 }
 
 .submit-form-container .mode-switch{
-    margin-top: 6px;
+    margin-top: 4px;
     cursor: pointer;
     display: inline-block;
-    margin-bottom: 0;
+    margin-bottom: 7px;
+    padding: 1px 5px;
 }
 
 .submit-form-container .mode-switch-button-container{
@@ -375,6 +401,10 @@
     display:none !important;
 }
 
+.settings-form .lm-plugin .lm-panel {
+    margin-bottom: 5px;
+}
+
 @media only screen and (max-width: 1300px),
 only screen and (max-height: 900px) {
     .submit-form-container .tab-content{
@@ -386,7 +416,7 @@ only screen and (max-height: 900px) {
     }
 
     .submit-form-container .nav > li > a {
-        padding: 0.5vh 15px !important;
+        padding: 0.5vh 5px !important;
     }
  
     .submit-form-container .submit,
@@ -396,7 +426,7 @@ only screen and (max-height: 900px) {
     .submit-form-container .submit-combo,
     .submit-form-container .clear-button{
         max-height: 4.5vh;
-        margin-top: 0.5vh;
+        margin-top: 2px;
         margin-bottom: 0.5vh;
         line-height: 2vh;
         padding: 1.25vh 5px;
@@ -408,7 +438,12 @@ only screen and (max-height: 900px) {
 
     .toggled .submit-form-container .tab-content{
         border-bottom: none;
-        max-height: 49vh;
+        max-height: 50vh;
+    }
+
+    .submit-form-container .mode-switch{
+        margin-top:3px;
+        margin-bottom:10px;
     }
 }
 

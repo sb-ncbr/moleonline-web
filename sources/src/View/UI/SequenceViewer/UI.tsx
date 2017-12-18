@@ -10,6 +10,7 @@ namespace SequenceViewer.UI{
 
     interface State{
         data: DataType | null,
+        minimized:boolean
     };
 
     export function render(target: Element, plugin: LiteMol.Plugin.Controller) {
@@ -20,12 +21,14 @@ namespace SequenceViewer.UI{
 
         state:State = {
             data: null,
+            minimized:false
         };        
 
         componentDidMount() {
             MoleOnlineWebUI.Bridge.Events.subscribeProteinDataLoaded((data)=>{
                 this.setState({
-                    data,                    
+                    data,
+                    minimized:this.state.minimized
                 })
             });
         }
@@ -34,25 +37,32 @@ namespace SequenceViewer.UI{
         }
 
         render() {
-            return <div className="">
-                    <Header />
+            return <div className={(this.state.minimized)?"minimized":""}>
+                    <Header onClick={()=>{
+                        let s = this.state;
+                        let newMinimized = !s.minimized;
+                        s.minimized = newMinimized;
+                        this.setState(s);
+
+                        MoleOnlineWebUI.Bridge.Events.invokeOnSequneceViewerToggle({minimized:newMinimized});
+                    }} />
                     <div className="seq-container">
-                        {(this.state.data===null)?<div className="seq-waiting-for-data">Waiting for protein data...</div>:<Sequence data={this.state.data} app={this}/>}
+                        {(this.state.data===null)?<div className="seq-waiting-for-data">Waiting for protein data...</div>:<Sequence data={this.state.data} />}
                     </div>
                 </div>
         }
     }
     
-    class Header extends React.Component<{},{}>{
+    class Header extends React.Component<{onClick:()=>void},{}>{
         render(){
-            return <div className="sequence-viewer-header">
-                Protein Sequence
+            return <div className="sequence-viewer-header" onClick={this.props.onClick}>
+                Protein Sequence <span className="glyphicon glyphicon-resize-vertical"/>
             </div>
         }
     }
 
     interface GroupBounds{start:Number,end:Number};
-    class Sequence extends React.Component<{data:DataType,app: App},{}>{
+    class Sequence extends React.Component<{data:DataType},{}>{
         
         private groupByChains(data:DataType){
             let groups:Map<String,GroupBounds[]> = new Map<String,GroupBounds[]>();
@@ -91,13 +101,13 @@ namespace SequenceViewer.UI{
             let chains:JSX.Element[] = [];
             let chainGroups = this.groupByChains(this.props.data);
             chainGroups.forEach((val,key,map)=>{
-                chains.push(<Chain chainName={key} chainBounds={val} data={this.props.data} app={this.props.app}/>);
+                chains.push(<Chain chainName={key} chainBounds={val} data={this.props.data} />);
             });
 
             let hetResidues = this.getAllHETResiduesIdxes(this.props.data);
             if(hetResidues.length>0){
                 chains.push(
-                    <HETChain idxes={hetResidues} data={this.props.data} app={this.props.app}/>
+                    <HETChain idxes={hetResidues} data={this.props.data} />
                 );
             }
 
@@ -107,7 +117,7 @@ namespace SequenceViewer.UI{
         }
     }
 
-    class Chain extends React.Component<{chainBounds:GroupBounds[],chainName:String,data:DataType, app: App},{}>{  
+    class Chain extends React.Component<{chainBounds:GroupBounds[],chainName:String,data:DataType},{}>{  
         render(){
             let seqResidues:JSX.Element[] = [];
             let lastSeqNumber = -1;
@@ -139,7 +149,7 @@ namespace SequenceViewer.UI{
 
                     lastSeqNumber = seqNumber.valueOf();
                     seqResidues.push(
-                        <SeqResidue residueName={residueName} chainName={chainName} seqLetter={seqLetter} seqNumber={seqNumber} showSeqNumber={showSeqNumber} isHET={false} data={this.props.data} app={this.props.app}/>
+                        <SeqResidue residueName={residueName} chainName={chainName} seqLetter={seqLetter} seqNumber={seqNumber} showSeqNumber={showSeqNumber} isHET={false} />
                     );                    
                 }
             }
@@ -157,7 +167,7 @@ namespace SequenceViewer.UI{
         }
     }
 
-    class HETChain extends React.Component<{idxes:number[],data:DataType, app: App},{}>{  
+    class HETChain extends React.Component<{idxes:number[],data:DataType},{}>{  
         render(){
             let seqResidues:JSX.Element[] = [];
             let lastSeqNumber = -1;
@@ -176,7 +186,7 @@ namespace SequenceViewer.UI{
                 let showSeqNumber = String(seqNumber)!==String(lastSeqNumber+1);
                 lastSeqNumber = seqNumber.valueOf();
                 seqResidues.push(
-                    <SeqResidue residueName={residueName} chainName={chainName} seqLetter={seqLetter} seqNumber={seqNumber} showSeqNumber={showSeqNumber} isHET={true} data={this.props.data} app={this.props.app}/>
+                    <SeqResidue residueName={residueName} chainName={chainName} seqLetter={seqLetter} seqNumber={seqNumber} showSeqNumber={showSeqNumber} isHET={true} />
                 );                    
             }
 
@@ -200,12 +210,27 @@ namespace SequenceViewer.UI{
         seqLetter:string, 
         isHET:boolean,
         showSeqNumber:boolean, 
-        data:DataType, 
-        app: App, 
     }
     interface SeqResidueState{selected:boolean}
     class SeqResidue extends React.Component<SeqResidueProps,SeqResidueState>{
         state:SeqResidueState={selected:false};
+
+        shouldComponentUpdate(nextProps:SeqResidueProps, nextState:SeqResidueState){
+            if(nextState.selected!==this.state.selected){
+                return true;
+            }
+
+            if((nextProps.chainName!==this.props.chainName)
+                || (nextProps.isHET!==this.props.isHET)
+                || (nextProps.residueName!==this.props.residueName)
+                || (nextProps.seqLetter!==this.props.seqLetter)
+                || (nextProps.seqNumber!==this.props.seqNumber)
+                || (nextProps.showSeqNumber!==this.props.showSeqNumber)){
+                return true;
+            }
+            
+            return false;
+        }
 
         componentDidMount(){
             CommonUtils.Selection.SelectionHelper.attachOnClearSelectionHandler(()=>{

@@ -2106,8 +2106,17 @@ namespace Controls.UI{
             let canShiftNext = this.canShiftNext();
             return <div className="submit-parent">
                     <input className="btn btn-primary submit" type="submit" value="Submit" />
-                    <span className="btn btn-primary kill-job-button" disabled={!canKill} onClick={(e=>{if($(e.currentTarget).attr("disabled")!=="disabled"){$('#killJobDialog').modal('show');}})}>Kill</span>
-                    <span className="btn btn-primary delete-project-button" data-toggle="modal" data-target="#deleteProjectDialog" onClick={(e=>{e.preventDefault();return false;})}>Delete</span>
+                    <input type="button" className="btn btn-primary kill-job-button" disabled={!canKill} onClick={(e=>{
+                        if($(e.currentTarget).attr("disabled")!=="disabled"){
+                            $('#killJobDialog').modal('show');
+                            $(".chdb-panel.right-panel").addClass("has-modal");
+                            }
+                        })} value="Kill"/>
+                    <input type="button" className="btn btn-primary delete-project-button" data-toggle="modal" data-target="#deleteProjectDialog" onClick={(e=>{
+                        e.preventDefault();
+                        $(".chdb-panel.right-panel").addClass("has-modal");
+                        return false;
+                        })} value="Delete" />
                     <input className="btn btn-primary clear-button" type="button" value="Clear" onClick={()=>{
                         CommonUtils.FormEvents.Events.invokeOnClear(validationGroup);
                     }} />
@@ -2198,7 +2207,9 @@ namespace Controls.UI{
                                     {this.props.body}
                                 </div>
                                 <div className="modal-footer">
-                                    <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
+                                    <button type="button" className="btn btn-default" data-dismiss="modal" onClick={()=>{
+                                        $(".chdb-panel.right-panel").removeClass("has-modal");
+                                    }} >Close</button>
                                 </div>
                             </div>
                         </div>

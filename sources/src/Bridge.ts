@@ -28,6 +28,7 @@ namespace MoleOnlineWebUI.Bridge{
         poresConfig:MoleOnlineWebUI.Service.MoleAPI.PoresConfig|null,
         mode:"pores"|"mole"
     };
+    export interface ToggleSequenceViewerParams{minimized:boolean};
 
     type SimpleHandler = (args?:any)=>any;
 
@@ -41,6 +42,7 @@ namespace MoleOnlineWebUI.Bridge{
     export type ToggleLoadingScreenHandler = (params:ToggleLoadingScreenParams)=>void;
     export type RunPDFReportHandler = ()=>void;
     export type CopyParametersHandler = (params:CopyParametersParams)=>void;
+    export type OnSequneceViewerToggleHandler = (params:ToggleSequenceViewerParams)=>void;
 
     namespace HandlerTypes{
         export const NewSubmitType = "NEW-SUBMIT";
@@ -54,6 +56,7 @@ namespace MoleOnlineWebUI.Bridge{
         export const RunPDFReportType = "RUN-PDF-REPORT";
         export const CopyParametersType = "COPY-PARAMETERS";
         export const OnReSubmitType = "ON-RESUBMIT";
+        export const OnSequneceViewerToggleType = "ON-SEQ-VIEWER-TOGGLE";
         
         export type NewSubmit = "NEW-SUBMIT";
         export type ChangeSubmitId = "CHANGE-SUBMIT-ID";
@@ -66,6 +69,7 @@ namespace MoleOnlineWebUI.Bridge{
         export type RunPDFReport = "RUN-PDF-REPORT";
         export type CopyParameters = "COPY-PARAMETERS";
         export type OnReSubmit = "ON-RESUBMIT";
+        export type OnSequneceViewerToggle = "ON-SEQ-VIEWER-TOGGLE";
     };
 
     type HandlerType = HandlerTypes.NewSubmit 
@@ -78,7 +82,8 @@ namespace MoleOnlineWebUI.Bridge{
     | HandlerTypes.ToggleLoadingScreen
     | HandlerTypes.RunPDFReport
     | HandlerTypes.CopyParameters
-    | HandlerTypes.OnReSubmit;
+    | HandlerTypes.OnReSubmit
+    | HandlerTypes.OnSequneceViewerToggle;
 
     export class Events{
         private static handlers = new Map<HandlerType,SimpleHandler[]>();
@@ -279,6 +284,24 @@ namespace MoleOnlineWebUI.Bridge{
             if(hndlrs!==void 0){
                 for(let h of hndlrs){
                     h(promise);
+                }
+            }
+        }
+
+        public static subscribeOnSequneceViewerToggle(h:OnSequneceViewerToggleHandler){
+            let list = this.handlers.get(HandlerTypes.OnSequneceViewerToggleType);
+            if(list===void 0){
+                list = [];
+            }
+            list.push(h);
+            this.handlers.set(HandlerTypes.OnSequneceViewerToggleType, list);
+        }
+
+        public static invokeOnSequneceViewerToggle(params:ToggleSequenceViewerParams){
+            let hndlrs = this.handlers.get(HandlerTypes.OnSequneceViewerToggleType);
+            if(hndlrs!==void 0){
+                for(let h of hndlrs){
+                    h(params);
                 }
             }
         }

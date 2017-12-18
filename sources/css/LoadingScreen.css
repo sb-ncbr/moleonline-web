@@ -27,3 +27,14 @@
     display: inline-block;
     margin: auto auto;
 }
+
+@media only screen and (max-width: 1300px){
+    .loading-screen{
+        width:100vw;
+    }
+}
+@media only screen and (max-width: 980px){
+    .loading-screen{
+        padding-top: 45px;
+    }
+}
