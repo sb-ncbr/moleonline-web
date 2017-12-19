@@ -9,7 +9,8 @@ namespace QuickHelp.UI{
         app: App,
         channelSelected: boolean,
         hasSubmissions: boolean,
-        fromPDBID: boolean
+        fromPDBID: boolean,
+        hasChannels: boolean
     };
 
     export function render(target: Element) {
@@ -22,7 +23,8 @@ namespace QuickHelp.UI{
             app: this,
             channelSelected: false,
             hasSubmissions: false,
-            fromPDBID: false
+            fromPDBID: false,
+            hasChannels: false
         };
 
         componentDidMount() {
@@ -47,20 +49,42 @@ namespace QuickHelp.UI{
             if(params!==null){
                 MoleOnlineWebUI.DataProxy.ComputationInfo.DataProvider.subscribe(params.computationId,(compid,info)=>{
                     let s1 = this.state;
+
                     if(info.PdbId===null||info.PdbId===void 0||info.PdbId===""){
                         s1.fromPDBID = false;
                     }
                     else{
                         s1.fromPDBID = true;
                     }
+                    
                     if(info.Submissions.length>0){
                         s1.hasSubmissions = true;
                     }
                     else{
                         s1.hasSubmissions = false;
                     }
+
+                    if(MoleOnlineWebUI.Cache.TunnelName.getCachedItemsCount()>0){
+                        s1.hasChannels = true;
+                    }
+                    else{
+                        s1.hasChannels = false;
+                    }
+
                     this.setState(s1);
                 });
+                MoleOnlineWebUI.Bridge.Events.subscribeChannelDataLoaded((data)=>{
+                    let channelsData = (data.Channels as DataInterface.MoleChannels);
+                    let tunnels:DataInterface.Tunnel[] = [];
+                    tunnels = CommonUtils.Tunnels.concatTunnelsSafe(tunnels,channelsData.MergedPores);
+                    tunnels = CommonUtils.Tunnels.concatTunnelsSafe(tunnels,channelsData.Paths);
+                    tunnels = CommonUtils.Tunnels.concatTunnelsSafe(tunnels,channelsData.Pores);
+                    tunnels = CommonUtils.Tunnels.concatTunnelsSafe(tunnels,channelsData.Tunnels);
+
+                    let s2 = this.state;
+                    s2.hasChannels = tunnels.length>0;
+                    this.setState(s2);
+                })
             }
         }
 
@@ -91,14 +115,36 @@ namespace QuickHelp.UI{
             }
             else{
                 if(!this.state.channelSelected){
-                    hints.push(<li>
-                        You can:
-                        <ul> 
-                            <li>Pick one of available channels to view its properties mapped on 2D representation of tunnel(bottom-left part of screen), properties and residues asociated with tunnel layers or lining residues of selected tunnel.</li>
-                            <li>See summary of properties of all available channels switch to <b>Channels properties</b> tab in bottom-left part of screen.</li>
-                            <li>Or start new submission.</li>
-                        </ul>
-                    </li>);
+                    if(this.state.hasChannels){
+                        hints.push(<li>
+                            You can:
+                            <ul> 
+                                <li>Pick one of available channels to view its properties mapped on 2D representation of tunnel(bottom-left part of screen), properties and residues asociated with tunnel layers or lining residues of selected tunnel.</li>
+                                <li>See summary of properties of all available channels switch to <b>Channels properties</b> tab in bottom-left part of screen.</li>
+                                <li>Or start new submission.</li>
+                            </ul>
+                        </li>);
+                    }
+                    else{
+                        hints.push(<li>
+                            <b>No channels were computed – Tips:</b>
+                            <ul> 
+                                <li>Switch on the box - Ignore HETATMs (discard all the heteroatom from the channel computation).</li>
+                                <li>Or Switch on the box - Ignore Hydrogens (all hydrogens will be excluded from the channel computation).</li>
+                                <li>Set the <b>lower value of  Interior Threshold</b> (in Cavity parameters; e.g. from 1.5 to 1.0).</li>
+                                <li>Set the <b>higher value of Probe Radius</b> (in Cavity parameters; e.g. from 3 to 10).</li>
+                                <li>
+                                    Change the starting point
+                                    <ul>
+                                        <li>Or try to use the Active Sites from CSA (Panel Selection)</li>
+                                        <li>Or choose your own exact point by set the exact values of XYZ coordinates</li>
+                                        <li>Or use the cofactor (e.g. HEM etc.)</li>
+                                    </ul>    
+                                </li>
+                                <li>Try to find your structure in ChannelsDB - <a href="http://ncbr.muni.cz/ChannelsDB" target="_blank">http://ncbr.muni.cz/ChannelsDB</a> and compare with annotated channels.</li>
+                            </ul>
+                        </li>);
+                    }
                 }
                 else{
                     hints.push(<li>

@@ -31,7 +31,7 @@ const plugins = {
 };
 
 let sourcesPath = './sources';
-let destDir = './'+((environment==="prod")?'dist':'build')+'/online';
+let destDir = './'+'build'+'/online';
 let tmpDir = './tmp';
 
 function buildViewResources(){
@@ -70,13 +70,16 @@ function buildViewResources(){
         let images = gulp.src([sourcesPath + '/images/*'])
         .pipe(gulp.dest(destDir + '/images'));
 
+        let imagesFront = gulp.src([sourcesPath + '/images/front/*'])
+        .pipe(gulp.dest(destDir + '/images/front'));
+
         let templates = gulp.src([sourcesPath + '/templates/*'])
         .pipe(gulp.dest(destDir + '/templates'));
 
         let bootstrapStandalone = gulp.src([sourcesPath + '/css/bootstrap.min.css'])
         .pipe(gulp.dest(destDir + '/css'));
 
-        return plugins.merge()([src, cssMin, css, jsMin, js, fonts, images, templates, bootstrapStandalone]);
+        return plugins.merge()([src, cssMin, css, jsMin, js, fonts, images, imagesFront, templates, bootstrapStandalone]);
 }
 
 function buildInitResources(){
@@ -121,23 +124,12 @@ function copyHtmlFiles(){
 }
 
 gulp.task('Clean', ['Clean-Tmp'], function () {
-    if(environment==="prod"){
-        console.log("Cleaning dist folder...");
-        return gulp
-            .src([
-                './dist/*'
-            ], { read: false })
-            .pipe(plugins.clean()());
-    }
-    else{
-        console.log("Cleaning build folder...");
-        return gulp
-            .src([
-                './build/*'
-            ], { read: false })
-            .pipe(plugins.clean()());
-    }
-
+    console.log("Cleaning build folder...");
+    return gulp
+        .src([
+            './build/*'
+        ], { read: false })
+        .pipe(plugins.clean()());
 });
 
 gulp.task('Clean-Tmp', [], function () {

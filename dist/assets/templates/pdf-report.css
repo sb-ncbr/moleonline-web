@@ -1,0 +1,209 @@
+@media not print{	
+	.report-body{
+		display:none;
+	}
+}
+@media only print{
+	body .no-print{
+		display:none;
+	}
+	.report-header table tr td:nth-last-child(1){
+		text-align:right;
+	}
+	.report-header table tr td:nth-last-child(2),
+	.report-header table tr td:nth-first-child(1){
+		text-align:left;
+		width:26mm;
+	}
+	.report-header table tr td{
+		line-height:6pt;
+		height:6pt;
+	}
+	.report-body{
+		display:block;
+	    width: 210mm;
+		/*height: 297mm;*/
+		margin: 0;
+		padding: 2mm 2.5mm;
+		font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+		page-break-after:always;
+	}
+	.report-body .report-tunnel-phys-chem-props table td:nth-first-child(1),
+	.report-body .report-tunnel-phys-chem-props table td:nth-first-child(3){
+		text-align:left;
+		width:15%
+	}
+	.report-body .report-tunnel-phys-chem-props table td:nth-first-child(2),
+	.report-body .report-tunnel-phys-chem-props table td:nth-first-child(4){
+		text-align:right;
+		width:30%
+	}
+	.report-body .report-tunnel-phys-chem-props .bottleneck-black-icon{
+		height:9pt;
+		vertical-align:baseline;
+		margin-right:2px;
+		margin-left:1px;
+	}
+	.report-body.params-page .empty-space,
+	.report-body.params-page .empty-space td{
+		border:0;
+	}
+	.report-body.params-page .empty-space td{
+		height:4pt;
+	}
+	.report-body.params-page h1{
+		text-align:center;
+	}
+	.report-body.params-page .report-params-table{
+		width:100%;
+		border-color:transparent;
+	}
+	.report-body.params-page .report-params-table table{
+		width:100%;
+		display:none;
+	}
+	.report-body.params-page .report-params-table table.visible{
+		display:table;
+	}
+	.report-body.params-page .report-params-table table th{
+		text-align:left;
+	}
+	.report-body.params-page .report-params-table table thead th:first-child{
+		text-align:center;
+	}
+	.report-body.params-page .report-params-table table tbody td{
+		padding-top: 4px;
+		padding-bottom: 4px;
+		line-height:8pt;			
+		height:9pt;
+/*		max-height:9pt;*/
+		font-size:8pt;
+	}
+
+	.report-body.params-page .report-params-table table thead tr:first-child th{
+		border-bottom-style:none;
+	}
+
+	.report-body.params-page .report-params-table table.pores thead tr:first-child th{
+		border-bottom-style:solid;
+		border-bottom-width:2px;
+	}
+
+	.report-body.params-page .report-params-table table tbody th{
+		padding-top: 8px;
+		padding-bottom: 4px;
+		line-height:10pt;			
+		height:10pt;
+		max-height:10pt;
+		font-size:10pt;
+		border-top:0;
+		border-bottom: 2px solid lightgray;
+	}
+	body{
+		width: 210mm;
+		height: 297mm;
+		margin:0;
+		padding:0;	
+	}
+	.report-tunnel-name{
+		text-align: right;
+		font-size: 24pt;
+		font-weight: bold;
+		margin-bottom: 2mm;
+	}
+	.report-3D-view,
+	.report-2D-view{
+		display:none;
+	}
+	.report-3D-view.visible,
+	.report-2D-view.visible{
+		display:block;
+	}
+	.report-3D-view-title,
+	.report-2D-view-title,
+	.report-lining-residues-title,
+	.report-tunnel-phys-chem-props-title{
+		font-weight: bold;
+		font-size: 15pt;
+		margin-bottom: 0.5mm;
+	}
+	.report-3D-screen-img-container,
+	.report-2D-screen-img-container,
+	.report-lining-residues-container  {
+		border: 1px solid #aaa;
+		margin-bottom:15px;
+		height:auto;
+	}
+	.report-lining-residues-container{
+		margin-bottom:0;
+		border:0;
+	}	
+
+	.report-3D-screen-img-container img,
+	.report-2D-screen-img-container img{
+		width: 100%;
+	}
+
+	.report-2D-screen-img-container img{
+		margin-left:2%;
+		margin-top:2%;
+		margin-bottom:2%;
+	}
+
+	.report-lining-residues-container table{
+		height:36%;		
+		width:100%;
+		margin-bottom:0;
+		border-color:blue;
+	}
+
+	.report-lining-residues-container table thead:before{
+		page-break-before: auto;
+		border:0;
+		display:block;
+		color:transparent;
+	}
+
+	.report-lining-residues-container table thead{
+		page-break-before: avoid;
+	}
+
+	.report-lining-residues-container table tr{
+		page-break-inside:avoid; 
+		page-break-after:auto
+	}
+
+	.report-lining-residues-container table tr td,
+	.report-lining-residues-container table tr th{
+		line-height:8pt;			
+		height:9pt;
+		max-height:9pt;
+		font-size:8pt;
+	}
+
+	.report-lining-residues-container table tr td{
+		padding-top: 4px;
+		padding-bottom: 4px;
+	}
+	.report-lining-residues-container table tr th:nth-child(1){
+		width:60px;
+	}
+	.report-lining-residues-container table tr th:nth-child(2){
+		width:70px;
+		text-align:center;
+	}
+	.report-lining-residues-container table tr th:nth-child(3){
+		width:62px;
+	}
+	.report-lining-residues-container table tr th:nth-child(4){
+		width:93px;
+	}
+	.report-lining-residues-container table tr:last-child td{
+		height:auto;
+	}
+
+	.report-ok-icon{
+		width:8pt;
+		height:8pt;
+	}
+}

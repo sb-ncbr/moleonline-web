@@ -34,6 +34,7 @@
     "CommonUtils/Tooltips.ts",  
     "CommonUtils/Misc.ts",
     "CommonUtils/FormEvents.ts",
+    "CommonUtils/Validators.ts",
 
     //Annotation data provider
     /*"../AnnotationDataProvider.ts", */

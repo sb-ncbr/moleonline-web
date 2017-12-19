@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>MoleOnline | Tour through MOLEonline 2.0</title>
+	<meta name="description" content="Tour through MOLEonline 2.0 web application with guidelines how to use MoleOnline. ">
+	<meta name="author" content="Ing. Ondřej Hanák; http://ondrejhanak.cz">
+	<link rel="shortcut icon" href="\images/favicon.ico" type="image/icon">
+	<script type="text/javascript" src="\js/old-web/jsloader.js"></script>
+	<link rel="stylesheet" type="text/css" media="screen" href="\css/old-web/cssloader.css">
+		<link rel="stylesheet" href="\css/old-web/print.front.css" type="text/css" media="print">
+		<link rel="stylesheet" href="\css/old-web/LiteMol-plugin.css" type="text/css">
+		<link rel="stylesheet" href="\css/init-styles.css?version=1.4.6" type="text/css">
+
+</head>
+
+<body>
+
+<div id="page">
+
+	<div id="header">
+		<h1><a href="/">MOLE<em>online</em></a></h1>
+
+		<div id="topmenu">
+			<ul>
+				<li><a href="/">Home</a></li>
+				<li><a href="/online">Online</a></li>
+				<li class="active"><a href="/documentation">Documentation</a></li>
+				<li><a href="/about">About</a></li>
+			</ul>
+		</div> <!-- #topmenu -->
+	</div> <!-- #header -->
+
+	<div id="content">
+		
+
+		<div id="submenu">
+			<a href="/method">Method</a> | 
+			<a href="/examples">Examples</a> | 
+			<a class="active" href="/tour">Tour</a> | 
+			<a href="/faq">FAQ</a>
+		</div>
+
+<h2>Application tour through MOLE<em>online</em> 2.0</h2>
+
+<iframe width="420" height="315" src="http://www.youtube.com/embed/V-6EMFMAFqk" frameborder="0" allowfullscreen></iframe>
+
+<h3>Loading  structure </h3>
+<img src="\images/mole2online_loading_structure.png" alt="MOLEonline intro page" width="200" align="right">
+<p>You can start your tunnel calculation with loading of structure <strong>(A)</strong> by specifying <strong>PDB ID</strong> (automatically load from <a href=http://www.pdb.org>RCSB Protein Data Bank</a>) or <strong>(C)</strong> by <strong>uploading your own file</strong> from hard drive. </p> 
+<p><strong>(B)</strong> In the case of PDB ID file, you can specify whether the biological unit should be used instead of assymetric unit (default, no value selected). Biological units are numbered from nr. 1.</p>
+<p>For example choose PDB ID <strong>1tqn</strong> and click on <strong>Next</strong> button. </p> 
+<p>If your structure has more than one subunits, please prepare your structure in relevant software to contain only the subunits/chains you wish to use prior computation (another option is the use of MOLE 2.0 desktop application, which will be released in a near future).</p>
+
+<h3> Preparation of calculation </h3>
+<img src="\images/mole2online_job_settings.png" alt="MOLEonline job settings page" width="50%" align="right">
+<p>Job settings page is shown after loading of structure. Here your calculation got an <strong>job id</strong>, which can be later used to return to the tunnel calculation and even modify it.</p>
+<p>In the right panel, you can see which structure was used for calculation you can specify a <strong>Starting point </strong> from where the calculation of tunnels will be processed. </p>
+<p>You can specify the starting point by the residues of your choice, or <strong>(A)</strong> you can use offered residues from <a href="http://www.ebi.ac.uk/thornton-srv/databases/CSA/" alt="Catalytic Site Atlas from EBI">Catalytic Site Atlas (CSA)</a>. Starting point is then refined in a sphere around averaged position of those residues defined by Origin radius parameter.</p>
+<p>For example in the case of 1TQN: A GLU 308, A THR 309 or A THR308, A PHE 435, A CYS 442. </p>
+<p>Another way how to specify the starting point is to select residues by clicking on them in the sequence panel in the bottom of the page. <strong>(B)</strong></p> 
+<p>If you are not aware what residue you want to select, but you see it in the structure in Jmol visualization of the molecule in the left panel, you can learn its name and number via Jmol labeling tool. Right click on Jmol window to enter menu and then go to Measurement submenu and follow to Label. Next, you will select residues upon click on them. With knowledge of the residue number, it is then easy to select it in the sequence panel on the bottom of the page.</p>
+<p>Last but not least, starting point can be selected by specifying by its X, Y, and Z coordinates.</p>
+<p>Be also aware, that MOLE<em>online</em> 2.0 for the sake of simplicity use <strong>all</strong> ATOM and HETATM entries in the pdb file exluding water molecules (defined by SOL, WAT, HOH, residues). So if you want to exclude some HETATM, you have to either prepare your pdb file manually and upload it or use MOLE 2.0 desktop application, which has more selection choices.</p>
+<p>After choosing starting point, <strong>(C)</strong> you can continue by clicking on <strong>Submit</strong> to process your job or set advanced settings in the right panel with <strong>(+)</strong> button.</p>
+
+<h3>Advanced settings</h3>
+<img src="\images/mole2online_advanced_settings.png" alt="MOLEonline job settings page" width="25%" align="right">
+<p>Advanced settings offers possibility to adjust parameters determining tunnel searching algorithm. All parameters are set in Angstroms (0.1 nm):</p> 
+<ul>
+<li><strong>Probe radius</strong> - Radius used for construction of surface of biomacromolecule.</li> 
+<li><strong>Interior threshold</strong> - Approximate smallest tunnel radius to use.</li> 
+<li><strong>Surface Cover Radius</strong> - Determines the density of tunnel exits on the molecular surface.</li> 
+<li><strong>Origin radius</strong> - Localization of starting point within this radius.</li>
+<li><strong>Starting point [X,Y,Z]</strong> - Precise localization of starting point instead of list of residues.</li>
+</ul>
+
+<p>After choosing all settings which you need, you can continue by clicking on <strong>Submit</strong>. Now your job is being processed on our server. Calculation takes typically less than 10 seconds</p>
+
+<h3>Tunnels visualization</h3>
+<img src="\images/mole2online_results.png" alt="MOLE<em>online</em> Results page" width="50%" align="right">
+<img src="\images/mole2online_surface.png" alt="MOLE<em>online</em> Surface visualization" width="15%" align="right"></p>
+<p>After the calculation, resulting tunnels can be found in a <strong>Results box</strong> in the right panel. Here, you can choose to switch on/off any tunnel to visualize it in Jmol window <strong>(A)</strong>.</p>
+<p>In addition, you can show chart of <strong>tunnel profile </strong>radius and/or show a <strong>list of lining residues</strong> bordering tunnel in separate windows.</p>
+<p>You can also export results (see bellow) <strong>(B)</strong> and show the molecular surface and starting points before optimization and after optimization with Origin radius parameter <strong>(C)</strong>.</p>
+<p><img src="\images/mole2online_profile.png" alt="MOLE<em>online</em> profile chart" width="25%" align=left><img src="\images/mole2online_lining_residues.png" alt="MOLE<em>online</em> profile chart" width="25%" align="right">
+</p>
+<p>Physicochemical properties of side-chains of residues are calculated <strong>(A)</strong>. Lining residues can be also shown in Jmol panel by selection within lining residue window of all per tunnel <strong>(B)</strong> or individually <strong>(C)</strong>. Residues lining tunnel with their main-chain or side-chain are shown in <strong>bold</strong> or <em>italics</em>, respectively.</p>
+<p>
+
+<p>Results can be later accessed on <a href=http://www.mole.upol.cz/online/391>http://www.mole.upol.cz/online/<strong>job id</strong></a>.</p>
+ 
+<h3>Export of results</h3>
+<img src="\images/mole2online_report.png" alt="MOLE<em>online</em> Report" width="50%" align="right">
+<p>Results can be obtained in several forms:<p>
+<p>Firstly, they are summarized in a form of <strong>report</strong> (Figure on the right). Report contains job id and web address as a possible reference for revisiting your results in the future. It also contains advanced settings which were used for tunnel search. Next all detected tunnels are sorted with profile radius chart and with lining residue list. <strong>Unique lining residue set</strong> is also printed with selection of lining residues which border tunnel with sidechain and are therefore more suited for sidechain movements and possible mutation</p>
+<p>You can preview <strong>report</strong> or immediately <strong>print</strong> it directly from the browser's menu. Report can be downloaded as a html file with "Save as..." option.</p> 
+<p>Tunnels can be downloaded in a form of <strong>PDB file</strong> with dummy atoms lining the tunnel. Radius of the tunnel at every position is saved as a <em>b factor</em> (Figure in the middle).</p>
+<p>A python script for quick visualization of tunnels in <a href="http://www.pymol.org">Pymol</a> can be also downloaded. It can be later shown in Pymol through File > Run option. (Figure on the left)</p>
+<p><img src="\images/mole2online_export_py.png" alt="MOLE<em>online</em> export Pymol" width="25%" align=left><img src="\images/mole2online_export_pdb.png" alt="MOLE<em>online</em> export PDB " width="25%" align="right">
+</p>
+	</div> <!-- #content -->
+	<hr class="cleaner">
+
+</div> <!-- #page -->
+
+<div id="ajaxspinner"></div>
+<!--<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-4336835-6']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>-->
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-4336835-7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-4336835-7');
+</script>
+</body>
+</html>
+

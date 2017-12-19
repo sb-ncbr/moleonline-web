@@ -46,6 +46,10 @@ namespace MoleOnlineWebUI.Cache{
 
             return this.cache.get(channelId);
         }
+
+        public static getCachedItemsCount(){
+            return (this.cache === void 0)?0:this.cache.size;
+        }
     }
 
     export class LastSelectedChannelData{

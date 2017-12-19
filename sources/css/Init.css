@@ -1,5 +1,5 @@
 body{
-    background: #f8f8f8 url('/assets/images/init-bg-compound-transparent.png') 0 0 no-repeat;
+    background: #f8f8f8; /*url('/assets/images/init-bg-compound-transparent.png') 0 0 no-repeat;*/
 }
 
 .InitForm table tr td:first-child{
@@ -42,4 +42,8 @@ a:focus {
 #topmenu li.active a:hover {
     background-color: white;
     color: #000;
+}
+
+.fb-icon{
+    width:50px;
 }

@@ -1,0 +1,72 @@
+<div class='report-body'>
+	<div class='report-tunnel-name'>
+		[[TUNNEL-NAME]]
+	</div>
+	<div class="report-tunnel-phys-chem-props">
+		<div class='report-tunnel-phys-chem-props-title'>Physico-chemical Properties</div>
+		<table class="table table-striped">
+			<tbody>
+				<tr>
+					<td>
+						<span class="glyphicon glyphicon-resize-horizontal properties-icon" /> Length:
+					</td>
+					<td>[[TUNNEL-PROPS-LENGTH]]</td>
+					
+					<td>
+						<img src="../images/bottleneck-radius-black.png" class="bottleneck-black-icon properties-icon" /> Bottleneck:
+					</td>
+					<td>[[TUNNEL-PROPS-BOTTLENECK]]</td>
+				</tr>
+				<tr>
+					<td>
+						<span class="glyphicon glyphicon-tint properties-icon" /> Hydropathy:
+					</td>
+					<td>[[TUNNEL-PROPS-HYDROPATHY]]</td>
+					
+					<td>
+						<span class="glyphicon glyphicon-flash properties-icon" /> Charge:
+					</td>
+					<td>[[TUNNEL-PROPS-CHARGE]]</td>
+				</tr>
+				<tr>
+					<td>
+						<span class="glyphicon glyphicon-plus properties-icon" /> Polarity:
+					</td>
+					<td>[[TUNNEL-PROPS-POLARITY]]</td>
+					
+					<td>
+						<span class="glyphicon glyphicon-scissors properties-icon" /> Mutability:
+					</td>
+					<td>[[TUNNEL-PROPS-MUTABILITY]]</td>
+				</tr>
+			</tbody>
+		</table>	
+	</div>
+	<div class='report-3D-view [[report-3D-view-visible]]'>
+		<div class='report-3D-view-title'>3D view</div>
+		<div class='report-3D-screen-img-container'>
+			<img src='[[3D-SCREEN-SRC]]' />
+		</div>
+	</div>
+	<div class='report-2D-view [[report-2D-view-visible]]'>
+		<div class='report-2D-view-title'>2D view</div>
+		<div class='report-2D-screen-img-container'>
+			<img src='[[2D-SCREEN-SRC]]' />
+		</div>
+	</div>
+	<div class='report-lining-residues'>
+		<div class='report-lining-residues-title'>Lining residues</div>
+		<div class='report-lining-residues-container'>
+			<table class="table table-striped">
+				<thead>
+				<tr><th>Name</th><th>ID</th><th>Chain</th><th>Backbone</th><th>Annotation</th></tr>
+				</thead>
+				<tbody>
+				[[LINING-RESIDUES-TABLE-ROWS]]
+				<tr><td colspan="6"/></tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+<div class="page-break"/>

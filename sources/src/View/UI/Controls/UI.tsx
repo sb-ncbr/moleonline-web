@@ -527,7 +527,7 @@ namespace Controls.UI{
             if(this.Origin.QueryExpression!==null){
                 result.push({
                     type:"Query",
-                    uiType:"Cofactor",
+                    uiType:"PatternQuery",
                     residue: "",
                     value: this.Origin.QueryExpression
                 } as Common.Controls.FromLiteMol.StartingPointQuery);
@@ -567,7 +567,7 @@ namespace Controls.UI{
             if(this.CustomExits.QueryExpression!==null){
                 result.push({
                     type:"Query",
-                    uiType:"Cofactor",
+                    uiType:"PatternQuery",
                     residue: "",
                     value: this.CustomExits.QueryExpression
                 } as Common.Controls.FromLiteMol.StartingPointQuery);
@@ -657,11 +657,6 @@ namespace Controls.UI{
     }
 
     //--
-
-    interface ValidationResult{
-        valid:boolean,
-        message?:string
-    }
 
     interface SettingsProps{
         initialData:Service.CompInfo, 
@@ -893,115 +888,7 @@ namespace Controls.UI{
         getPatternQueryHint(){
             return {link:"https://webchem.ncbr.muni.cz/Wiki/PatternQuery:UserManual",title:"See PatternQuery manual for help."}
         } 
-            
-        validateChainsArray(value:string){
-            return new Promise<ValidationResult>((res,rej)=>{
-                if(value.length===0){
-                    res({valid:true, message:""});
-                }
-
-                let reg = new RegExp(/^[A-Z][\-][\d]*$|^[A-Z]{1}$/);
-                value = value.replace(/\s*,\s*/g,",");
-                value = value.replace(/\s*$/g,'');
-                value = value.replace(/^\s*/g,'');
-                let chains = value.split(",");
-                let valid = true;
-                for(let chain of chains){                    
-                    valid = valid && reg.test(chain);
-                }
-
-                res({
-                    valid,
-                    message:(!valid)?"List of chains is not in readable format!":""
-                });
-            });
-        }
-
-        validateResidueSimpleArray(value:string){
-            return new Promise<ValidationResult>((res,rej)=>{
-                if(value.length===0){
-                    res({valid:true, message:""});
-                }
-                
-                let expectedCount = value.split(',').length;                
-                let valid = CommonUtils.Misc.parseResidues(value).length===expectedCount
-                
-                res({
-                    valid,
-                    message:(!valid)?"List of chains is not in readable format!":""
-                });
-            });
-        }
-
-        validatePoints(value:string){
-            return new Promise<ValidationResult>((res,rej)=>{
-                if(value.length===0){
-                    res({valid:true, message:""});
-                }
-                let v = CommonUtils.Misc.removeMultipleWSp(value);
-                let expectedCount = v.split('],[').length;                
-                let valid = CommonUtils.Misc.parsePoints(value).length===expectedCount
-                
-                res({
-                    valid,
-                    message:(!valid)?"List of points is not in readable format!":""
-                });
-            });
-        }
-
-        validateResidueDoubleArray(value:string){
-            return new Promise<ValidationResult>((res,rej)=>{
-                if(value.length===0){
-                    res({valid:true, message:""});
-                }
-
-                value = value.replace(/\]\s*,\s*\[/g,'],[');
-                
-                let arrays = value.split("],[");
-
-                let expectedCount = value.split(',').length;                
-                let valid = true;
-                let residuesArray = CommonUtils.Misc.parseResiduesArray(value);
-
-                if(residuesArray.length!==arrays.length){
-                    valid = false;
-                }
-                else{
-                    for(let i=0;i<residuesArray.length;i++){
-                        valid = valid && arrays[i].split(",").length===residuesArray[i].length;
-                        if(!valid){
-                            break;
-                        }
-                    }
-                }
-                
-                res({
-                    valid,
-                    message:(!valid)?"Invalid syntax! Should be [A 69, ...], [A 137, ...], ...":""
-                });
-            });
-        }
-
-        validatePatternQuery(v:string){           
-            return new Promise<{valid:boolean,message?:string}>((res,rej)=>{
-                if(v.length===0){
-                    res({valid:true});
-                }
-                MoleOnlineWebUI.Service.PatternQueryAPI.ApiService.getValidationResult(v)
-                    .then((result)=>{
-                        if(result.isOk){
-                            res({valid:true});
-                        }
-                        else{
-                            res({valid:false,message:(result.error===void 0)?"":result.error});
-                        }
-                    })
-                    .catch((err)=>{
-                        rej(err);
-                    });
-                });
-        }
-
+        
         getMoleForm(){
             if(this.state.moleFormData===null){
                 return <div/>
@@ -1059,7 +946,7 @@ namespace Controls.UI{
                                                 control.reset();
                                             });
                                         }).bind(control)();
-                                    }}  validate={this.validatePatternQuery} validationGroup={validationGroup} />,
+                                    }}  validate={CommonUtils.Validators.validatePatternQuery} validationGroup={validationGroup} />,
                                     <Common.Controls.FromLiteMol.CheckBox label="Read All Models" defaultValue={valueOrDefault(data.getReadAllModels(),false)} tooltip={TooltipText.get("readAllModels")} onChange={(v)=>{
                                         let s = this.state;
                                         if(s.moleFormData!==null){
@@ -1089,7 +976,7 @@ namespace Controls.UI{
                                                 control.reset();
                                             });
                                         }).bind(control)();
-                                    }}  validate={this.validateResidueSimpleArray} validationGroup={validationGroup} />,
+                                    }}  validate={CommonUtils.Validators.validateResidueSimpleArray} validationGroup={validationGroup} />,
                                     <Common.Controls.FromLiteMol.TextBox label="Specific Chains" tooltip={TooltipText.get("specificChains")} placeholder="A, B, ..." defaultValue={valueOrDefault(data.getSpecificChains(),"")} onChange={(v)=>{
                                         let s = this.state;
                                         if(s.moleFormData!==null){
@@ -1104,7 +991,7 @@ namespace Controls.UI{
                                                 control.reset();
                                             });
                                         }).bind(control)();
-                                    }}  validate={this.validateChainsArray} validationGroup={validationGroup} />
+                                    }}  validate={CommonUtils.Validators.validateChainsArray} validationGroup={validationGroup} />
                                 ]} expanded={this.state.expandedPanels.activeAtomsResiduesAdvanced} onChange={(e)=>{
                                     let s = this.state;
                                     s.expandedPanels.activeAtomsResiduesAdvanced = e;
@@ -1295,13 +1182,13 @@ namespace Controls.UI{
                                     if(s.moleFormData!==null){
                                         s.moleFormData.setStartingPoints(v);
                                     }
-                                }} formGroup={validationGroup} extraClearGroup={`${validationGroup}/selection`} />,
+                                }} formGroup={validationGroup} extraClearGroup={`${validationGroup}/selection`} allowPatternQuery={true} />,
                                 <Common.Controls.FromLiteMol.StartingPointBox label="End Point" tooltip={TooltipText.get("endPoint")} defaultItems={this.state.moleFormData.getEndingPoints()} noDataText={"No end points selected..."} onChange={(v)=>{
                                     let s = this.state;
                                     if(s.moleFormData!==null){
                                         s.moleFormData.setEndPoints(v);
                                     }
-                                }} formGroup={validationGroup} extraClearGroup={`${validationGroup}/selection`} />,
+                                }} formGroup={validationGroup} extraClearGroup={`${validationGroup}/selection`} allowPatternQuery={false} />,
                             ]} expanded={this.state.expandedPanels.selection} onChange={(e)=>{
                                 let s = this.state;
                                 s.expandedPanels.selection = e;

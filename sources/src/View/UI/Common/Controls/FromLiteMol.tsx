@@ -465,9 +465,9 @@ namespace Common.Controls.FromLiteMol{
     }
     
     type PointType = "Residue" | "Point" | "Query";
-    type UIPointType = "CSA"|"Residue List"|"3D Point"|"Cofactor"|"Current Selection";
+    type UIPointType = "CSA"|"Residue List"|"3D Point"|"Cofactor"|"Current Selection"|"PatternQuery";
 
-    export const StartingPointTypes = ["CSA","Residue List","3D Point","Cofactor","Current Selection"];
+    export const StartingPointTypes = ["CSA","Residue List","3D Point","Cofactor","Current Selection","PatternQuery"];
 
     export interface StartingPoint{
         type: PointType,
@@ -526,6 +526,7 @@ namespace Common.Controls.FromLiteMol{
         onMount?:(control:StartingPointBox)=>void
         formGroup:string,
         extraClearGroup?:string
+        allowPatternQuery:boolean
     }
     interface StartingPointBoxState{
         items:StartingPoint[],
@@ -547,10 +548,16 @@ namespace Common.Controls.FromLiteMol{
             });
         }
 
+        componentWillReceiveProps(nextProps:StartingPointBoxProps){
+            if(this.props.defaultItems!==nextProps.defaultItems||this.props.defaultMode!==nextProps.defaultMode){
+                this.reset();
+            }
+        }
+
         reset(){
             let newMode = (this.props.defaultMode)?this.props.defaultMode:"Current Selection";
             this.setState({
-                items:this.props.defaultItems, 
+                items:[], 
                 mode: newMode
             });
         }
@@ -616,6 +623,9 @@ namespace Common.Controls.FromLiteMol{
         render(){
             let comboItems = [];
             for(let i of StartingPointTypes){
+                if(!this.props.allowPatternQuery&&(i==="Cofactor"||i=="PatternQuery")){
+                    continue;
+                }
                 comboItems.push(
                     new ComboBoxItem(i,i) 
                 );
@@ -638,6 +648,8 @@ namespace Common.Controls.FromLiteMol{
                 case "3D Point":
                     control = <StartingPoint3DPointBox label="" tooltip="" onChange={this.onChange.bind(this)} formGroup={this.props.formGroup} />
                     break;
+                case "PatternQuery":
+                    control = <StartingPointQueryBox label="" tooltip="" onChange={this.onChange.bind(this)} formGroup={this.props.formGroup} />
             }     
 
             return  <div>
@@ -1130,6 +1142,102 @@ namespace Common.Controls.FromLiteMol{
 
             return  <div className="starting-point-control-container">
                         {combo}
+                        <div className='lm-control-row lm-options-group' title={this.props.tooltip}>
+                            <span>{this.props.label}</span>
+                            <div>
+                                {button}
+                            </div>
+                        </div>
+                    </div>
+        }
+    }
+
+    interface StartingPointQueryBoxProps{
+        tooltip:string,
+        label:string,
+        onChange?:(newPoint:StartingPoint[])=>void,
+        formGroup:string
+    }
+    interface StartingPointQueryBoxState{
+        value:string,
+        isValid:boolean,
+        validationInProgress:boolean,
+        validationMessage:string
+    }
+    export class StartingPointQueryBox extends React.Component<StartingPointQueryBoxProps,StartingPointQueryBoxState>{
+        
+        state:StartingPointQueryBoxState = {value:"", isValid:false,validationInProgress:false,validationMessage:"Query cannot be empty..."}
+
+        private static instanceCounter = 0;
+        
+        private onClearGroup = "";
+
+        componentDidMount(){
+            this.onClearGroup = "StartingPointQueryBox"+StartingPointQueryBox.instanceCounter++;
+            CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                if(this.props.formGroup===formGroup||this.onClearGroup===formGroup){
+                    let s = this.state;
+                    s.value = "";
+                    this.setState(s);
+                }
+            });
+        }
+
+        render(){
+
+            let button = LMControls.CommitButton({
+                action:()=>{
+                    if(this.props.onChange!==void 0&&this.state.isValid&&!this.state.validationInProgress){
+                        this.props.onChange([{
+                            type: "Query",
+                            uiType: "PatternQuery",
+                            value: this.state.value,
+                            residue: ""
+                        } as StartingPointQuery]);
+                    }
+                },
+                isOn:(this.state.isValid&&!this.state.validationInProgress),
+                off:this.state.validationMessage,
+                on:"Add",
+            });
+
+            return  <div className="starting-point-control-container">
+                        <TextBox defaultValue={this.state.value} label="Query:" placeholder="Residues('GOL')" onChange={(val)=>{
+                            let s = this.state;
+                            s.value = val;
+                            s.isValid = false;
+                            s.validationInProgress = true;
+                            s.validationMessage = "Validation in progress... Please wait.";
+                            this.setState(s);
+                            CommonUtils.Validators.validatePatternQuery(val).then((result)=>{
+                                let s1 = this.state;
+                                s1.isValid = result.valid;
+                                s1.value = val;
+                                s1.validationInProgress= false;
+
+                                if(result.valid){
+                                    s1.validationMessage = "";
+                                    
+                                }
+                                else{
+                                    s1.validationMessage = (result.message!==void 0)?result.message:"Unkown validation error...";
+                                }
+                                this.setState(s1);
+                            }).catch((err)=>{
+                                let s1 = this.state;
+                                s1.isValid = false;
+                                s1.value = val;
+                                s1.validationInProgress= false;
+                                s1.validationMessage = "Validation API not available. Please try again later.";
+                                this.setState(s1);
+                            })
+                        }} onMount={(control)=>{
+                            CommonUtils.FormEvents.Events.attachOnClearEventHandler(((formGroup:string)=>{
+                                if(this.props.formGroup===formGroup||this.onClearGroup===formGroup){
+                                    window.setTimeout(()=>control.reset());
+                                }
+                            }).bind(control));
+                        }}/>
                         <div className='lm-control-row lm-options-group' title={this.props.tooltip}>
                             <span>{this.props.label}</span>
                             <div>

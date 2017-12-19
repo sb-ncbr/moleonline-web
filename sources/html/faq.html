@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>MoleOnline | FAQ</title>
+	<meta name="description" content="MOLEonline 2.0 frequently asked questions">
+	<meta name="author" content="Ing. Ondřej Hanák; http://ondrejhanak.cz">
+	<link rel="shortcut icon" href="\images/favicon.ico" type="image/icon">
+<script type="text/javascript" src="\js/old-web/jsloader.js"></script>
+<link rel="stylesheet" type="text/css" media="screen" href="\css/old-web/cssloader.css">
+	<link rel="stylesheet" href="\css/old-web/print.front.css" type="text/css" media="print">
+		<link rel="stylesheet" href="\css/old-web/LiteMol-plugin.css" type="text/css">
+		<link rel="stylesheet" href="\css/init-styles.css?version=1.4.6" type="text/css">
+
+
+</head>
+
+<body>
+
+<div id="page">
+
+	<div id="header">
+		<h1><a href="/">MOLE<em>online</em></a></h1>
+
+		<div id="topmenu">
+			<ul>
+				<li><a href="/">Home</a></li>
+				<li><a href="/online">Online</a></li>
+				<li class="active"><a href="/documentation">Documentation</a></li>
+				<li><a href="/about">About</a></li>
+			</ul>
+		</div> <!-- #topmenu -->
+	</div> <!-- #header -->
+
+	<div id="content">
+		
+
+		<div id="submenu">
+			<a href="/method">Method</a> | 
+			<a href="/examples">Examples</a> | 
+			<a href="/tour">Tour</a> | 
+			<a class="active" href="/faq">FAQ</a>
+		</div>
+
+<h2>FAQ</h2>
+<h3>MOLE 2 vs MOLE</h3>
+<p>Q: What is new in the MOLE 2 in comparison with original MOLE?</p>
+<ul>
+<li>better macromolecular surface representation (probe radius in MOLE 2 vs. convex hull in MOLE)</li>
+<li>no need to determine the number of channels prior calculation</li>
+<li>quicker calculation due to the division of the internal space within the macromolecule to separate sub-cavities</li>
+<li>better removal of duplicate channels (surface cover radius parameter, similar channels with RMSD < 0.5 A are reported only once in shorter variant</li>
+<li>automatic selection of the starting points based on detected cavities</li>
+<li>better visualization of the starting points and their optimalized position</li>
+<li>experimental feature - calculation of physico-chemical properties of the residues lining the channel.</li>
+</ul>
+
+<h3>Tunnel detection</h3>
+
+<p>Q: What should the user do to overcome the program's limitations?</p>
+<p>Here we provide several tips how some of the limitations of the implemented algorithms could be overcame as well.</p>
+<p>The first limitation is that tunnel is shown only as balls of maximum size along centerline. This limitation can be overcome when starting points are put along the channel to found whether there are bulges along the central line. However the centerline provide good measure to actually show where the channels are localized in the structure. </p>
+<p>The second limitation is in use of atom-centered Voronoi mesh. It is difficult to overcome
+and the real improvement is debatable. The atom centered Voronoi mesh can be replaced e.g. by power diagram, which will lead to some improvement in precision. However, such improvement is small compared to the uncertainties associated with the chosen structures (e.g. X-ray structures with finite resolution, which is generally higher than 0.8 Å).</p>
+<p> The third limitation is that MOLE<i>online</i> is able to receive only a limited amount of data. Such problem can be overcome by manual preparation and size reduction of macromolecular structure in pdb in any other software prior submitting to server.
+<p>However, we are certain that a user can face many problems trying to analyze his/her specific molecule. <a href=/about>We are ready to help users  and we provide a feedback via e-mails and here to resolve specific problems</a>.</p>
+
+<p>Q: I have tried to find tunnels, but I was not able to get any, what should I do?</p>
+<p>First - try automatic detection of starting points, This might give you a clue, where there are tunnels in your structure and then you can select those closest to the site of your interest (i.e. active site).</p> 
+<p>Another option is to visualize molecular surface. It might happen, that Probe radius parameter is too small and therefore the probe (detecting the molecular surface) can enter into the structure and your tunnel will not appear.</p>
+
+<p>Q: The analysis of transmembrane pores is not as user-friendly as it is for globular proteins, as only the segments of the pores are shown when starting from key residues.</p>
+<p>We started to implement a new feature to make analysis of transmembrane systems more useful and user-friendly. Now we are in the process of extensive testing of this feature in beta versionof MOLEonline server. We plan to publish this feature as soon as we
+complete all relevant tests.</p>
+<h3>Physicochemical Properties</h3>
+<p>Q: It is unclear whether reporting the averages of some channel properties will be that useful?<p>
+<p>MOLEonline 2.0 enables as the only software tool in the market analysis
+of some basic physical-chemical properties - hydropathy, hydrophobicity, polarity and mutability. We believe that this is a step forward in channel analysis, but we are certain that it will take some time to optimize analysis of these features and to fully understand their biological
+relevance. Considering all pros and contras, we decided to keep this functionality in the current version to enable “experiments” with this feature to a broad scientific community.</p> 
+<p>Q: Regarding relative mutability: Isn't any residue mutatable?</p>
+Every amino acid can be mutated; however some amino acids can be mutated more safely with respect to structure/stability/folding of a protein. The relative mutability index reflects this feature, e.g. Pro and Trp residues are typically structurally important and their mutations often lead to unstable proteins or proteins with alternated structures. The relative mutability index which we employ is based on the analysis of the protein sequences (similarly as well known
+BLOSUM and PAM matrices used in sequence alignments) and it was taken from <a href="http://bioinformatics.oxfordjournals.org/content/8/3/275.short"> Jones, D.T., Taylor, W.R. and Thornton, J.M. (1992) The rapid generation of mutation data matrices from protein sequences. Comput. Appl. Biosci., 8, 275-282</a>.	</div> <!-- #content -->
+	<hr class="cleaner">
+
+</div> <!-- #page -->
+
+<div id="ajaxspinner"></div>
+<!--<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-4336835-6']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>-->
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-4336835-7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-4336835-7');
+</script>
+</body>
+</html>
+

@@ -13,9 +13,9 @@
 	<link rel="stylesheet" href="http://beta.mole.upol.cz/libs/css-litemol/LiteMol-plugin.css?lmversion=1484057705188" type="text/css">
 	<!--<link rel="stylesheet" href="/libs/css-litemol/litemol-style.css?lmversion=1484057705188" type="text/css" />
 	<script src="http://beta.mole.upol.cz/libs/LiteMol-plugin.js?lmversion=1493053346323"></script>-->
-	<link rel="stylesheet" href="css/init-styles.css?version=1.4.5" type="text/css">
-	<script src="js/provided.js?version=1.4.5"></script>
-	<script src="js/scripts.js?version=1.4.5"></script>     
+	<link rel="stylesheet" href="css/init-styles.css?version=1.4.6" type="text/css">
+	<script src="js/provided.js?version=1.4.6"></script>
+	<script src="js/scripts.js?version=1.4.6"></script>     
 	<script type="text/javascript">
 	
 	$(function () {
@@ -28,12 +28,12 @@
 		});
 
 		// format hint messages
-		$('span.hint, div.hint').before('<img src="http://beta.mole.upol.cz/images/icons/help.png" class="hint" alt="">').each(function () {
+		$('span.hint, div.hint').before('<img src="/images/help.png" class="hint" alt="">').each(function () {
 			var div = $(this);
 			var img = div.prev('img.hint');
 			div.hide();
 			div.css('position', 'fixed');
-			div.append('<img src="http://beta.mole.upol.cz/images/front/hint_toptip.png" alt="" class="toptip">');
+			div.append('<img src="/images/front/hint_toptip.png" alt="" class="toptip">');
 			img.mouseenter(function () { $(this).next('.hint').show();});
 			img.mouseout(function () { $(this).next('.hint').hide();});
 		});
@@ -89,6 +89,15 @@
   })();
 </script>
 -->
-<script src="\MoleOnlineWebUI-Core-Init.js?version=1.4.5"></script>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-4336835-7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-4336835-7');
+</script>
+<script src="\MoleOnlineWebUI-Core-Init.js?version=1.4.6"></script>
 </body>
 </html>
