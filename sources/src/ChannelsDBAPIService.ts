@@ -2,6 +2,7 @@ namespace MoleOnlineWebUI.Service.ChannelsDBAPI{
 
     import LiteMoleEvent = LiteMol.Bootstrap.Event;
     import FastMap = LiteMol.Core.Utils.FastMap;
+    import Fetching = MoleOnlineWebUI.Service.Fetching;
 
     export interface ResidueAnnotation{
         text: string,
@@ -41,16 +42,19 @@ namespace MoleOnlineWebUI.Service.ChannelsDBAPI{
         private static baseUrl = Config.DataSources.ANNOTATION_API_URL[Config.DataSources.ANNOTATION_API_MODE];
         
         private static sendPOST(url:string,formData:FormData):Promise<any>{
-            return this.handleResponse(fetch(url, {
+            let fetching = Fetching.get();
+            return this.handleResponse(fetching.fetch(url, {
                 method: "POST",
                 body: formData,
             }), url);
         }
         private static sendPOSTjson(url:string,formData:Object):Promise<any>{
+            let fetching = Fetching.get();
+
             const headers = new Headers();
             headers.append("Accept", "application/json");
             headers.append("Content-Type", "application/json");
-            return this.handleResponse(fetch(url, {
+            return this.handleResponse(fetching.fetch(url, {
                 method: "POST",
                 headers,
                 body:  JSON.stringify(formData),
@@ -58,9 +62,10 @@ namespace MoleOnlineWebUI.Service.ChannelsDBAPI{
             }), url);
         }
         private static sendGET(url:string):Promise<any>{
+            let fetching = Fetching.get();
             if(Config.CommonOptions.DEBUG_MODE)
                 console.time(`sendGET '${url}'`);     
-                return this.handleResponse(fetch(url, {
+                return this.handleResponse(fetching.fetch(url, {
                     method: "GET"
                 }), url).then((val)=>{
                     if(Config.CommonOptions.DEBUG_MODE)

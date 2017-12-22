@@ -67,8 +67,7 @@ namespace MoleOnlineWebUI.InitForm.UI{
                         break;                   
                 }
             }
-
-            if(file === void 0){
+            if(file === void 0||file===null){
                 ApiService.initWithParams(pdbid,pores,assembly)
                     .then((response)=>{
                         this.handleFormSubmitResponse(response);

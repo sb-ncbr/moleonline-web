@@ -47,3 +47,11 @@ a:focus {
 .fb-icon{
     width:50px;
 }
+
+figure{
+    text-align: center;
+}
+
+figure img{
+    max-width:100%;
+}

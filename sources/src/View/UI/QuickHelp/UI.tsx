@@ -93,76 +93,93 @@ namespace QuickHelp.UI{
 
         render() {
             let hints:JSX.Element[] = [];
-
+            /*
             if(this.state.fromPDBID){
                 hints.push(<li>
                     To visualize data from <a href="https://webchemdev.ncbr.muni.cz/ChannelsDB/">ChannelsDB</a>, click on <b>#ChannelsDB</b> submission located on <b>Submission tab</b> in the right side of the screen.
                     </li>);
-            }
+            }*/
 
-            if(!this.state.hasSubmissions){
-                hints.push(<li>
-                    To start your own calculation job(submission) fill in submission form located in the Submission settings tab at the right side of the screen. <b>For&nbsp;automatic starting points</b> skip filling the form and click on submit. Or you can choose starting points from available options: 
+            if(!this.state.hasSubmissions){ //has no submissions
+                hints.push(<div>
+                    <b>How to start? Try this:</b>
                     <ul>
-                        <li>Active sites from CSA</li>
-                        <li>Cofactor starting points</li>
-                        <li>By picking some residues from 3D view/protein sequence</li>
-                        <li>By picking from available starting points(Origins section in top-right part of the screen and then by clicking in 3D view on available points represented by balls)</li>
-                        <li>By cavities - Cavities section in the top-right part of the screen, select one or more cavities and then while holding CTRL key left click on highlighted parts of cavities in 3D view</li>
+                        <li>For automatic start just press Submit button</li>
+                        <li>
+                            Or select specific <b>Start or End points</b>
+                            <ul>
+                                <li>by <b>XYZ</b> coordinate or <b>residue</b> selection in 3D or from sequence,</li>
+                                <li>or try to use the Catalytic Active Sites from <b>CSA</b> or <b>cofactors</b> (Panel <b>Selection</b>),</li>
+                                <li>or use facet selection on <b>Surface</b> in 3D viewer using Ctrl+left mouse click,</li>
+                                <li>Or in the structure from precomputed <b>Origin</b> points,</li>
+                            </ul>
+                            and press Submit button. 
+                        </li>
+                        <li>For transmembrane pores switch to <b>Pore mode</b></li>
                     </ul>
-                    Selected points or residues can be used in submission form by <b>Use current selection</b> buttons.
-                </li>);
+                    <b>To calculate transmembrane pore:</b>
+                    <ul>
+                        <li>If you want only transmembrane part of pore - use <b>Membrane region</b> parameter</li>
+                        <li>If structure is beta-sheet transmembrane porin - use <b>Beta structure</b> parameter</li>
+                        <li>Press <b>Submit button</b></li>
+                        <li>For channels and other types of pores switch to <b>Channel mode</b></li>
+                    </ul>
+                    </div>
+                    );
             }
-            else{
-                if(!this.state.channelSelected){
-                    if(this.state.hasChannels){
-                        hints.push(<li>
-                            You can:
-                            <ul> 
-                                <li>Pick one of available channels to view its properties mapped on 2D representation of tunnel(bottom-left part of screen), properties and residues asociated with tunnel layers or lining residues of selected tunnel.</li>
-                                <li>See summary of properties of all available channels switch to <b>Channels properties</b> tab in bottom-left part of screen.</li>
-                                <li>Or start new submission.</li>
-                            </ul>
-                        </li>);
-                    }
-                    else{
-                        hints.push(<li>
-                            <b>No channels were computed – Tips:</b>
-                            <ul> 
-                                <li>Switch on the box - Ignore HETATMs (discard all the heteroatom from the channel computation).</li>
-                                <li>Or Switch on the box - Ignore Hydrogens (all hydrogens will be excluded from the channel computation).</li>
-                                <li>Set the <b>lower value of  Interior Threshold</b> (in Cavity parameters; e.g. from 1.5 to 1.0).</li>
-                                <li>Set the <b>higher value of Probe Radius</b> (in Cavity parameters; e.g. from 3 to 10).</li>
-                                <li>
-                                    Change the starting point
-                                    <ul>
-                                        <li>Or try to use the Active Sites from CSA (Panel Selection)</li>
-                                        <li>Or choose your own exact point by set the exact values of XYZ coordinates</li>
-                                        <li>Or use the cofactor (e.g. HEM etc.)</li>
-                                    </ul>    
-                                </li>
-                                <li>Try to find your structure in ChannelsDB - <a href="http://ncbr.muni.cz/ChannelsDB" target="_blank">http://ncbr.muni.cz/ChannelsDB</a> and compare with annotated channels.</li>
-                            </ul>
-                        </li>);
-                    }
-                }
-                else{
-                    hints.push(<li>
-                        You can: 
-                        <ul>
-                            <li>View properties of selected channel mapped on 2D representation of tunnel(bottom-left part of screen), properties and residues asociated with tunnel layers or lining residues of selected tunnel.</li>
-                            <li>Select another channel</li>
-                            <li>Or start new submission</li>
+            else{ //has submissions
+                if(this.state.hasChannels){ //has submissions and channels were computed
+                    hints.push(<div>
+                        <b>To see channel results:</b>
+                        <ul> 
+                            <li>
+                                You can:
+                                <ul>
+                                    <li>
+                                        Pick one of available channels either in <b>list of channels</b> or <b>in 3D view</b> window 
+                                        to see <b>Channel profile</b> with mapped physicochemical properties and residues 
+                                        associated with tunnel <b>layers</b> or <b>lining residues</b> of selected tunnel.
+                                    </li>
+                                    <li>
+                                        See summary of properties of all available channels upon switch to <b>Channels 
+                                        properties</b> tab in bottom-left part of screen.
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                Try to compare your data with channels from <a target="_blank" href="http://ncbr.muni.cz/ChannelsDB/">ChannelsDB</a>
+                                 - click on <b>#ChDB</b> submission located on <b>Submission tab</b> in the bottom right side of the screen.
+                            </li>
                         </ul>
-                    </li>);
+                    </div>);
+                }else{  //has submissions and channels were not computed
+                    hints.push(<div>
+                        <b>No channels were computed – Tips:</b>
+                        <ul> 
+                            <li>Switch on the box - <b>Ignore HETATMs</b> (discard all the heteroatom from the channel computation).</li>
+                            <li>Set the <b>lower value of Interior Threshold</b> to work with channels with almost closed bottlenecks 
+                            (in Cavity parameters; e.g. from 1.5 to 0.7)</li>
+                            <li>Set the <b>higher value of Probe Radius</b> to detect larger channels which are otherwise taken 
+                            as parts of the surface (in Cavity parameters; e.g. from 5 to 20)</li>
+                            <li>
+                                Change the starting and end points
+                                <ul>
+                                    <li>try to use the <b>Active Sites from CSA</b> or <b>cofactors</b>(Panel Selection)</li>
+                                    <li>Or choose your own exact point by setting the exact values of <b>XYZ</b> coordinates</li>
+                                    <li>or choose end point on surface with Ctrl + left mouse click</li>
+                                </ul>    
+                            </li>
+                            <li>Press <b>Submit button</b></li>
+                        </ul>
+                    </div>);
                 }
             }
-            hints.push(<li>
-                For more information see <a href="/documentation/">documentation page</a>.
-            </li>);
+            hints.push(<div>
+                For more information see <a target="blank" href="/documentation/">documentation page</a>.
+            </div>);
             return <div>
                 <h3>Quick help</h3>
-                <ul>{hints}</ul>
+                {hints}
             </div>
         }
     }  

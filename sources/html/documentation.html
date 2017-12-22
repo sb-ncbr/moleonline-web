@@ -9,9 +9,9 @@
 <script type="text/javascript" src="\js/old-web/jsloader.js"></script>
 <link rel="stylesheet" type="text/css" media="screen" href="\css/old-web/cssloader.css">
 	<link rel="stylesheet" href="\css/old-web/print.front.css" type="text/css" media="print">
-        	<link rel="stylesheet" href="\css/init-styles.css?version=1.4.6" type="text/css">
-	<script src="\js/provided.js?version=1.4.6"></script>
-	<script src="\js/scripts.js?version=1.4.6"></script>     
+        	<link rel="stylesheet" href="\css/init-styles.css?version=1.4.7" type="text/css">
+	<script src="\js/provided.js?version=1.4.7"></script>
+	<script src="\js/scripts.js?version=1.4.7"></script>     
         
 </head>
 
@@ -44,29 +44,187 @@
 
 <h2>MOLE<em>online</em> documentation</h2>
 
-<p><a href="/method/">Method section</a> describes the tunnel detection algorithm used in MOLE 2.0</p>
-<p><a href="/examples/">Examples section</a> shows possible uses of MOLE 2.0 and MOLE<em>online</em> 2.0 applications</p> 
+<p><a href="/method/">Method section</a> describes the channel detection algorithm used in MOLE</p>
+<p><a href="/examples/">Examples section</a> shows possible uses of MOLE<em>online</em> application</p> 
 <p><a href="/tour/">Tour section</a> guide through MOLE<em>online</em> application</p>
 
 <p><a href="/faq/">FAQ</a> Frequntly Asked Questions</p>
+
+<h3>Channels</h3>
+<p>
+	Channels (tunnels and pores) are highly important structural pathways within proteins and other biomacromolecules. 
+	Tunnels connect internal spaces of biomacromolecules with exterior enabling, e.g., substrate/product transport 
+	towards enzymes’ active sites, nascent synthesized proteins to leave ribosomal proteosynthetic center via ribosomal 
+	exit tunnel, etc. Pores are channels passing through the whole biomacromolecular structure, typically facilitating 
+	transport of ions or molecules through cellular biomembranes.
+</p>
+<p>
+	The calculation setup is realized via an interactive interface consisting of a few components (Figure 1). 
+	Structure visualization is achieved by <a target="_blank" href="http://www.litemol.org/">LiteMol</a> Javascript application 
+	which is capable to visualize the uploaded structure and the computed channels.
+</p>
+<figure>
+	<img src="\images/documentation_GUI_with_description.png" alt="Description of GUI">
+	<figcaption>Figure 1 – UX design of MOLEonline result webpage for human aquaporin (PDB ID: <a href="/pdbid/?pdbid=4CSK">4CSK</a>).</figcaption>
+</figure>
+
+<h4>Initiation</h4>
+<ul>
+	<li>Upload from PDBe database via PDBID with Assembly ID (optional) or as a biological unit.</li>
+	<li>Upload PDB or mmCIF formats. </li>
+</ul>
+<h4>Mode selection and Channel calculation parameters</h4>
+<ul>
+	<li>
+		<b><i>Pore mode</i></b> - transmembrane pores<br/>
+		<ul>
+			<li>
+				membrane position from <a target="_blank" href="http://opm.phar.umich.edu/">Orientations of Proteins in Membranes (OPM) database</a> 
+				or calculated with <a target="_blank" href="http://bioinfadmin.cs.ucl.ac.uk/downloads/memembed/">MEMEMBED program</a>. 
+			</li>
+			<li><i>Membrane region parameter</i> - calculate pore in transmembrane region only</li>
+			<li><i>Beta structure parameter</i> is recommended for transmembrane regions formed by β-barrel structure</li>
+		</ul>
+	</li>
+	<li>
+		<b><i>Channels mode</i></b> - identification of channels and other types of pores<br/>
+		<ul>
+			<li>
+				Start and end points user definition.
+				<ul>
+					<li>list of residues (selectable from sequence or 3D structure)</li>
+					<li>XYZ coordinates</li>
+					<li>catalytic site residues from <a target="_blank" href="https://www.ebi.ac.uk/thornton-srv/databases/CSA/">Catalytic Site Atlas (CSA)</a></li>
+					<li>from <a target="_blank" href="https://webchemdev.ncbr.muni.cz/ChannelsDB/documentation.html#db-cofactors">cofactors</a></li>
+					<li>using <a target="_blank" href="http://ncbr.muni.cz/PatternQuery/">PatternQuery language</a></li>
+					<li>on surface using Ctrl + left mouse click (Figure 2)</li>
+				</ul>
+				<figure>
+					<img src="\images/documentation_GUI_start_end_point_selection.png" alt="Start/End point selection">
+					<figcaption>Figure 2 – Interactive selection of start and end points via residues or XYZ coordinates. End point can be selected as a facet on the surface with Ctrl + left mouse click.</figcaption>
+				</figure>
+			</li>
+			<li>
+				Automatic Start points definition in the deepest points within cavities - <b>Origins</b>
+			</li>
+			<li>
+				Cavity parameters
+				<ul>
+					<li>
+						<i>Probe Radius</i> (default 5 Å) - define coarseness of the surface (larger values are recommended for the detection of 
+						larger channels, e.g. 20 Å for detection of peptide channel in ribosome) 
+					</li>
+					<li>
+						<i>Interior Threshold</i> (default 1.1 Å) - define minimal size of tetrahedrons 
+						(smaller allows detection of channels with smaller bottlenecks)
+					</li>
+				</ul>
+			</li>
+			<li>
+				Channel parameters
+				<ul>
+					<li>
+						<i>Origin Radius</i> (default 5 Å) -  optimization of starting point within sphere 
+					</li>
+					<li>
+						<i>Surface Cover Radius</i> (default 10 Å) - only channels with endpoints further than this parameter apart are shown
+					</li>
+					<li>
+						<i>Weight Function</i> selection of priority among channels
+						<ul>
+							<li>
+								<b><i>Voronoi scale</i></b> (default) - adds to original Length and Radius weight function also the differences between the geometrical centers of tetrahedrons and resulting channel spheres. As such Voronoi scale weight function prefers inward facing tetrahedrons. Weight is calculated as W = (L/(D*D+ε))*(S(a)+S(b)), where L is length of edge, D is distance to closest vdW sphere, ε is small number to avoid division by zero and S(a) and S(b) is the distance between center of geometrical centers of two closest tetrahedrons and resulting channel spheres.
+							</li>
+							<li>
+								<b><i>Length+Radius</i></b> (original in previous MOLEonline version) - weight of edges for channels are calculated as W = L/(D*D+ε),
+							</li>
+							<li>
+								<b><i>Length</i></b> - weight is calculated just as W = L. This function does not take into account bottlenecks. 
+							</li>
+						</ul>
+					</li>
+					<li>
+						<i>Merge Pores</i> (disabled on default) - merge tunnels starting from the same starting point to form pores 
+					</li>
+					<li>
+						<i>Automatic Pores (disabled on default)</i> - compute pores in all cavities
+					</li>
+				</ul>
+			</li>
+			<li>
+				<i>Channel Advanced parameters</i>
+				<ul>
+					<li>
+						<i>Bottleneck Radius</i> (default 1.2 Å) - minimum radius of the channel
+					</li>
+					<li>
+						<i>Bottleneck Tolerance</i> (default 3 Å) - maximum length of channel segment narrower than bottleneck radius. It can be used for closed channel detection.
+					</li>
+					<li>
+						<b><i>Max Tunnel Similarity</i></b> (default 0.7) - limit of similarity of tetrahedrons between channels. Longer similar channel is discarded.
+					</li>
+				</ul>
+			</li>
+		</ul>
+	</li>
+</ul>
+<h4>Results visualization and analysis</h4>
+<p>Calculated channels are sorted according to their type to</p>
+<ul>
+	<li>Tunnels (from starting point to surface end point)</li>
+	<li>Pores (from surface to surface through structure)</li>
+	<li>and Paths (between two defined points)</li>
+</ul>
+<p>Channels are further sorted according to their cavities by their lengths.</p>
+<p>Interactive channels visualization runs in LiteMol Viewer.</p>
+<p>Channel profile can be seen in the bottom left corner of the webpage. Two profiles can be visualized simultaneously showing physicochemical properties along channel length (on x-axis):</p>
+<ul>
+	<li>
+		by color filling
+		<ul>
+			<li><i>charge</i> - charged amino acid residues (positive ARG, LYS, HIS; negative ASP, GLU).</li>
+			<li><i>hydrophobicity</i> - Kyte and Doolittle scale (ARG -4.5 ; LEU +4.5), </li>
+			<li><i>hydropathy</i> - Cid scale (GLU -1.14; ILE +1.81),</li>
+			<li><i>polarity</i> - Zimmerman scale (ALA, GLY 0; ARG +52)</li>
+			<li><i>mutability</i> - Jones scale (TRP 25; SER 117)</li>
+		</ul>
+	</li>
+	<li>
+		by y-axis value
+		<ul>
+			<li><i>Radius</i> - radius of maximum sphere in this layer</li>
+			<li>
+				<i>Free Radius</i> - channel radius to only main chains of the lining amino acids. May represent maximal radius given by the position of protein backbone, which can be achieved by reconformation of the amino acid side chain aside of the channel or virtual glycine mutation
+			</li>
+			<li><i>BRadius</i> - adds to the Radius value RMSF of the residues along the channel (calculated from B-factors stored with the structure) to reflect local flexibility.</li>
+		</ul>
+	</li>
+</ul>
+<p>Overall results for all considered channels are also summarized in <b>Channels properties</b>.</p>
+<h4>Submissions</h4>
+<ul>
+	<li>Each job has random job ID to ensure private access. </li>
+	<li>History of individual submissions within job ID can be browsed in the bottom right corner.</li>
+	<li>The user can compare own results with the annotated channels deposited in <b>ChannelsDB</b> if available.</li>
+	<li>The user can also send the results as an input of channel <b>annotation</b> to ChannelsDB using a simple form available on top of the page.</li>
+</ul>
+<h4>Export of results</h4>
+<p>Results can be downloaded in various formats:</p>
+<ul>
+	<li>macromolecule itself in <b>mmCIF</b> format </li>
+	<li>channel coordinates in <b>PDB</b> format</li>
+	<li>PyMol, <b>VMD</b>, and <b>Chimera</b> visualization scripts</li>
+	<li>all information as rich <b>JSON</b> or <b>ZIP</b> files for further textual analysis</li>
+	<li>Channel profiles in <b>PNG</b> or <b>SVG</b> format</li>
+	<li>Report for individual channels can be downloaded in <b>PDF</b> format.</li>
+</ul>
 	</div> <!-- #content -->
 	<hr class="cleaner">
 
 </div> <!-- #page -->
 
 <div id="ajaxspinner"></div>
-<!--
-<script type="text/javascript">
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-4336835-6']);
-  _gaq.push(['_trackPageview']);
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-</script>
--->
+
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-4336835-7"></script>
 <script>

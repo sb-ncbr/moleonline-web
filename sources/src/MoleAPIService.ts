@@ -1,5 +1,7 @@
 namespace MoleOnlineWebUI.Service.MoleAPI{
 
+    import Fetching = MoleOnlineWebUI.Service.Fetching;
+    
     export type ComputationStatus = 
         "Initializing"|
         "Initialized"|
@@ -60,7 +62,7 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
         SurfaceCoverRadius: number,
         UseCustomExitsOnly: boolean
     };
-    export type MoleConfigNonActiveResidues = MoleConfigResidue; //TODO:...
+    export type MoleConfigNonActiveResidues = MoleConfigResidue; 
     export interface MoleConfigOrigin{
         Points: MoleConfigPoint[]|null,
         QueryExpression: string|null,
@@ -95,16 +97,18 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
         private static baseUrl = Config.DataSources.API_URL[Config.DataSources.MODE];
         
         private static sendPOST(url:string,formData:FormData):Promise<any>{
-            return this.handleResponse(fetch(url, {
+            let fetching = Fetching.get();
+            return this.handleResponse(fetching.fetch(url, {
                 method: "POST",
                 body: formData,
             }), url);
         }
         private static sendPOSTjson(url:string,formData:Object):Promise<any>{
+            let fetching = Fetching.get();
             const headers = new Headers();
             headers.append("Accept", "application/json");
             headers.append("Content-Type", "application/json");
-            return this.handleResponse(fetch(url, {
+            return this.handleResponse(fetching.fetch(url, {
                 method: "POST",
                 headers,
                 body:  JSON.stringify(formData),
@@ -112,9 +116,10 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
             }), url);
         }
         private static sendGET(url:string):Promise<any>{
+            let fetching = Fetching.get();
             if(Config.CommonOptions.DEBUG_MODE)
                 console.time(`sendGET '${url}'`);     
-                return this.handleResponse(fetch(url, {
+                return this.handleResponse(fetching.fetch(url, {
                     method: "GET"
                 }), url).then((val)=>{
                     if(Config.CommonOptions.DEBUG_MODE)
@@ -253,6 +258,8 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
         }
 
         public static getProteinStructure(computationId:string, submitId:number):Promise<ProteinData>{
+            let fetching = Fetching.get();
+
             let url = `${this.baseUrl}/Data/${computationId}?submitId=${submitId}&format=molecule`;
             if(this.DEBUG_MODE){
                 console.log(url);
@@ -263,7 +270,7 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
             return new Promise<any>((res,rej)=>{
                 if(this.DEBUG_MODE)
                     console.time('protein-raw');
-                fetch(url, {
+                fetching.fetch(url, {
                     method: "GET",
                 })
                 .then((rawResponse)=>{

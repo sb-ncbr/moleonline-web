@@ -878,7 +878,7 @@ namespace Controls.UI{
                                 let state = this.state;
                                 state.mode = (this.state.mode==="Mole")?"Pores":"Mole";
                                 this.setState(state);
-                            }}>Switch to {(this.state.mode==="Mole")?"Pores":"Mole"} calculation</span>
+                            }}>Switch to {(this.state.mode==="Mole")?"Pore":"Channels"} mode</span>
                     </div>
                     {form}
                 </div>

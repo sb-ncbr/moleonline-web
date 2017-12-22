@@ -18,9 +18,10 @@ namespace MoleOnlineWebUI.Service.Templates{
         private static noCacheMode = false;
         
         private static sendGET(url:string):Promise<any>{
+            let fetching = Fetching.get();
             if(this.DEBUG_MODE)
                 console.time(`sendGET '${url}'`);     
-                return this.handleResponse(fetch(url, {
+                return this.handleResponse(fetching.fetch(url, {
                     method: "GET"
                 }), url).then((val)=>{
                     if(this.DEBUG_MODE)

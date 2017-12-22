@@ -13,7 +13,7 @@
     "jsx": "react",
     "module": "system",
     "types": [],
-    "skipDefaultLibCheck": true
+    "skipDefaultLibCheck": true 
   },
   "files": [
     "../../provided/src/LiteMol-plugin.d.ts",
@@ -23,6 +23,7 @@
     "../../config/common.ts",
     "../../../tmp/config.ts",
 
+    "../FetchingIf.ts",
     "../SimpleRouter.ts",
     "../MoleAPIService.ts",
     "../PatternQueryAPIService.ts",

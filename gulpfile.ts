@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as gulp from 'gulp'
 import compilets from './ext/Compile'
 
-let DEBUG = true;
+let DEBUG = false;
 let  environment = (process.env.ENVIRONMENT!==void 0)?process.env.ENVIRONMENT:"local";
 
 console.log(`Building for '${environment}' environment...`);
@@ -45,23 +45,24 @@ function buildViewResources(){
         let providedCss = [sourcesPath + '/provided/css/*'];
         let css = gulp.src([sourcesPath + '/css/*','./'])
         .pipe(plugins.sass()({ outputStyle: minify ? 'compressed' : void 0 }).on('error', plugins.sass().logError))
-
         .pipe(plugins.concat()('styles.css'))
         .pipe(gulp.dest(destDir + '/css'));
 
         let cssMin = gulp.src(providedCss)
         .pipe(plugins.concat()('provided.css'))
+        .pipe(plugins.sass()({ outputStyle: minify ? 'compressed' : void 0 }).on('error', plugins.sass().logError))
         .pipe(gulp.dest(destDir + '/css'));
 
         let providedJs = [sourcesPath + '/provided/js/*'];
         
         let jsMin = gulp.src(providedJs)
         .pipe(plugins.concat()("provided.js"))
+        .pipe(plugins.uglify()())
         .pipe(gulp.dest(destDir + '/js'));
 
         let js = gulp.src([sourcesPath + '/js/*'])
-        .pipe(plugins.uglify()())
         .pipe(plugins.concat()("scripts.js"))
+        .pipe(plugins.uglify()())
         .pipe(gulp.dest(destDir + '/js'));
 
         let fonts = gulp.src([sourcesPath +'/fonts/*'])
@@ -106,13 +107,8 @@ function buildInitResources(){
 
         .pipe(plugins.concat()('init-styles.css'))
         .pipe(gulp.dest(destDir + '/css'));
-        /*
-        let jsMin = gulp.src(providedJs)
-        .pipe(plugins.concat()("init-provided.js"))
-        .pipe(gulp.dest(destDir + '/js'));
-        */
 
-        return plugins.merge()([src/*, jsMin*/]);
+        return plugins.merge()([src]);
 }
 
 function copyHtmlFiles(){

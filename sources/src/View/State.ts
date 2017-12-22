@@ -295,8 +295,8 @@ namespace LiteMol.Example.Channels.State {
                         if(Config.CommonOptions.DEBUG_MODE)
                             console.log("Waiting for status change");
                     }
-                    else if(status.Status === "Initialized"){                        
-                        acquireData(computationId,submitId,plugin,res,rej,!proteinLoaded,submitId==0,channelsDB);
+                    else if(status.Status === "Initialized"){                 
+                        acquireData(computationId,submitId,plugin,res,rej,!proteinLoaded,submitId==0,channelsDB);   //TODO podminka pro prenacteni kanalu pro submit 0
                     }
                     else if(status.Status === "FailedInitialization" || status.Status === "Error" || status.Status === "Deleted" || status.Status === "Aborted"){
                         rej(status.ErrorMsg);

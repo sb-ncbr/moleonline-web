@@ -1,5 +1,7 @@
 namespace MoleOnlineWebUI.Service.PatternQueryAPI{
 
+    import Fetching = MoleOnlineWebUI.Service.Fetching;
+    
     export interface PatternQueryResponse{
         isOk: boolean,
         error?: string
@@ -11,7 +13,8 @@ namespace MoleOnlineWebUI.Service.PatternQueryAPI{
         private static baseUrl = Config.DataSources.PATTERN_QUERY_API_URL[Config.DataSources.PATTERN_QUERY_MODE];
         
         private static sendGET(url:string):Promise<any>{
-            return this.handleResponse(fetch(url, {
+            let fetching = Fetching.get();
+            return this.handleResponse(fetching.fetch(url, {
                 method: "GET",
             }), url);
         }

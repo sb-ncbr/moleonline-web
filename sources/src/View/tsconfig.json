@@ -9,7 +9,7 @@
     "strictNullChecks": true,
     "noImplicitThis": true,
     "lib": [ "es6", "es2015.collection", "dom", "es2015.promise"],
-    "target": "es6",
+    "target": "es5",
     "jsx": "react",
     "module": "system",
     "types": [],
@@ -39,6 +39,7 @@
     //Annotation data provider
     /*"../AnnotationDataProvider.ts", */
 
+    "../FetchingIf.ts",
     "../StaticData.ts",
     "../SimpleRouter.ts",
     "../MoleAPIService.ts",

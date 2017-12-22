@@ -1,5 +1,7 @@
 namespace MoleOnlineWebUI.Service.AnnotationToChannelsDBService{
 
+    import Fetching = MoleOnlineWebUI.Service.Fetching;
+
     export interface ChannelsDBResponse{
         Status: "OK"|"Error",
         Msg: string
@@ -38,10 +40,11 @@ namespace MoleOnlineWebUI.Service.AnnotationToChannelsDBService{
         private static baseUrl = Config.DataSources.ANNOTATION_API_URL[Config.DataSources.ANNOTATION_API_MODE];
         
         private static sendPOSTjson(url:string,formData:Object):Promise<any>{
+            let fetching = Fetching.get();
             const headers = new Headers();
             headers.append("Accept", "application/json");
             headers.append("Content-Type", "application/json");
-            return this.handleResponse(fetch(url, {
+            return this.handleResponse(fetching.fetch(url, {
                 method: "POST",
                 headers,
                 body:  JSON.stringify(formData),
