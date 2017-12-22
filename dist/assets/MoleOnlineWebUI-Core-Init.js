@@ -66,6 +66,130 @@ var Config;
     Config.DataSources.ANNOTATION_API_MODE = "webchem";
     Config.CommonOptions.DEBUG_MODE = false;
 })(Config || (Config = {}));
+var MoleOnlineWebUI;
+(function (MoleOnlineWebUI) {
+    var Service;
+    (function (Service) {
+        var Fetching = (function () {
+            function Fetching() {
+            }
+            Fetching.resolveImpl = function () {
+                //fetch() is currently overriden by polyfill - should be working even for IE 11 and Safari
+                if (fetch !== void 0) {
+                    console.log("Fetching: Using Fetching API impl.");
+                    return new FetchingFetchImpl();
+                }
+                console.log("Fetching: Using default impl.");
+                //NOTICE: most cross platform impl should be set as default in here
+                return new FetchingJQueryImpl();
+            };
+            Fetching.get = function () {
+                if (this.impl === null) {
+                    this.impl = this.resolveImpl();
+                }
+                return this.impl;
+            };
+            return Fetching;
+        }());
+        Fetching.impl = null;
+        Service.Fetching = Fetching;
+        var FetchingFetchImpl = (function () {
+            function FetchingFetchImpl() {
+            }
+            FetchingFetchImpl.prototype.fetch = function (url, params) {
+                if (params.method === "GET") {
+                    var getParams = params;
+                    return fetch(url, {
+                        method: "GET"
+                    });
+                }
+                else {
+                    var postParams = params;
+                    return fetch(url, {
+                        method: "POST",
+                        headers: postParams.headers,
+                        body: postParams.body
+                    });
+                }
+            };
+            return FetchingFetchImpl;
+        }());
+        Service.FetchingFetchImpl = FetchingFetchImpl;
+        var FetchingJQueryImpl = (function () {
+            function FetchingJQueryImpl() {
+            }
+            FetchingJQueryImpl.dataToResponse = function (data, url) {
+                return {
+                    ok: true,
+                    arrayBuffer: function () {
+                        throw new Error("NotImplemented!");
+                    },
+                    body: null,
+                    headers: new Headers(),
+                    status: 200,
+                    blob: function () { return Promise.reject("NotImplemented!"); },
+                    bodyUsed: false,
+                    formData: function () {
+                        return Promise.reject("NotImplemented!");
+                    },
+                    type: "cors",
+                    statusText: "",
+                    url: url,
+                    redirected: false,
+                    clone: function () { throw new Error("NotImplemented!"); },
+                    json: function () { return Promise.resolve(data); },
+                    text: function () { return Promise.resolve(String(data)); },
+                };
+            };
+            FetchingJQueryImpl.prototype.fetch = function (url, params) {
+                if (params.method === "GET") {
+                    return new Promise(function (res, rej) {
+                        $.get(url, function () { })
+                            .done(function (data) {
+                            res(FetchingJQueryImpl.dataToResponse(data, url));
+                        })
+                            .fail(function (err) {
+                            rej(err);
+                        });
+                    });
+                }
+                else {
+                    var postParams_1 = params;
+                    return new Promise(function (res, rej) {
+                        var headers = {};
+                        if (postParams_1.headers !== void 0) {
+                            headers = {};
+                            postParams_1.headers.forEach(function (val, key) {
+                                if (postParams_1.headers === void 0) {
+                                    return;
+                                }
+                                if (val !== null) {
+                                    headers[key] = val;
+                                }
+                            });
+                        }
+                        $.ajax({
+                            url: url,
+                            type: 'post',
+                            data: JSON.parse(JSON.stringify(postParams_1.body)),
+                            dataType: "json",
+                            headers: headers,
+                            success: function (data) { }
+                        })
+                            .done(function (data) {
+                            res(FetchingJQueryImpl.dataToResponse(data, url));
+                        })
+                            .fail(function (err) {
+                            rej(err);
+                        });
+                    });
+                }
+            };
+            return FetchingJQueryImpl;
+        }());
+        Service.FetchingJQueryImpl = FetchingJQueryImpl;
+    })(Service = MoleOnlineWebUI.Service || (MoleOnlineWebUI.Service = {}));
+})(MoleOnlineWebUI || (MoleOnlineWebUI = {}));
 var SimpleRouter;
 (function (SimpleRouter) {
     var URL = (function () {
@@ -295,6 +419,7 @@ var MoleOnlineWebUI;
     (function (Service) {
         var MoleAPI;
         (function (MoleAPI) {
+            var Fetching = MoleOnlineWebUI.Service.Fetching;
             ;
             ;
             ;
@@ -311,25 +436,28 @@ var MoleOnlineWebUI;
                 function ApiService() {
                 }
                 ApiService.sendPOST = function (url, formData) {
-                    return this.handleResponse(fetch(url, {
+                    var fetching = Fetching.get();
+                    return this.handleResponse(fetching.fetch(url, {
                         method: "POST",
                         body: formData,
                     }), url);
                 };
                 ApiService.sendPOSTjson = function (url, formData) {
+                    var fetching = Fetching.get();
                     var headers = new Headers();
                     headers.append("Accept", "application/json");
                     headers.append("Content-Type", "application/json");
-                    return this.handleResponse(fetch(url, {
+                    return this.handleResponse(fetching.fetch(url, {
                         method: "POST",
                         headers: headers,
                         body: JSON.stringify(formData),
                     }), url);
                 };
                 ApiService.sendGET = function (url) {
+                    var fetching = Fetching.get();
                     if (Config.CommonOptions.DEBUG_MODE)
                         console.time("sendGET '" + url + "'");
-                    return this.handleResponse(fetch(url, {
+                    return this.handleResponse(fetching.fetch(url, {
                         method: "GET"
                     }), url).then(function (val) {
                         if (Config.CommonOptions.DEBUG_MODE)
@@ -455,6 +583,7 @@ var MoleOnlineWebUI;
                 };
                 ApiService.getProteinStructure = function (computationId, submitId) {
                     var _this = this;
+                    var fetching = Fetching.get();
                     var url = this.baseUrl + "/Data/" + computationId + "?submitId=" + submitId + "&format=molecule";
                     if (this.DEBUG_MODE) {
                         console.log(url);
@@ -464,7 +593,7 @@ var MoleOnlineWebUI;
                     return new Promise(function (res, rej) {
                         if (_this.DEBUG_MODE)
                             console.time('protein-raw');
-                        fetch(url, {
+                        fetching.fetch(url, {
                             method: "GET",
                         })
                             .then(function (rawResponse) {
@@ -566,11 +695,13 @@ var MoleOnlineWebUI;
     (function (Service) {
         var PatternQueryAPI;
         (function (PatternQueryAPI) {
+            var Fetching = MoleOnlineWebUI.Service.Fetching;
             var ApiService = (function () {
                 function ApiService() {
                 }
                 ApiService.sendGET = function (url) {
-                    return this.handleResponse(fetch(url, {
+                    var fetching = Fetching.get();
+                    return this.handleResponse(fetching.fetch(url, {
                         method: "GET",
                     }), url);
                 };
@@ -1080,7 +1211,7 @@ var MoleOnlineWebUI;
                                 break;
                         }
                     }
-                    if (file === void 0) {
+                    if (file === void 0 || file === null) {
                         ApiService.initWithParams(pdbid, pores, assembly)
                             .then(function (response) {
                             _this.handleFormSubmitResponse(response);

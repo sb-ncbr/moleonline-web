@@ -11,7 +11,7 @@
 	<link rel="stylesheet" type="text/css" media="screen" href="\css/old-web/cssloader.css">
 		<link rel="stylesheet" href="\css/old-web/print.front.css" type="text/css" media="print">
 		<link rel="stylesheet" href="\css/old-web/LiteMol-plugin.css" type="text/css">
-		<link rel="stylesheet" href="\css/init-styles.css?version=1.4.6" type="text/css">
+		<link rel="stylesheet" href="\css/init-styles.css?version=1.4.7" type="text/css">
 
 
 </head>
@@ -41,108 +41,187 @@
 			<a href="/tour">Tour</a> | 
 			<a href="/faq">FAQ</a>
 		</div>
+	<h3>Methods and other Details</h3>
+	<h4>MOLE<em>online</em> algorithm </h4>
+	<p>
+		The computation of the tunnel is performed in several steps (see Figure 1) 
+		described in more detail in <a target="_blank" href="https://doi.org/10.1186/1758-2946-5-39">MOLE 2.0 publication</a>: 
+	</p>
+	<ol>
+		<li>
+			computation of the Delaunay triangulation/Voronoi diagram of the atomic centers,
+		</li>
+		<li>
+			construction of the molecular surface,
+		</li>
+			identification of cavities, 
+		</li>
+		<li>
+			identification of possible channel start points, 
+		</li>
+		<li>
+			identification of possible channel end points, 
+		</li>
+		<li>
+			localization of channels using , 
+		</li>
+		<li>
+			filtering of the localized channels.
+		</li>
+	</ol>
+	<figure>
+		<img src="\images/method_MOLE_scheme.png" alt="Scheme of the channel computation by MOLE">
+		<figcaption>Figure 1. Scheme of the channel computation by MOLE.</figcaption>
+	</figure>
+	<h4>Calculation of channels</h4>
+	<p>
+		The channel computation is finished after the definition of starting and ending points for all of cavities, 
+		the Dijkstra’s Shortest Path Algorithm is used to find the channels between all pairs of starting and ending 
+		points (or  the molecular surface if the algorithm reaches it before it finds the channel exit). The edge weight 
+		function used in the algorithm takes into account the distance to the surface of the closest vdW sphere and the edge 
+		length.
+	</p>
+	<p>
+		The channel centerline is represented as a 3D natural spline representation defined by the Voronoi diagram 
+		vertices that form the path found by the Dijkstra‘s  algorithm.
+	</p>
+	<p>
+		The algorithm might find duplicate channels. Therefore, in the last post-processing step, 
+		the duplicate channels are removed according to Channel parameters.
+	</p>
+	<h4>Pore calculation</h4>
+	<p>
+		Pores are calculated differently than channels in the classical MOLE computation and is divided into two steps:
+	</p>
+	<ul style="list-style-type:lower-roman">
+		<li>finding of membrane region and</li>
+		<li>calculation of the pore.</li>
+	</ul>
+	<p>
+		The pore computation starts with defining of the membrane region of the molecule. Firstly, 
+		MOLE is trying to find the structure on Orientations of Proteins in Membranes - OPM 
+		database (<a target="_blank" href="http://opm.phar.umich.edu/">http://opm.phar.umich.edu/</a>; 
+		Lomize,M.A., Lomize,A.L., Pogozheva,I.D. and Mosberg,H.I. (2006) 
+		OPM: Orientations of Proteins in Membranes Database. <i>Bioinformatics</i>, <b>22</b>, 623–625).
+	</p>
+	<p>
+		If the structure cannot be found in the OPM database the MOLE continue in searching the membrane region 
+		by using the MEMEMBED program (Nugent,T. and Jones,D.T. (2013) Membrane protein orientation and refinement 
+		using a knowledge-based statistical potential. <i>BMC Bioinformatics</i>, <b>14</b>, 276) which is able to predict 
+		the probable membrane region of the protein molecule. 
+	</p>
+	<p>
+		When the membrane region definition is finished the pore end points are computed. The option <b>Beta structure</b> 
+		serves as the parameter for refinement of the membrane region prediction. The prediction of the membrane region 
+		highly depends on the secondary structure of the studied molecule. 
+	</p>
 
-<h2>Tunnel search with MOLE 2.0 and MOLE<em>online</em> 2.0</h2>
+	<h3>Other Details</h3>
 
-<p>In short, a tunnel is a path between a point inside the macromolecular structure and its boundary. A tunnel is formed by its centerline and profile that specifies tunnel radius in each of centerline points. </p>
+	<h4>Origins</h4>
+	<p>
+		This option allows choosing of the start point by clicking to the ball which is pre-calculated inside the structure after upload of PDB code or your own structure from the file. After the click to the ball the selection will be created and this selection can be used as the start point. Similarly, the cavity may be also defined as the starting point but is necessary to first choose the cavity residues by clicking to the structure with CTRL+click and choose the specific amino acids localized in the cavity (Figure 2). 
+	</p>
 
-<p>In essence, to find a tunnel the <a href="http://old.mole.upol.cz/about/">previous version of MOLE</a> required the user to specify a starting point and from this point, the graph formed by the dual of the Delaunay triangulation (the Voronoi diagram, see bellow) got traversed in a depth first manner (paths with the lower cost were visited first). Each time a boundary vertex was reached, a tunnel got reported. </p>
+	<figure>
+		<img src="\images/method_other_details_origins.png" alt="The visualization of the Origins">
+		<figcaption>Figure 2. The visualization of the Origins – showed as a violet balls in the structure of the cytochrome P450 3A4 (PDB ID: 1TQN).</figcaption>
+	</figure>
 
-<p>There are numerous problems with this approach. For example, when the first tunnel got reported, the next one was very similar to the first one (and therefore provided no useful additional information) because the path "branched" near the end point of the first tunnel. Another issue was caused by small "ridges" that were formed by vertices near the boundary of the diagram. As a result, a large part of the tunnel was often "going along" the surface of the protein and therefore they didn't provide a very relevant information about the structure of the tunnel. It was also very difficult to identify interesting starting points of the tunnels, unless prior knowledge.</p>
+	<p>
+		Another option is just selection of several residues by clicking to the structure and put this selection 
+		to the starting or ending point box (or other fields which can work with the selection of residues). 
+		In the same way, the sequence viewer can be also used for the selection of the starting point.
+	</p>
 
-<p>The current version of the new <a href=http://mole.upol.cz/>MOLE 2.0</a> algorithm addresses these problems issues by preprocessing the Voronoi diagram, splitting it into several smaller parts (called <strong>cavity diagrams</strong>) and identifying suitable start and end points. Finally, Dijkstra's algorithm is used to find the tunnels. This algorithm is used also in MOLE<em>online</em> 2.0 web application.</p>
-<img src="\images/alg_outline.jpg" alt="MOLE 2.0 Algorithm outline" align="right" width="550px">
-<h2>MOLE 2.0 algorithm overview</h2>
+	<p>
+		During the clicking to the individual residues the center of mass is calculated gradually and it is displayed 
+		as a clickable ball.
+	</p>
 
-<p>The tunnel computation in MOLE 2.0 is performed in several steps:</p>
-<ul> 
-<li>1. Calculate the Delaunay triangulation/Voronoi diagram of the atomic centers.</li> 
-<li>2. Approximate the molecular surface by removing tetrahedrons that are too big. A tetrahedron is too big if a sphere with the <strong>Probe Radius</strong> can fit through it. Therefore, the smaller the Probe Radius is, the more tetrahedrons get removed.</li>
-<li>3. Find cavities - remove tetrahedrons that are too small and identify connected components from the remaining tetrahedrons. A tetrahedron is too small if a sphere with the <strong>Interior Threshold</strong> radius <em>cannot</em> fit through it.</li>
-<li>4. Identify the start point as the closest tetrahedron in a cavity that is within the <strong>Origin Radius</strong> distance from the selected residues. If there is no such tetrahedron, no tunnel can be found in the given cavity. This is done separately for each cavity.</li>
-<li>5. Identify end points by covering boundary components of the cavities by a set of spheres with the <strong>Surface Cover Radius</strong> <em>r</em>. The distance between all pairs of end points is in the interval <<em>r</em>,2<em>r</em>>.</li>
-<li>6. Compute the tunnels as shortest paths between all pairs of start and end points (that are in the same cavity). If two tunnels are too similar, the longer one is not reported.</li>
-</ul>
+	<h3>Visualization of results</h3>
 
-<h3>1. Macromolecular Voronoi diagram representation</h3>
-<img src="\images/voronoi_diagram.jpg" alt="Voronoi diagram" align="right" width="140px">
-<p>The Voronoi diagram divides a metric space according to the distances between discrete sets of specified objects. In MOLE 2.0 case objects are the centres of the atom with van der Waals spheres. vdW radii of the spheres are taken from AMBER force field. The edges of the diagram represent equidistant positions between pairs of the closest atoms. The Voronoi diagram can be computed as a dual of the Delaunay triangulation of vdW sphere centers. Therefore, the vertices of the diagram correspond to the tetrahedrons of the triangulation and are located at the tetrahedrons' circumcenters. Similarly, the edges of the diagram represent the adjacency of the tetrahedrons.</p>
+	<h4>Radius of channel/pore</h4>
+	<p>The MOLEonline offers three representations of the channel/pore radius (Figure 3):</p>
+	<ol style="list-style-type:lower-alpha">
+		<li><b>Radius</b> – Radius of sphere within channel limited by three closest atoms</li>
+		<li><b>Free Radius</b> – Radius of sphere within channel limited by three closest main chain atoms in order to allow sidechain flexibility</li>
+		<li><b>BRadius</b> – Radius + RMSF calculated from B-factors of residues within individual layers <img src="\images/method_other_rmsf.png"/></li>
+	</ol>
 
+	<figure>
+		<img src="\images/method_other_detail_of_channel_profile.png" alt="Detail of the channel profile">
+		<figcaption>Figure 3. Detail of the channel profile. Profile can be visualized for various properties.</figcaption>
+	</figure>
 
-<h3>2. Preprocessing the diagram</h3>
+	<h4>Calculation of physico-chemical properties</h4>
+	<p>
+		When the tunnel is computed the set of amino acids (side chains) lining the channel can be used for the physico-chemical properties computation (Figure 4). According to side chains composition, the set of physico-chemical properties is calculated (for lining amino acids side chains only):
+	</p>
+	<p>
+		<b>Charge</b> is calculated as a sum of charged amino acid residues (ARG, LYS, HIS = +1; ASP, GLU = -1)
+	</p>
+	<p>
+		<b>Hydropathy</b> is calculated as an average of hydropathy index assigned to residues according 
+		to the method of Kyte and Doolitle <a target="_blank" href="https://www.ncbi.nlm.nih.gov/pubmed/7108955">(Kyte, J. and Doolittle, R.F. (1982) A Simple Method for 
+		Displaying the Hydropathic Character of a Protein. <i>J. Mol. Biol</i>., <b>157</b>, 105–132</a>)
+	</p>
+	<p>
+		Hydropathy index is connected to hydrophilicity/hydrophobicity of amino acids (most hydrophilic is ARG = -4.5; most hydrophobic ILE = 4.5).
+	</p>
 
-<p>The preprocessing works in several steps:</p>
-<ul>
-<li>The boundary of the Voronoi diagram corresponds to the convex hull of the protein. This is not desirable because then the tunnel exits might end up being too far from the actual protein surface (similarly the shallow ridge issue of the previous algorithm). To remedy this, the user is required to specify the <strong>probe radius</strong> parameter which is used to approximate the molecular surface. Given this parameter, layers of vertices are removed repeatedly starting from the boundary layer if the probe would pass through corresponding tetrahedron.This process is repeated as long as there is no longer any vertex to remove.</li>
-<li>The second step is the removal of vertices of the Voronoi diagram (i.e. tetrahedrons) that cannot be part of any tunnel. This is governed by a parameter called the <strong>interior threshold</strong>. This parameter serves as an approximate lower bound on the tunnel radius. A vertex is removed if a sphere with the interior threshold radius cannot pass through any of the tetrahedron's sides.</li>
-<li>After the boundary and interior vertices are removed, the <strong>cavity diagrams</strong> are computed as the connected components of the Voronoi diagram. In essence, these cavity diagrams represent the empty space inside the macromolecule.</li>
-<li>The last preprocessing step is to remove the shallow vertices. These are the vertices that form the above mentioned ridges along the surface of the molecule. All vertices with the distance (defined simply as a the number of the vertices on the path) from the surface less than a given internal threshold 5 are removed if all their neighbors have the same or lower depth.</li>
-</ul>
+	<p>
+		<b>Hydrophobicity</b> is calculated as an average of normalized hydrophobicity scales by Cid et  al. 
+		(<a target="_blank" href="https://www.ncbi.nlm.nih.gov/pubmed/1518784">Cid, H., Bunster, M., Canales, M. and Gazitúa, F. (1992) Hydrophobicity and structural classes in proteins. 
+		<i>Protein Eng. Des. Sel</i>., <b>5</b>, 373–375</a>).
+	</p>
 
-<h3>3. Detection of Start points and End points</h3>
-<p>Once the diagram is split into several smaller cavity diagrams, these are analyzed for suitable tunnel start points and end points between vertices of the cavity.
-The general idea here is that the start point is the "deepest" vertex in the cavity and the end point is the "largest" boundary vertex (i.e. corresponding to the largest tetrahedron).</p>
+	<p>
+		Most hydrophilic amino acid according to hydrophobicity value is GLU (-1.140) and the most hydrophobic is ILE (1.810).
+	</p>
 
-<p><strong>Start Points</strong></p>
-<p>There are two ways to specify a start point for a tunnel - user specified list of residues, XYZ coordinates or (MOLE 2.0 only) automatic computation:</p>
-<ul>
-<li><p> User defined: </p></li>
-<p>The user specifies a list of residues or a 3D point. Next, the centroid calculated from all the corresponding atomic centers is computed. Finally, for each cavity within a specified <strong>origin radius</strong> the closest vertex is selected as a start point.</p>
-<li><p>Calculated: (MOLE 2.0 only)</p></li>
-<p>The topology of the cavity is used to calculate the start point. The calculated starting point is the "deepest" vertex of a cavity. The depth of a vertex is defined as the length of the path from this vertex to the closest boundary vertex.</p>
-</ul>
-<p><strong>End Points</strong></p>
-<p>Similarly to the start points, endpoints are either user defined (MOLE 2.0 desktop version only) or calculated:</p>
-<ul>
-<li><p>User defined: </p></li>
-<p>These end points can be specified by clicking on the surface of the molecule in MOLE 2.0 desktop aplication.</p>
-<li><p>Calculated: </p></li>
-<p>For each cavity diagram a subgraph B is induced by the boundary vertices. Then, the connected components of B are computed. Finally, each component is covered with spheres with the <strong>surface cover radius</strong> and the tetrahedrons corresponding to the centers of these spheres are marked as tunnel exits.</p>
-</ul>
+	<p>
+		<b>Polarity</b> is calculated as an average of  amino acid polarities assigned according to the method 
+		of Zimmerman et al. (<a target="_blank" href="https://www.ncbi.nlm.nih.gov/pubmed/5700434">Zimmerman, J.M., Eliezer, N. and Simha, R. (1968) The Characterization of Amino Acid Sequences 
+		in Proteins by Statistical Methods. <i>J. Theor. Biol</i>., <b>21</b>, 170–201</a>).
+	</p>
 
-<h3>4. Tunnel computation</h3>
-<p>Finally, when the set of start and end points is identified for each cavity, the Dijkstra's Shortest Path algorithm is used to find the tunnels between all pairs of start and end points points (or the molecular surface if the algorithm reaches it before it finds the tunnel exit). The edge weight function used in the algorithm takes into account the distance to the surface of the closest vdW sphere and the edge length.</p>
-<p>Then the tunnel centerline is represented as a 3D natural spline representation defined by the Voronoi diagram vertices that form the path found by the Dijkstra's algorithm.</p>
-<p>Because of the density of the computed exits, the algorithm might find duplicate tunnels. Therefore, in the last post-processing step, these duplicate tunnels are removed.</p>
+	<p>
+		Polarity ranges from completely nonpolar amino acids (ALA, GLY = 0.00) through polar residues (e.g. SER = 1.67) towards charged residues (GLU = 49.90, ARG = 52.00).
+	</p>
 
-<h3>Assignment of physico-chemical properties</h3>
-<p>When tunnel is shown, a set of unique residues lining it is shown, while those surrounding the tunnel with side chain are noted. According to side chain, a list of properties is calculated (for lining aminoacid side chains only):</p>
-<ul>
-<li><strong>Charge</strong> is calculated as a sum of charged residues (Arg, Lys, His = +1; Asp, Glu = -1)
-<li><strong>Hydropathy</strong> of the tunnel is calculated as an average of hydropathy index assigned to residues according to the method of Kyte and Doolitle. <a href="http://www.sciencedirect.com/science/article/pii/0022283682905150">(Kyte, J. and Doolittle, R.F., A simple method for displaying the hydropathic character of a protein, J. Mol. Biol. 157, 105-132 (1982)).</a> Hydropathy index is connected with hydrophilicity/hydrophobicity of amino acids (most hydrophilic Arg = -4.5, most hydrophobic Ile = 4.5). 
-<li><strong>Hydrophobicity</strong> is calculated as an average of normalized hydrophobicity scales by Cid et al. <a href="http://peds.oxfordjournals.org/content/5/5/373.short">(Cid, H. et al. Hydrophobicity and structural classes in proteins, J Protein Engineering 5, 373-375 (1992))</a>. Most hydrophilic residue according to hydrophobicity value is Glu (-1.140) and the most hydrophobic is Ile (1.810).
-<li><strong>Polarity</strong> is calculated as an average of amino acid polarities assigned according to the method of Zimmerman et al. <a href="http://www.sciencedirect.com/science/article/pii/0022519368900696">(Zimmerman, J.M. et al. The characterization of amino acid sequences in proteins by statistical methods, J. Theor. Biol. 21, 170-201 (1968))</a>. Polarity ranges from completely nonpolar aminoacids (Ala, Gly = 0.00) through polar residues (e.g. Ser = 1.67) towards charged residues (Glu = 49.90, Arg = 52.00). 
-<li><strong>Mutability</strong> is calculated as an average of relative mutability index <a href="http://bioinformatics.oxfordjournals.org/content/8/3/275.short">(Jones, D.T., Taylor, W.T. and Thornton, J.M. The rapid generation of mutation data matrices from protein sequences, Comput Appl Biosci (1992) 8 (3): 275-282.)</a>. Relative mutability is based on empirical substitution matrices between similar protein sequences. It is high wherever aminoacid can be easily substituted for another e.g. in case of small polar amino acids (Ser = 117, Thr = 107, Asn = 104) or in case of small aliphatic amino acids (Ala = 100, Val = 98, Ile = 103). On the other hand it is low when amino acid plays important structural role such as in case of aromatic amino acids (Trp = 25, Phe = 51, Tyr = 50) or in case of special amino acids (Cys = 44, Pro = 58, Gly = 50). Specific example of amino acid with low relative mutability is the most abundant amino acid (Leu = 54) which has the highest probability to mutate back to itself.</li>
-</ul>
+	<p>
+		<b>Mutability</b> is calculated as an average of relative mutability index (<a target="_blank" href="https://www.ncbi.nlm.nih.gov/pubmed/1633570">Jones,D.T., Taylor,W.R. 
+		and Thornton,J.M. (1992) The Rapid Generation of Mutation Data Matrices from Protein Sequences. <i>Bioinformatics</i>, 
+		<b>8</b>, 275–282</a>). Relative mutability is based on empirical substitution matrices between similar protein sequences.
+	</p>
 
-<h3>Note on advanced options</h3>
-<p>Advanced settings offers possibility to adjust parameters determining tunnel searching algorithm. All parameters are set in Angstroms (0.1 nm):</p>
-<ul>
-<li><strong>Probe radius</strong> - Radius used for construction of surface of biomacromolecule.</li> 
-<li><strong>Interior threshold</strong> - Approximate smallest tunnel radius to use.</li>
-<li><strong>Surface Cover Radius</strong> - Determines the density of tunnel exits on the molecular surface.</li>
-<li><strong>Origin radius</strong> - Localization of starting point within this radius.</li>
-<li><strong>Starting point [X,Y,Z]</strong> - Precise localization of starting point instead of list of residues.</li>
-</ul>
+	<p>
+		It is high wherever amino acid can be easily substituted for another e.g. in case of small polar amino acids (SER = 117, THR  = 107, ASN = 104) or in case of small aliphatic amino acids (ALA = 100, VAL = 98, ILE = 103). On the other hand it is low  when amino acid plays important structural role such as in case of aromatic amino acids (TRP = 25, PHE = 51, TYR = 50) or in case of special amino acids (CYS = 44, PRO = 58, GLY = 50). Specific example of amino acid with low relative mutability is the most abundant amino acid /LEU = 54) which has the highest probability to mutate back to itself.
+	</p>
 
-<h3>Final Note on the complexity of the algorithm</h3>
-<p>The worst case complexity of the algorithm is O(M log M) where M is the number of vertices of the Voronoi diagram. In the worst case, M = N<sup>2</sup>, where N is the number of atoms. However, in most practical cases M is almost equal to N. Additionally, the complexity of calculating the Voronoi diagram is O(N log N). The complexity of all steps of the pre-processing phase is at most O(M log M). Finding the paths using the Dijkstra's algorithm is O(K M logM) where K is number of tunnels. </p>
-<p>Together, the complexity of the MOLE 2.0 tunnel search algorithm is O(K N<sup>2</sup> log N), where K is the number of detected tunnels and N is the number of atoms in the molecule.</p>	</div> <!-- #content -->
+	<figure>
+		<img src="\images/method_other_computed_hphys_chem_props.png" alt="Example of computed physicochemical properties">
+		<figcaption>Figure 4. Example of computed physicochemical properties (Pore of structure 1K4C).</figcaption>
+	</figure>
+
+	<h3>Annotations</h3>
+	<p>
+		You can contribute to the ChannelsDB database (<a target="_blank" href="https://webchemdev.ncbr.muni.cz/ChannelsDB/">https://webchemdev.ncbr.muni.cz/ChannelsDB/</a>) by Annotation button in the upper left corner of the visualization window. Annotation can be easily written to the boxes in the Annotation window and channels selected from those calculated within the window (Figure 5). 
+	</p>
+
+	<figure>
+		<img src="\images/method_other_annotate_form.png" alt="Annotation window for ChannelsDB database">
+		<figcaption>Figure 5. Annotation window for ChannelsDB database.</figcaption>
+	</figure>
+
+	</div> <!-- #content -->
 	<hr class="cleaner">
 
 </div> <!-- #page -->
 
 <div id="ajaxspinner"></div>
-<!--<script type="text/javascript">
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-4336835-6']);
-  _gaq.push(['_trackPageview']);
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-</script>-->
+
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-4336835-7"></script>
 <script>
