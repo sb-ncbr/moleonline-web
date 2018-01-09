@@ -43,7 +43,7 @@ function buildViewResources(){
         let minify = !DEBUG;
 
         let providedCss = [sourcesPath + '/provided/css/*'];
-        let css = gulp.src([sourcesPath + '/css/*','./'])
+        let css = gulp.src([sourcesPath + '/css/*','!'+sourcesPath + '/css/Init.css'])
         .pipe(plugins.sass()({ outputStyle: minify ? 'compressed' : void 0 }).on('error', plugins.sass().logError))
         .pipe(plugins.concat()('styles.css'))
         .pipe(gulp.dest(destDir + '/css'));

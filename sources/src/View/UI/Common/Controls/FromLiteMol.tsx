@@ -1071,7 +1071,7 @@ namespace Common.Controls.FromLiteMol{
         state:StartingPointCSABoxState = {data:null,isLoading:true,selected:null}
 
         componentDidMount(){
-            let params = CommonUtils.Router.getParameters();
+            let params = Common.Util.Router.getParameters();
             if(params===null){
                 console.error("URL parameters not readable!");
                 return;

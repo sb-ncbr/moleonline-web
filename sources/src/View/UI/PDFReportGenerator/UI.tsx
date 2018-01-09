@@ -254,7 +254,7 @@ namespace PDFReportGenerator.UI{
                 return template.replace(regexp,(value===null)?"":value);   
             }
     
-            private addParamsPageCommon(template:string, urlParams:CommonUtils.Router.URLParams|null, compInfo:MoleOnlineWebUI.Service.MoleAPI.CompInfo){
+            private addParamsPageCommon(template:string, urlParams:Common.Util.Router.URLParams|null, compInfo:MoleOnlineWebUI.Service.MoleAPI.CompInfo){
                 let emptyPlaceholders:string[] = [];
                 if(urlParams!==null){
                     template = this.replacePlaceholder(template, "COMP-ID",urlParams.computationId);
@@ -264,7 +264,7 @@ namespace PDFReportGenerator.UI{
                     emptyPlaceholders.push("COMP-ID");
                     emptyPlaceholders.push("SUBMIT-ID");
                 }
-                template = this.replacePlaceholder(template, "URL",CommonUtils.Router.getCurrentUrl());
+                template = this.replacePlaceholder(template, "URL",Common.Util.Router.getCurrentUrl());
                 
                 let isUserStructure = compInfo.PdbId===null;
 
@@ -419,7 +419,7 @@ namespace PDFReportGenerator.UI{
             }
     
             private generateReport(){
-                let urlParams = CommonUtils.Router.getParameters();
+                let urlParams = Common.Util.Router.getParameters();
                 if(urlParams===null){
                     console.log("URL parameters cannot be parsed!");
                     return;
@@ -429,7 +429,7 @@ namespace PDFReportGenerator.UI{
                 state.inProgress = true;
                 this.setState(state);
     
-                let channelsDBMode = CommonUtils.Router.isInChannelsDBMode();
+                let channelsDBMode = Common.Util.Router.isInChannelsDBMode();
                 let configParamsPromise;
                 if(channelsDBMode){
                     configParamsPromise = Promise.resolve(null as ConfigPromiseType|null);

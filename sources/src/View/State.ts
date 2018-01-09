@@ -264,7 +264,7 @@ namespace LiteMol.Example.Channels.State {
             if(Config.CommonOptions.DEBUG_MODE)
                 console.profile("loadData");
             let modelLoadPromise = new Promise<any>((res,rej)=>{
-                let parameters = CommonUtils.Router.getParameters();
+                let parameters = Common.Util.Router.getParameters();
 
                 if(parameters===null){
                     rej("Corrupted url found - cannot parse parameters.");

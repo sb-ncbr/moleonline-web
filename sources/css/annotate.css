@@ -215,3 +215,16 @@
     border-radius: 5px;
     padding: 4px;
 }
+
+.annotate .annotate-form-header img{
+    width: 200px;
+}
+
+.annotate .annotate-form-header p{
+    text-align: left;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+}

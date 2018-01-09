@@ -6,27 +6,28 @@ namespace MoleOnlineWebUI.InitForm.UI{
     import React = LiteMol.Plugin.React;
     import ReactDOM = LiteMol.Plugin.ReactDOM;
 
+    import LastNSessions = Common.Util.LastNSessions;
+
     declare function $(p:any): any;
 
     interface State{
         app: App,
         useBiologicalUnit: boolean,
-        status: string
+        activeTabIdx: number,
     };
 
     export function render(target: Element) {
         ReactDOM.render(<App />, target);
     }
 
-    export class App extends React.Component<{}, {}> {
-
+    export class App extends React.Component<{}, State> {
         private computationId:string;
         private submitId:number;
 
-        state = {
+        state:State = {
             app: this,
             useBiologicalUnit: false,
-            status:null
+            activeTabIdx: 0,
         };
 
         componentDidMount() {
@@ -50,8 +51,6 @@ namespace MoleOnlineWebUI.InitForm.UI{
             for(let idx = 0;idx<form.length;idx++){
                 let item = form[idx] as HTMLInputElement;
                 let name = item.getAttribute('name');
-                console.log(name);
-                console.log(item.value);
                 switch(name){
                     case 'pdbid':
                         pdbid = item.value;
@@ -134,68 +133,144 @@ namespace MoleOnlineWebUI.InitForm.UI{
 
         private waitForComputationInitialization(){
             ApiService.getStatus(this.computationId, this.submitId).then((response)=>{
-                console.log(response);
                 this.handleFormSubmitResponse(response);
             });
         }
 
         private biologicalUnitChange(e:Event){
             let el = e.target as HTMLInputElement;
-            this.setState({useBiologicalUnit:el.checked});
+            let s = this.state;
+            s.useBiologicalUnit=el.checked;
+            this.setState(s);
         }
 
         render() {         
+
+            let buttons = <input type="submit" name="next" className="button" id="frm-jobSetup-setupForm-next" value="Next"/>;
+            let content = this.formByPDBID();
+            let tabs:JSX.Element[]=[];
+            
+            tabs.push(
+                this.formByPDBID()
+            );
+            tabs.push(
+                this.formByFile()
+            );
+            tabs.push(
+                this.formByLastNSessions()
+            );
+
+            if(this.state.activeTabIdx===2){ //LastNSessions -> dont show "Next" button
+                buttons = <span/>
+            }
+            
             return (
             <div className="InitForm">
                 <form onSubmit={this.handleFormSubmit.bind(this)} action={`${Config.Routing.ROUTING_OPTIONS[Config.Routing.ROUTING_MODE].defaultContextPath}/`} method="post" encType="multipart/form-data">
                     <div className="groupbox">
-                        <table style={{width:"100%"}}>
-                            <tbody>
-                                <tr>
-                                    <td><label htmlFor="frm-jobSetup-setupForm-code">PDB ID</label>:</td>
-                                    <td><input type="text" name="pdbid" maxLength={4} size={10} className="text" id="frm-jobSetup-setupForm-code" defaultValue="1tqn" />
-                                        <div className="hint">PDB ID code as can be found on www.pdb.org, for example 1z10.</div></td></tr>
-                                        
-                                <tr>
-                                    <td><label htmlFor="frm-jobSetup-setupForm-unit">Assembly ID(optional)</label>:</td>
-                                    <td><input disabled={this.state.useBiologicalUnit} type="text" name="assembly" maxLength={2} size={10} className="text" id="frm-jobSetup-setupForm-unit" defaultValue="" />
-                                        <div className="hint">
-                                            no value - assymetric unit (default)
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><label htmlFor="frm-jobSetup-setupForm-chains">Use biological unit</label>:</td>
-                                    <td><input type="checkbox" onChange={this.biologicalUnitChange.bind(this)} name="biological-unit" className="checkbox" defaultChecked={true}/>
-                                        <div className="hint">
-                                            use biological unit
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td colSpan={2}><hr/></td>
-                                </tr>
-                                <tr>
-                                    <td><label htmlFor="frm-jobSetup-setupForm-file">Or upload your own file</label>:</td>
-                                    <td>
-                                        <input type="file" name="file" className="text" id="frm-jobSetup-setupForm-file" />
-                                        <div className="hint">
-                                            Plain text PDB files (UTF-8 encoding), ZIP and GZIP archives are supported,
-                                            maximal file size is 50MB.<br/>
-                                            E.g. cleaned PDB with only one chain and without unnecessary HETATMs.
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <Common.Tabs.BootstrapTabs.TabbedContainer header={["PDBID","File","Last session"]} tabContents={tabs} namespace="quick-start-panel-tabs-" htmlClassName="tabs" htmlId="quick-start-panel-tabs" activeTab={this.state.activeTabIdx} onChange={((tabIdx:number)=>{
+                            let s = this.state;
+                            s.activeTabIdx = tabIdx;
+                            this.setState(s);
+                        }).bind(this)}/>
                     </div> 
 
                     <div className="buttons">
-                        <input type="submit" name="next" className="button" id="frm-jobSetup-setupForm-next" value="Next"/>
+                        {buttons}
                     </div>
                     <div><input type="hidden" name="do" value="jobSetup-setupForm-submit"/></div>
                 </form>
             </div>
+            );
+        }
+
+        formByPDBID() {         
+            return (
+                <table style={{width:"100%"}}>
+                    <tbody>
+                        <tr>
+                            <td><label htmlFor="frm-jobSetup-setupForm-code">PDB ID</label>:</td>
+                            <td><input type="text" name="pdbid" maxLength={4} size={10} className="text" id="frm-jobSetup-setupForm-code" defaultValue="1tqn" />
+                                <div className="hint">PDB ID code as can be found on www.pdb.org, for example 1z10.</div></td></tr>
+                                
+                        <tr>
+                            <td><label htmlFor="frm-jobSetup-setupForm-unit">Assembly ID(optional)</label>:</td>
+                            <td><input disabled={this.state.useBiologicalUnit} type="text" name="assembly" maxLength={2} size={10} className="text" id="frm-jobSetup-setupForm-unit" defaultValue="" />
+                                <div className="hint">
+                                    no value - assymetric unit (default)
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label htmlFor="frm-jobSetup-setupForm-chains">Use biological unit</label>:</td>
+                            <td><input type="checkbox" onChange={this.biologicalUnitChange.bind(this)} name="biological-unit" className="checkbox" defaultChecked={true}/>
+                                <div className="hint">
+                                    use biological unit
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            );
+        }
+
+        formByFile() {         
+            return (
+                <table style={{width:"100%"}}>
+                    <tbody>
+                        <tr>
+                            <td><label htmlFor="frm-jobSetup-setupForm-file">Upload your own file</label>:</td>
+                            <td>
+                                <input type="file" name="file" className="text" id="frm-jobSetup-setupForm-file" />
+                                <div className="hint">
+                                    Plain text PDB files (UTF-8 encoding), ZIP and GZIP archives are supported,
+                                    maximal file size is 50MB.<br/>
+                                    E.g. cleaned PDB with only one chain and without unnecessary HETATMs.
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            );
+        }
+
+        getLastNSessions(){
+            let sessions = [];
+
+            for(let i=0;i<LastNSessions.LAST_N_SESSIONS_N;i++){
+                let session = LastNSessions.getNthSession(i);
+                if(session===""){
+                    break;
+                }
+                sessions.push(<tr>
+                    <td colSpan={2}>
+                        <a href={`/online/${session}`}>{session}</a>
+                    </td>
+                </tr>);
+            }
+
+            if(sessions.length===0){
+                sessions.push(
+                    <tr>
+                        <td colSpan={2}>
+                            There are no last openned sessions available...
+                        </td>
+                    </tr>
+                );
+            }
+
+            return sessions;
+
+        }
+
+        formByLastNSessions() {  
+            let sessions = this.getLastNSessions();       
+            return (
+                <table style={{width:"100%"}} className="last-session-form">
+                    <tbody>
+                        {sessions}
+                    </tbody>
+                </table>
             );
         }
     }

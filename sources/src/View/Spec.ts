@@ -33,7 +33,7 @@ namespace LiteMol.Example.Channels {
                     let len = CommonUtils.Tunnels.getLength(tunnel);
                     let bneck = CommonUtils.Tunnels.getBottleneck(tunnel);
                     let annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getChannelAnnotationsImmediate(tunnel.Id);
-                    if(CommonUtils.Router.isInChannelsDBMode()&&annotations!==null&&annotations.length>0){
+                    if(Common.Util.Router.isInChannelsDBMode()&&annotations!==null&&annotations.length>0){
                         return `<b>${annotations[0].name}</b>, Length: ${len} Å | Bottleneck: ${bneck} Å`;                                            
                     }
                     else{

@@ -195,7 +195,7 @@ namespace AglomeredParameters.UI{
             let namePart = (name===void 0)?'X':` (${name})`;
             let tunnelID = this.props.tunnel.Type+namePart;
 
-            if(CommonUtils.Router.isInChannelsDBMode()){
+            if(Common.Util.Router.isInChannelsDBMode()){
                 let annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getChannelAnnotationsImmediate(this.props.tunnel.Id);
                 if(annotations!==null&&annotations.length>0){
                     tunnelID = annotations[0].name;

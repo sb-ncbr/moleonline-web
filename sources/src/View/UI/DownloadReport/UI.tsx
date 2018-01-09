@@ -695,7 +695,7 @@ namespace DownloadReport.UI{
         state = {computationId:"",submitId:0}
 
         componentDidMount(){
-            let params = CommonUtils.Router.getParameters();
+            let params = Common.Util.Router.getParameters();
             if(params!==null){
                 let computationId = params.computationId;
                 let submitId = params.submitId;

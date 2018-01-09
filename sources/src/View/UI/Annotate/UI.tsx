@@ -22,7 +22,7 @@ namespace Annotate.UI{
             submitId:void 0
         }
         private changeParams(submitId?:number){
-            let params = CommonUtils.Router.getParameters();
+            let params = Common.Util.Router.getParameters();
             if(params!==null){
                 this.setState({
                     computationId:params.computationId,
@@ -302,6 +302,12 @@ namespace Annotate.UI{
                     {infoMsg}
                     {errorMsg}
                     <div className="scroll-container">
+                    <div className="annotate-form-header">
+                        <img src="/images/ChannelsDBlogo.png"/>
+                        <p>
+                            Submit annotation of your published channels and residues important for channel's functionality to make your results interactively available to everyone at any time. Additionally, results of your research will be visible along the structure at Protein Data Bank in Europe webpages.
+                        </p>
+                    </div>
                     <form className="form-horizontal" onSubmit={(e)=>{
                             e.preventDefault();
                             e.stopPropagation();

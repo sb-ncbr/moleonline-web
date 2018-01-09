@@ -1,4 +1,4 @@
-namespace CommonUtils.Router{
+namespace Common.Util.Router{
     export interface URLParams{submitId:number, computationId:string, isChannelsDB:boolean};
 
     export function getParameters(/*suppressDefaultSubmitId?:boolean*/):URLParams|null{
@@ -35,10 +35,11 @@ namespace CommonUtils.Router{
         else{
             SimpleRouter.GlobalRouter.fakeRedirect(`/${computationId}/`,true);
         }
+        Common.Util.LastNSessions.updateWithCurrentSession();
     }
 
     export function isInChannelsDBMode(){
-        let params = CommonUtils.Router.getParameters();
+        let params = getParameters();
         return params!==null&&params.isChannelsDB;
     }
 

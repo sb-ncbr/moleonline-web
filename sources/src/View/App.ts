@@ -15,6 +15,8 @@ namespace LiteMol.Example.Channels {
         
         SimpleRouter.GlobalRouter.init(Config.Routing.ROUTING_OPTIONS[Config.Routing.ROUTING_MODE]);
         console.log(Config.Routing.ROUTING_MODE);
+
+        Common.Util.LastNSessions.updateWithCurrentSession();
                 
         let lvSettings: LayersVizualizer.LayersVizualizerSettings = {
             coloringProperty: "Hydropathy",

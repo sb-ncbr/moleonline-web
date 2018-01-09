@@ -33,6 +33,18 @@
 
     "../Bridge.ts",
 
+    //Router
+    "../Common/Util/Router.ts", 
+
+    //Cookies
+    "../Common/Util/Cookies.ts",
+    
+    //LastNSessions
+    "../Common/Util/LastNSessions.ts",
+
+    //Common UI components
+    "../Common/UI/Tabs/BootstrapTabs.tsx",
+    
     //Alert messages
     "../Common/UI/AlertMessages/UI.tsx",
 

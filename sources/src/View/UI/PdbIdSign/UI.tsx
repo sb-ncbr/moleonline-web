@@ -11,7 +11,7 @@ namespace PdbIdSign.UI{
         state:State = {pdbid:void 0, err: void 0};
 
         componentDidMount(){
-            let params = CommonUtils.Router.getParameters();
+            let params = Common.Util.Router.getParameters();
             if(params===null){
                 this.setState({err:"!!!"});
                 return;

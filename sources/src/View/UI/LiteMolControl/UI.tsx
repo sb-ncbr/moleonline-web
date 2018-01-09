@@ -20,7 +20,7 @@ namespace LiteMol.Example.Channels.UI {
         private currentProteinId:string;
 
         componentDidMount() {
-            let params = CommonUtils.Router.getParameters();
+            let params = Common.Util.Router.getParameters();
             let channelsDB = false;
             if(params!==null){
                 channelsDB = params.isChannelsDB;
@@ -64,7 +64,7 @@ namespace LiteMol.Example.Channels.UI {
                         console.log("loading done ok");
                     let entities = this.props.plugin.context.select("mole-data");
                     if(entities.length===0){
-                        let params = CommonUtils.Router.getParameters();
+                        let params = Common.Util.Router.getParameters();
                         if(params === null){
                             this.setState({ isLoading: false, error: `Sorry. Given url is not valid.` });                        
                             return;    
@@ -120,7 +120,7 @@ namespace LiteMol.Example.Channels.UI {
                                 </div>
                             </div>);
                     }
-                    let params = CommonUtils.Router.getParameters();
+                    let params = Common.Util.Router.getParameters();
                     let channelsDB = false;
                     if(params!==null){
                         channelsDB = params.isChannelsDB;
@@ -314,7 +314,7 @@ namespace LiteMol.Example.Channels.UI {
                         let c = data.source.props.tag.element;
                         let tunnelName = CommonUtils.Tunnels.getName(c);
                         let len = CommonUtils.Tunnels.getLength(c);
-                        if(CommonUtils.Router.isInChannelsDBMode()){
+                        if(Common.Util.Router.isInChannelsDBMode()){
                             let annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getChannelAnnotationsImmediate(c.Id);
                             if(annotations!==null&&annotations.length>0){
                                 tunnelName = annotations[0].name;
@@ -458,7 +458,7 @@ namespace LiteMol.Example.Channels.UI {
 
         render() { 
             let emptyToggler;
-            if(CommonUtils.Router.isInChannelsDBMode()){
+            if(Common.Util.Router.isInChannelsDBMode()){
                 emptyToggler = <span className="disabled glyphicon glyphicon-chevron-down" title="No annotations available for this channel" onClick={this.toggleAnnotations.bind(this)} />
             }
             return <div className="ui-label">

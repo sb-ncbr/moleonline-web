@@ -746,7 +746,7 @@ namespace Controls.UI{
                     })
                 }
                 else{
-                    CommonUtils.Router.fakeRedirect(result.ComputationId, String(result.SubmitId));
+                    Common.Util.Router.fakeRedirect(result.ComputationId, String(result.SubmitId));
                     LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());                
 
                     Provider.get(result.ComputationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
@@ -1362,7 +1362,7 @@ namespace Controls.UI{
                 let submissionsData = this.state.computationInfo.Submissions;
                 let submitId = 1;
                 let isChannelsDBSelected = false;
-                let params = CommonUtils.Router.getParameters();
+                let params = Common.Util.Router.getParameters();
                 if(params!==null){
                     submitId=(params.isChannelsDB)?-1:params.submitId;
                     isChannelsDBSelected = params.isChannelsDB;
@@ -1655,10 +1655,10 @@ namespace Controls.UI{
 
     function changeSubmitId(computationId:string, submitId:number){
         if(submitId===-1){
-            CommonUtils.Router.fakeRedirect(computationId, "ChannelsDB");
+            Common.Util.Router.fakeRedirect(computationId, "ChannelsDB");
         }
         else{
-            CommonUtils.Router.fakeRedirect(computationId, (submitId>0)?String(submitId):void 0);
+            Common.Util.Router.fakeRedirect(computationId, (submitId>0)?String(submitId):void 0);
         }
         LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
         MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(submitId);
@@ -1706,7 +1706,7 @@ namespace Controls.UI{
                 this.setState(state);
             }
 
-            let parameters = CommonUtils.Router.getParameters();
+            let parameters = Common.Util.Router.getParameters();
             if(parameters!==null){
                 let compId = parameters.computationId;
                 let submitId = parameters.submitId;

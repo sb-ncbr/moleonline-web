@@ -45,7 +45,7 @@ namespace QuickHelp.UI{
                 this.setState(state);
             });
             
-            let params = CommonUtils.Router.getParameters();
+            let params = Common.Util.Router.getParameters();
             if(params!==null){
                 MoleOnlineWebUI.DataProxy.ComputationInfo.DataProvider.subscribe(params.computationId,(compid,info)=>{
                     let s1 = this.state;
