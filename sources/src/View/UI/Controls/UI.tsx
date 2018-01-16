@@ -678,7 +678,7 @@ namespace Controls.UI{
         computationId:string,
         moleFormData:MoleFormData,
         poresFormData:PoresFormData,
-        mode:"Mole"|"Pores",
+        mode:"Channels"|"Pores",
         expandedPanels:ExpandedPanels
     };
     export class Settings extends React.Component<SettingsProps,SettingsState>{
@@ -688,7 +688,7 @@ namespace Controls.UI{
             poresFormData:this.getPoresDefaultValues(),
             pdbid:this.props.initialData.PdbId,
             computationId:this.props.initialData.ComputationId,
-            mode:"Mole",
+            mode:"Channels",
             expandedPanels:{
                 activeAtomsResidues:true,
                 activeAtomsResiduesAdvanced:false,
@@ -808,7 +808,7 @@ namespace Controls.UI{
                 }
                 let promise;
                 
-                if(this.state.mode==="Mole"){
+                if(this.state.mode==="Channels"){
                     promise = Service.ApiService.submitMoleJob(this.state.computationId, this.state.moleFormData.getPackage())
                 }
                 else{
@@ -846,7 +846,7 @@ namespace Controls.UI{
                         pdbid:this.state.pdbid,
                         moleFormData:this.state.moleFormData,
                         poresFormData:this.state.poresFormData,
-                        mode:(params.mode==="mole")?"Pores":"Mole", //Change to oposite mode to final desired mode to trigger subcomponent re-render
+                        mode:(params.mode==="mole")?"Pores":"Channels", //Change to oposite mode to final desired mode to trigger subcomponent re-render
                         expandedPanels:this.state.expandedPanels
                     },()=>{
                         this.setState({
@@ -854,7 +854,7 @@ namespace Controls.UI{
                             pdbid:this.state.pdbid,
                             moleFormData:(params.mode==="mole"&&params.moleConfig!==null)?new MoleFormData(params.moleConfig):this.getMoleDefaultValues(),
                             poresFormData:(params.mode==="pores"&&params.poresConfig!==null)?new PoresFormData(params.poresConfig):this.getPoresDefaultValues(), 
-                            mode:(params.mode==="mole")?"Mole":"Pores", //Change to correct and final mode to trigger subcomponent re-render
+                            mode:(params.mode==="mole")?"Channels":"Pores", //Change to correct and final mode to trigger subcomponent re-render
                             expandedPanels:this.state.expandedPanels
                         })});
                     });
@@ -864,7 +864,7 @@ namespace Controls.UI{
         render(){
             let form = <div/>;
 
-            if(this.state.mode==="Mole"){
+            if(this.state.mode==="Channels"){
                 form = this.getMoleForm();
             }
             else if (this.state.mode==="Pores"){
@@ -876,9 +876,9 @@ namespace Controls.UI{
                     <div className="mode-switch-button-container">
                         <span className="btn-sm btn-primary mode-switch" onClick={(e)=>{
                                 let state = this.state;
-                                state.mode = (this.state.mode==="Mole")?"Pores":"Mole";
+                                state.mode = (this.state.mode==="Channels")?"Pores":"Channels";
                                 this.setState(state);
-                            }}>Switch to {(this.state.mode==="Mole")?"Pore":"Channels"} mode</span>
+                            }}>Switch to {(this.state.mode==="Channels")?"Pore":"Channels"} mode</span>
                     </div>
                     {form}
                 </div>
@@ -897,7 +897,7 @@ namespace Controls.UI{
             let pdbid = this.state.pdbid;
             let data = this.state.moleFormData;
             return <div className="settings-form basic-settings">
-                        <h3>Mole</h3>
+                        <h3>Channels</h3>
 
                         <Common.Controls.FromLiteMol.LMControlWrapper controls={[
                             <Common.Controls.FromLiteMol.ControlGroup label="Active Atoms/Residues" tooltip="" controls={[

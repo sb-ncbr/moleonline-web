@@ -123,28 +123,32 @@
     display: inline-block;
     vertical-align: text-top;
 }
-
+#dg-aglomered-parameters.datagrid .col.col-1{
+    min-width: 80px;
+    width:15%;
+}
+/*
 #dg-aglomered-parameters.datagrid .col.col-1{
     min-width: 80px;
     width:15%;
 }
 #dg-aglomered-parameters.datagrid .col.col-2{
-    min-width: 55px;/*30px;*/
+    min-width: 55px;
     width:15%;
 }
 #dg-aglomered-parameters.datagrid .col.col-3{
-    min-width: 55px;/*30px;*/
+    min-width: 55px;
     width:15%;
 }
 #dg-aglomered-parameters.datagrid .col.col-4{
-    min-width: 120px;/*60px;*/
+    min-width: 120px;
     width:15%;
 }
 .bottom-tabs-toggled #dg-aglomered-parameters.datagrid .col.col-4{
     min-width: 60px;
 }
 #dg-aglomered-parameters.datagrid .col.col-5{
-    min-width: 30px;/*70px;*/
+    min-width: 30px;
     width:12%;
 }
 #dg-aglomered-parameters.datagrid .col.col-6{
@@ -152,15 +156,56 @@
     width:15%;
 }
 #dg-aglomered-parameters.datagrid .col.col-7{
-    min-width: 90px;/*50px;*/
+    min-width: 90px;
+    width:15%;
+}
+#dg-aglomered-parameters.datagrid .col.col-8{
+    min-width: 60px;
+    width:12%;
+}
+#dg-aglomered-parameters.datagrid .col.col-9{
+    min-width: 60px;
+    width:12%;
+}
+#dg-aglomered-parameters.datagrid .col.col-10{
+    min-width: 60px;
+    width:12%;
+}
+#dg-aglomered-parameters.datagrid .col.col-11{
+    min-width: 90px;
+}
+.bottom-tabs-toggled #dg-aglomered-parameters.datagrid .col.col-11{
+    min-width: 50px;
+}*/
+/*
+#dg-aglomered-parameters.datagrid .col.col-7{
+    min-width: 90px;
 }
 .bottom-tabs-toggled #dg-aglomered-parameters.datagrid .col.col-7{
     min-width: 50px;
-}
+}*/
 
 .bottom-tabs-toggled .aglomered-parameters * table * .ATable-label,
 .bottom-tabs-toggled #dg-aglomered-parameters.datagrid * .ATable-label{
     display:none;
+}
+
+#dg-aglomered-parameters.datagrid .col.col-2,
+#dg-aglomered-parameters.datagrid .col.col-3{
+    min-width:35px;
+    width:8%;
+}
+
+#dg-aglomered-parameters.datagrid .col.col-4,
+#dg-aglomered-parameters.datagrid .col.col-5,
+#dg-aglomered-parameters.datagrid .col.col-6,
+#dg-aglomered-parameters.datagrid .col.col-7,
+#dg-aglomered-parameters.datagrid .col.col-8,
+#dg-aglomered-parameters.datagrid .col.col-9,
+#dg-aglomered-parameters.datagrid .col.col-10,
+#dg-aglomered-parameters.datagrid .col.col-11,{
+    min-width: 30px;
+    width:8%;
 }
 /*
 @media only screen and (max-width: 830px) {

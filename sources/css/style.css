@@ -652,7 +652,8 @@ only screen and (max-height: 600px) {
 }
 
 span.ATable-label {
-    font-size: 9pt;
+    font-size: 6pt;
+    vertical-align: middle;
 }
 
 .icon.bottleneck.black {
@@ -661,6 +662,12 @@ span.ATable-label {
 
 .icon.bottleneck {
     background-image: url(../images/bottleneck-radius-white.png);
+}
+.icon.bottleneck,
+.icon.logp,
+.icon.logd,
+.icon.logs,
+.icon.ionizable{
     background-repeat: no-repeat;
     background-position: center center;
     height: 1em;
@@ -669,6 +676,34 @@ span.ATable-label {
     display: inline-block;
     vertical-align: text-top;
 }
+.icon.ionizable.black{
+    background-image: url(../images/ionizable_black.png);
+}
+.icon.ionizable{
+    background-image: url(../images/ionizable_white.png);
+    height: 1.1em;
+    width: 1.1em;
+    background-size: 1.1em 1.1em;
+}
+.icon.logp{
+    background-image: url(../images/water_drop_white.png);
+}
+.icon.logp.black{
+    background-image: url(../images/water_drop_black.png);
+}
+.icon.logd{
+    background-image: url(../images/water_drop_with_signs_white.png);
+}
+.icon.logd.black{
+    background-image: url(../images/water_drop_with_signs_black.png);
+}
+.icon.logs{
+    background-image: url(../images/water_waves_white.png);
+}
+.icon.logs.black{
+    background-image: url(../images/water_waves_black.png);
+}
+
 
 .popover {
     left: -60% !important;
@@ -721,10 +756,7 @@ span.ATable-label {
 }
 
 
-@media only screen and (max-width: 1360px){
-    #dg-aglomered-parameters.datagrid .col.col-4{
-        min-width:50px;
-    }
+@media only screen and (max-width: 1830px){
     span.ATable-label {
         display:none;
     }
@@ -776,10 +808,10 @@ only screen and (max-height: 900px) {
         height:60vh;
     }
     .left-tabs.bottom-tabs-toggled{
-        width:39%;
+        width:43%;
     }
     .right-tabs.bottom-tabs-toggled{
-        width:61%;
+        width:57%;
     }
     .bottom-panel .nav > li > a {
         padding: 0.5vh 5px !important;
@@ -934,7 +966,7 @@ only screen and (max-height: 542px) {
     }
 }
 
-@media only screen and (max-width: 720px){
+@media only screen and (max-width: 1000px){
     .plugin,
     .plugin.sv-minimized,
     .chdb-panel.bottom-panel,

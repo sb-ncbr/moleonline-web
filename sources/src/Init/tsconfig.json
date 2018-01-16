@@ -32,6 +32,7 @@
     "../DataInterface.ts",
 
     "../Bridge.ts",
+    "../DataProxy.ts",
 
     //Router
     "../Common/Util/Router.ts", 

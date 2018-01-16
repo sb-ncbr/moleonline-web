@@ -196,6 +196,22 @@ namespace ChannelParameters.UI{
                         <span><span className="glyphicon glyphicon-scissors properties-icon" />{"Mutability"}</span>,
                         <span>{CommonUtils.Numbers.roundToDecimal(t.Properties.Mutability,2).toString()}</span>
                     ];
+                    let logP=[
+                        <span><span className="icon logp black properties-icon" />{"LogP"}</span>,
+                        <span>{(t.Properties.LogP)?CommonUtils.Numbers.roundToDecimal(t.Properties.LogP,2):'N/A'}</span>
+                    ];
+                    let logD=[
+                        <span><span className="icon logd black properties-icon" />{"LogD"}</span>,
+                        <span>{(t.Properties.LogD)?CommonUtils.Numbers.roundToDecimal(t.Properties.LogD,2):'N/A'}</span>
+                    ];
+                    let logS=[
+                        <span><span className="icon logs black properties-icon" />{"LogS"}</span>,
+                        <span>{(t.Properties.LogS)?CommonUtils.Numbers.roundToDecimal(t.Properties.LogS,2):'N/A'}</span>
+                    ];
+                    let ionizable=[
+                        <span><span className="icon ionizable black properties-icon" />{"Ionizable"}</span>,
+                        <span>{(t.Properties.Ionizable)?CommonUtils.Numbers.roundToDecimal(t.Properties.Ionizable,2):'N/A'}</span>
+                    ];
                     //Length
                     rows.push(
                         <DGComponents.DGElementRow columnsCount={columnsCount} columns={length} />
@@ -219,6 +235,22 @@ namespace ChannelParameters.UI{
                     //Mutability
                     rows.push(
                         <DGComponents.DGElementRow columnsCount={columnsCount} columns={mutability} />
+                    )
+                    //LogP
+                    rows.push(
+                        <DGComponents.DGElementRow columnsCount={columnsCount} columns={logP} />
+                    )
+                    //LogD
+                    rows.push(
+                        <DGComponents.DGElementRow columnsCount={columnsCount} columns={logD} />
+                    )
+                    //LogS
+                    rows.push(
+                        <DGComponents.DGElementRow columnsCount={columnsCount} columns={logS} />
+                    )
+                    //Ionizable
+                    rows.push(
+                        <DGComponents.DGElementRow columnsCount={columnsCount} columns={ionizable} />
                     )
                 }
             }

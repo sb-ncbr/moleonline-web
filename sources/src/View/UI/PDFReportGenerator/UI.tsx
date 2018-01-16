@@ -69,6 +69,10 @@ namespace PDFReportGenerator.UI{
                 let charge = CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Charge,2).toString();
                 let polarity = CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Polarity,2).toString();                
                 let mutability = CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Mutability,2).toString();
+                let logP = (tunnel.Properties.LogP)?CommonUtils.Numbers.roundToDecimal(tunnel.Properties.LogP,2).toString():'N/A';
+                let logD = (tunnel.Properties.LogD)?CommonUtils.Numbers.roundToDecimal(tunnel.Properties.LogD,2).toString():'N/A';
+                let logS = (tunnel.Properties.LogS)?CommonUtils.Numbers.roundToDecimal(tunnel.Properties.LogS,2).toString():'N/A';
+                let ionizable = (tunnel.Properties.Ionizable)?CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Ionizable,2).toString():'N/A';
 
                 template = this.replacePlaceholder(template,"TUNNEL-PROPS-LENGTH",length);
                 template = this.replacePlaceholder(template,"TUNNEL-PROPS-BOTTLENECK",bottleneck);
@@ -76,6 +80,10 @@ namespace PDFReportGenerator.UI{
                 template = this.replacePlaceholder(template,"TUNNEL-PROPS-CHARGE",charge);
                 template = this.replacePlaceholder(template,"TUNNEL-PROPS-POLARITY",polarity);
                 template = this.replacePlaceholder(template,"TUNNEL-PROPS-MUTABILITY",mutability);
+                template = this.replacePlaceholder(template,"TUNNEL-PROPS-LOGP",logP);
+                template = this.replacePlaceholder(template,"TUNNEL-PROPS-LOGD",logD);
+                template = this.replacePlaceholder(template,"TUNNEL-PROPS-LOGS",logS);
+                template = this.replacePlaceholder(template,"TUNNEL-PROPS-IONIZABLE",ionizable);
 
                 return template;
             }

@@ -19,7 +19,7 @@ namespace LayersVizualizer{
 
     export type DataURL = string;
 
-    type PropertyKey = "Polarity" | "Mutability" | "Hydropathy" | "Hydrophobicity" | "Charge" | "NumNegatives" | "NumPositives"
+    type PropertyKey = "Polarity" | "Mutability" | "Hydropathy" | "Hydrophobicity" | "Charge" | "NumNegatives" | "NumPositives" | "LogP" | "LogD" | "LogS" | "Ionizable" | "BRadius"
 
     export interface PropertiesNumberCell{
         Polarity:number,
@@ -29,6 +29,11 @@ namespace LayersVizualizer{
         Charge:number,
         NumNegatives:number,
         NumPositives:number,
+        LogP:number,
+        LogD:number,
+        LogS:number,
+        Ionizable:number,
+        BRadius:number
     }
 
     export interface PropertiesColorCell{
@@ -39,6 +44,11 @@ namespace LayersVizualizer{
         Charge:RGBColor,
         NumNegatives:RGBColor,
         NumPositives:RGBColor,
+        LogP:RGBColor,
+        LogD:RGBColor,
+        LogS:RGBColor,
+        Ionizable:RGBColor,
+        BRadius:RGBColor
     }
 
     export interface LayersVizualizerSettings{
@@ -258,6 +268,11 @@ namespace LayersVizualizer{
             this.absCenterPositions.set("Charge",0);
             this.absCenterPositions.set("NumPositives",0);
             this.absCenterPositions.set("NumNegatives",0);
+            this.absCenterPositions.set("LogP",0.78);
+            this.absCenterPositions.set("LogD",-0.205);
+            this.absCenterPositions.set("LogS",0.075);
+            this.absCenterPositions.set("Ionizable",0);
+            this.absCenterPositions.set("BRadius",3);
             
             this.absColorValueMax = new Map<string,number>();
             this.absColorValueMax.set("Polarity",52);
@@ -287,6 +302,26 @@ namespace LayersVizualizer{
             this.absColorValueMax.set("NumNegatives",5);
             if(settings.colorMaxValue !== void 0 && settings.colorMaxValue.NumNegatives !== void 0){
                 this.absColorValueMax.set("NumNegatives",settings.colorMaxValue.NumNegatives.valueOf());
+            }
+            this.absColorValueMax.set("LogP",2.59);
+            if(settings.colorMaxValue !== void 0 && settings.colorMaxValue.LogP !== void 0){
+                this.absColorValueMax.set("LogP",settings.colorMaxValue.LogP.valueOf());
+            }
+            this.absColorValueMax.set("LogD",2.59);
+            if(settings.colorMaxValue !== void 0 && settings.colorMaxValue.LogD !== void 0){
+                this.absColorValueMax.set("LogD",settings.colorMaxValue.LogD.valueOf());
+            }
+            this.absColorValueMax.set("LogS",2.63);
+            if(settings.colorMaxValue !== void 0 && settings.colorMaxValue.LogS !== void 0){
+                this.absColorValueMax.set("LogS",settings.colorMaxValue.LogS.valueOf());
+            }
+            this.absColorValueMax.set("Ionizable",5);
+            if(settings.colorMaxValue !== void 0 && settings.colorMaxValue.Ionizable !== void 0){
+                this.absColorValueMax.set("Ionizable",settings.colorMaxValue.Ionizable.valueOf());
+            }
+            this.absColorValueMax.set("BRadius",6);
+            if(settings.colorMaxValue !== void 0 && settings.colorMaxValue.BRadius !== void 0){
+                this.absColorValueMax.set("BRadius",settings.colorMaxValue.BRadius.valueOf());
             }
 
             this.absColorValueMin = new Map<string,number>();
@@ -318,6 +353,26 @@ namespace LayersVizualizer{
             if(settings.colorMinValue !== void 0 && settings.colorMinValue.NumNegatives !== void 0){
                 this.absColorValueMin.set("NumNegatives",settings.colorMinValue.NumNegatives.valueOf());
             }
+            this.absColorValueMin.set("LogP",-1.03);
+            if(settings.colorMinValue !== void 0 && settings.colorMinValue.LogP !== void 0){
+                this.absColorValueMin.set("LogP",settings.colorMinValue.LogP.valueOf());
+            }
+            this.absColorValueMin.set("LogD",-3);
+            if(settings.colorMinValue !== void 0 && settings.colorMinValue.LogD !== void 0){
+                this.absColorValueMin.set("LogD",settings.colorMinValue.LogD.valueOf());
+            }
+            this.absColorValueMin.set("LogS",-2.48);
+            if(settings.colorMinValue !== void 0 && settings.colorMinValue.LogS !== void 0){
+                this.absColorValueMin.set("LogS",settings.colorMinValue.LogS.valueOf());
+            }
+            this.absColorValueMin.set("Ionizable",0);
+            if(settings.colorMinValue !== void 0 && settings.colorMinValue.Ionizable !== void 0){
+                this.absColorValueMin.set("LogS",settings.colorMinValue.Ionizable.valueOf());
+            }
+            this.absColorValueMin.set("BRadius",0);
+            if(settings.colorMinValue !== void 0 && settings.colorMinValue.BRadius !== void 0){
+                this.absColorValueMin.set("BRadius",settings.colorMinValue.BRadius.valueOf());
+            }
 
             this.radiusPropertyKey = "MinRadius";
             if(settings.radiusProperty != null){
@@ -348,6 +403,10 @@ namespace LayersVizualizer{
             let middleRed = {r:253,g:253,b:225};
             let maxWhite = {r:255,g:255,b:255};
             let middleWhite = {r:240,g:240,b:240};
+            let maxPurple = {r:107,g:9,b:107};
+            let middlePurple = {r:220, g:188, b:220};
+            let middleBlack = {r:183,g:183,b:183};
+            let maxBlack = {r:0,g:0,b:0};
 
             this.minColor = {
                 Hydropathy: maxBlue, 
@@ -356,7 +415,12 @@ namespace LayersVizualizer{
                 Polarity: maxYellow, 
                 Charge: maxRed, 
                 NumPositives: maxWhite,
-                NumNegatives: maxWhite
+                NumNegatives: maxWhite,
+                LogP: maxBlue,
+                LogD: maxBlue,
+                LogS: maxYellow,
+                Ionizable: maxPurple,
+                BRadius: maxWhite
             };
 
             this.minColorMiddle = {
@@ -366,7 +430,12 @@ namespace LayersVizualizer{
                 Polarity: middleYellow, 
                 Charge: middleRed, 
                 NumPositives: middleWhite,
-                NumNegatives: middleWhite
+                NumNegatives: middleWhite,
+                LogP: middleBlue,
+                LogD: middleBlue,
+                LogS: middleYellow,
+                Ionizable: middleWhite,
+                BRadius:middleWhite
             };
 
             this.maxColorMiddle = {
@@ -376,7 +445,12 @@ namespace LayersVizualizer{
                 Polarity: middleBlue, 
                 Charge: middleBlue, 
                 NumPositives: middleBlue,
-                NumNegatives: middleRed
+                NumNegatives: middleRed,
+                LogP: middleYellow,
+                LogD: middleYellow,
+                LogS: middleBlue,
+                Ionizable: middlePurple,
+                BRadius: middleBlack
             };
 
             this.maxColor = {
@@ -386,7 +460,12 @@ namespace LayersVizualizer{
                 Polarity: maxBlue, 
                 Charge: maxBlue, 
                 NumPositives: maxBlue,
-                NumNegatives: maxRed
+                NumNegatives: maxRed,
+                LogP: maxYellow,
+                LogD: maxYellow,
+                LogS: maxBlue,
+                Ionizable: maxPurple,
+                BRadius: maxBlack
             };
         }
 
@@ -519,7 +598,7 @@ namespace LayersVizualizer{
             this.maxY=this.data[0][this.radiusPropertyKey];
             this.customMaxY=this.data[0][this.customRadiusPropertyKey];
 
-            let val = this.data[0].Properties[this.coloringPropertyKey];
+            let val = this.getLayerPropertyValue(this.coloringPropertyKey,0);
             if(val == null){
                 throw new Error("Cannot init LayerVizualizer due to invalid settings - coloringProperty: "
                     + String(this.coloringPropertyKey));
@@ -527,17 +606,24 @@ namespace LayersVizualizer{
             
             this.minColoringValue = new Map<string,number>();
             this.maxColoringValue = new Map<string,number>();
+            let keys:string[] = [];
+            keys.push("BRadius");
+
             for(let key in this.data[0].Properties){
+                keys.push(key);
                 this.minColoringValue.set(key,this.data[0].Properties[key]);
                 this.maxColoringValue.set(key,this.data[0].Properties[key]);
             }
+            
+            this.minColoringValue.set('BRadius',this.data[0].MinBRadius);
+            this.maxColoringValue.set('BRadius',this.data[0].MinBRadius);            
 
             for(let i=0;i<this.data.length;i++){	                
                 this.maxY=Math.max(this.maxY,this.data[i][this.radiusPropertyKey]);
                 this.customMaxY=Math.max(this.customMaxY,this.data[i][this.customRadiusPropertyKey]);
                 
-                for(let key in this.data[i].Properties){
-                    let curVal = Number(this.data[i].Properties[key]);
+                for(let key of keys){
+                    let curVal = this.getLayerPropertyValue(key,i);
                     if(curVal === void 0){
                         throw new Error("Corrupted data!");
                     }
@@ -1022,6 +1108,14 @@ namespace LayersVizualizer{
             return positioning;
         }
 
+        private getLayerPropertyValue(key:string,layerIdx:number){
+            if(key==="BRadius"){
+                return Number(this.data[layerIdx].MinBRadius).valueOf();
+            }
+
+            return Number(this.data[layerIdx].Properties[key]).valueOf();
+        }
+
         private prepareLayersForVizualization():{defaultTunnelLayers:any,customizableTunnelLayers:any}{
             let defaultTunnelLayers = [];
             let customizableTunnelLayers = [];
@@ -1030,14 +1124,14 @@ namespace LayersVizualizer{
                     id: i, 
                     start: this.data[i].StartDistance, 
                     end: this.data[i].EndDistance, 
-                    value: Number(this.data[i].Properties[this.coloringPropertyKey]).valueOf(),
+                    value: this.getLayerPropertyValue(this.coloringPropertyKey,i),
                     radius: this.data[i][this.radiusPropertyKey]
                 };
                 let customizableTunnelLayer = {
                     id: i, 
                     start: this.data[i].StartDistance, 
                     end: this.data[i].EndDistance, 
-                    value: Number(this.data[i].Properties[this.customColoringPropertyKey]).valueOf(),
+                    value: this.getLayerPropertyValue(this.customColoringPropertyKey,i),
                     radius: this.data[i][this.customRadiusPropertyKey]
                 };
 

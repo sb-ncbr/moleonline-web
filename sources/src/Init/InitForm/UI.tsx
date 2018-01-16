@@ -7,6 +7,8 @@ namespace MoleOnlineWebUI.InitForm.UI{
     import ReactDOM = LiteMol.Plugin.ReactDOM;
 
     import LastNSessions = Common.Util.LastNSessions;
+    
+    type CompInfo = Service.MoleAPI.CompInfo;
 
     declare function $(p:any): any;
 
@@ -242,17 +244,15 @@ namespace MoleOnlineWebUI.InitForm.UI{
                 if(session===""){
                     break;
                 }
-                sessions.push(<tr>
-                    <td colSpan={2}>
-                        <a href={`/online/${session}`}>{session}</a>
-                    </td>
-                </tr>);
+                sessions.push(
+                    <LastSession session={session} parent={this} />
+                );
             }
 
             if(sessions.length===0){
                 sessions.push(
                     <tr>
-                        <td colSpan={2}>
+                        <td colSpan={4}>
                             There are no last openned sessions available...
                         </td>
                     </tr>
@@ -267,11 +267,103 @@ namespace MoleOnlineWebUI.InitForm.UI{
             let sessions = this.getLastNSessions();       
             return (
                 <table style={{width:"100%"}} className="last-session-form">
+                    <thead>
+                        <tr>
+                            <th>
+                                Created
+                            </th>
+                            <th>
+                                PDB ID
+                            </th>
+                            <th>
+                                Assembly ID
+                            </th>
+                            <th>
+                                Submission
+                            </th>
+                        </tr>
+                    </thead>
                     <tbody>
                         {sessions}
                     </tbody>
                 </table>
             );
         }
+    }
+
+    interface LastSessionProps{session:string, parent:App}
+    interface LastSessionState{loaded:boolean,data:CompInfo|null};
+    class LastSession extends React.Component<LastSessionProps,LastSessionState>{
+        state:LastSessionState = {loaded:false,data:null}
+
+        componentDidMount(){
+            let computationId = this.props.session.split("|")[1].split("/")[0];
+
+            MoleOnlineWebUI.DataProxy.ComputationInfo.DataProvider.get(computationId,(compId,info)=>{
+                let s = this.state;
+                this.setState({
+                    loaded:true,
+                    data:info
+                });
+            });
+        }
+
+        render(){
+            let date = this.props.session.split("|")[0];
+            let sessionUrl = this.props.session.split("|")[1];
+            if(this.state.loaded&&this.state.data!==null){
+                let pdbid;
+                if(this.state.data.PdbId!==null&&this.state.data.PdbId!==""){
+                    pdbid = this.state.data.PdbId
+                }
+                else{
+                    pdbid = "User structure";
+                }
+
+                let assemblyId;
+                if(this.state.data.AssemblyId!==null&&this.state.data.AssemblyId!==""){
+                    assemblyId = this.state.data.AssemblyId;
+                }
+                if(assemblyId===null){
+                    assemblyId = "Assymetric unit"
+                }
+
+                let submitIdParts = sessionUrl.split("/");
+                let submission;
+                if(submitIdParts.length===2){
+                    let submitId = submitIdParts[1];
+                    submission = submitId;
+                }
+                return <tr onClick={()=>{
+                    SimpleRouter.GlobalRouter.redirect(`/online/${sessionUrl}`);
+                }} className="linkLike">
+                        <td>
+                            {date}
+                        </td>
+                        <td>
+                            {pdbid}
+                        </td>
+                        <td>
+                            {assemblyId}
+                        </td>
+                        <td>
+                            {submission}
+                        </td>
+                    </tr>
+            }
+            else{
+                return <tr onClick={()=>{
+                    SimpleRouter.GlobalRouter.redirect(`/online/${sessionUrl}`);
+                }} className="linkLike">
+                            <td>
+                                {date}
+                            </td>
+                            <td colSpan={3}>
+                                {sessionUrl}
+                            </td>
+                        </tr>
+            }
+        }
+
     }
 }

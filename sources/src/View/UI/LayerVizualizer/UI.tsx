@@ -843,6 +843,10 @@ namespace LayersVizualizer.UI{
                 );
             }
 
+            rv.push(
+                <ColorMenuItem propertyName={'BRadius'} isCustom={this.props.isCustom} {...this.props.state} />
+            );
+
             return <BootstrapDropUpMenuButton items={rv} label={this.props.coloringProperty} />
         }
 

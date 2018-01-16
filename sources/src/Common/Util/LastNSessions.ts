@@ -3,9 +3,11 @@ namespace Common.Util.LastNSessions{
     import Router = Common.Util.Router;
 
     export let LAST_N_SESSIONS_N = 5;
+    let cookieNamePrefix = "LastNSessionsWithDate";
+    let version = 4;
 
     export function getNthSession(n:number){
-        let val = Cookies.getCookie(`LastNSessions_${n}`);
+        let val = Cookies.getCookie(`${cookieNamePrefix}_${version}_${n}`);
         if(val===void 0||val===null||val===""){
             return "";
         }
@@ -13,8 +15,29 @@ namespace Common.Util.LastNSessions{
         return val;
     }
 
-    export function setNthSession(n:number,value:string){
-        Cookies.setCookie(`LastNSessions_${n}`,value);
+    function formatDate(date:Date){
+        let day = `${date.getDate()}`;
+        if(day.length==1){
+            day = `0${day}`;
+        }
+        let month = `${date.getMonth()+1}`;
+        if(month.length===1){
+            month = `0${month}`;
+        }
+        let hours = `${date.getHours()}`;
+        if(hours.length===1){
+            hours = `0${hours}`;
+        }
+        let minutes = `${date.getMinutes()}`;
+        if(minutes.length===1){
+            minutes = `0${minutes}`;
+        }
+
+        return `${day}.${month}.${date.getFullYear()} ${hours}:${minutes}`;
+    }
+
+    export function setNthSession(n:number,value:string){        
+        Cookies.setCookie(`${cookieNamePrefix}_${version}_${n}`,`${formatDate(new Date())}|${value}`);
     }
 
     export function updateWithCurrentSession(){
@@ -33,7 +56,7 @@ namespace Common.Util.LastNSessions{
                 return;
             }
             
-            let compId = session.split("/")[0];
+            let compId = session.split("|")[1].split("/")[0];
             if(compId===params.computationId){
                 setNthSession(i,`${computationId}${submitIdPart}`);
                 return;
@@ -41,7 +64,7 @@ namespace Common.Util.LastNSessions{
         }
 
         for(let i=1;i<LAST_N_SESSIONS_N;i++){
-            setNthSession(i-1,getNthSession(i));
+            setNthSession(i-1,getNthSession(i).split("|")[1]);
         }
 
         setNthSession(LAST_N_SESSIONS_N-1,`${computationId}${submitIdPart}`);

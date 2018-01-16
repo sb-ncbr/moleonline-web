@@ -43,7 +43,11 @@ namespace DataInterface{
         Hydrophobicity: number,
         Hydropathy: number,
         Polarity: number,
-        Mutability: number
+        Mutability: number,
+        Ionizable: number,
+        LogP: number,
+        LogD: number,
+        LogS: number
     };
     export interface Tunnel{
         Type: string,

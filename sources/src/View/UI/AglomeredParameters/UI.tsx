@@ -6,7 +6,7 @@ namespace AglomeredParameters.UI{
     import DGComponents = Datagrid.Components;
     import Tooltips = MoleOnlineWebUI.StaticData.TooltipText;
     
-    let DGTABLE_COLS_COUNT = 7;
+    let DGTABLE_COLS_COUNT = 11;
 
     declare function $(p:any): any;
     declare function datagridOnResize(str:string):any;
@@ -146,7 +146,19 @@ namespace AglomeredParameters.UI{
                         </th>
                         <th title={Tooltips.get("agl-Mutability")} className="col col-7 ATable-header-mutability init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
                             <span className="glyphicon glyphicon-scissors" /> <span className="ATable-label">Mutability</span>
-                        </th>                     
+                        </th>  
+                        <th title={Tooltips.get("agl-LogP")} className="col col-8 ATable-header-logp init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                            <span className="icon logp" /> <span className="ATable-label">LogP</span>
+                        </th>    
+                        <th title={Tooltips.get("agl-LogD")} className="col col-9 ATable-header-logd init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                            <span className="icon logd" /> <span className="ATable-label">LogD</span>
+                        </th>                    
+                        <th title={Tooltips.get("agl-LogS")} className="col col-10 ATable-header-logs init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                            <span className="icon logs" /> <span className="ATable-label">LogS</span>
+                        </th>   
+                        <th title={Tooltips.get("agl-Ionizable")} className="col col-11 ATable-header-ionizable init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                            <span className="icon ionizable" /> <span className="ATable-label">Ionizable</span>
+                        </th>   
                     </tr>
                 </table>
             );
@@ -227,7 +239,19 @@ namespace AglomeredParameters.UI{
                         </td>
                         <td className="col col-7">
                             {CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.Mutability,2)}
-                        </td>                     
+                        </td>        
+                        <td className="col col-8">
+                            {(this.props.tunnel.Properties.LogP)?CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.LogP,2):'N/A'}
+                        </td>               
+                        <td className="col col-9">
+                            {(this.props.tunnel.Properties.LogD)?CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.LogD,2):'N/A'}
+                        </td>               
+                        <td className="col col-10">
+                            {(this.props.tunnel.Properties.LogS)?CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.LogS,2):'N/A'}
+                        </td>               
+                        <td className="col col-11">
+                            {(this.props.tunnel.Properties.Ionizable)?CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.Ionizable,2):'N/A'}
+                        </td>               
                     </tr>);
         }
     }

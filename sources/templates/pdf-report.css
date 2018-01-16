@@ -38,11 +38,22 @@
 		text-align:right;
 		width:30%
 	}
-	.report-body .report-tunnel-phys-chem-props .bottleneck-black-icon{
+	.report-body .report-tunnel-phys-chem-props .bottleneck-black-icon,
+	.report-body .report-tunnel-phys-chem-props .logp-black-icon,
+	.report-body .report-tunnel-phys-chem-props .logd-black-icon,
+	.report-body .report-tunnel-phys-chem-props .logs-black-icon,
+	.report-body .report-tunnel-phys-chem-props .ionizable-black-icon{
 		height:9pt;
 		vertical-align:baseline;
 		margin-right:2px;
 		margin-left:1px;
+	}
+	.report-body .report-tunnel-phys-chem-props .logs-black-icon{
+		width:10px;	
+		margin-left:2px;
+	}
+	.report-body .report-tunnel-phys-chem-props .ionizable-black-icon{
+		margin-right:1px;	
 	}
 	.report-body.params-page .empty-space,
 	.report-body.params-page .empty-space td{
