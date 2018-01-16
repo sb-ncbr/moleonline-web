@@ -14,8 +14,6 @@ namespace LiteMol.Example.Channels.State {
 
     import ColorScheme = MoleOnlineWebUI.StaticData.LiteMolObjectsColorScheme;
 
-    /*export interface SurfaceTag { type: string, element?: any }*/
-
     export type SelectableElement = 
         | { kind: 'nothing' }
         | { kind: 'molecule', data: Bootstrap.Interactivity.Molecule.SelectionInfo }
@@ -89,6 +87,10 @@ namespace LiteMol.Example.Channels.State {
         removeNodeFromTree(plugin, 'mole-data-object');
     }
 
+    export function removeMembraneData(plugin:Plugin.Controller){
+        removeNodeFromTree(plugin, 'membrane-object');
+    }
+
     function removeNodeFromTree(plugin:Plugin.Controller, nodeRef:string){
         let obj = getNodeFromTree(plugin.root, nodeRef);
         if(obj!==null){
@@ -158,6 +160,27 @@ namespace LiteMol.Example.Channels.State {
         moleData.Channels.TransmembranePores = generateGuid(moleData.Channels.TransmembranePores);
 
         return moleData
+    }
+
+    function downloadMembraneData(plugin:Plugin.Controller, computationId:string, submitId:number){
+        removeMembraneData(plugin);
+        return new Promise<any>((res,rej)=>{
+            ApiService.getMembraneData(computationId,submitId).then((data)=>{
+                let membrane = plugin.createTransform().add(plugin.root, Transformer.Data.FromData, { data:JSON.stringify(data), id: 'Membrane' }, { isHidden: true, ref:'membrane-object' })
+                        .then(Transformer.Data.ParseJson, { id: 'MembraneObjects' }, { ref: 'membrane-data', isHidden:true });
+                    plugin.applyTransform(membrane)
+                        .then(() => {
+                            showMembraneVisuals(plugin,data,true).then((val)=>{
+                                res();
+                            }).catch((err)=>{
+                                rej(err);
+                            });
+                        });
+            }).catch(err=>{
+                console.log("Membrane data not available!");
+                console.log(err);
+            });
+        });
     }
 
     function downloadChannelsData(plugin:Plugin.Controller, computationId:string, submitId:number){
@@ -354,6 +377,8 @@ namespace LiteMol.Example.Channels.State {
             promises.push(proteinAndCSA);
         }
         if(channels&&!channelsDB){
+            //Download and show membrane data if available
+            promises.push(downloadMembraneData(plugin, computationId, submitId));
             if(Config.CommonOptions.DEBUG_MODE)
                 console.log("reloading channels");
             promises.push(downloadChannelsData(plugin, computationId, submitId));
@@ -534,13 +559,11 @@ namespace LiteMol.Example.Channels.State {
     
     export function showChannelVisuals(plugin: Plugin.Controller, channels: TunnelMetaInfo[], visible: boolean, forceRepaint?:boolean): Promise<any> {
         let label = (channel: any) => `${channel.Type} ${CommonUtils.Tunnels.getName(channel)}`;
-        /*let type = "Channel";*/
         let alpha = 1.0;
 
         let promises = [];
         let visibleChannels:DataInterface.Tunnel[] = [];
         for (let channel of channels) {
-            // Stejné jako v Examples/Channels
             if (!channel.__id) channel.__id = Bootstrap.Utils.generateUUID();
             if (!!channel.__isVisible === visible && !forceRepaint) continue;
 
@@ -557,31 +580,17 @@ namespace LiteMol.Example.Channels.State {
                 plugin.command(Bootstrap.Command.Tree.RemoveNode, channel.__id);
             } else {
                 visibleChannels.push(channel);
-                //Zde se volá mnou vytvořená funkce pro generování povrchu podle koulí z JSONu(u nás zatím Centerline, u Vás Profile)
-                let sphereSurfacePromise = createTunnelSurface(channel.Profile);//createTunnelSurfaceWithLayers(channel.Profile, channel.Layers);
+                let sphereSurfacePromise = createTunnelSurface(channel.Profile);
                 
                 promises.push(new Promise<any>((res,rej) => {
-                    //Zpracování úspěšně vygenerovného povrchu tunelu
                     sphereSurfacePromise.then((val) => {
                         let surface = val;
-                        /*
-                        if(surface.surface.annotation !== void 0){
-                            console.log("---");
-                            console.log(`annotations length: ${surface.surface.annotation.length}`);
-                            console.log(`profile parts count: ${channel.Profile.length}`);
-                            console.log("---");
-                            for(let i=0;i<surface.surface.annotation.length;i++){                                
-                                surface.surface.annotation[i] = 0;
-                                //console.log(`surface.annotation: ${surface.surface.annotation[i]}`);
-                            }
-                        }
-                        */
                         
                         let t = plugin.createTransform();                        
                         t.add('mole-data', CreateSurface, {
                             label: label(channel),
                             tag: <SurfaceTag>{ kind:"Channel", element: channel },
-                            surface: surface/*.surface*/,
+                            surface: surface,
                             color: channel.__color as Visualization.Color,
                             isInteractive: true,
                             transparency: { alpha },
@@ -619,6 +628,102 @@ namespace LiteMol.Example.Channels.State {
             case 'CSA Origins': return ColorScheme.Colors.get(ColorScheme.Enum.CSAOrigin);
             default:return ColorScheme.Colors.get(ColorScheme.Enum.OtherOrigin);
         }
+    }
+
+    function createMembraneSurface(membranePoints:any): Promise<Core.Geometry.Surface>{
+        let s = Visualization.Primitive.Builder.create();
+        for(let p of membranePoints as DataInterface.MembranePoint[]){
+            s.add({ type: 'Sphere', id: 0, radius: 0.25, center: [ p.Position.X, p.Position.Y, p.Position.Z ] });
+        }
+        return s.buildSurface().run();
+    }
+
+    export function showMembraneVisuals(plugin: Plugin.Controller, membraneData: DataInterface.MembranePoint[], visible: boolean): Promise<any>{
+        let promises = [];
+        let blue:DataInterface.MembranePoint[] = [];
+        let red:DataInterface.MembranePoint[] = [];
+
+        let blueId = "";
+        let redId = "";
+        for(let membrane of membraneData){
+            let membraneDataAny = membrane as any;
+
+            if (!!membraneDataAny.__isVisible === visible) return Promise.resolve();
+
+            membraneDataAny.__isVisible = visible;
+            if (!visible) {
+                plugin.command(Bootstrap.Command.Tree.RemoveNode, membraneDataAny.__id);
+                membraneDataAny.__isBusy = false;
+                continue;
+            }
+            
+            if(membrane.Side==="N"){
+                if(blueId===""){
+                    if (!membraneDataAny.__id){
+                        blueId = Bootstrap.Utils.generateUUID();
+                    }
+                    membraneDataAny.__id = blueId;
+                }
+                blue.push(membrane);
+                (blue as any).__isBusy = true;
+            }
+            else{
+                if(redId===""){
+                    if (!membraneDataAny.__id){
+                        redId = Bootstrap.Utils.generateUUID();
+                    }
+                    membraneDataAny.__id = redId;
+                }
+                red.push(membrane);
+                (red as any).__isBusy = true;
+            }
+        }
+
+        if(blue.length>0){
+            promises.push(
+                new Promise<any>((res,rej)=>{
+                    createMembraneSurface(blue).then(surface => {
+                        let t = plugin.createTransform()
+                            .add('membrane-data', CreateSurface, {
+                                label: 'Membrane Blue',
+                                tag: <SurfaceTag>{ kind: 'Origins', element: membraneData },
+                                surface,
+                                isInteractive: false,
+                                color: ColorScheme.Colors.get(ColorScheme.Enum.MembraneBlue) as Visualization.Color
+                            }, { ref: (blue[0] as any).__id, isHidden: true });
+                        
+                        plugin.applyTransform(t).then(() => {                        
+                            (blue as any).__isBusy = false;
+                            res();
+                        }).catch(err=>rej(err));
+                    }).catch(err=>rej(err))
+                })
+            );
+        }
+
+        if(red.length>0){
+            promises.push(
+                new Promise<any>((res,rej)=>{
+                    createMembraneSurface(red).then(surface => {
+                        let t = plugin.createTransform()
+                            .add('membrane-data', CreateSurface, {
+                                label: 'Membrane Red',
+                                tag: <SurfaceTag>{ kind: 'Origins', element: membraneData },
+                                surface,
+                                isInteractive: false,
+                                color: ColorScheme.Colors.get(ColorScheme.Enum.MembraneRed) as Visualization.Color
+                            }, { ref: (red[0] as any).__id, isHidden: true });
+                        
+                        plugin.applyTransform(t).then(() => {
+                            (red as any).__isBusy = false;
+                            res();
+                        }).catch(rej);
+                    }).catch(rej)
+                })
+            );
+        }
+
+        return Promise.all(promises);
     }
 
     export function showOriginsSurface(plugin: Plugin.Controller, origins: any, visible: boolean): Promise<any> {

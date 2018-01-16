@@ -90,6 +90,7 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
     export type ResidueName = string;
     export type PatternQueryExpression = string;
     export type Cofactors = Map<ResidueName,PatternQueryExpression>;
+    export type MembranePoints = DataInterface.MembranePoint[];
 
     export class ApiService{
         private static DEBUG_MODE = Config.CommonOptions.DEBUG_MODE;
@@ -313,6 +314,20 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
                 if(this.DEBUG_MODE)
                     console.timeEnd("getChannelsData");
                 return s;
+            });
+        }
+
+        public static getMembraneData(computationId:string, submitId:number):Promise<MembranePoints>{
+            let url = `${this.baseUrl}/Data/${computationId}?submitId=${submitId}&format=membrane`;
+            if(this.DEBUG_MODE){
+                console.log(url);
+            }
+            if(this.DEBUG_MODE)
+                console.time("getMembraneData");
+            return this.sendGET(url).then((s)=>{
+                if(this.DEBUG_MODE)
+                    console.timeEnd("getMembraneData");
+                return s as MembranePoints;
             });
         }
 

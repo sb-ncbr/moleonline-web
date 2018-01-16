@@ -135,6 +135,9 @@ namespace MoleOnlineWebUI.StaticData{
                     case Enum.SyntethicSelect: return LiteMol.Visualization.Color.fromRgb(191, 82, 204);
                     case Enum.TPoint: return LiteMol.Visualization.Color.fromRgb(255, 0, 105);
 
+                    case Enum.MembraneBlue: return LiteMol.Visualization.Color.fromRgb(0,0,255);
+                    case Enum.MembraneRed: return LiteMol.Visualization.Color.fromRgb(255,0,0);
+
                     case Enum.DefaultColor: return LiteMol.Visualization.Color.fromRgb(0,0,0);
                     default : return this.get(Enum.DefaultColor);
                 }
@@ -160,7 +163,9 @@ namespace MoleOnlineWebUI.StaticData{
             CavitySelectable,
             TPoint,
             SyntethicSelect,
-            DefaultColor
+            DefaultColor,
+            MembraneBlue,
+            MembraneRed,
         }
     }
 }

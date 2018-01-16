@@ -99,6 +99,17 @@ namespace DataInterface{
         ReferenceType: string
     };
 
+    export interface MembranePositionPoint{
+        X:number,
+        Y:number,
+        Z:number
+    }
+
+    export interface MembranePoint{
+        Position: MembranePositionPoint
+        Side: "N"|"O"
+    }
+
     //--
 
     export interface LayerData{
