@@ -179,6 +179,7 @@ namespace LiteMol.Example.Channels.State {
             }).catch(err=>{
                 console.log("Membrane data not available!");
                 console.log(err);
+                res();
             });
         });
     }
