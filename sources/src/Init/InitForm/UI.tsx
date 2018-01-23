@@ -196,7 +196,7 @@ namespace MoleOnlineWebUI.InitForm.UI{
                                 <div className="hint">PDB ID code as can be found on www.pdb.org, for example 1z10.</div></td></tr>
                                 
                         <tr>
-                            <td><label htmlFor="frm-jobSetup-setupForm-unit">Assembly ID(optional)</label>:</td>
+                            <td><label htmlFor="frm-jobSetup-setupForm-unit">Assembly ID (optional)</label>:</td>
                             <td><input disabled={this.state.useBiologicalUnit} type="text" name="assembly" maxLength={2} size={10} className="text" id="frm-jobSetup-setupForm-unit" defaultValue="" />
                                 <div className="hint">
                                     no value - assymetric unit (default)

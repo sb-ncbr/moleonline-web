@@ -206,6 +206,13 @@ namespace LiteMol.Example.Channels.UI {
             
             let noOriginsData = <div className="no-channels-data">There are no origins available...</div>
 
+            let membrane;
+            let membraneData = this.props.plugin.context.select('membrane-data')[0] as Bootstrap.Entity.Data.Json;
+            let noMembraneData = <div className="no-channels-data">There are no membrane data available...</div>
+            
+            if(membraneData!==void 0&&membraneData!==null&&membraneData.props.data.length!==void 0){
+                membrane = <Membrane membraneData={membraneData.props.data} label={"Membrane"} {...this.props} />
+            }
             return <div>
                 <Selection {...this.props} />
 
@@ -229,6 +236,14 @@ namespace LiteMol.Example.Channels.UI {
                 <div>
                     {(cavitiesControls.length===0)?noCavitiesData:cavitiesControls}
                 </div>
+
+                <div className="ui-header membrane">
+                    Membrane
+                </div>
+                <div>
+                    {(membrane===void 0)?noMembraneData:membrane}
+                </div>
+                
             </div>;
         }
     }
@@ -625,6 +640,37 @@ namespace LiteMol.Example.Channels.UI {
             return <div>
                 <label onMouseEnter={() => this.highlight(true)} onMouseLeave={() => this.highlight(false)} >
                     <input type='checkbox' checked={!!this.props.origins.__isVisible} onChange={() => this.toggle()} disabled={!!this.props.origins.__isBusy} /> {this.props.label}
+                </label>
+            </div>
+        }
+    }
+
+    export class Membrane extends React.Component<{ label: string | JSX.Element, membraneData: any } & State, { }> {
+        componentDidMount(){
+            MoleOnlineWebUI.Bridge.Events.subscribeOnMembraneDataReady(()=>{
+                this.forceUpdate();
+            });
+        }
+
+        private toggle() {
+            this.props.membraneData.__isBusy = true;
+            this.forceUpdate(() =>
+                State.showMembraneVisuals(this.props.plugin, this.props.membraneData, !this.props.membraneData.__isVisible)
+                    .then(() => this.forceUpdate()).catch((err) => {this.forceUpdate();console.log(err)}));
+        }
+
+        private highlight(isOn: boolean) {
+            this.props.plugin.command(Bootstrap.Command.Entity.Highlight, { entities: this.props.plugin.context.select(this.props.membraneData.__id), isOn });
+        }
+
+        render() {
+            if (this.props.membraneData===void 0 || !this.props.membraneData.length) {
+                return <div style={{ display: 'none' }} />
+            }
+
+            return <div>
+                <label onMouseEnter={() => this.highlight(true)} onMouseLeave={() => this.highlight(false)} >
+                    <input type='checkbox' checked={!!this.props.membraneData.__isVisible} onChange={() => this.toggle()} disabled={!!this.props.membraneData.__isBusy} /> {this.props.label}
                 </label>
             </div>
         }

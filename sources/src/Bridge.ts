@@ -43,7 +43,8 @@ namespace MoleOnlineWebUI.Bridge{
     export type RunPDFReportHandler = ()=>void;
     export type CopyParametersHandler = (params:CopyParametersParams)=>void;
     export type OnSequneceViewerToggleHandler = (params:ToggleSequenceViewerParams)=>void;
-
+    export type OnMembraneDataReadyHandler = ()=>void;
+    
     namespace HandlerTypes{
         export const NewSubmitType = "NEW-SUBMIT";
         export const ChangeSubmitIdType = "CHANGE-SUBMIT-ID";
@@ -57,6 +58,7 @@ namespace MoleOnlineWebUI.Bridge{
         export const CopyParametersType = "COPY-PARAMETERS";
         export const OnReSubmitType = "ON-RESUBMIT";
         export const OnSequneceViewerToggleType = "ON-SEQ-VIEWER-TOGGLE";
+        export const OnMembraneDataReadyType = "ON-MEMBRANE-DATA-READY";
         
         export type NewSubmit = "NEW-SUBMIT";
         export type ChangeSubmitId = "CHANGE-SUBMIT-ID";
@@ -70,6 +72,7 @@ namespace MoleOnlineWebUI.Bridge{
         export type CopyParameters = "COPY-PARAMETERS";
         export type OnReSubmit = "ON-RESUBMIT";
         export type OnSequneceViewerToggle = "ON-SEQ-VIEWER-TOGGLE";
+        export type OnMembraneDataReady = "ON-MEMBRANE-DATA-READY";
     };
 
     type HandlerType = HandlerTypes.NewSubmit 
@@ -83,7 +86,8 @@ namespace MoleOnlineWebUI.Bridge{
     | HandlerTypes.RunPDFReport
     | HandlerTypes.CopyParameters
     | HandlerTypes.OnReSubmit
-    | HandlerTypes.OnSequneceViewerToggle;
+    | HandlerTypes.OnSequneceViewerToggle
+    | HandlerTypes.OnMembraneDataReady;
 
     export class Events{
         private static handlers = new Map<HandlerType,SimpleHandler[]>();
@@ -302,6 +306,24 @@ namespace MoleOnlineWebUI.Bridge{
             if(hndlrs!==void 0){
                 for(let h of hndlrs){
                     h(params);
+                }
+            }
+        }
+
+        public static subscribeOnMembraneDataReady(h:OnMembraneDataReadyHandler){
+            let list = this.handlers.get(HandlerTypes.OnMembraneDataReadyType);
+            if(list===void 0){
+                list = [];
+            }
+            list.push(h);
+            this.handlers.set(HandlerTypes.OnMembraneDataReadyType, list);
+        }
+
+        public static invokeOnMembraneDataReady(){
+            let hndlrs = this.handlers.get(HandlerTypes.OnMembraneDataReadyType);
+            if(hndlrs!==void 0){
+                for(let h of hndlrs){
+                    h();
                 }
             }
         }

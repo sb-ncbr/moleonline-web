@@ -544,7 +544,8 @@ only screen and (max-height: 600px) {
     margin-bottom: 0px;
 }
 
-.ui-header.origins{
+.ui-header.origins,
+.ui-header.membrane{
     margin-top: 1vh;
     margin-bottom: 0.5vh;
 }
@@ -895,7 +896,7 @@ only screen and (max-height: 542px) {
 
     .download-button{
         font-size: 10pt;
-        width: 155px;
+        width: 105px;
         left: 220px;
     }
 
@@ -1096,7 +1097,7 @@ only screen and (max-height: 542px) {
     }
     .current-pbdbid-sign .glyphicon,
     .download-button .glyphicon,
-    .annotate .glyphicon{
+    .annotate-button .glyphicon{
         display: none;
     }
 }

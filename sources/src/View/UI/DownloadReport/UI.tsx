@@ -743,7 +743,7 @@ namespace DownloadReport.UI{
                     <BootstrapDropDownMenuItem linkText="PDF report" onClick={()=>{MoleOnlineWebUI.Bridge.Events.invokeRunPDFReport();}}/>
                 );
             }
-            return <BootstrapDropDownMenuButton label="Download report" items={items} />
+            return <BootstrapDropDownMenuButton label="Download" items={items} />
         }
     }
 }

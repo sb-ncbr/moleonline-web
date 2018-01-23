@@ -170,7 +170,8 @@ namespace LiteMol.Example.Channels.State {
                         .then(Transformer.Data.ParseJson, { id: 'MembraneObjects' }, { ref: 'membrane-data', isHidden:true });
                     plugin.applyTransform(membrane)
                         .then(() => {
-                            showMembraneVisuals(plugin,data,true).then((val)=>{
+                            let membraneData = plugin.context.select('membrane-data')[0] as Bootstrap.Entity.Data.Json;
+                            showMembraneVisuals(plugin,membraneData.props.data,true).then((val)=>{
                                 res();
                             }).catch((err)=>{
                                 rej(err);
@@ -181,6 +182,8 @@ namespace LiteMol.Example.Channels.State {
                 console.log(err);
                 res();
             });
+        }).then(()=>{
+            MoleOnlineWebUI.Bridge.Events.invokeOnMembraneDataReady();
         });
     }
 
@@ -653,7 +656,10 @@ namespace LiteMol.Example.Channels.State {
 
             membraneDataAny.__isVisible = visible;
             if (!visible) {
-                plugin.command(Bootstrap.Command.Tree.RemoveNode, membraneDataAny.__id);
+                if(membraneDataAny.__id!==void 0){
+                    plugin.command(Bootstrap.Command.Tree.RemoveNode, membraneDataAny.__id);
+                    membraneDataAny.__id = void 0;
+                }
                 membraneDataAny.__isBusy = false;
                 continue;
             }
@@ -724,7 +730,12 @@ namespace LiteMol.Example.Channels.State {
             );
         }
 
-        return Promise.all(promises);
+        return Promise.all(promises).then(()=>{
+            (membraneData as any).__isBusy = false;
+            (membraneData as any).__isVisible = visible;
+        }).catch((err)=>{
+            (membraneData as any).__isBusy = false;
+        })
     }
 
     export function showOriginsSurface(plugin: Plugin.Controller, origins: any, visible: boolean): Promise<any> {
