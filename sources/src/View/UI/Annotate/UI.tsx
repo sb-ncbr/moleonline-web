@@ -51,34 +51,111 @@ namespace Annotate.UI{
             }
 
             return <div>
-                <AnnotateButton app={this} canAnnotate={this.state.computationId!==void 0&&this.state.submitId!==void 0} />
+                <DropDownMenu app={this} canAnnotate={this.state.computationId!==void 0&&this.state.submitId!==void 0} />
                 <AnnotateForm app={this} visible={this.state.annotationFormVisible} computationId={computationId} submitId={submitId} />
             </div>
         }
     }  
 
-    interface AnnotateButtonProps{
-        canAnnotate:boolean,
-        app:App
+    class BootstrapDropDownMenuItem extends React.Component<{link?: string, linkText:string, targetBlank?: boolean, onClick?:()=>void},{}>{
+        render(){
+            if(this.props.onClick!==void 0){
+                return(
+                    <li><a onClick={this.props.onClick}>{this.props.linkText}</a></li>
+                );    
+            }
+            else{
+                return(
+                    <li><a target={(this.props.targetBlank)?"_blank":""} href={this.props.link}>{this.props.linkText}</a></li>
+                );
+            }
+        }
     }
-    class AnnotateButton extends React.Component<AnnotateButtonProps,{}>{
+
+    class BootstrapDropDownMenuElementItem extends React.Component<{link?: string, linkElement:JSX.Element, targetBlank?: boolean, onClick?:()=>void},{}>{
+        render(){
+            if(this.props.onClick!==void 0){
+                return(
+                    <li><a onClick={this.props.onClick}>{this.props.linkElement}</a></li>
+                );    
+            }
+            else{
+                return(
+                    <li><a target={(this.props.targetBlank)?"_blank":""} href={this.props.link}>{this.props.linkElement}</a></li>
+                );
+            }
+        }
+    }
+
+    class BootstrapDropDownMenuButton extends React.Component<{items: JSX.Element[]},{}>{
+        render(){
+            return <div className="btn-group dropdown">
+                    <button type="button" disabled={this.props.items.length==0} className="channelsdb dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <img src="/images/ChannelsDBlogo_transparent.png"/>
+                    </button>
+                    <ul className="dropdown-menu">
+                        {this.props.items}
+                    </ul>
+                </div>
+        }
+    }
+
+    interface DropDownMenuState{
+        computationId:string,
+        hasChannelsDBSubmission:boolean
+    }
+    class DropDownMenu extends React.Component<{app:App, canAnnotate:boolean},DropDownMenuState>{
+        state = {computationId:"",hasChannelsDBSubmission:false}
 
         componentDidMount(){
+            let params = Common.Util.Router.getParameters();
+            if(params!==null){
+                let computationId = params.computationId;
+                let s = this.state;
+                s.computationId = computationId;
+                this.setState(s);    
+
+                MoleOnlineWebUI.DataProxy.ComputationInfo.DataProvider.get(computationId,(compid,info)=>{
+                    let s1 = this.state;
+                    if(info.PdbId!==void 0&&info.PdbId!==null&&info.PdbId!==""){
+                        s1.hasChannelsDBSubmission = true;
+                    }
+                    else{
+                        s1.hasChannelsDBSubmission = false;
+                    }
+                    this.setState(s1);
+                });
+            }
+            
         }
         
-        render(){         
-            if(this.props.canAnnotate){
-                return <div className="annotate-button" onClick={(e)=>{
-                        const oldState = this.props.app.state;
-                        oldState.annotationFormVisible = true;
-                        this.props.app.setState(oldState);
-                    }}>
-                    Annotate <span className="glyphicon glyphicon-edit"/>
-                </div>
-            }   
-            else{
-                return <div>...</div>
-            }           
+        render(){                       
+            let computationId = this.state.computationId;
+            
+            let items:JSX.Element[] = [];
+        
+            if(computationId!==void 0){
+                if(this.state.hasChannelsDBSubmission){
+                    items.push(
+                        <BootstrapDropDownMenuItem linkText="Vizualize" onClick={()=>{
+                            Common.Util.Router.fakeRedirect(computationId,"ChannelsDB");
+                            LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
+                            MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(-1);
+                        }}/>
+                    );
+                }
+                if(this.props.canAnnotate){
+                    items.push(
+                        <BootstrapDropDownMenuItem linkText="Annotate" onClick={()=>{
+                            let s = this.props.app.state;
+                            s.annotationFormVisible = !s.annotationFormVisible;
+                            this.props.app.setState(s);
+                        }}/>
+                    );
+                }
+            }
+
+            return <BootstrapDropDownMenuButton items={items} />
         }
     }
 
