@@ -11,7 +11,7 @@
 <link rel="stylesheet" type="text/css" media="screen" href="\css/old-web/cssloader.css">
 	<link rel="stylesheet" href="\css/old-web/print.front.css" type="text/css" media="print">
 		<link rel="stylesheet" href="\css/old-web/LiteMol-plugin.css" type="text/css">
-		<link rel="stylesheet" href="\css/init-styles.css?version=1.4.9.1" type="text/css">
+		<link rel="stylesheet" href="\css/init-styles.css?version=1.4.9.2" type="text/css">
 
 
 </head>
@@ -45,10 +45,209 @@
 
 <h2>FAQ</h2>
 
-<p>Q: Why is this page empty?</p>
+<h3>General</h3>
+
+<p>Q: Do you have question?</p>
 <ul>
-<li>You can help fill it up by sending us email or reaching us on facebook with your questions. Contacts available on <a href="/about/">About</a> tab.</li>
+	<li>You can send it to us via email or reach us on facebook with your questions. Contacts are available on <a href="/about/">About</a> tab.</li>
 </ul>
+<br/>
+
+<h3>MOLEonline versions</h3>
+
+<p>Q: What is new in MOLEonline version 2018 vs MOLEonline 2.0?</p>
+<ul>
+	<li>
+		Input
+		<ul>
+			<li>
+				<a target="_blank" href="http://mmcif.wwpdb.org/">mmCIF</a> parsing 
+			</li>
+			<li>
+				Added <a target="_blank" href="https://webchem.ncbr.muni.cz/Platform/PatternQuery">PatternQuery</a> language support (ignore residues, start points, tunnel filtering).
+			</li>
+			<li>
+				Automatic starting points from cavities in 3D structure - Origin points 
+			</li>
+			<li>
+				Transmembrane Pore mode
+			</li>
+		</ul>
+	</li>
+	<li>
+		Parameters of calculation
+		<ul>
+			<li>
+				Selection of end points (It is possible to compute tunnels to only 1 user specified exit)
+			</li>
+			<li>
+				New weight functions for computing tunnels (added Length, Voronoi scale weight functions)
+			</li>
+			<li>
+				Computation of "User Pores" now works for any cavity, not just the "surface".
+			</li>
+			<li>
+				Selection of end points with Ctrl+left click
+			</li>
+		</ul>
+	</li>
+	<li>
+		Pore mode
+		<ul>
+			<li>
+				Enhancement of transmembrane pore calculations with use of OPM database or MEMEMBED program
+			</li>
+		</ul>
+	</li>
+	<li>
+		Visualization
+		<ul>
+			<li>
+				<a target="_blank" href="http://www.litemol.org/">LiteMol</a> instead of Jmol
+			</li>
+			<li>
+				Layered Channel profile with physicochemical properties
+			</li>
+			<li>
+				Connectivity to <a target="_blank" href="https://webchemdev.ncbr.muni.cz/ChannelsDB/">ChannelsDB</a>
+			</li>
+		</ul>
+	</li>
+	<li>
+		New properties
+		<ul>
+			<li>
+				Free Radius for channels (Free radius is the distance to the closest backbone or HET atom)
+			</li>
+			<li>
+				BRadius for channels (BRadius is the Radius + RMSF (from Bfactors) to estimate local flexibility)
+			</li>
+			<li>
+				Lipophilicity (logP and logD@pH 7.4 scales of channel-lining residues)
+			</li>
+			<li>
+				Water solubility (logS-like scale of channel-lining residues)
+			</li>
+		</ul>
+	</li>
+	<li>
+		Export of results
+		<ul>
+			<li>
+				Ability to export residues surrounding a cavity or channel
+			</li>
+			<li>
+				CSV output of properties along the individual channels
+			</li>
+			<li>
+				Export current computation settings in XML
+			</li>
+			<li>
+				Rich JSON output for programmatic analysis
+			</li>
+			<li>
+				Export of channel profile in PNG or SVG format
+			</li>
+			<li>
+				Output to PyMOL, VMD, and Chimera.
+			</li>
+			<li>
+				Export of results for individual channels to PDF report or within ZIP archive
+			</li>
+			<li>
+				User contributions to ChannelsDB annotations
+			</li>
+		</ul>
+	</li>
+</ul>
+<br/>
+
+<p>Q: What was new in the MOLE 2 in comparison with original MOLE?</p>
+<ul>
+	<li>
+		better macromolecular surface representation (probe radius in MOLE 2 vs. convex hull in MOLE)
+	</li>
+	<li>
+		no need to determine the number of channels prior calculation
+	</li>
+	<li>
+		quicker calculation due to the division of the internal space within the macromolecule to separate sub-cavities
+	</li>
+	<li>	
+		better removal of duplicate channels (surface cover radius parameter, similar channels with RMSD &lt; 0.5 A are reported only once in shorter variant
+	</li>
+	<li>
+		automatic selection of the starting points based on detected cavities
+	</li>
+	<li>
+		better visualization of the starting points and their optimized position
+	</li>
+	<li>
+		experimental feature - calculation of physico-chemical properties of the residues lining the channel
+	</li>
+</ul>
+<br/>
+
+<h3>Tunnel detection</h3>
+
+<p>Q: What should the user do to overcome the program's limitations?</p>
+<p>
+	Here we provide several tips how some of the limitations of the implemented algorithms could be overcame as well.
+</p>
+<p>
+	The first limitation is that tunnel is shown only as balls of maximum size along centerline. This limitation can be overcome when starting points are put along the channel to found whether there are bulges along the central line. However the centerline provide good measure to actually show where the channels are localized in the structure.
+</p>
+<p>
+	The second limitation is in use of atom-centered Voronoi mesh. It is difficult to overcome and the real improvement is debatable. The atom centered Voronoi mesh can be replaced e.g. by power diagram, which will lead to some improvement in precision. However, such improvement is small compared to the uncertainties associated with the chosen structures (e.g. X-ray structures with finite resolution, which is generally higher than 0.8 Å).
+</p>
+<p>
+	The third limitation is that MOLEonline is able to receive only a limited amount of data. Such problem can be overcome by manual preparation and size reduction of macromolecular structure in pdb in any other software prior submitting to server.
+</p>
+<p>
+	However, we are certain that a user can face many problems trying to analyze his/her specific molecule. We are ready to help users and we provide a feedback via e-mail or Facebook page to resolve specific problems.
+</p>
+<br/>
+
+<p>Q: I have tried to find tunnels, but I was not able to get any, what should I do?</p>
+<p>
+	First - try automatic detection of starting points, This might give you a clue, where there are tunnels in your structure and then you can select those closest to the site of your interest (i.e. active site).
+</p>
+<p>
+	Another option is to visualize molecular surface. It might happen, that Probe radius parameter is too small and therefore the probe (detecting the molecular surface) can enter into the structure and your tunnel will not appear.
+</p>
+<br/>
+
+<p>Q: My channel is visibly present and MOLEonline do not detect it. Why?</p>
+<p>
+	If the channel is large enough to be visible by naked eye, it can be larger usually shown as a part of the surface and consequently, it is necessary to enlarge Probe radius to cover such structure
+</p>
+<br/>
+
+<p>Q: My channel has probably too small radius to be detected or not?</p>
+<p>
+	When the channel is too narrow in a certain part, it sometimes helps to lower Interior Threshold parameter.
+</p>
+<br/>
+
+<h3>Physicochemical Properties</h3>
+
+<p>Q: It is unclear whether reporting the averages of some channel properties will be that useful?</p>
+<p>
+	MOLEonline enables analysis of some basic physical-chemical properties - hydropathy, hydrophobicity, polarity, lipophilicity, solubility and mutability. We believe that this is a step forward in channel analysis, but we are certain that it will take some time to optimize analysis of these features and to fully understand their biological relevance. Considering all pros and contras, we decided to keep this functionality in the current version to enable “experiments” with this feature to a broad scientific community.
+</p>
+<br/>
+
+<p>Q: Regarding relative mutability: Isn't any residue mutatable?</p>
+<p>
+	Every amino acid can be mutated; however some amino acids can be mutated more safely with respect to structure/stability/folding of a protein. 
+	The relative mutability index reflects this feature, e.g. Pro and Trp residues are typically structurally important and their mutations often 
+	lead to unstable proteins or proteins with alternated structures. The relative mutability index which we employ is based on the analysis 
+	of the protein sequences (similarly as well known BLOSUM and PAM matrices used in sequence alignments) and it was taken from 
+	<a target="_blank" href="http://bioinformatics.oxfordjournals.org/content/8/3/275.short">Jones, D.T., Taylor, W.R. and Thornton, J.M. (1992) 
+	The rapid generation of mutation data matrices from protein sequences. Comput. Appl. Biosci., 8, 275-282.</a>
+</p>
+<br/>
+
 </div> <!-- #content -->
 	<hr class="cleaner">
 

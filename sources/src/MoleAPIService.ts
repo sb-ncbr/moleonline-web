@@ -79,6 +79,8 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
         InMembrane?: boolean,
         IsBetaBarel?: boolean,
         Chains?: any|null //TODO:...
+        InteriorThreshold: number|null,
+        ProbeRadius: number|null
     };
     export interface ProteinData{
         data:string,
@@ -234,11 +236,20 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
         }
 
         public static submitPoresJob(computationId:string, data:PoresConfig){
-            let url = `${this.baseUrl}/Submit/Pores/${computationId}?isBetaStructure=${data.IsBetaBarel}&inMembrane=${data.InMembrane}&chains=${(data.Chains===null)?"":data.Chains}`;
+            let url = `${this.baseUrl}/Submit/Pores/${computationId}`;
             if(this.DEBUG_MODE){
                 console.log(url);
             }
-            return this.sendGET(url);
+
+            let jsonRequestData = {
+                IsBetaStructure: data.IsBetaBarel,
+                InMembrane: data.InMembrane,
+                Chains: (data.Chains===null)?"":data.Chains,
+                InteriorThreshold: (data.InteriorThreshold===void 0||data.InteriorThreshold===null)?null:data.InteriorThreshold,
+                ProbeRadius: (data.ProbeRadius===void 0||data.ProbeRadius===null)?null:data.ProbeRadius
+            }
+
+            return this.sendPOSTjson(url, jsonRequestData);
         }
 
         private static getFilenameFromResponseHeader(r:Response){
@@ -317,8 +328,8 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
             });
         }
 
-        public static getMembraneData(computationId:string, submitId:number):Promise<MembranePoints>{
-            let url = `${this.baseUrl}/Data/${computationId}?submitId=${submitId}&format=membrane`;
+        public static getMembraneData(computationId:string):Promise<MembranePoints>{
+            let url = `${this.baseUrl}/Data/${computationId}?format=membrane`;
             if(this.DEBUG_MODE){
                 console.log(url);
             }

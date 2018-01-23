@@ -10,9 +10,9 @@
 	<link rel="stylesheet" type="text/css" media="screen" href="\css/old-web/cssloader.css">
 	<link rel="stylesheet" href="\css/old-web/print.front.css" type="text/css" media="print">
 	<link rel="stylesheet" href="\css/old-web/LiteMol-plugin.css" type="text/css">
-			<link rel="stylesheet" href="\css/init-styles.css?version=1.4.9.1" type="text/css">
-	<script src="\js/provided.js?version=1.4.9.1"></script>
-	<script src="\js/scripts.js?version=1.4.9.1"></script>     
+			<link rel="stylesheet" href="\css/init-styles.css?version=1.4.9.2" type="text/css">
+	<script src="\js/provided.js?version=1.4.9.2"></script>
+	<script src="\js/scripts.js?version=1.4.9.2"></script>     
         
          
 
@@ -64,11 +64,11 @@
 
 <div class="column homeleft">
 
-<p><a href="/online/"><b>MOLE<em>online</em></a></b> web interface provides a direct access to MOLE 2.5 functionality and enables on-line and easy-to-use interactive channel analysis.</p>
+<p><a href="/online/"><b>MOLE<em>online</em></a></b> web interface provides a direct access to MOLE functionality and enables on-line and easy-to-use interactive channel analysis.</p>
 
 <p><b>MOLE 2.5</b> is an universal toolkit for <a href="/method/">rapid and fully automated location and
-characterization of channels, tunnels and pores </a> in (bio)macromolecular structures.</p>
-<img src="http://shire.upol.cz/4TSY.png" title="Cytolytic pore (PDBID: 4TSY)">
+characterization of channels, tunnels and pores </a> in (bio)macromolecular structures, e.g., proteins, RNA, DNA and biomacromolecular assemblies.</p>
+<img src="\images/4TSY.png" title="Cytolytic pore (PDBID: 4TSY)">
 <h3>MOLE<em>online</em> features</h3> 
 <ul>
 		<li>Quickest channel calculation on the market</li>
@@ -76,13 +76,13 @@ characterization of channels, tunnels and pores </a> in (bio)macromolecular stru
 		<li>Layered channel profile - geometry, length and radius</li>
 		<li>List of residues lining channels (distinguishing sidechain/mainchain contact with the channel)</li>
 		<li>Layered or channel-wise physico-chemical properties (several types of channel radius, length, charge, polarity, hydropathy, hydrophobicity, mutability, etc.) </li>
-		<li>Interactive selection of start or end points via XYZ coordinates, residues, or surface tetrahedron or via PatternQuery language </li>
-		<li>Automatic active site identification using CSA  for enzymes, cofactors, and cavity interiors (origins)</li>
-		<li>Interactive visualization of structure and channels with LiteMol </li>
+		<li>Interactive selection of start or end points via XYZ coordinates, residues, or surface tetrahedron or via <a target="_blank" href="https://webchem.ncbr.muni.cz/Platform/PatternQuery">PatternQuery</a> language </li>
+		<li>Automatic active site identification using <a target="_blank" href="http://www.ebi.ac.uk/thornton-srv/databases/CSA/">CSA</a> for enzymes, cofactors, and cavity interiors (origins)</li>
+		<li>Interactive visualization of structure and channels with <a target="_blank" href="http://www.litemol.org/">LiteMol</a> </li>
 		<li>Optimization and visualization of start and end points</li>
 		<li>Cavity and molecular surface visualization</li>
 		<li>Download results - complete results as ZIP or PDF report, channel PDB files and scripts for PyMol, Chimera, or VMD visualization, rich JSON, and channel profile image as SVG or PNG</li>
-		<li>Two-ways connectivity with ChannelsDB (comparison and annotation)</li>
+		<li>Two-ways connectivity with <a target="_blank" href="https://webchemdev.ncbr.muni.cz/ChannelsDB/">ChannelsDB</a> (comparison and annotation)</li>
 		<li>Free of charge</li>
 </ul>
 
@@ -99,81 +99,60 @@ characterization of channels, tunnels and pores </a> in (bio)macromolecular stru
 			<h3>News</h3>
 	
 			<div class="item">
+				<h4>New features in MOLEonline</h4>
+				<span class="date">22. 1. 2018</span>
+				<div class="body">
+					<ul>
+						<li>
+							New properties
+							<ul>
+								<li>Lipophilicity (logP and logD-like scales)</li>
+								<li>Water solubility (logS)</li>
+							</ul>
+						</li>
+						<li>Pore mode improvements</li>
+						<li>Better CSV export</li>
+						<li>Residue annotation via API from Uniprot </li>
+					</ul>
+					Differences between individual versions of MOLEonline are listed at: <a href="http://mole.upol.cz/faq">http://mole.upol.cz/faq</a>
+				</div>
+			</div> <!-- .item -->
+
+			<div class="item">
+				<h4>ChannelsDB was published</h4>
+				<span class="date">1. 1. 2018</span>
+				<div class="body">The ChannelsDB database contains information about channel positions, geometry and physicochemical properties of reviewed and annotated 
+					channels from PDB database. It was published in <a target="_blank" href="https://doi.org/10.1093/nar/gkx868">Database issue of Nucleic Acids Research</a>. You can reach ChannelsDB data available for queried 
+					PDB structure in Submission tab in right lower corner of MOLEonline GUI window. </div>
+			</div> <!-- .item -->
+				
+			<div class="item">
 				<h4>Previous version</h4>
 				<span class="date">19. 12. 2017</span>
 				<div class="body">Old version of MOLEonline 2.0 is still available at address: <a href="http://old.mole.upol.cz/">http://old.mole.upol.cz/</a> </div>
 			</div> <!-- .item -->
 			
 			<div class="item">
-				<h4>New features in MOLEonline</h4>
-				<span class="date">19. 12. 2017</span>
-				<div class="body">
-				<ul>
-				<li>Input:</li>
-				<ul>
-	<li>mmCIF parsing </li>
-	<li>Added PatternQuery language support (ignore residues, start points, tunnel filtering)</li>
-	<li>Automatic starting points from cavities in 3D structure - Origin points</li>
-	Transmembrane Pore mode 
-	</ul>
-	<li>Parameters of calculation</li>
-	<ul>
-	<li>Selection of end points (It is possible to compute tunnels to only 1 user specified exit)</li>
-	<li>New weight functions for computing tunnels (added Length, Voronoi scale weight functions)</li>
-	<li>Computation of "User Pores" now works for any cavity, not just the "surface".</li>
-	<li>Selection of end points with Ctrl+left click</li>
-	</ul>
-	<li>Visualization</li>
-	<ul>
-	<li>LiteMol instead of Jmol</li>
-	<li>Layered Channel profile with physicochemical properties</li>
-	<li>Connectivity to ChannelsDB </li>
-	</ul>
-	<li>New properties</li>
-	<ul>
-	<li>Free Radius for channels (Free radius is the distance to the closest backbone or HET atom)</li>
-	<li>BRadius for channels (BRadius is the Radius + RMSF (from Bfactors) to estimate local flexibility)</li>
-	</ul>
-	<li>Export of results</li>
-	<ul>
-	<li>Ability to export residues surrounding a cavity or channel</li>
-	<li>Export current computation settings in XML </li>
-	<li>Rich JSON output for programmatic analysis </li>
-	<li>Export of channel profile in PNG or SVG format</li>
-	<li>Output to PyMOL, VMD, and Chimera.</li>
-	<li>Export of results for individual channels to PDF report or within ZIP archive</li>
-	<li>User contributions to ChannelsDB annotations</li>
-	</ul>
-				</ul>
-				
-				
-				</div>
-			</div> <!-- .item -->
-			
-					<div class="item">
 				<h4>New plugins for Pymol and Chimera</h4>
 				<span class="date">19. 6. 2017</span>
 				<div class="body"><A href="https://pymolwiki.org/index.php/MOLE_2.0:_advanced_approach_for_analysis_of_biomacromolecular_channels">PyMOL</a>, 
-	<a href="https://www.cgl.ucsf.edu/chimera/plugins/plugins.html">Chimera</a>
-	 </div>
+					<a href="https://www.cgl.ucsf.edu/chimera/plugins/plugins.html">Chimera</a>
+	 			</div>
 			</div> <!-- .item -->
 			
-			<div class="item">
-				<h4>ELIXIR CZ support</h4>
-				<span class="date">01. 04. 2017</span>
-				<div class="body">MOLEonline is supported by ELIXIR CZ research infrastructure project (MEYS Grant No: LM2015047).
-	</div>
-			</div> <!-- .item -->
 		</div> <!-- #news -->
 	  
 	</div>
-	<div style="float:left;">
-			<img src="\images/elixir_czechrepublic_white_background.png" width="110px" alt="ELIXIR CZ" title="ELIXIR CZ">&nbsp;&nbsp;&nbsp;
-			<img src="\images/UPlogo.png" width="240px" alt="Palacký University Olomouc" title="Palacký University Olomouc">&nbsp;&nbsp;&nbsp;
-			<img src="\images/rcptm.png" width="200px" alt="Regional Centre of Advanced Technologies and Materials" title="Regional Centre of Advanced Technologies and Materials">&nbsp;&nbsp;&nbsp;
-			<img src="\images/Logo_Masaryk_University.png" width="90px" alt="Masaryk University" title="Masaryk University">&nbsp;&nbsp;&nbsp;
-			<img src="\images/ceitec-clr-logo.png" width="220px" alt="CEITEC" title="CEITEC">
-  </div>
+	<div class="common-elixir-support">MOLEonline is supported by ELIXIR CZ research infrastructure project (MEYS Grant No: LM2015047)</div>
+	<hr/>
+	<div>Sponsored by ELIXIR-CZ, UPOL, MUNI</div>
+	<div class="common-sponos-logos">
+		<a href="https://www.elixir-czech.cz/" target="_blank"><img src="\images/elixir_czechrepublic_white_background.png" width="110px" alt="ELIXIR CZ" title="ELIXIR CZ"></a>&nbsp;&nbsp;&nbsp;
+		<a href="http://fch.upol.cz/" target="_blank"><img src="\images/UPlogo.png" width="240px" alt="Palacký University Olomouc" title="Palacký University Olomouc"></a>&nbsp;&nbsp;&nbsp;
+		<a href="http://www.rcptm.com/" target="_blank"><img src="\images/rcptm.png" width="200px" alt="Regional Centre of Advanced Technologies and Materials" title="Regional Centre of Advanced Technologies and Materials"></a>&nbsp;&nbsp;&nbsp;
+		<a href="http://ncbr.muni.cz/" target="_blank"><img src="\images/Logo_Masaryk_University.png" width="90px" alt="Masaryk University" title="Masaryk University"></a>&nbsp;&nbsp;&nbsp;
+		<a href="https://www.ceitec.cz/ceitec-mu/vypocetni-chemie-jaroslav-koca/rg64" target="_blank"><img src="\images/ceitec-clr-logo.png" width="220px" alt="CEITEC" title="CEITEC"></a>
+  	</div>
 	</div> <!-- #content -->
 	<hr class="cleaner">
 

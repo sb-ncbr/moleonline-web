@@ -11,7 +11,7 @@
 	<link rel="stylesheet" type="text/css" media="screen" href="\css/old-web/cssloader.css">
 		<link rel="stylesheet" href="\css/old-web/print.front.css" type="text/css" media="print">
 		<link rel="stylesheet" href="\css/old-web/LiteMol-plugin.css" type="text/css">
-		<link rel="stylesheet" href="\css/init-styles.css?version=1.4.9.1" type="text/css">
+		<link rel="stylesheet" href="\css/init-styles.css?version=1.4.9.2" type="text/css">
 
 
 </head>
@@ -188,6 +188,27 @@
 
 	<p>
 		Polarity ranges from completely nonpolar amino acids (ALA, GLY = 0.00) through polar residues (e.g. SER = 1.67) towards charged residues (GLU = 49.90, ARG = 52.00).
+	</p>
+
+	<p>
+		<b>Lipophilicity</b> <i>(logP-scale)</i> is calculated as octanol/water partition coefficients of Cβ fragments of side-chains and mainchain (-0.86) via <a target="_blank" href="www.chemicalize.org">www.chemicalize.org</a>.
+	</p>
+	<p>
+		LogP values ranges from lipophobic fragments (ASN -1.03; SER -0.52; GLN -0.33; THR -0.16) through acids (ASP -0.22; GLU 0.48) and bases (ARG -0.08; HIS -0.01; LYS 0.7), to sulphur-containing (CYS 0.84; MET 1.48), aliphatic (ALA 1.08; VAL 1.8; PRO 1.8; LEU 2.08; ILE  2.24) to most lipophilic aromatic residues (TYR 2.18; PHE 2.49; TRP 2.59). GLY has no sidechain fragment and therefore its value is set to 0.
+	</p>
+
+	<p>
+		<b>Lipophilicity</b> <i>(logD-scale)</i> is calculated as octanol/water distribution coefficients of Cβ fragments of side-chains and mainchain (-0.86) at pH 7.4 via <a target="_blank" href="www.chemicalize.org">www.chemicalize.org</a>. Distribution coefficient take into account ionization of compounds.
+	</p>
+	<p>
+		LogD values ranges from highly lipophobic charged fragments (ASP -3.00; ARG -2.49; GLU -2.12; LYS -1.91) through polar ones (ASN -1.03; SER -0.52; GLN -0.33; THR -0.16, HIS -0.11) to sulphur-containing (CYS 0.84; MET 1.48), aliphatic (ALA 1.08; VAL 1.8; PRO 1.8; LEU 2.08; ILE  2.24) to most lipophilic aromatic residues (TYR 2.18; PHE 2.49; TRP 2.59). GLY has no sidechain fragment and therefore its value is set to 0.
+	</p>
+
+	<p>
+		<b>Solubility</b> <i>(logS-scale)</i> is calculated as water solubility of Cβ fragments of side-chains and mainchain (0.81) at pH 7.4 via <a target="_blank" href="www.chemicalize.org">www.chemicalize.org</a>. Our estimated logS value is a unit stripped logarithm (base 10) of the solubility measured in mol/liter and it is a measure how well can be individual residues interacting with water molecules.
+	</p>
+	<p>
+		LogS values ranges from lowest solubility of aromatic residues (TRP -2.48: PHE -1.81; TYR -1.44;)  followed by aliphatic (LEU -1.79; ILE -1.85; PRO -1.3; VAL -1.3; ALA 0.59) and sulphur-containing residues (MET -0.72; CYS 0.16) up to polar ones (HIS -0.2; GLN 0.13; ASN 0.54; THR 0.77; SER 1.11) whereas the most water molecules will attract charged residues (LYS 1.46; ARG 1.63; GLU 2.23; ASP 2.63). GLY has no sidechain fragment and therefore its value is set to 0. 
 	</p>
 
 	<p>

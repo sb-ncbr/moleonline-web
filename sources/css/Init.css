@@ -171,3 +171,15 @@ figure img{
     text-align: left;
     padding-left: 5px;
 }
+
+.common-elixir-support{
+    float: none;
+    clear: both;
+    padding-top: 20px;
+}
+
+.common-sponos-logos{
+    float: left;
+    width: 100%;
+    text-align: center;
+}

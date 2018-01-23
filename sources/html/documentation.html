@@ -9,9 +9,9 @@
 <script type="text/javascript" src="\js/old-web/jsloader.js"></script>
 <link rel="stylesheet" type="text/css" media="screen" href="\css/old-web/cssloader.css">
 	<link rel="stylesheet" href="\css/old-web/print.front.css" type="text/css" media="print">
-        	<link rel="stylesheet" href="\css/init-styles.css?version=1.4.9.1" type="text/css">
-	<script src="\js/provided.js?version=1.4.9.1"></script>
-	<script src="\js/scripts.js?version=1.4.9.1"></script>     
+        	<link rel="stylesheet" href="\css/init-styles.css?version=1.4.9.2" type="text/css">
+	<script src="\js/provided.js?version=1.4.9.2"></script>
+	<script src="\js/scripts.js?version=1.4.9.2"></script>     
         
 </head>
 
@@ -60,7 +60,7 @@
 </p>
 <p>
 	The calculation setup is realized via an interactive interface consisting of a few components (Figure 1). 
-	Structure visualization is achieved by <a target="_blank" href="http://www.litemol.org/">LiteMol</a> Javascript application 
+	Structure visualization is achieved by <a target="_blank" href="http://www.litemol.org/">LiteMol Viewer</a> Javascript application 
 	which is capable to visualize the uploaded structure and the computed channels.
 </p>
 <figure>
@@ -183,10 +183,13 @@
 		by color filling
 		<ul>
 			<li><i>charge</i> - charged amino acid residues (positive ARG, LYS, HIS; negative ASP, GLU).</li>
-			<li><i>hydrophobicity</i> - Kyte and Doolittle scale (ARG -4.5 ; LEU +4.5), </li>
-			<li><i>hydropathy</i> - Cid scale (GLU -1.14; ILE +1.81),</li>
-			<li><i>polarity</i> - Zimmerman scale (ALA, GLY 0; ARG +52)</li>
-			<li><i>mutability</i> - Jones scale (TRP 25; SER 117)</li>
+			<li><i>hydrophobicity</i> - <a target="_blank" href="https://www.ncbi.nlm.nih.gov/pubmed/7108955">Kyte and Doolittle scale</a> (ARG -4.5 ; LEU +4.5), </li>
+			<li><i>hydropathy</i> - <a target="_blank" href="https://www.ncbi.nlm.nih.gov/pubmed/1518784">Cid scale</a> (GLU -1.14; ILE +1.81),</li>
+			<li><i>polarity</i> - <a target="_blank" href="https://www.ncbi.nlm.nih.gov/pubmed/5700434">Zimmerman scale</a> (ALA, GLY 0; ARG +52)</li>
+			<li><i>lipophilicity - logP-scale</i> - (calculated as octanol/water partition coefficients of Cβ fragments of side-chains (ASN -1.03; TRP 2.59) and mainchain (-0.86) via <a target="_blank" href="www.chemicalize.org">www.chemicalize.org</a></li>
+			<li><i>lipophilicity - logD-scale</i> - (calculated as octanol/water distribution coefficients of Cβ fragments of side-chains at pH 7.4 (ASP -3.00; TRP 2.59) and mainchain (-0.86) via <a target="_blank" href="www.chemicalize.org">www.chemicalize.org</a></li>
+			<li><i>solubility - logS-scale</i> - (calculated as water solubility of Cβ fragments of side-chains at pH 7.4 (TRP -2.48; ASP 2.63) and mainchain (0.81) via <a target="_blank" href="www.chemicalize.org">www.chemicalize.org</a></li>
+			<li><i>mutability</i> - <a target="_blank" href="https://www.ncbi.nlm.nih.gov/pubmed/1633570">Jones scale</a> (TRP 25; SER 117)</li>
 		</ul>
 	</li>
 	<li>
@@ -214,7 +217,7 @@
 	<li>macromolecule itself in <b>mmCIF</b> format </li>
 	<li>channel coordinates in <b>PDB</b> format</li>
 	<li>PyMol, <b>VMD</b>, and <b>Chimera</b> visualization scripts</li>
-	<li>all information as rich <b>JSON</b> or <b>ZIP</b> files for further textual analysis</li>
+	<li>all information as rich <b>JSON</b> or <b>ZIP</b> (containing CSV, XML) files for further textual analysis</li>
 	<li>Channel profiles in <b>PNG</b> or <b>SVG</b> format</li>
 	<li>Report for individual channels can be downloaded in <b>PDF</b> format.</li>
 </ul>

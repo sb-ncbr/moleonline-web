@@ -162,10 +162,10 @@ namespace LiteMol.Example.Channels.State {
         return moleData
     }
 
-    function downloadMembraneData(plugin:Plugin.Controller, computationId:string, submitId:number){
+    function downloadMembraneData(plugin:Plugin.Controller, computationId:string){
         removeMembraneData(plugin);
         return new Promise<any>((res,rej)=>{
-            ApiService.getMembraneData(computationId,submitId).then((data)=>{
+            ApiService.getMembraneData(computationId).then((data)=>{
                 let membrane = plugin.createTransform().add(plugin.root, Transformer.Data.FromData, { data:JSON.stringify(data), id: 'Membrane' }, { isHidden: true, ref:'membrane-object' })
                         .then(Transformer.Data.ParseJson, { id: 'MembraneObjects' }, { ref: 'membrane-data', isHidden:true });
                     plugin.applyTransform(membrane)
@@ -379,7 +379,7 @@ namespace LiteMol.Example.Channels.State {
         }
         if(channels&&!channelsDB){
             //Download and show membrane data if available
-            promises.push(downloadMembraneData(plugin, computationId, submitId));
+            promises.push(downloadMembraneData(plugin, computationId));
             if(Config.CommonOptions.DEBUG_MODE)
                 console.log("reloading channels");
             promises.push(downloadChannelsData(plugin, computationId, submitId));

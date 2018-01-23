@@ -596,7 +596,9 @@ namespace Controls.UI{
     class PoresFormData{
         private InMembrane: boolean;
         private IsBetaBarel: boolean;
-        private Chains: string|null
+        private Chains: string|null;
+        private ProbeRadius: number|null;
+        private InteriorThreshold: number|null;
 
         public constructor(data?:Service.PoresConfig){
             if(data!==void 0&&data.InMembrane!==null&&data.InMembrane!==void 0){
@@ -618,6 +620,20 @@ namespace Controls.UI{
             }
             else{
                 this.Chains=null;
+            }
+
+            if(data!==void 0&&data.InteriorThreshold!==null&&data.InteriorThreshold!==void 0){
+                this.InteriorThreshold = data.InteriorThreshold;
+            }
+            else{
+                this.InteriorThreshold = null;
+            }
+
+            if(data!==void 0&&data.ProbeRadius!==null&&data.ProbeRadius!==void 0){
+                this.ProbeRadius = data.ProbeRadius;
+            }
+            else{
+                this.ProbeRadius = null;
             }
         }
 
@@ -645,13 +661,31 @@ namespace Controls.UI{
             return this.Chains;
         }
 
+        public setProbeRadius(value:number){
+            this.ProbeRadius = value;
+        }
+
+        public getProbeRadius(){
+            return this.ProbeRadius;
+        }
+
+        public setInteriorThreshold(value:number){
+            this.InteriorThreshold = value;
+        }
+
+        public getInteriorThreshold(){
+            return this.InteriorThreshold;
+        }
+
         //--
 
         public getPackage():Service.PoresConfig{
             return {
                 Chains: this.Chains,
                 InMembrane: this.InMembrane,
-                IsBetaBarel: this.IsBetaBarel
+                IsBetaBarel: this.IsBetaBarel,
+                InteriorThreshold: this.InteriorThreshold,
+                ProbeRadius: this.ProbeRadius
             }
         }
     }
@@ -728,6 +762,8 @@ namespace Controls.UI{
             data.setBetaStructure(false);
             data.setMembraneRegion(false);
             //data.setSpecificChains("");
+            data.setProbeRadius(13);
+            data.setInteriorThreshold(0.8);
 
             return data;
         }
@@ -1225,11 +1261,41 @@ namespace Controls.UI{
                                     this.state.poresFormData.setMembraneRegion(val);
                                 }
                             }} />,
-                            <Common.Controls.FromLiteMol.TextBox label="Specific Chains" defaultValue={chains} tooltip={TooltipText.get("poresChains")} placeholder="A, B, ..." /*onValidate={this.validateChainsArray}*/ onChange={(val)=>{
+                            <Common.Controls.FromLiteMol.TextBox label="Specific Chains" defaultValue={chains} tooltip={TooltipText.get("chains")} placeholder="A, B, ..." /*onValidate={this.validateChainsArray}*/ onChange={(val)=>{
                                 if(this.state.poresFormData!==null){
                                     this.state.poresFormData.setSpecificChains(val);
                                 }
-                            }} />
+                            }} />,
+                            <Common.Controls.FromLiteMol.NumberBox label="Probe Radius" tooltip={TooltipText.get("probeRadius")} min={1.4} max={45} defaultValue={valueOrDefault(data.getProbeRadius(),13)} step={0.01} onChange={(v)=>{
+                                let s = this.state;
+                                if(s.poresFormData!==null){
+                                    s.poresFormData.setProbeRadius(Number(v).valueOf());
+                                }
+                            }} onMount={(control)=>{
+                                (()=>{
+                                    CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                                        if(formGroup!==validationGroup){
+                                            return;
+                                        }
+                                        control.reset();
+                                    });
+                                }).bind(control)();
+                            }}  />,
+                            <Common.Controls.FromLiteMol.NumberBox label="Interior Treshold" tooltip={TooltipText.get("poresInteriorTreshold")} min={0.3} max={3} defaultValue={valueOrDefault(data.getInteriorThreshold(),0.8)} step={0.01} onChange={(v)=>{
+                                let s = this.state;
+                                if(s.poresFormData!==null){
+                                    s.poresFormData.setInteriorThreshold(Number(v).valueOf());
+                                }
+                            }} onMount={(control)=>{
+                                (()=>{
+                                    CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
+                                        if(formGroup!==validationGroup){
+                                            return;
+                                        }
+                                        control.reset();
+                                    });
+                                }).bind(control)();
+                            }}  />
                         ]} />
 
                     </div>
@@ -1553,6 +1619,8 @@ namespace Controls.UI{
                 Beta Structure: {(data.PoresConfig.IsBetaBarel===void 0)?"False":(data.PoresConfig.IsBetaBarel)?"True":"False"}<br/>
                 Membrane Region: {(data.PoresConfig.InMembrane===void 0)?"False":(data.PoresConfig.InMembrane)?"True":"False"}<br/>
                 Specific Chains: {(data.PoresConfig.Chains===void 0)?"":data.PoresConfig.Chains}<br/>
+                Probe Radius: {(data.PoresConfig===void 0)?"":data.PoresConfig.ProbeRadius}<br/>
+                Interior Threshold: {(data.PoresConfig===void 0)?"":data.PoresConfig.InteriorThreshold}<br/>
             </div>
         }
 
