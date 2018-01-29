@@ -10,18 +10,15 @@ $production = true;	//Set this to true in production environment !!!
 
 $pdbid = $_GET["pdbid"];
 
-$localUrl = "http://".$_SERVER['HTTP_HOST'];
-
-$config = file_get_contents($localUrl."/submiter/data/".strtolower($pdbid).".json");
+$config = file_get_contents("./data/".strtolower($pdbid).".json");
 $configJson = json_decode($config);
 
-$upolApiUrl = "http://api.mole.upol.cz";
+$upolApiUrl = "http://api.mole.upol.cz/";
 $webchemApiUrl = "https://webchem.ncbr.muni.cz/API/MOLE/";
 
 $url = ($production==True)?$upolApiUrl:$webchemApiUrl;    
 
 $poresInit = ($configJson->PoresInit)?"/Pores":"";
-
 $initResultJson = file_get_contents($url."Init".$poresInit."/".$pdbid);
 $initJson = json_decode($initResultJson);
 $compId = $initJson->ComputationId;
@@ -36,8 +33,8 @@ do{
 }while($status==="Initializing");
 
 $content = json_encode($configJson->Config);
-
 $curl = curl_init($url."Submit/".$configJson->Mode."/".$compId);
+
 curl_setopt($curl, CURLOPT_HEADER, false);
 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-type: application/json"));
@@ -57,3 +54,4 @@ curl_close($curl);
 header('Location: \online/'.$compId."/".$submitId);
 die();
 ?>
+
