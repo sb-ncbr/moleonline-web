@@ -699,6 +699,9 @@ namespace DownloadReport.UI{
             if(params!==null){
                 let computationId = params.computationId;
                 let submitId = params.submitId;
+                if(params.isChannelsDB){
+                    submitId = -1;
+                }
                 this.setState({computationId,submitId});    
             }
 
@@ -721,27 +724,31 @@ namespace DownloadReport.UI{
                 items.push(
                     <BootstrapDropDownMenuItem linkText="Molecule" link={`${linkBase}&format=molecule`} targetBlank={true} />
                 );
-                items.push(
-                    <BootstrapDropDownMenuItem linkText="PyMol" link={`${linkBase}&format=pymol`} targetBlank={true} />
-                );
-                items.push(
-                    <BootstrapDropDownMenuItem linkText="VMD" link={`${linkBase}&format=vmd`} targetBlank={true} />
-                );
-                items.push(
-                    <BootstrapDropDownMenuItem linkText="PDB" link={`${linkBase}&format=pdb`} targetBlank={true} />
-                );
-                items.push(
-                    <BootstrapDropDownMenuItem linkText="Chimera" link={`${linkBase}&format=chimera`} targetBlank={true} />
-                );
-                items.push(
-                    <BootstrapDropDownMenuItem linkText="JSON" link={`${linkBase}`} targetBlank={true} />
-                );
-                items.push(
-                    <BootstrapDropDownMenuItem linkText="Results" link={`${linkBase}&format=report`} targetBlank={true} />
-                );                
-                items.push(
-                    <BootstrapDropDownMenuItem linkText="PDF report" onClick={()=>{MoleOnlineWebUI.Bridge.Events.invokeRunPDFReport();}}/>
-                );
+                if(this.state.submitId>0){
+                    items.push(
+                        <BootstrapDropDownMenuItem linkText="PyMol" link={`${linkBase}&format=pymol`} targetBlank={true} />
+                    );
+                    items.push(
+                        <BootstrapDropDownMenuItem linkText="VMD" link={`${linkBase}&format=vmd`} targetBlank={true} />
+                    );
+                    items.push(
+                        <BootstrapDropDownMenuItem linkText="PDB" link={`${linkBase}&format=pdb`} targetBlank={true} />
+                    );
+                    items.push(
+                        <BootstrapDropDownMenuItem linkText="Chimera" link={`${linkBase}&format=chimera`} targetBlank={true} />
+                    );
+                    items.push(
+                        <BootstrapDropDownMenuItem linkText="JSON" link={`${linkBase}`} targetBlank={true} />
+                    );
+                    items.push(
+                        <BootstrapDropDownMenuItem linkText="Results" link={`${linkBase}&format=report`} targetBlank={true} />
+                    );        
+                }        
+                if(this.state.submitId!==0){
+                    items.push(
+                        <BootstrapDropDownMenuItem linkText="PDF report" onClick={()=>{MoleOnlineWebUI.Bridge.Events.invokeRunPDFReport();}}/>
+                    );
+                }
             }
             return <BootstrapDropDownMenuButton label="Download" items={items} />
         }

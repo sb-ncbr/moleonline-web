@@ -199,16 +199,16 @@ namespace LayerProperties.UI{
                     <DGComponents.DGElementRow columns={[<span><span className="icon bottleneck black properties-icon" />{"Radius"}</span>,<span>{CommonUtils.Numbers.roundToDecimal(minRadius,1)}</span>]} />
             );
             rows.push(
-                <DGComponents.DGElementRow columns={[<span><span className="icon logp black properties-icon" />{"LogP"}</span>,<span>{(layerData.LogP)?CommonUtils.Numbers.roundToDecimal(layerData.LogP,2):'N/A'}</span>]} />
+                <DGComponents.DGElementRow columns={[<span><span className="icon logp black properties-icon" />{"LogP"}</span>,<span>{(layerData.LogP!==null&&layerData.LogP!==void 0)?CommonUtils.Numbers.roundToDecimal(layerData.LogP,2):'N/A'}</span>]} />
             );
             rows.push(
-                <DGComponents.DGElementRow columns={[<span><span className="icon logd black properties-icon" />{"LogD"}</span>,<span>{(layerData.LogD)?CommonUtils.Numbers.roundToDecimal(layerData.LogD,2):'N/A'}</span>]} />
+                <DGComponents.DGElementRow columns={[<span><span className="icon logd black properties-icon" />{"LogD"}</span>,<span>{(layerData.LogD!==null&&layerData.LogD!==void 0)?CommonUtils.Numbers.roundToDecimal(layerData.LogD,2):'N/A'}</span>]} />
             );
             rows.push(
-                <DGComponents.DGElementRow columns={[<span><span className="icon logs black properties-icon" />{"LogS"}</span>,<span>{(layerData.LogS)?CommonUtils.Numbers.roundToDecimal(layerData.LogS,2):'N/A'}</span>]} />
+                <DGComponents.DGElementRow columns={[<span><span className="icon logs black properties-icon" />{"LogS"}</span>,<span>{(layerData.LogS!==null&&layerData.LogS!==void 0)?CommonUtils.Numbers.roundToDecimal(layerData.LogS,2):'N/A'}</span>]} />
             );
             rows.push(
-                <DGComponents.DGElementRow columns={[<span><span className="icon ionizable black properties-icon" />{"Ionizable"}</span>,<span>{(layerData.Ionizable)?CommonUtils.Numbers.roundToDecimal(layerData.Ionizable,2):'N/A'}</span>]} />
+                <DGComponents.DGElementRow columns={[<span><span className="icon ionizable black properties-icon" />{"Ionizable"}</span>,<span>{(layerData.Ionizable!==null&&layerData.Ionizable!==void 0)?CommonUtils.Numbers.roundToDecimal(layerData.Ionizable,2):'N/A'}</span>]} />
             );
             rows.push(<DGComponents.DGRowEmpty columnsCount={DGTABLE_COLS_COUNT}/>);
 

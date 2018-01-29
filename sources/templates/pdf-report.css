@@ -150,11 +150,16 @@
 		border:0;
 	}	
 
-	.report-3D-screen-img-container img,
 	.report-2D-screen-img-container img{
 		width: 100%;
 	}
 
+	.report-3D-screen-img-container{
+		text-align:center;	
+	}
+	.report-3D-screen-img-container img{
+		height:250px;
+	}
 	.report-2D-screen-img-container img{
 		margin-left:2%;
 		margin-top:2%;

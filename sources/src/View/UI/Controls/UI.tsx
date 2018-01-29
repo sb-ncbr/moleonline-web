@@ -859,14 +859,22 @@ namespace Controls.UI{
             })
 
             CommonUtils.FormEvents.Events.attachOnClearEventHandler((formGroup)=>{
-                if(formGroup!==validationGroup){
+                if(formGroup!==validationGroup+"_form"){
                     return;
                 }
                 Common.Controls.FromLiteMol.ValidationState.reset(validationGroup);
                 let s = this.state;
+                let mode = s.mode;
+                s.mode=(this.state.mode==="Channels")?"Pores":"Channels"    //setting mode to oposite to trigger update
                 s.moleFormData = this.getMoleDefaultValues();
                 s.poresFormData = this.getPoresDefaultValues();
-                this.setState(s);
+                this.setState(s,()=>{
+                    CommonUtils.FormEvents.Events.invokeOnClear(validationGroup);
+                    
+                    let s2 = this.state;
+                    s2.mode = mode; //setting back correct mode
+                    this.setState(s2);
+                });
             })
 
             MoleOnlineWebUI.Bridge.Events.subscribeCopyParameters((params:MoleOnlineWebUI.Bridge.CopyParametersParams)=>{
@@ -1778,6 +1786,9 @@ namespace Controls.UI{
             if(parameters!==null){
                 let compId = parameters.computationId;
                 let submitId = parameters.submitId;
+                if(parameters.isChannelsDB){
+                    submitId = -1;
+                }
                 Provider.get(parameters.computationId,((compId:string,info:MoleOnlineWebUI.Service.MoleAPI.CompInfo)=>{
                     //CompInfo => Status==="Error" => Submissions neexistuje! Response ma format /Status na misto /CompInfo
                     if(info===null){
@@ -2073,7 +2084,7 @@ namespace Controls.UI{
                         return false;
                         })} value="Delete" />
                     <input className="btn btn-primary clear-button" type="button" value="Clear" onClick={()=>{
-                        CommonUtils.FormEvents.Events.invokeOnClear(validationGroup);
+                        CommonUtils.FormEvents.Events.invokeOnClear(validationGroup+"_form");
                     }} />
                     <input className="btn btn-primary submit-arrow" type="button" value=">" disabled={(!canShiftNext)?true:void 0} data-value={(!canShiftNext||idx===void 0)?void 0:items[this.getNextIdx(idx)].value} onClick={this.changeSubmitIdByStep.bind(this)} />
                     <Common.Controls.SimpleComboBox id="submissionComboSwitch" items={items} defaultSelectedIndex={idx} className="form-control submit-combo" onSelectedChange={this.onSubmitIdComboSelectChange.bind(this)} />

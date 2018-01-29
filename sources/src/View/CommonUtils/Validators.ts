@@ -39,7 +39,7 @@ namespace CommonUtils.Validators{
             
             res({
                 valid,
-                message:(!valid)?"List of chains is not in readable format!":""
+                message:(!valid)?"List of resiudes is not in readable format!":""
             });
         });
     }

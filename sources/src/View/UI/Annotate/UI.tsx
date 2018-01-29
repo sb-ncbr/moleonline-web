@@ -102,10 +102,11 @@ namespace Annotate.UI{
 
     interface DropDownMenuState{
         computationId:string,
-        hasChannelsDBSubmission:boolean
+        hasChannelsDBSubmission:boolean,
+        pdbid:string|null
     }
     class DropDownMenu extends React.Component<{app:App, canAnnotate:boolean},DropDownMenuState>{
-        state = {computationId:"",hasChannelsDBSubmission:false}
+        state:DropDownMenuState = {computationId:"",hasChannelsDBSubmission:false,pdbid:null}
 
         componentDidMount(){
             let params = Common.Util.Router.getParameters();
@@ -119,6 +120,7 @@ namespace Annotate.UI{
                     let s1 = this.state;
                     if(info.PdbId!==void 0&&info.PdbId!==null&&info.PdbId!==""){
                         s1.hasChannelsDBSubmission = true;
+                        s1.pdbid = info.PdbId;
                     }
                     else{
                         s1.hasChannelsDBSubmission = false;
@@ -136,6 +138,12 @@ namespace Annotate.UI{
         
             if(computationId!==void 0){
                 if(this.state.hasChannelsDBSubmission){
+                    if(this.state.pdbid!==null){
+                        let channelsDBLink = `${Config.CommonOptions.CHANNELSDB_LINK_DETAIL_URL}/${this.state.pdbid}`;
+                        items.push(
+                            <BootstrapDropDownMenuItem linkText="Open in ChannelsDB" link={channelsDBLink} targetBlank={true} />
+                        );
+                    }
                     items.push(
                         <BootstrapDropDownMenuItem linkText="Vizualize" onClick={()=>{
                             Common.Util.Router.fakeRedirect(computationId,"ChannelsDB");

@@ -169,8 +169,7 @@ namespace AglomeredParameters.UI{
         
         private generateRows(){
             let rows = [];
-
-            if(this.props.data === null){
+            if(this.props.data === null||this.props.data.length===0){
                 rows.push(
                     <tr><td colSpan={DGTABLE_COLS_COUNT} >There are no data to be displayed...</td></tr>
                 );

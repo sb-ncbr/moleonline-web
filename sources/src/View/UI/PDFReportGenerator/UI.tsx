@@ -69,10 +69,10 @@ namespace PDFReportGenerator.UI{
                 let charge = CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Charge,2).toString();
                 let polarity = CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Polarity,2).toString();                
                 let mutability = CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Mutability,2).toString();
-                let logP = (tunnel.Properties.LogP)?CommonUtils.Numbers.roundToDecimal(tunnel.Properties.LogP,2).toString():'N/A';
-                let logD = (tunnel.Properties.LogD)?CommonUtils.Numbers.roundToDecimal(tunnel.Properties.LogD,2).toString():'N/A';
-                let logS = (tunnel.Properties.LogS)?CommonUtils.Numbers.roundToDecimal(tunnel.Properties.LogS,2).toString():'N/A';
-                let ionizable = (tunnel.Properties.Ionizable)?CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Ionizable,2).toString():'N/A';
+                let logP = (tunnel.Properties.LogP!==null&&tunnel.Properties.LogP!==void 0)?CommonUtils.Numbers.roundToDecimal(tunnel.Properties.LogP,2).toString():'N/A';
+                let logD = (tunnel.Properties.LogD!==null&&tunnel.Properties.LogD!==void 0)?CommonUtils.Numbers.roundToDecimal(tunnel.Properties.LogD,2).toString():'N/A';
+                let logS = (tunnel.Properties.LogS!==null&&tunnel.Properties.LogS!==void 0)?CommonUtils.Numbers.roundToDecimal(tunnel.Properties.LogS,2).toString():'N/A';
+                let ionizable = (tunnel.Properties.Ionizable!==null&&tunnel.Properties.Ionizable!==void 0)?CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Ionizable,2).toString():'N/A';
 
                 template = this.replacePlaceholder(template,"TUNNEL-PROPS-LENGTH",length);
                 template = this.replacePlaceholder(template,"TUNNEL-PROPS-BOTTLENECK",bottleneck);
@@ -432,7 +432,7 @@ namespace PDFReportGenerator.UI{
                     console.log("URL parameters cannot be parsed!");
                     return;
                 }
-                //$("#download-report .dropdown").addClass("open-programaticaly");
+
                 let state = this.state;
                 state.inProgress = true;
                 this.setState(state);
@@ -652,65 +652,4 @@ namespace PDFReportGenerator.UI{
                 );
             }
         }
-    
-        /*
-        interface DownloadResultsMenuState{
-            computationId:string,
-            submitId:number
-        }
-        class DownloadResultsMenu extends React.Component<{},DownloadResultsMenuState>{
-            state = {computationId:"",submitId:0}
-    
-            componentDidMount(){
-                let params = CommonUtils.Router.getParameters();
-                if(params!==null){
-                    let computationId = params.computationId;
-                    let submitId = params.submitId;
-                    this.setState({computationId,submitId});    
-                }
-    
-                MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId((submitId)=>{
-                    let state = this.state;
-                    state.submitId = submitId;
-                    this.setState(state);
-                });
-            }
-            
-            render(){                       
-                let computationId = this.state.computationId;
-                let submitId = `?submitId=${this.state.submitId}`;
-                
-                let linkBase = `${Config.DataSources.API_URL[Config.DataSources.MODE]}/Data/${computationId}${submitId}`;
-                
-                let items:JSX.Element[] = [];
-            
-                if(computationId!==void 0){
-                    items.push(
-                        <BootstrapDropDownMenuItem linkText="Molecule" link={`${linkBase}&format=molecule`} targetBlank={true} />
-                    );
-                    items.push(
-                        <BootstrapDropDownMenuItem linkText="PyMol" link={`${linkBase}&format=pymol`} targetBlank={true} />
-                    );
-                    items.push(
-                        <BootstrapDropDownMenuItem linkText="VMD" link={`${linkBase}&format=vmd`} targetBlank={true} />
-                    );
-                    items.push(
-                        <BootstrapDropDownMenuItem linkText="PDB" link={`${linkBase}&format=pdb`} targetBlank={true} />
-                    );
-                    items.push(
-                        <BootstrapDropDownMenuItem linkText="Chimera" link={`${linkBase}&format=chimera`} targetBlank={true} />
-                    );
-                    items.push(
-                        <BootstrapDropDownMenuItem linkText="JSON" link={`${linkBase}`} targetBlank={true} />
-                    );
-                    items.push(
-                        <BootstrapDropDownMenuItem linkText="Results" link={`${linkBase}&format=report`} targetBlank={true} />
-                    );                
-                    items.push(
-                        <DownloadPDFReportDropdownMenuItem linkText="PDF report" />
-                    );
-                }
-                return <BootstrapDropDownMenuButton label="Download report" items={items} />
-            }
-        }*/
     }

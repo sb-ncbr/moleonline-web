@@ -419,7 +419,7 @@ namespace LayersVizualizer{
                 LogP: maxBlue,
                 LogD: maxBlue,
                 LogS: maxYellow,
-                Ionizable: maxPurple,
+                Ionizable: maxWhite,
                 BRadius: maxWhite
             };
 
@@ -1163,11 +1163,11 @@ namespace LayersVizualizer{
                         maxColor: this.maxColor[coloringProperty],
                         minColorMiddle: this.minColorMiddle[coloringProperty],
                         maxColorMiddle: this.maxColorMiddle[coloringProperty],
-                        skipMiddle: (coloringProperty=="NumPositives" || coloringProperty=="NumNegatives")
+                        skipMiddle: (coloringProperty=="NumPositives" || coloringProperty=="NumNegatives" || coloringProperty=="Ionizable")
                             ?true
                             :this.skipMiddle,
                         centerPosition: center,
-                        centerAbsolute: (coloringProperty=="NumPositives" || coloringProperty=="NumNegatives")
+                        centerAbsolute: (coloringProperty=="NumPositives" || coloringProperty=="NumNegatives" || coloringProperty=="Ionizable")
                             ?false
                             :!this.useColorMinMax
                     };
