@@ -1,7 +1,6 @@
 namespace LayerProperties.UI{
 
     import React = LiteMol.Plugin.React
-    import LiteMoleEvent = LiteMol.Bootstrap.Event;
 
     import DGComponents = Datagrid.Components;
 
@@ -9,26 +8,11 @@ namespace LayerProperties.UI{
     let NO_DATA_MESSAGE = "Hover over channel(2D) for details...";
 
     declare function $(p:any): any;
-    declare function datagridOnResize(str:string):any;
 
     interface State{
         data: DataInterface.LayersInfo[] | null,
         app: App,
         layerIdx: number
-    };
-
-    interface ChannelEventInfo { 
-        kind: LiteMol.Bootstrap.Interactivity.Info.__Kind.Selection | LiteMol.Bootstrap.Interactivity.Info.__Kind.Empty,
-        source : {
-            props: {
-                tag: {
-                    element: DataInterface.Tunnel,
-                    type: String
-                }
-            },
-            ref: string
-        }
-        
     };
 
     export function render(target: Element, plugin: LiteMol.Plugin.Controller) {
@@ -37,37 +21,13 @@ namespace LayerProperties.UI{
 
     export class App extends React.Component<{controller: LiteMol.Plugin.Controller }, State> {
 
-        private interactionEventStream: LiteMol.Bootstrap.Rx.IDisposable | undefined = void 0;
-
         state:State = {
             data: null,
             app: this,
             layerIdx: -1
         };
 
-        layerIdx = -1;
-
         componentDidMount() {
-            /*
-            var interactionHandler = function showInteraction(type: string, i: ChannelEventInfo | undefined, app: App) {
-                if (!i || i.source == null || i.source.props.tag === void 0 || i.source.props.tag.type === void 0) {
-                    return;    
-                }
-
-                if(i.source.props.tag.type == "Tunnel" 
-                    || i.source.props.tag.type == "Path"
-                    || i.source.props.tag.type == "Pore"
-                    || i.source.props.tag.type == "MergedPore"){
-                    
-                    let layers = i.source.props.tag.element.Layers;
-                    app.setState({data:layers.LayersInfo});
-                }
-                
-            }*/
-            /*
-            this.interactionEventStream = LiteMoleEvent.Visual.VisualSelectElement.getStream(this.props.controller.context)
-                .subscribe(e => interactionHandler('select', e.data as ChannelEventInfo, this));
-            */
             CommonUtils.Selection.SelectionHelper.attachOnChannelDeselectHandler(()=>{
                 let state = this.state;
                 state.layerIdx = -1;
@@ -92,9 +52,6 @@ namespace LayerProperties.UI{
         }
 
         private layerTriggerHandler(event:any,layerIdx:number){
-
-            this.layerIdx = layerIdx;
-
             let state = this.state;
             state.layerIdx = layerIdx;
             this.setState(state);

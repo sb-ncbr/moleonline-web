@@ -1,12 +1,11 @@
 namespace Common.Util.Router{
     export interface URLParams{submitId:number, computationId:string, isChannelsDB:boolean};
 
-    export function getParameters(/*suppressDefaultSubmitId?:boolean*/):URLParams|null{
-        /*let suppressDefaultSubmitId_ = (suppressDefaultSubmitId===void 0)?false:suppressDefaultSubmitId;*/
+    export function getParameters():URLParams|null{
         let parametersChannelsDBTest = SimpleRouter.GlobalRouter.getParametersByRegex(/\/online\/([a-zA-Z0-9]+)\/ChannelsDB/g);
         let parameters = SimpleRouter.GlobalRouter.getParametersByRegex(/\/online\/([a-zA-Z0-9]+)\/*([0-9]*)/g);
         let computationId = null;
-        let submitId = 0;//(suppressDefaultSubmitId_)?0:1;
+        let submitId = 0;
         if((parameters===null)||(parameters.length===0)||(parameters.length>3)){
             console.log(parameters);
             console.log("Corrupted url found - cannot parse parameters.");

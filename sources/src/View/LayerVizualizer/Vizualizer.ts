@@ -754,7 +754,7 @@ namespace LayersVizualizer{
                 positioning.defaultColorMixerHorizontal.top = 
                     positioning.defaultTunnel.top
                     +positioning.defaultTunnel.marginTop
-                    -(cmhHeight+1/*1=margin-bottom*/);
+                    -(cmhHeight+1/*(1=>margin-bottom)*/);
                 positioning.defaultColorMixerHorizontal.height = cmhHeight;
             }
             //Customizable Color Mixer
@@ -1278,8 +1278,6 @@ namespace LayersVizualizer{
                 bounds: customizableTunnelBounds
             };
 
-            //console.log(this.__tunnels);
-
             //Prepare color mixer objects
 
             //Color mixer for default tunnel
@@ -1391,7 +1389,7 @@ namespace LayersVizualizer{
             });
             // Curly brackets for default tunnel
             toRender.push({
-                drawable: new CurlyBrackets(context/*,true*/),
+                drawable: new CurlyBrackets(context),
                 bounds: positioning.defaultCurlyBrackets.toBounds(canvasWidth,canvasHeight)   
             });
             // Curly brackets Label for default tunnel
@@ -1401,7 +1399,7 @@ namespace LayersVizualizer{
             });
             // Curly brackets for customizable tunnel
             toRender.push({
-                drawable: new CurlyBrackets(context/*,true*/),
+                drawable: new CurlyBrackets(context),
                 bounds: positioning.customizableCurlyBrackets.toBounds(canvasWidth,canvasHeight)   
             });
             // Curly brackets Label for customizable tunnel
@@ -1579,6 +1577,7 @@ namespace LayersVizualizer{
             return svg;
         }
 
+        //TODO: Not working properly - image is not the same in PDF output as on screen => seems like a bug in jsPDF library
         public exportPDF():string{
 
             if(!this.isDOMBound||this.isDataDirty()){

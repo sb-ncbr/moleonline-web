@@ -80,16 +80,6 @@ namespace DataInterface{
         Channels:ChannelsDBChannels,
         Annotations:AnnotationObject[]
     }
-/*
-    export interface MoleOnlineData{
-        Channels:{
-            Tunnels:Tunnel[],
-            MergedPores:Tunnel[],
-            Pores:Tunnel[],
-            Paths:Tunnel[]
-        },
-        Annotations:AnnotationObject[]
-    }*/
 
     export interface AnnotationObject{
         Id: string
@@ -125,24 +115,9 @@ namespace DataInterface{
     export function convertLayersToLayerData(layersObject:DataInterface.Layers):LayerData[]{
         let layersData: LayerData[] = [];
         let layerCount = layersObject.LayersInfo.length;
-        
-        /*
-        export interface LayerData{
-        StartDistance: number,
-        EndDistance: number,
-        MinRadius: number,
-        MinFreeRadius: number,
-        Properties: any,
-        Residues: any
-        */
 
         for(let i=0;i<layerCount;i++){
-            /*
-            Hydrophobicity: number,
-            Hydropathy: number,
-            Polarity: number,
-            Mutability: number
-            */
+            
             let properties = {
                 Charge: layersObject.LayersInfo[i].Properties.Charge,
                 NumPositives: layersObject.LayersInfo[i].Properties.NumPositives,

@@ -2,14 +2,11 @@ namespace ChannelParameters.UI{
 
     import DGComponents = Datagrid.Components;
     import React = LiteMol.Plugin.React
-    import LiteMoleEvent = LiteMol.Bootstrap.Event;
-    import TunnelUtils = CommonUtils.Tunnels;
     
     let DGTABLE_COLS_COUNT = 2;
     let NO_DATA_MESSAGE = "Select channel in 3D view for details...";
 
     declare function $(p:any): any;
-    declare function datagridOnResize(str:string,str1:string,str2:string):any;
 
     interface State{
         data: DataInterface.Tunnel[] | null,
@@ -17,27 +14,11 @@ namespace ChannelParameters.UI{
         app: App
     };
 
-    interface ChannelEventInfo { 
-        kind: LiteMol.Bootstrap.Interactivity.Info.__Kind.Selection | LiteMol.Bootstrap.Interactivity.Info.__Kind.Empty,
-        source : {
-            props: {
-                tag: {
-                    element: DataInterface.Tunnel,
-                    type: String
-                }
-            },
-            ref: string
-        }
-        
-    };
-
     export function render(target: Element, plugin: LiteMol.Plugin.Controller) {
         LiteMol.Plugin.ReactDOM.render(<App controller={plugin} />, target);
     }
 
     export class App extends React.Component<{controller: LiteMol.Plugin.Controller }, State> {
-
-        private interactionEventStream: LiteMol.Bootstrap.Rx.IDisposable | undefined = void 0;
 
         state:State = {
             data: null,

@@ -469,16 +469,18 @@ namespace LiteMol.Example.Channels.State {
             if((idxCounter-1)%idxFilter!==0){
                 continue;
             }
-            s.add({ type: 'Sphere', id: 0/*id++*/, radius: sphere.Radius, center: [ sphere.X, sphere.Y, sphere.Z ], tessalation: 2 });
+            s.add({ type: 'Sphere', id: 0, radius: sphere.Radius, center: [ sphere.X, sphere.Y, sphere.Z ], tessalation: 2 });
         }        
         return s.buildSurface().run();
     }    
         
     function getSurfaceColorByType(type:string){
         switch(type){
-            /*case 'Cavity': return ColorScheme.Colors.get(ColorScheme.Enum.Cavity);
+            /*
+            case 'Cavity': return ColorScheme.Colors.get(ColorScheme.Enum.Cavity);
             case 'MolecularSurface': return ColorScheme.Colors.get(ColorScheme.Enum.Surface);
-            case 'Void': return ColorScheme.Colors.get(ColorScheme.Enum.Void);*/
+            case 'Void': return ColorScheme.Colors.get(ColorScheme.Enum.Void);
+            */
             default : return ColorScheme.Colors.get(ColorScheme.Enum.DefaultColor);
         }
     }

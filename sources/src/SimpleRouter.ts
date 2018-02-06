@@ -160,12 +160,6 @@ namespace SimpleRouter{
             this.contextPath = contextPath;
         }
 
-        /* Buggy !!
-        getRelativePath(){
-            return new SrURL(document.URL).substractPathFromStart(this.contextPath);
-        }
-        */
-
         getAbsoluePath(){
             return new URL(document.URL);
         }
@@ -215,16 +209,6 @@ namespace SimpleRouter{
             }
             
             this.currentPid = (pid !== null)?pid:this.defaultPid;
-            /*
-            if(pid !== this.currentPid){
-                if(this.useParameterAsPid === true){
-                    this.router.changeUrl("detail",document.title,`${url}/?pid=${this.currentPid}`);
-                }
-                else if(this.useLastPathPartAsPid === true){
-                    this.router.changeUrl("detail",document.title,`${url}/${this.currentPid}`);
-                }
-            }
-            */
 
             this.isInitialized = true;
         }

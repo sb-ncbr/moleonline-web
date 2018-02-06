@@ -8,7 +8,6 @@ namespace MoleOnlineWebUI.Service.ChannelsDBAPI{
         text: string,
         reference: string,
         link: string,
-        /*isLining: boolean*/
     };
     export interface ChannelAnnotation{
         name: string,
@@ -183,7 +182,6 @@ namespace MoleOnlineWebUI.Service.ChannelsDBAPI{
                     text: item.Text,
                     reference: item.Reference,
                     link: this.createLink(item.ReferenceType,item.Reference),
-                    /*isLining: this.isLining(residueId)*/
                 });
             map.set(`${item.Id} ${item.Chain}`,annotations);
         }

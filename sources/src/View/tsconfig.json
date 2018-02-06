@@ -94,17 +94,12 @@
     //Channel Properties
     "UI/ChannelParameters/UI.tsx",
 
-    //Residue Annotations
-    /*"UI/ResidueAnnotations/UI.tsx", */
-
-    //Protein Annotations
-    /*"UI/ProteinAnnotations/UI.tsx",*/
-
     //PDF Report generátor
     "UI/PDFReportGenerator/UI.tsx",
 
     //Submit Settings
     "UI/Controls/UI.tsx",
+    "UI/Controls/FormData.ts",
 
     //Download report
     "UI/DownloadReport/UI.tsx",

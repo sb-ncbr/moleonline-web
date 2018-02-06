@@ -25,7 +25,6 @@ namespace LiteMol.Example.Channels {
             const tag = (info.source as Bootstrap.Entity.Visual.Surface).props.tag as State.SurfaceTag;
             const e = tag.element;
             switch (tag.kind) {
-//                case 'Cavity': return `<b>${e.Type} ${e.Id}</b>, Volume: ${e.Volume | 0} Å`;
                 case 'Cavity-inner': return `<b>${e.Type} ${e.Id}</b>, Volume: ${e.Volume | 0} Å`;
                 case 'Cavity-boundary': return `<b>${e.Type} ${e.Id}</b>, Volume: ${e.Volume | 0} Å, Center: ${Behaviour.vec3str(Behaviour.getTriangleCenter(tag.surface, info.elements[0]))}`;
                 case 'Channel': {

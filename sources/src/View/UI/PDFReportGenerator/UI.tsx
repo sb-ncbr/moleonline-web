@@ -1,7 +1,6 @@
 namespace PDFReportGenerator.UI{
     
         import React = LiteMol.Plugin.React
-        import LiteMoleEvent = LiteMol.Bootstrap.Event;
         
         declare function $(p:any): any;
     

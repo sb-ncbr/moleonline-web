@@ -2,34 +2,16 @@ namespace LayerResidues.UI{
 
     import DGComponents = Datagrid.Components;
     import React = LiteMol.Plugin.React
-    import LiteMoleEvent = LiteMol.Bootstrap.Event;
-    import TunnelUtils = CommonUtils.Tunnels;
     
     let DGTABLE_COLS_COUNT = 2;
     let NO_DATA_MESSAGE = "Hover over channel(2D) for details...";
 
     declare function $(p:any): any;
-    declare function datagridOnResize(str:string,str1:string,str2:string):any;
 
     interface State{
         data: DataInterface.LayersInfo[] | null,
         app: App,
         layerIdx: number,
-        /*isWaitingForData: boolean*/
-    };
-
-    interface ChannelEventInfo { 
-        kind: LiteMol.Bootstrap.Interactivity.Info.__Kind.Selection | LiteMol.Bootstrap.Interactivity.Info.__Kind.Empty,
-        source : {
-            props: {
-                tag: {
-                    element: DataInterface.Tunnel,
-                    type: String
-                }
-            },
-            ref: string
-        }
-        
     };
 
     export function render(target: Element, plugin: LiteMol.Plugin.Controller) {
@@ -38,13 +20,10 @@ namespace LayerResidues.UI{
 
     export class App extends React.Component<{controller: LiteMol.Plugin.Controller }, State> {
 
-        private interactionEventStream: LiteMol.Bootstrap.Rx.IDisposable | undefined = void 0;
-
         state:State = {
             data: null,
             app: this,
             layerIdx: -1,
-            /*isWaitingForData: false*/
         };
 
         layerIdx = -1;
@@ -166,7 +145,7 @@ namespace LayerResidues.UI{
         private generateSpannedRows(residue:string, annotations: MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation[]){
             let trs:JSX.Element[] = [];
 
-            let residueNameEl = residue;//(this.isBackbone(residue))?<i><strong>{this.shortenBackbone(residue)}</strong></i>:<span>{residue}</span>;
+            let residueNameEl = residue;
 
             let first = true;
             for(let annotation of annotations){
@@ -197,8 +176,8 @@ namespace LayerResidues.UI{
         }
         
         private generateRows(){
-            /*let channelsDBMode = CommonUtils.Router.isInChannelsDBMode();*/
-            let columnCount = DGTABLE_COLS_COUNT;/*+((channelsDBMode)?1:0);*/
+
+            let columnCount = DGTABLE_COLS_COUNT;
 
             if(this.props.data === null){
                 return <DGComponents.DGNoDataInfoRow columnsCount={columnCount} infoText={NO_DATA_MESSAGE}/>;
@@ -216,7 +195,7 @@ namespace LayerResidues.UI{
                 );
                 let seqNumberAndChain = `${residueInfo[0].authSeqNumber} ${residueInfo[0].chain.authAsymId}`;
                 let annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getResidueAnnotationsImmediate(seqNumberAndChain);
-                if(/*channelsDBMode&&*/annotations!==null&&annotations.length>0){
+                if(annotations!==null&&annotations.length>0){
                     if(annotations.length>1){
                         rows = rows.concat(this.generateSpannedRows(residueId,annotations));
                     }

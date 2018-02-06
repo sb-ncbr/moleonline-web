@@ -20,19 +20,8 @@ namespace MoleOnlineWebUI.Cache{
                 channels = channels.concat(data.Channels.Tunnels);
             }
 
-            //let nameIdxMap = new Map<String,number>();
-
             let cache = new Map<string,string>();
-            for(let channel of channels){
-                /*
-                if(!nameIdxMap.has(channel.Type)){
-                    nameIdxMap.set(channel.Type,1);
-                }*/
-                
-                //let nameIdx = nameIdxMap.get(channel.Type) as number;
-                //cache.set(channel.GUID,`${channel.Type[0]}${nameIdx++}`);
-                //nameIdxMap.set(channel.Type,nameIdx);               
-
+            for(let channel of channels){           
                 cache.set(channel.GUID,`${channel.Type[0]}${channel.Id}C${channel.Cavity}`);
             }
 

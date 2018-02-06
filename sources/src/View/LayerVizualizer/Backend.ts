@@ -58,17 +58,6 @@ namespace LayersVizualizer{
             this.context.clip();
         }
 
-/*
-        public setContext(context:CanvasRenderingContext2D){
-            this.context = context;
-        }
-*/
-/* Context must be known before hitbox generation
-        public draw(x: number, y:number, width:number, height:number, context?:CanvasRenderingContext2D):void{
-            this.setContext(context);
-            this.draw(x,y,width,height);
-        }
-*/
         public drawFromBounds(bounds: Rectangle){
             this.draw(bounds.x,bounds.y,bounds.width,bounds.height);         
         }
@@ -165,10 +154,10 @@ namespace LayersVizualizer{
 
         private isLeftToRight:boolean;
 
-        public constructor(context:CanvasRenderingContext2D/*, isLeftToRight:boolean=true*/){
+        public constructor(context:CanvasRenderingContext2D){
             super(context);
 
-            this.isLeftToRight = true;/*isLeftToRight;*/
+            this.isLeftToRight = true;
         }
 
         public draw(x: number, y:number, width:number, height:number): void{  

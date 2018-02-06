@@ -1,7 +1,6 @@
 namespace QuickHelp.UI{
 
     import React = LiteMol.Plugin.React
-    import LiteMoleEvent = LiteMol.Bootstrap.Event;
 
     declare function $(p:any): any;
 
@@ -93,12 +92,6 @@ namespace QuickHelp.UI{
 
         render() {
             let hints:JSX.Element[] = [];
-            /*
-            if(this.state.fromPDBID){
-                hints.push(<li>
-                    To visualize data from <a href="https://webchemdev.ncbr.muni.cz/ChannelsDB/">ChannelsDB</a>, click on <b>#ChannelsDB</b> submission located on <b>Submission tab</b> in the right side of the screen.
-                    </li>);
-            }*/
 
             if(!this.state.hasSubmissions){ //has no submissions
                 hints.push(<div>
