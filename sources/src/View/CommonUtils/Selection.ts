@@ -149,7 +149,8 @@ namespace CommonUtils.Selection{
         }
 
         public static clearSelection(plugin:LiteMol.Plugin.Controller){
-            this.clearSelectionPrivate(plugin);            
+            this.clearSelectionPrivate(plugin); 
+            this.invokeOnClearSelectionHandlers();           
             //this.resetScene(plugin);
         }
 
@@ -168,7 +169,7 @@ namespace CommonUtils.Selection{
             
             this.selectedBulkResidues = void 0;
 
-            this.invokeOnClearSelectionHandlers();
+            //this.invokeOnClearSelectionHandlers();
         }
 
         public static clearAltSelection(plugin:LiteMol.Plugin.Controller){
@@ -704,6 +705,10 @@ namespace CommonUtils.Selection{
                 //console.log("Channel selected");
                 if(this.selectedChannelRef!==void 0 && this.selectedChannelRef !== i.source.ref){
                     deselectTunnelByRef(plugin,this.selectedChannelRef);    
+                }
+                else{
+                    //Trigger Sequence Viewer to deselect selected residues
+                    this.clearSelection(plugin);
                 }
                 this.selectedChannelRef = i.source.ref;
                 this.selectedChannelData = i.source.props.tag.element.Layers;
