@@ -874,12 +874,16 @@ only screen and (max-height: 542px) {
     .current-pbdbid-sign,
     .download-button,
     .button.download.dropdown-toggle,
-    .annotate{
+    .annotate,
+    .help-button{
         font-size:10pt;
     }
 
+    .help-button .help-ico{
+        vertical-align: sub !important;
+    }
+
     .current-pbdbid-sign{
-        font-size: 10pt;
         width: 125px;
         padding-left: 55px;
         padding-right: 5px;
@@ -887,7 +891,6 @@ only screen and (max-height: 542px) {
     }
 
     .annotate{
-        font-size: 10pt;
         width: 95px;
         left: 125px;
         padding-left: 5px;
@@ -895,9 +898,15 @@ only screen and (max-height: 542px) {
     }
 
     .download-button{
-        font-size: 10pt;
         width: 115px;
         left: 220px;
+    }
+
+    .help-button{
+        width: 90px;
+        left: 330px;
+        padding-left: 5px;
+        padding-right: 5px;
     }
 
     #controls{
@@ -1089,20 +1098,137 @@ only screen and (max-height: 542px) {
     }
     
 }
+@media only screen and (max-width: 768px){
+    .helpDialog{
+        position: fixed;
+        right: 2%;
+        width: 96%;
+        left: 2%;
+        margin-top: 30px;
+        border-top-left-radius: 10px;
+    }
+    
+    .helpDialog .custom-box{
+        width: 90%;
+        margin-left: 5%;
+    }
 
-@media only screen and (max-width: 600px)
+    .helpDialog .error-msg{
+        width:100%;
+    }
+}
+@media only screen and (max-width: 650px)
 {
     .lm-viewport-controls {
         margin-top: 35px;
     }
     .current-pbdbid-sign .glyphicon,
     .download-button .glyphicon,
-    .annotate-button .glyphicon{
+    .annotate-button .glyphicon,
+    .help-button .glyphicon{
         display: none;
+    }
+
+    .current-pbdbid-sign{
+        width: 100px;
+    }
+
+    .download-button{
+        left: 195px;
+        width: 90px;
+    }
+
+    .annotate{
+        width: 95px;
+        left: 100px;
+    }
+
+    .help-button{
+        left: 285px;
+        border-left: none;
+        width: 60px;
+        padding-right: 15px;
     }
 }
 @media only screen and (max-width: 400px){
     .chdb-panel.right-panel{
         width:85vw;
     }
+}
+/** PHONE - right controls **/
+@media only screen and (max-width: 900px), only screen and (max-height: 375px){
+
+    .right-panel .submit-form-container{
+        height: 90%;
+        margin-top: 2%;
+    }
+    .right-panel .bottom ul.nav.nav-tabs {
+        visibility: hidden;
+    }
+    .right-panel .submit-parent,
+    #controls .submit-parent{
+        height:70%;
+    }
+    .right-panel .submit-form-container .submit-parent {
+        position: relative;
+    }
+    .bottom.toggled .submit-form-container .tab-content {
+        max-height: 93%;
+    }
+
+    /* ---------- */
+
+    .ui {
+        height: 90% !important;
+    }
+    .ui.toggled {
+        visibility: hidden;
+    }
+
+    #controls{
+        height: 6% !important;
+        margin-bottom: 2%;
+    }
+    #controls.toggled{
+        height: 97% !important;
+    }
+
+    .right-panel .bottom form#submission-form {
+        visibility: hidden;
+        height: 15%;
+    }
+    .right-panel .bottom.toggled form#submission-form {
+        visibility: visible;
+    }    
+
+    .right-panel .bottom ul.nav.nav-tabs {
+        visibility: hidden;
+    }
+    .right-panel .bottom.toggled ul.nav.nav-tabs {
+        visibility: visible;
+    }
+    
+    .right-panel .bottom .tab-content {
+        visibility: hidden;
+    }
+    .right-panel .bottom.toggled .tab-content {
+        visibility: visible;
+    }
+
+    /****/
+
+    .submit-form-container .submit, 
+    .submit-form-container .delete-project-button, 
+    .submit-form-container .kill-job-button, 
+    .submit-form-container .submit-arrow, 
+    .submit-form-container .submit-combo, 
+    .submit-form-container .clear-button {
+        height: 90%;
+        margin-top: 2px;
+        margin-bottom: 0.5vh;
+        line-height: normal;
+        padding: 5px 5px;
+        max-height: 90%;
+    }
+    
 }

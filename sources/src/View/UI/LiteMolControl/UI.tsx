@@ -93,7 +93,12 @@ namespace LiteMol.Example.Channels.UI {
                     }
                 })
                 .catch(e => {
-                    this.setState({ isLoading: false, error: 'Application was unable to load data. Please try again later.', data: void 0 });
+                    let errMessage = 'Application was unable to load data. Please try again later.';
+                    if(e!==void 0 && e!==null && String(e).length>0){
+                        errMessage = String(e);
+                    }
+
+                    this.setState({ isLoading: false, error: errMessage, data: void 0 });
                 });
         }
 

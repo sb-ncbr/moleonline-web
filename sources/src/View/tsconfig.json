@@ -106,6 +106,9 @@
 
     //PDB id sign
     "UI/PdbIdSign/UI.tsx",
+
+    //Help
+    "UI/Help/UI.tsx",
     
     //Sequence Viewer
     "UI/SequenceViewer/UI.tsx",

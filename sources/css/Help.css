@@ -1,0 +1,86 @@
+
+.help-button{
+    width: 100px;
+    height: 32px;
+    position: fixed;
+    z-index: 950;
+    line-height: 30px;
+    text-align: center;
+    font-size: 13pt;
+    background-color: #f8f8f8;
+    left: 360px;
+    padding: 0;
+    color: #777;
+    padding-right: 10px;
+    border: 1px #ccc solid;
+    border-bottom-right-radius: 30px;
+    border-top: 0;
+}
+
+.help-button .button{
+    cursor: pointer;
+}
+
+.help-button .glyphicon.help-ico{
+    vertical-align: unset;
+    font-size: 13pt;
+}
+
+.helpDialog{
+    width: 250px;
+    border: 1px solid #ddd;
+    padding: 15px;
+    padding-left: 0px;
+    padding-right: 0px;
+    margin-top: 3px;
+    margin-left: -1px;
+    /* background-color: white; */
+    border-radius: 10px;
+    border-top-left-radius: 0px;
+    box-shadow: 2px 2px 5px #aaa;
+    background-color: #f8f8f8;
+    display:none;
+}
+
+.helpDialog.visible{
+    display:block;
+}
+
+.helpDialog textarea{
+    margin: 0px;
+    max-width: 100%;
+    min-width: 100%;
+    min-height: 25px;
+}
+
+.helpDialog .btn.submit{
+    width: 90%;
+    margin-left: 5%;
+    margin-right: 5%;
+    margin-top:5px;
+}
+
+.helpDialog .custom-box{
+    width: 100%;
+    margin-left: 5%;
+}
+
+.helpDialog .error-msg{
+    margin-top: -15px;
+    color: red;
+    width:85%;
+    line-height: 22px;
+}
+
+.helpDialog .description{
+    width: 90%;
+    margin-left: 5%;
+    margin-right: 5%;
+    margin-top: 5px;
+    line-height: 20px;
+    font-weight: bold;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 15px;
+    margin-bottom: 10px;
+    text-align: justify;
+}

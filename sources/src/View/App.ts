@@ -75,6 +75,8 @@ namespace LiteMol.Example.Channels {
 
         PdbIdSign.UI.render(document.getElementById("pdbid-sign") !);     
 
+        Help.UI.render(document.getElementById("help-button") !);     
+
         Annotate.UI.render(document.getElementById("annotate") !);     
 
         AlertMessages.UI.render(document.getElementById("alert-messages") !);
