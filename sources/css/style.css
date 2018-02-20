@@ -1169,7 +1169,7 @@ only screen and (max-height: 542px) {
         /*height:70%;*/
         height: 8vh;
         background-color: white;
-        width: 100vw;
+        width: 100%;
         margin-left: 0;
         margin-right: 0;
         border-left: 0;
