@@ -141,7 +141,7 @@ namespace QuickHelp.UI{
                             </li>
                             <li>
                                 Try to compare your data with channels from <a target="_blank" href="http://ncbr.muni.cz/ChannelsDB/">ChannelsDB</a>
-                                 - click on <b>#ChDB</b> submission located on <b>Submission tab</b> in the bottom right side of the screen.
+                                &nbsp;- click on <b>#ChDB</b> submission located on <b>Submission tab</b> in the bottom right side of the screen.
                             </li>
                         </ul>
                     </div>);
