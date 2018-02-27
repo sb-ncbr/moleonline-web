@@ -136,7 +136,6 @@ namespace SimpleRouter{
 
         removeParameters(){
             let path = this.url.split("?")[0];
-            console.log(`path: ${path}`);
             return new URL(path); 
         }
 

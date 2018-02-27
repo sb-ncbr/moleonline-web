@@ -129,7 +129,7 @@ namespace LayersVizualizer{
 
         private resizePercentPrecision: number;
 
-        private selectedLayerIdx: number;
+        private selectedLayerIds: number[];
 
         private __colorFunctionSetings: Map<string,ColorPaletteFunctionSettings>;
 
@@ -498,7 +498,7 @@ namespace LayersVizualizer{
 
             this.tmpCanvasId = `tmpCanvas_${this.publicInstanceIdx}`;
 
-            this.selectedLayerIdx = -1;
+            this.selectedLayerIds = [];
 
             this.__colorFunctionSetings = new Map<string,ColorPaletteFunctionSettings>();
 
@@ -509,7 +509,7 @@ namespace LayersVizualizer{
         }
 
         public deselectLayer(){
-            this.selectedLayerIdx = -1;
+            this.selectedLayerIds = [];
 
             let tunnels = this.getTunnels();
             if(tunnels === null){
@@ -529,22 +529,26 @@ namespace LayersVizualizer{
                 return
             }
 
-            this.selectedLayerIdx = layerIdx;
+            this.selectedLayerIds = this.selectedLayerIds.filter((v,i,a)=>{return v!==layerIdx}).concat([layerIdx]);
             let tunnels = this.getTunnels();
             if(tunnels === null){
                 return;
             }
 
             if(tunnels.default!==null){
-                tunnels.default.tunnel.selectLayer(layerIdx);
+                for(let idx of this.selectedLayerIds){
+                    tunnels.default.tunnel.selectLayer(idx);
+                }
             }
             if(tunnels.customizable!==null){
-                tunnels.customizable.tunnel.selectLayer(layerIdx);
+                for(let idx of this.selectedLayerIds){
+                    tunnels.customizable.tunnel.selectLayer(idx);
+                }
             }
         }
 
-        public getSelectedLayer():number{
-            return this.selectedLayerIdx;
+        public getSelectedLayer():number[]{
+            return this.selectedLayerIds;
         }
 
         public setResizePercentPrecision(percentPrecision:number){
@@ -583,7 +587,7 @@ namespace LayersVizualizer{
         
         public setData(layersData:DataInterface.LayerData[]){
             this.currentLayerIdx = -1;
-            this.selectedLayerIdx = -1;
+            this.selectedLayerIds = [];
             this.data = layersData;
             this.dataDirty = true;
         }
@@ -1222,7 +1226,7 @@ namespace LayersVizualizer{
             let layers = this.prepareLayersForVizualization();
 
             let maxDistance = layers.defaultTunnelLayers[layers.defaultTunnelLayers.length-1].end;
-            maxDistance = CommonUtils.Numbers.roundToDecimal(maxDistance,1); // round to 1 decimal
+            maxDistance = Common.Util.Numbers.roundToDecimal(maxDistance,1); // round to 1 decimal
 
             let positioning = this.getComponentsPositioning();
             
@@ -1357,12 +1361,12 @@ namespace LayersVizualizer{
             */
             // Label on top left side of color mixer for default tunnel
             toRender.push({
-                drawable: new TextBox(`${CommonUtils.Numbers.roundToDecimal(dTminVal,2)}`,context,"small","left"),
+                drawable: new TextBox(`${Common.Util.Numbers.roundToDecimal(dTminVal,2)}`,context,"small","left"),
                 bounds: positioning.dColorMixerLeftLabel.toBounds(canvasWidth,canvasHeight)   
             });
             // Label on top right side of color mixer for default tunnel
             toRender.push({
-                drawable: new TextBox(`${CommonUtils.Numbers.roundToDecimal(dTmaxVal,2)}`,context,"small","right"),
+                drawable: new TextBox(`${Common.Util.Numbers.roundToDecimal(dTmaxVal,2)}`,context,"small","right"),
                 bounds: positioning.dColorMixerRightLabel.toBounds(canvasWidth,canvasHeight)   
             });
             /*
@@ -1379,12 +1383,12 @@ namespace LayersVizualizer{
             */
             // Label on bottom left side of color mixer for customizable tunnel
             toRender.push({
-                drawable: new TextBox(`${CommonUtils.Numbers.roundToDecimal(cTminVal,2)}`,context,"small","left"),
+                drawable: new TextBox(`${Common.Util.Numbers.roundToDecimal(cTminVal,2)}`,context,"small","left"),
                 bounds: positioning.cColorMixerLeftLabel.toBounds(canvasWidth,canvasHeight)   
             });
             // Label on bottom right side of color mixer for customizable tunnel
             toRender.push({
-                drawable: new TextBox(`${CommonUtils.Numbers.roundToDecimal(cTmaxVal,2)}`,context,"small","right"),
+                drawable: new TextBox(`${Common.Util.Numbers.roundToDecimal(cTmaxVal,2)}`,context,"small","right"),
                 bounds: positioning.cColorMixerRightLabel.toBounds(canvasWidth,canvasHeight)   
             });
             // Curly brackets for default tunnel
@@ -1439,8 +1443,10 @@ namespace LayersVizualizer{
             });
             this.renderObjects(toRender);
             
-            if(this.selectedLayerIdx !== -1){
-                this.selectLayer(this.selectedLayerIdx);
+            if(this.selectedLayerIds.length>0){
+                for(let idx of this.selectedLayerIds){
+                    this.selectLayer(idx);
+                }
             }
 
             this.setCurrentColorFunctionSettings("default",defaultTunnelData.colorFunctionSettings);
@@ -1509,9 +1515,9 @@ namespace LayersVizualizer{
             }
             
             //Deselekce vrstvy
-            let selectedLayer = -1;
-            if(this.selectedLayerIdx !== -1){
-                selectedLayer = this.selectedLayerIdx;
+            let selectedLayers:number[] = [];
+            if(this.selectedLayerIds.length>0){
+                selectedLayers = this.selectedLayerIds;
                 this.deselectLayer();
             }
 
@@ -1524,7 +1530,9 @@ namespace LayersVizualizer{
             this.switchToMainCanvas();
 
             //Opetovne oznaceni vrstvy(stav pred exportem)
-            this.selectLayer(selectedLayer);
+            for(let idx of selectedLayers){
+                this.selectLayer(idx);
+            }
 
             return dataURL;
         }
@@ -1555,9 +1563,9 @@ namespace LayersVizualizer{
             }
             
             //Deselekce vrstvy
-            let selectedLayer = -1;
-            if(this.selectedLayerIdx !== -1){
-                selectedLayer = this.selectedLayerIdx;
+            let selectedLayers:number[] = [];
+            if(this.selectedLayerIds.length>0){
+                selectedLayers = this.selectedLayerIds;
                 this.deselectLayer();
             }
 
@@ -1572,7 +1580,9 @@ namespace LayersVizualizer{
             this.switchToMainCanvas();
 
             //Opetovne oznaceni vrstvy(stav pred exportem)
-            this.selectLayer(selectedLayer);
+            for(let idx of selectedLayers){
+                this.selectLayer(idx);
+            }
 
             return svg;
         }
@@ -1585,9 +1595,9 @@ namespace LayersVizualizer{
             }
 
             //Deselekce vrstvy
-            let selectedLayer = -1;
-            if(this.selectedLayerIdx !== -1){
-                selectedLayer = this.selectedLayerIdx;
+            let selectedLayers:number[] = [];
+            if(this.selectedLayerIds.length>0){
+                selectedLayers = this.selectedLayerIds;
                 this.deselectLayer();
             }
 
@@ -1629,7 +1639,9 @@ namespace LayersVizualizer{
             //pdf.addSVG(svg, 0, 0, width, height);
 
             //Opetovne oznaceni vrstvy(stav pred exportem)
-            this.selectLayer(selectedLayer);
+            for(let idx of selectedLayers){
+                this.selectLayer(idx);
+            }
 
             return pdf.output('datauristring');
         }

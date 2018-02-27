@@ -195,28 +195,28 @@ namespace AglomeredParameters.UI{
                             {CommonUtils.Tunnels.getBottleneck(this.props.tunnel)} Å
                         </td>
                         <td className="col col-4">
-                            {CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.Hydropathy,2)}
+                            {Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.Hydropathy,2)}
                         </td>
                         <td className="col col-5">
-                            {CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.Charge,2)}
+                            {Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.Charge,2)}
                         </td>
                         <td className="col col-6">
-                            {CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.Polarity,2)}
+                            {Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.Polarity,2)}
                         </td>
                         <td className="col col-7">
-                            {CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.Mutability,2)}
+                            {Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.Mutability,2)}
                         </td>        
                         <td className="col col-8">
-                            {(this.props.tunnel.Properties.LogP)?CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.LogP,2):'N/A'}
+                            {(this.props.tunnel.Properties.LogP)?Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.LogP,2):'N/A'}
                         </td>               
                         <td className="col col-9">
-                            {(this.props.tunnel.Properties.LogD)?CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.LogD,2):'N/A'}
+                            {(this.props.tunnel.Properties.LogD)?Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.LogD,2):'N/A'}
                         </td>               
                         <td className="col col-10">
-                            {(this.props.tunnel.Properties.LogS)?CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.LogS,2):'N/A'}
+                            {(this.props.tunnel.Properties.LogS)?Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.LogS,2):'N/A'}
                         </td>               
                         <td className="col col-11">
-                            {(this.props.tunnel.Properties.Ionizable)?CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.Ionizable,2):'N/A'}
+                            {(this.props.tunnel.Properties.Ionizable)?Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.Ionizable,2):'N/A'}
                         </td>               
                     </tr>);
         }

@@ -87,6 +87,24 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
         filename:string|null
     };
 
+    export interface SubmitFeedbackParams{
+        From: string,
+        ComputationId: string,
+        SubmitId: number,
+        Msg: string
+    };
+    export interface SubmitFeedbackResponse{
+        Success:boolean,
+        Msg?:string|null
+    };
+
+    export interface VersionResponse{
+        PoresVersion:string,
+        MoleVersion:string,
+        APIVersion:string,
+        Build:string
+    };
+
     export type CSAResidue = MoleConfigResidue;
     export type CSAResidues = CSAResidue[][];
     export type ResidueName = string;
@@ -385,6 +403,31 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
                 if(this.DEBUG_MODE)
                     console.timeEnd("getCofactors");
                 return rv;
+            });
+        }
+
+        public static submitFeedback(params:SubmitFeedbackParams){
+            let url = `${this.baseUrl}/__Mail`;
+            if(this.DEBUG_MODE){
+                console.log(url);
+            }
+            
+            return this.sendPOSTjson(url, params).then((val)=>{
+                return val as SubmitFeedbackResponse;
+            });
+        }
+
+        public static getVersions():Promise<VersionResponse>{
+            let url = `${this.baseUrl}/Version`;
+            if(this.DEBUG_MODE){
+                console.log(url);
+            }
+            if(this.DEBUG_MODE)
+                console.time("getVersions");
+            return this.sendGET(url).then((s:VersionResponse)=>{
+                if(this.DEBUG_MODE)
+                    console.timeEnd("getVersions");
+                return s;
             });
         }
     }

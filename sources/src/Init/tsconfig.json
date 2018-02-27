@@ -52,6 +52,9 @@
     //InitForm
     "InitForm/UI.tsx",
 
+    //Version strip
+    "VersionStrip/UI.tsx",
+
     //App
     "App.ts"
   ]

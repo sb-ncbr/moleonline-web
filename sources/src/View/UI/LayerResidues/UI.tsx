@@ -11,7 +11,8 @@ namespace LayerResidues.UI{
     interface State{
         data: DataInterface.LayersInfo[] | null,
         app: App,
-        layerIdx: number,
+        layerIds: number[],
+        selectionOn: boolean
     };
 
     export function render(target: Element, plugin: LiteMol.Plugin.Controller) {
@@ -23,40 +24,67 @@ namespace LayerResidues.UI{
         state:State = {
             data: null,
             app: this,
-            layerIdx: -1,
+            layerIds: [],
+            selectionOn: false
         };
-
-        layerIdx = -1;
 
         componentDidMount() {
             CommonUtils.Selection.SelectionHelper.attachOnChannelDeselectHandler(()=>{
                 let state = this.state;
-                state.layerIdx = -1;
+                state.layerIds = [];
                 state.data = null;
                 this.setState(state);
             });
             CommonUtils.Selection.SelectionHelper.attachOnChannelSelectHandler((data)=>{
                 let state = this.state;
-                state.layerIdx = -1;
+                state.layerIds = [];
                 state.data = data.LayersInfo;
                 this.setState(state);
             });
             MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId(()=>{
                 let state = this.state;
-                state.layerIdx = -1;
+                state.layerIds = [];
                 state.data = null;
                 this.setState(state);
             });
             
             $( window ).on('layerTriggered', this.layerTriggerHandler.bind(this));
+            $( window ).on('layerSelected', this.layerSelectedHandler.bind(this));
         }
 
-        private layerTriggerHandler(event:any,layerIdx:number){
-
-            this.layerIdx = layerIdx;
-            
+        private layerTriggerHandler(event:any,layerIdx:number){            
             let state = this.state;
-            state.layerIdx = layerIdx;
+
+            if(state.selectionOn){
+                return;
+            }
+
+            state.layerIds = [layerIdx];
+
+            this.setState(state);
+
+            setTimeout(function(){
+                $( window ).trigger('contentResize');
+            },1);
+        }
+
+        private layerSelectedHandler(event:any,layerIdx:number){
+            let state = this.state;
+
+            if(state.layerIds.some((v,i,arr)=>{return v===layerIdx})&&state.selectionOn){
+                state.layerIds = state.layerIds.filter((v,i,arr)=>{return v!==layerIdx});
+            }
+            else{
+                if(!state.selectionOn){
+                    state.layerIds = [layerIdx];
+                }
+                else{
+                    state.layerIds.push(layerIdx);
+                }
+            }
+                
+            state.selectionOn = state.layerIds.length>0;
+
             this.setState(state);
 
             setTimeout(function(){
@@ -68,7 +96,7 @@ namespace LayerResidues.UI{
         }
 
         render() {
-            if (this.state.data !== null && this.state.layerIdx>=0) {
+            if (this.state.data !== null && this.state.layerIds.length>0) {
                 return(
                     <div>
                         <DGTable {...this.state} />
@@ -174,6 +202,21 @@ namespace LayerResidues.UI{
             }
             return trs;
         }
+
+        private getResidues(layerIds:number[]):string[]{
+            if(this.props.data===null){
+                return [];
+            }
+
+            let residuesSet = new Set();
+            for(let idx of layerIds){
+                for(let r of this.props.data[idx].Residues){
+                    residuesSet.add(r);
+                }
+            }
+
+            return Array.from(residuesSet.values());
+        }
         
         private generateRows(){
 
@@ -181,9 +224,9 @@ namespace LayerResidues.UI{
 
             if(this.props.data === null){
                 return <DGComponents.DGNoDataInfoRow columnsCount={columnCount} infoText={NO_DATA_MESSAGE}/>;
-            }
+            }            
 
-            let layerData = CommonUtils.Residues.sort(this.props.data[this.props.layerIdx].Residues,void 0, true, true);
+            let layerData = CommonUtils.Residues.sort(this.getResidues(this.props.layerIds),void 0, true, true);
             let rows:JSX.Element[] = [];
             
             for(let residue of layerData){

@@ -2,7 +2,7 @@ namespace CommonUtils{
     export class Tunnels{
         public static getLength(tunnel:DataInterface.Tunnel):number{
             let len = tunnel.Layers.LayersInfo[tunnel.Layers.LayersInfo.length - 1].LayerGeometry.EndDistance;
-            len = CommonUtils.Numbers.roundToDecimal(len,1);
+            len = Common.Util.Numbers.roundToDecimal(len,1);
             return len;
         }
 

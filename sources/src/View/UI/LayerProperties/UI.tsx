@@ -4,6 +4,8 @@ namespace LayerProperties.UI{
 
     import DGComponents = Datagrid.Components;
 
+    import WebChemistryCore = WebChemistry.Tunnels.Core;
+
     let DGTABLE_COLS_COUNT = 2;
     let NO_DATA_MESSAGE = "Hover over channel(2D) for details...";
 
@@ -12,7 +14,8 @@ namespace LayerProperties.UI{
     interface State{
         data: DataInterface.LayersInfo[] | null,
         app: App,
-        layerIdx: number
+        layerIds: number[],
+        selectionOn:boolean
     };
 
     export function render(target: Element, plugin: LiteMol.Plugin.Controller) {
@@ -24,36 +27,71 @@ namespace LayerProperties.UI{
         state:State = {
             data: null,
             app: this,
-            layerIdx: -1
+            layerIds: [],
+            selectionOn:false
         };
 
         componentDidMount() {
             CommonUtils.Selection.SelectionHelper.attachOnChannelDeselectHandler(()=>{
                 let state = this.state;
-                state.layerIdx = -1;
+                state.layerIds = [];
                 state.data = null;
+                state.selectionOn = false;
                 this.setState(state);
             });
             CommonUtils.Selection.SelectionHelper.attachOnChannelSelectHandler((data)=>{
                 let state = this.state;
-                state.layerIdx = -1;
+                state.layerIds = [];
                 state.data = data.LayersInfo;
+                state.selectionOn = false;
                 this.setState(state);
             });
             
             MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId(()=>{
                 let state = this.state;
-                state.layerIdx = -1;
+                state.layerIds = [];
                 state.data = null;
+                state.selectionOn = false;
                 this.setState(state);
             });
 
             $( window ).on('layerTriggered', this.layerTriggerHandler.bind(this));
+            $( window ).on('layerSelected', this.layerSelectedHandler.bind(this));
         }
 
         private layerTriggerHandler(event:any,layerIdx:number){
             let state = this.state;
-            state.layerIdx = layerIdx;
+
+            if(state.selectionOn){
+                return;
+            }
+
+            state.layerIds = [layerIdx];
+
+            this.setState(state);
+
+            setTimeout(function(){
+                $( window ).trigger('contentResize');
+            },1);
+        }
+
+        private layerSelectedHandler(event:any,layerIdx:number){
+            let state = this.state;
+
+            if(state.layerIds.some((v,i,arr)=>{return v===layerIdx})&&state.selectionOn){
+                state.layerIds = state.layerIds.filter((v,i,arr)=>{return v!==layerIdx});
+            }
+            else{
+                if(!state.selectionOn){
+                    state.layerIds = [layerIdx];
+                }
+                else{
+                    state.layerIds.push(layerIdx);
+                }
+            }
+                
+            state.selectionOn = state.layerIds.length>0;
+
             this.setState(state);
 
             setTimeout(function(){
@@ -65,7 +103,7 @@ namespace LayerProperties.UI{
         }
 
         render() {
-            if (this.state.data !== null && this.state.layerIdx>=0) {
+            if (this.state.data !== null && this.state.layerIds.length>0) {
                 return(
                     <div>
                         <DGTable {...this.state} />
@@ -125,47 +163,131 @@ namespace LayerProperties.UI{
         };
     }
 
-    class DGBody extends React.Component<State,{}>{        
+    class DGBody extends React.Component<State,{}>{
+        private getPropertiesData(layerIds:number[]){
+            
+            let layersData = this.props.data;
+            if(layersData===null){
+                return null;
+            }
+
+            let layers:WebChemistryCore.TunnelLayer[] = [];
+            for(let layerIdx of layerIds){
+                let layer = layersData[layerIdx];
+                let residues = CommonUtils.Residues.parseResidues(layer.Residues,true);
+                let backboneLining = residues.filter(r=>{return r.backbone===true}).map((v,i,arr)=>{
+                    return {
+                        Name:v.name
+                    }
+                });
+                let nonBackboneLining = residues.filter(r=>{return r.backbone===false}).map((v,i,arr)=>{
+                    return {
+                        Name:v.name
+                    }
+                });
+
+                layers.push({
+                    NonBackboneLining:nonBackboneLining,
+                    BackboneLining:backboneLining,
+                    Length:Math.abs(layer.LayerGeometry.EndDistance-layer.LayerGeometry.StartDistance)
+                } as WebChemistryCore.TunnelLayer);
+            }
+            
+            let data = WebChemistryCore.PhysicoChemicalPropertyCalculation.CalculateAgregatedLayersProperties(layers);
+            if(data === null){
+                return null;
+            }
+
+            return {
+                Charge: data.Charge,
+                Hydropathy: data.Hydropathy,
+                Hydrophobicity: data.Hydrophobicity,
+                Ionizable: data.Ionizable,
+                LogD: data.LogD,
+                LogP: data.LogP,
+                LogS: data.LogS,
+                Mutability: data.Mutability,
+                NumNegatives: data.NumNegatives,
+                NumPositives: data.NumPositives,
+                Polarity: data.Polarity
+            } as DataInterface.Properties;
+        }
+
+        private getBottleneck(layerdIds:number[]){
+            if(this.props.data===null){
+                return 0;
+            }
+            let minRadiusArr = [];
+            for(let layerIdx of layerdIds){
+                minRadiusArr.push(this.props.data[layerIdx].LayerGeometry.MinRadius);
+            }
+            
+            return Math.min(...minRadiusArr);
+        }
+
+        private getLength(layerdIds:number[]){
+            let length = 0;
+            if(this.props.data===null){
+                return 0;
+            }
+
+            for(let layerIdx of layerdIds){
+                let geometry = this.props.data[layerIdx].LayerGeometry;
+                length += Math.abs(geometry.EndDistance-geometry.StartDistance);
+            }
+
+            return length;
+        }
+
         private generateRows(){
             if(this.props.data === null){
                 return <DGComponents.DGNoDataInfoRow columnsCount={DGTABLE_COLS_COUNT} infoText={NO_DATA_MESSAGE}/>;
             }
 
-            let layerData = this.props.data[this.props.layerIdx].Properties;
+            let layerData = this.getPropertiesData(this.props.layerIds);
             let rows = [];
             
-            let charge = `${CommonUtils.Numbers.roundToDecimal(layerData.Charge,2).toString()} (+${CommonUtils.Numbers.roundToDecimal(layerData.NumPositives,2).toString()}/-${CommonUtils.Numbers.roundToDecimal(layerData.NumNegatives,2).toString()})`;
-            let minRadius = this.props.data[this.props.layerIdx].LayerGeometry.MinRadius;
-
+            let charge = (layerData===null)?'N/A':`${Common.Util.Numbers.roundToDecimal(layerData.Charge,2).toString()} (+${Common.Util.Numbers.roundToDecimal(layerData.NumPositives,2).toString()}/-${Common.Util.Numbers.roundToDecimal(layerData.NumNegatives,2).toString()})`;
+            let bottleneck = this.getBottleneck(this.props.layerIds);
+            
+            
+            let hydropathy = (layerData===null)?'N/A':Common.Util.Numbers.roundToDecimal(layerData.Hydropathy,2).toString()
+            let polarity = (layerData===null)?'N/A':Common.Util.Numbers.roundToDecimal(layerData.Polarity,2).toString();
+            let hydrophobicity = (layerData===null)?'N/A':Common.Util.Numbers.roundToDecimal(layerData.Hydrophobicity,2).toString();
+            let mutability = (layerData===null)?'N/A':Common.Util.Numbers.roundToDecimal(layerData.Mutability,2).toString();
+            let length = this.getLength(this.props.layerIds);
             rows.push(
-                    <DGComponents.DGElementRow columns={[<span><span className="glyphicon glyphicon-tint properties-icon" />{"Hydropathy"}</span>,<span>{CommonUtils.Numbers.roundToDecimal(layerData.Hydropathy,2).toString()}</span>]} />
+                    <DGComponents.DGElementRow columns={[<span><span className="glyphicon glyphicon-tint properties-icon" />{"Hydropathy"}</span>,<span>{hydropathy}</span>]} />
                 );
             rows.push(
-                    <DGComponents.DGElementRow columns={[<span><span className="glyphicon glyphicon-plus properties-icon" />{"Polarity"}</span>,<span>{CommonUtils.Numbers.roundToDecimal(layerData.Polarity,2).toString()}</span>]} />
+                    <DGComponents.DGElementRow columns={[<span><span className="glyphicon glyphicon-plus properties-icon" />{"Polarity"}</span>,<span>{polarity}</span>]} />
                 );
             rows.push(
-                    <DGComponents.DGElementRow columns={[<span><span className="glyphicon glyphicon-tint properties-icon upside-down" />{"Hydrophobicity"}</span>,<span>{CommonUtils.Numbers.roundToDecimal(layerData.Hydrophobicity,2).toString()}</span>]} />
+                    <DGComponents.DGElementRow columns={[<span><span className="glyphicon glyphicon-tint properties-icon upside-down" />{"Hydrophobicity"}</span>,<span>{hydrophobicity}</span>]} />
                 );
             rows.push(
-                    <DGComponents.DGElementRow columns={[<span><span className="glyphicon glyphicon-scissors properties-icon" />{"Mutability"}</span>,<span>{CommonUtils.Numbers.roundToDecimal(layerData.Mutability,2).toString()}</span>]} />
+                    <DGComponents.DGElementRow columns={[<span><span className="glyphicon glyphicon-scissors properties-icon" />{"Mutability"}</span>,<span>{mutability}</span>]} />
                 );
             rows.push(
                     <DGComponents.DGElementRow columns={[<span><span className="glyphicon glyphicon-flash properties-icon" />{"Charge"}</span>,<span>{charge}</span>]} />
             );
             rows.push(
-                    <DGComponents.DGElementRow columns={[<span><span className="icon bottleneck black properties-icon" />{"Radius"}</span>,<span>{CommonUtils.Numbers.roundToDecimal(minRadius,1)}</span>]} />
+                    <DGComponents.DGElementRow columns={[<span><span className="icon bottleneck black properties-icon" />{(this.props.layerIds.length>1)?"Bottleneck":"Radius"}</span>,<span>{Common.Util.Numbers.roundToDecimal(bottleneck,1)}</span>]} />
             );
             rows.push(
-                <DGComponents.DGElementRow columns={[<span><span className="icon logp black properties-icon" />{"LogP"}</span>,<span>{(layerData.LogP!==null&&layerData.LogP!==void 0)?CommonUtils.Numbers.roundToDecimal(layerData.LogP,2):'N/A'}</span>]} />
+                <DGComponents.DGElementRow columns={[<span><span className="icon logp black properties-icon" />{"LogP"}</span>,<span>{(layerData!==null&&layerData.LogP!==null&&layerData.LogP!==void 0)?Common.Util.Numbers.roundToDecimal(layerData.LogP,2):'N/A'}</span>]} />
             );
             rows.push(
-                <DGComponents.DGElementRow columns={[<span><span className="icon logd black properties-icon" />{"LogD"}</span>,<span>{(layerData.LogD!==null&&layerData.LogD!==void 0)?CommonUtils.Numbers.roundToDecimal(layerData.LogD,2):'N/A'}</span>]} />
+                <DGComponents.DGElementRow columns={[<span><span className="icon logd black properties-icon" />{"LogD"}</span>,<span>{(layerData!==null&&layerData.LogD!==null&&layerData.LogD!==void 0)?Common.Util.Numbers.roundToDecimal(layerData.LogD,2):'N/A'}</span>]} />
             );
             rows.push(
-                <DGComponents.DGElementRow columns={[<span><span className="icon logs black properties-icon" />{"LogS"}</span>,<span>{(layerData.LogS!==null&&layerData.LogS!==void 0)?CommonUtils.Numbers.roundToDecimal(layerData.LogS,2):'N/A'}</span>]} />
+                <DGComponents.DGElementRow columns={[<span><span className="icon logs black properties-icon" />{"LogS"}</span>,<span>{(layerData!==null&&layerData.LogS!==null&&layerData.LogS!==void 0)?Common.Util.Numbers.roundToDecimal(layerData.LogS,2):'N/A'}</span>]} />
             );
             rows.push(
-                <DGComponents.DGElementRow columns={[<span><span className="icon ionizable black properties-icon" />{"Ionizable"}</span>,<span>{(layerData.Ionizable!==null&&layerData.Ionizable!==void 0)?CommonUtils.Numbers.roundToDecimal(layerData.Ionizable,2):'N/A'}</span>]} />
+                <DGComponents.DGElementRow columns={[<span><span className="icon ionizable black properties-icon" />{"Ionizable"}</span>,<span>{(layerData!==null&&layerData.Ionizable!==null&&layerData.Ionizable!==void 0)?Common.Util.Numbers.roundToDecimal(layerData.Ionizable,2):'N/A'}</span>]} />
+            );
+            rows.push(
+                <DGComponents.DGElementRow columns={[<span><span className="glyphicon glyphicon-resize-horizontal properties-icon" />{"Length"}</span>,<span>{Common.Util.Numbers.roundToDecimal(length,1).toString()}</span>]} />
             );
             rows.push(<DGComponents.DGRowEmpty columnsCount={DGTABLE_COLS_COUNT}/>);
 

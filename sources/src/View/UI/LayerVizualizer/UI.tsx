@@ -21,7 +21,7 @@ namespace LayersVizualizer.UI{
             instanceId: -1,
             hasData: false,
             data: [] as DataInterface.LayerData[],
-            layerId: 0,
+            layerIds: [0],
             coloringPropertyKey: "",
             customColoringPropertyKey: "",
             radiusPropertyKey: "MinRadius" as RadiusProperty,
@@ -129,7 +129,7 @@ namespace LayersVizualizer.UI{
         instanceId: number,
         hasData: boolean,
         data: DataInterface.LayerData[],
-        layerId: number,
+        layerIds: number[],
         coloringPropertyKey: string,
         customColoringPropertyKey: string,
         radiusPropertyKey: RadiusProperty,
@@ -525,9 +525,17 @@ namespace LayersVizualizer.UI{
             );
         }
 
-        private showLayerResidues3DAndFocus(layerIdx:number){
+        private showLayerResidues3DAndFocus(layerIds:number[]){
 
-            let residues = this.getLayerResidues(layerIdx);
+            let residues:{
+                authAsymId: string;
+                authSeqNumber: number;
+            }[] = [];
+
+            for(let l of layerIds){
+                residues = residues.concat(this.getLayerResidues(l));
+            }
+
             let query = LiteMol.Core.Structure.Query.residues(
                 ...residues
             );
@@ -554,7 +562,7 @@ namespace LayersVizualizer.UI{
             instance.highlightHitbox(layerIdx);
             if(!this.props.app.state.isLayerSelected){
                 let state = this.props.app.state;
-                state.layerId = layerIdx;
+                state.layerIds = [layerIdx];
                 this.props.app.setState(state);    
                 $( window ).trigger('layerTriggered',layerIdx);
             }      
@@ -565,22 +573,34 @@ namespace LayersVizualizer.UI{
             let layerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
             let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
             let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];      
-            
-            if(instance.getSelectedLayer() === layerIdx){
-                this.props.app.state.isLayerSelected = false;
-                CommonUtils.Selection.SelectionHelper.clearAltSelection(this.props.app.props.controller);
-                this.resetFocusToTunnel();
+            let state = this.props.app.state;
+            if(state.layerIds.some((v,i,a)=>{return v===layerIdx})&&state.isLayerSelected){
+                state.layerIds = state.layerIds.filter((v,i,a)=>{return v!==layerIdx});
+                state.isLayerSelected = state.layerIds.length>0;
+                this.props.app.setState(state);   
+                if(state.layerIds.length===0){
+                    CommonUtils.Selection.SelectionHelper.clearAltSelection(this.props.app.props.controller);
+                    this.resetFocusToTunnel();
+                }
                 instance.deselectLayer();
+                for(let layerIdx of state.layerIds){
+                    instance.selectLayer(layerIdx);
+                }
                 instance.highlightHitbox(layerIdx);
+                $( window ).trigger('layerSelected',layerIdx);
+                $( window ).trigger('layerTriggered',layerIdx);
+                $( window ).trigger('resize');
             }
             else{
-                let state = this.props.app.state;
-                state.layerId = layerIdx;
-                state.isLayerSelected = true;
+                state.layerIds = state.layerIds.filter((v,i,a)=>{return v!==layerIdx}).concat([layerIdx]);
+                state.isLayerSelected = state.layerIds.length>0;
                 this.props.app.setState(state);   
-                this.showLayerResidues3DAndFocus(layerIdx);
+                this.showLayerResidues3DAndFocus(state.layerIds);
                 instance.deselectLayer();
-                instance.selectLayer(layerIdx);
+                for(let layerIdx of state.layerIds){
+                    instance.selectLayer(layerIdx);
+                }
+                $( window ).trigger('layerSelected',layerIdx);
                 $( window ).trigger('layerTriggered',layerIdx);
                 $( window ).trigger('resize');
             }

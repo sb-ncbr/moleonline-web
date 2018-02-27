@@ -11,11 +11,15 @@ namespace Help.UI{
     interface State{
         dialogOpen:boolean
         session:string
+        computationId:string,
+        submitId:number
     };
     export class App extends React.Component<{}, State> {
         state:State = {
             dialogOpen:false,
-            session:""
+            session:"",
+            computationId:"",
+            submitId:0
         };
 
         private updateSessionState(){
@@ -26,11 +30,18 @@ namespace Help.UI{
             }
             else{
                 s.session = `${params.computationId}`;
-                if(params.submitId<0){
+                s.computationId = params.computationId;
+
+                if(params.submitId<0||params.isChannelsDB){
                     s.session += "/ChannelsDB"
+                    s.submitId = -1;
                 }
                 else if(params.submitId>0){
                     s.session += "/" + String(params.submitId);
+                    s.submitId = params.submitId;
+                }
+                else{
+                    s.submitId = 0;
                 }
             }
 
@@ -113,32 +124,65 @@ namespace Help.UI{
                             Something went wrong? Calculation results are not as expected?<br/><br/> Please send us a&nbsp;message so we can help.
                         </div>
                         <TextBox label="Session" value={session} id="session" disabled={true} />
-                        <EmailTextBox label="Email" id="email" value="@"/* onValueChange={()=>{
-                            this.checkFormValid();
-                        }}*/ isValid={this.isMailValid.bind(this)} />
-                        <TextAreaBox label="Message" id="message" /*onValueChange={()=>{
-                            this.checkFormValid();
-                        }}*/ isValid={this.isMessageValid.bind(this)} />
-                        <div className="btn btn-primary submit" onClick={()=>{
-                            if(!this.checkFormValid()){
+                        <EmailTextBox label="Email" id="email" value="@" isValid={this.isMailValid.bind(this)} />
+                        <TextAreaBox label="Message" id="message" isValid={this.isMessageValid.bind(this)} />
+                        <div className="btn btn-primary submit" data-loading-text="Sending..." onClick={()=>{
+                            if($(".helpDialog .submit").attr("disabled")==="disabled"){
                                 return;
                             }
 
+                            if(!this.checkFormValid()){
+                                return;
+                            }                            
+
+                            $(".helpDialog .submit").button("loading");
+
                             let messageObject = {
-                                session: $("#session").val(),
-                                sender: $("#email").val(),
-                                message: $("#message").val()
+                                ComputationId: this.state.computationId,
+                                SubmitId: this.state.submitId,
+                                From: $("#email").val(),
+                                Msg: $("#message").val()
                             };
 
-                            console.log("Sending message:");
-                            console.log(messageObject);
+                            MoleOnlineWebUI.Service.MoleAPI.ApiService.submitFeedback(
+                                messageObject
+                            ).then((val)=>{
 
-                            $("#email").val("@");
-                            $("#message").val("");
+                                if(val.Success){
+                                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                        messageType:"Success",
+                                        message: (val.Msg===void 0||val.Msg===null)?"The message has been succesfully sent.":val.Msg
+                                    });
+                                    
+                                    $("#email").val("@");
+                                    $("#message").val("");
+                                    
+                                    let s = this.state;
+                                    s.dialogOpen = false;
+                                    this.setState(s);
+                                }
+                                else{
+                                    let reason = ".";
+                                    if(val.Msg!==void 0&&val.Msg!==null){
+                                        reason = `. Error message: '${val.Msg}'`;
+                                    }
+                                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                        messageType:"Warning",
+                                        message: `Application was unable to send your message${reason} Please try send it again later.`
+                                    });
+                                }
 
-                            let s = this.state;
-                            s.dialogOpen = false;
-                            this.setState(s);
+                                $(".helpDialog .submit").button("reset");
+                            }).catch(err=>{
+                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                    messageType:"Warning",
+                                    message: `Application was unable to send your message. Please try send it again later...`
+                                });
+
+                                $(".helpDialog .submit").button("reset");
+                            });
+
+                            
                         }}>Send</div>
                     </div>
 
