@@ -177,13 +177,17 @@ namespace LayerProperties.UI{
                 let residues = CommonUtils.Residues.parseResidues(layer.Residues,true);
                 let backboneLining = residues.filter(r=>{return r.backbone===true}).map((v,i,arr)=>{
                     return {
-                        Name:v.name
-                    }
+                        Name:v.name,
+                        SeqNumber:v.authSeqNumber,
+                        Chain:v.chain.authAsymId
+                    } as WebChemistryCore.PdbResidue
                 });
                 let nonBackboneLining = residues.filter(r=>{return r.backbone===false}).map((v,i,arr)=>{
                     return {
-                        Name:v.name
-                    }
+                        Name:v.name,
+                        SeqNumber:v.authSeqNumber,
+                        Chain:v.chain.authAsymId
+                    } as WebChemistryCore.PdbResidue
                 });
 
                 layers.push({

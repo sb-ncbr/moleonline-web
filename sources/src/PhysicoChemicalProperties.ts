@@ -1,7 +1,9 @@
 namespace WebChemistry.Tunnels.Core
 { 
     export interface PdbResidue{        
-        Name:string
+        Name:string,
+        Chain:string,
+        SeqNumber:number
     }
     export interface TunnelLayer{
         NonBackboneLining:PdbResidue[]
@@ -65,8 +67,40 @@ namespace WebChemistry.Tunnels.Core
         }
     }
 
+    class PdbResidueImpl implements PdbResidue{
+        public Chain:string;
+        public Name:string;
+        public SeqNumber:number;
+
+        public constructor(chain:string,name:string,seqNumber:number){
+            this.Chain = chain;
+            this.Name = name;
+            this.SeqNumber = seqNumber;
+        }
+
+        public equals(o:PdbResidueImpl){
+            return this.toString() == o.toString();
+        }
+
+        public toString(){
+            return `${this.Name} ${this.SeqNumber} ${this.Chain}`;
+        }
+    }
+
     export class PhysicoChemicalPropertyCalculation
     {
+
+        private static makeUnique(residues:PdbResidue[]):PdbResidue[]{
+            let map:Map<string,PdbResidueImpl> = new Map<string,PdbResidueImpl>();
+            
+            for(let r of residues){
+                let res = new PdbResidueImpl(r.Chain,r.Name,r.SeqNumber);
+                map.set(res.toString(),res);
+            }
+
+            return Array.from(map.values());
+        }
+
         public static CalculateResidueProperties(residues:PdbResidue[]):TunnelPhysicoChemicalProperties|null
         {
             let count = 0;
@@ -147,7 +181,10 @@ namespace WebChemistry.Tunnels.Core
             let positives = 0;
             let negatives = 0;
 
-            for(let residue of this.getNonBackboneLining(layers))
+            let residues = this.getNonBackboneLining(layers);
+            let unique = this.makeUnique(residues);
+
+            for(let residue of unique)
             {
                 let info = TunnelPhysicoChemicalPropertyTable.GetResidueProperties(residue);
                 if (info == null) continue;
