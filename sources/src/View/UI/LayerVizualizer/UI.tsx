@@ -502,7 +502,25 @@ namespace LayersVizualizer.UI{
         height:number
     };
 
-    class InteractionMap extends React.Component<State,{}>{
+    interface InteractionMapState{
+        mouseControlStartLayerId: number
+        selectionMode: boolean,
+        touchMode: boolean
+    };
+
+    class InteractionMap extends React.Component<State, InteractionMapState>{
+
+        state: InteractionMapState = {
+            mouseControlStartLayerId: -1,
+            selectionMode: false,
+            touchMode: false
+        };
+
+        componentDidMount(){
+            document.ontouchstart = (e)=>{
+                this.enableTouchMode();
+            };
+        }
 
         private getLayerResidues(layerIdx:number):{authAsymId:string, authSeqNumber:number}[]{
             let res = [];
@@ -554,6 +572,10 @@ namespace LayersVizualizer.UI{
         }
 
         private displayDetailsEventHandler(e: React.MouseEvent<HTMLAreaElement>){
+            if(this.state.touchMode){
+                return;
+            }
+            
             let targetElement = (e.target as HTMLElement);
             let layerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
             let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
@@ -568,42 +590,26 @@ namespace LayersVizualizer.UI{
             }      
         }
 
-        private displayLayerResidues3DEventHandler(e: React.MouseEvent<HTMLAreaElement>){
-            let targetElement = (e.target as HTMLElement);
-            let layerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
-            let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
-            let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];      
+        private displayLayerResidues3DEventHandler(layerIdxs: number[], instance: LayersVizualizer.Vizualizer){           
             let state = this.props.app.state;
-            if(state.layerIds.some((v,i,a)=>{return v===layerIdx})&&state.isLayerSelected){
-                state.layerIds = state.layerIds.filter((v,i,a)=>{return v!==layerIdx});
-                state.isLayerSelected = state.layerIds.length>0;
-                this.props.app.setState(state);   
-                if(state.layerIds.length===0){
-                    CommonUtils.Selection.SelectionHelper.clearAltSelection(this.props.app.props.controller);
-                    this.resetFocusToTunnel();
-                }
-                instance.deselectLayer();
-                for(let layerIdx of state.layerIds){
-                    instance.selectLayer(layerIdx);
-                }
-                instance.highlightHitbox(layerIdx);
-                $( window ).trigger('layerSelected',layerIdx);
-                $( window ).trigger('layerTriggered',layerIdx);
-                $( window ).trigger('resize');
+            state.layerIds = layerIdxs;
+            state.isLayerSelected = state.layerIds.length>0;
+
+            this.props.app.setState(state);   
+            if(state.layerIds.length===0){
+                CommonUtils.Selection.SelectionHelper.clearAltSelection(this.props.app.props.controller);
+                this.resetFocusToTunnel();
             }
-            else{
-                state.layerIds = state.layerIds.filter((v,i,a)=>{return v!==layerIdx}).concat([layerIdx]);
-                state.isLayerSelected = state.layerIds.length>0;
-                this.props.app.setState(state);   
+
+            instance.selectLayers(state.layerIds);
+            for(let layerIdx of state.layerIds){
+                $( window ).trigger('layerTriggered',layerIdx);
+            }
+            if(state.layerIds.length > 0){
                 this.showLayerResidues3DAndFocus(state.layerIds);
-                instance.deselectLayer();
-                for(let layerIdx of state.layerIds){
-                    instance.selectLayer(layerIdx);
-                }
-                $( window ).trigger('layerSelected',layerIdx);
-                $( window ).trigger('layerTriggered',layerIdx);
-                $( window ).trigger('resize');
             }
+            $( window ).trigger('layerSelected',{ layerIds: state.layerIds.slice() });
+            $( window ).trigger('resize');
         }
 
         private getTunnelScale(tunnel:Tunnel | null):TunnelScale{
@@ -713,6 +719,228 @@ namespace LayersVizualizer.UI{
             return rv;
         }
 
+        private handleMouseDown(e: React.MouseEvent<HTMLAreaElement>){
+
+            if(this.state.touchMode){
+                e.preventDefault();
+                return false;
+            }
+
+            let targetElement = (e.target as HTMLElement);
+            let layerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
+            let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
+            let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
+
+            let s = this.state;
+            if(this.props.app.state.layerIds.length === 1 
+                && this.props.app.state.layerIds[0] === layerIdx
+                && this.props.app.state.isLayerSelected
+            ){
+                    s.mouseControlStartLayerId = -1;
+                    this.displayLayerResidues3DEventHandler([], instance);
+                }
+            else{
+                s.mouseControlStartLayerId = layerIdx;
+                s.selectionMode = true;
+                this.displayLayerResidues3DEventHandler([s.mouseControlStartLayerId], instance);
+            }
+
+            this.setState(s);
+
+            // Disable drag and drop
+            e.preventDefault();
+            return false;
+        }
+
+        private enableTouchMode(){
+            let s = this.state;
+            s.touchMode = true;
+            this.setState(s);
+        }
+
+        private handleTouchStart(e: React.TouchEvent<HTMLAreaElement>){
+            /*
+            let targetElement = (e.target as HTMLElement);
+            if(!targetElement.hasAttribute("data-layeridx")){
+                return;
+            }
+
+            let layerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
+            let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
+            let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
+
+            let selectedLayers = instance.getSelectedLayer();
+            if(selectedLayers.length > 0){
+                this.displayLayerResidues3DEventHandler([], instance);
+            }   
+            */         
+        }
+
+        private handleMove(startLayerIdx: number, endLayerIdx: number, instance: LayersVizualizer.Vizualizer){
+            if(startLayerIdx > endLayerIdx){
+                let v = startLayerIdx;
+                startLayerIdx = endLayerIdx;
+                endLayerIdx = v;
+            }
+
+            let selectedLayers = instance.getSelectedLayer().slice();
+
+            selectedLayers = selectedLayers.sort();
+            
+            if(selectedLayers[0]!==startLayerIdx || selectedLayers[selectedLayers.length-1]!==endLayerIdx){
+                let layerIds = [];
+                for(let lidx = startLayerIdx; lidx <= endLayerIdx; lidx++){
+                    layerIds.push(lidx);
+                }
+            
+                instance.selectLayers(layerIds);
+            }        
+        }
+
+        private handleTouchMove(e: React.TouchEvent<HTMLAreaElement>){
+            let startElement = e.target as HTMLElement;
+            if(!startElement.hasAttribute("data-layeridx")){
+                return;
+            }
+            let endElement = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY) as HTMLElement;
+            if(!endElement.hasAttribute("data-layeridx")){
+                return;
+            }
+
+            let startLayerIdx = Number(startElement.getAttribute("data-layeridx")).valueOf();
+            let endLayerIdx = Number(endElement.getAttribute("data-layeridx")).valueOf();
+
+            let instanceIdx = Number(startElement.getAttribute("data-instanceidx")).valueOf();
+            let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
+
+            this.handleMove(startLayerIdx, endLayerIdx, instance);
+        }
+
+        private handleMouseMove(e: React.MouseEvent<HTMLAreaElement>){
+            if(this.state.mouseControlStartLayerId === -1 || !this.state.selectionMode){
+                return;
+            }
+
+            let startLayerIdx = this.state.mouseControlStartLayerId;
+
+            let targetElement = e.currentTarget;
+            if(!targetElement.hasAttribute("data-layeridx")){
+                return;
+            }
+
+            let endLayerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
+            let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
+            let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
+
+            this.handleMove(startLayerIdx, endLayerIdx, instance);
+        }
+
+        private handleEnd(startLayerIdx: number, endLayerIdx: number, instance: LayersVizualizer.Vizualizer){
+            if(startLayerIdx > endLayerIdx){
+                let v = startLayerIdx;
+                startLayerIdx = endLayerIdx;
+                endLayerIdx = v;
+            }
+
+            let selectedLayers = instance.getSelectedLayer().slice();
+            selectedLayers = selectedLayers.sort();
+            
+            if(selectedLayers[0]!==startLayerIdx || selectedLayers[selectedLayers.length-1]!==endLayerIdx){
+
+                for(let lidx = startLayerIdx; lidx <= endLayerIdx; lidx++){
+                    if(lidx in selectedLayers){
+                        continue;
+                    }
+                    selectedLayers.push(lidx);
+                }
+
+                this.displayLayerResidues3DEventHandler(selectedLayers, instance);
+            } 
+        }
+
+        private handleTouchEnd(e: React.TouchEvent<HTMLAreaElement>){
+            let startElement = e.target as HTMLElement;
+            let endElement = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY) as HTMLElement;
+
+            let startLayerIdx = Number(startElement.getAttribute("data-layeridx")).valueOf();
+            let endLayerIdx = Number(endElement.getAttribute("data-layeridx")).valueOf();
+
+            let instanceIdx = Number(startElement.getAttribute("data-instanceidx")).valueOf();
+            let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
+
+            let selectedLayers = instance.getSelectedLayer().slice();
+            if(startLayerIdx===endLayerIdx && selectedLayers.length===1 && selectedLayers[0] === startLayerIdx){
+                this.displayLayerResidues3DEventHandler([],instance);
+                return;
+            }
+
+            if(startLayerIdx===endLayerIdx){
+                this.displayLayerResidues3DEventHandler([startLayerIdx],instance);
+                return;
+            }
+
+            this.handleEnd(startLayerIdx, endLayerIdx, instance);
+        }
+
+        private handleMouseUp(e: React.MouseEvent<HTMLAreaElement>){
+            
+            let endElement = e.currentTarget;
+            
+            if(this.state.mouseControlStartLayerId === -1 || !this.state.selectionMode){
+                return;    
+            }
+            
+            let startLayerIdx = this.state.mouseControlStartLayerId;
+            let endLayerIdx = Number(endElement.getAttribute("data-layeridx")).valueOf();
+
+            let instanceIdx = Number(endElement.getAttribute("data-instanceidx")).valueOf();
+            let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
+
+            this.handleEnd(startLayerIdx, endLayerIdx, instance);
+
+            let s = this.state;
+            s.mouseControlStartLayerId = -1;
+            s.selectionMode = false;
+            this.setState(s);
+        }
+
+        private isAboveArea(x: number, y:number){
+            let elementFromPoint = document.elementFromPoint(x, y);
+
+            if(elementFromPoint === null){
+                return false;
+            }
+
+            if(elementFromPoint.tagName === null){
+                return false;
+            }
+
+            return elementFromPoint.tagName.toLowerCase() === "area" 
+                    || elementFromPoint.tagName.toLowerCase() === "map";
+        }
+
+        private handleMouseOut(e: React.MouseEvent<HTMLMapElement>){
+            let s = this.state;
+
+            if(
+                !s.selectionMode 
+                    || e.currentTarget.hasAttribute("data-layeridx") 
+                    || (e.relatedTarget as HTMLElement).tagName === null
+                    || (e.relatedTarget as HTMLElement).tagName.toLowerCase() === "area"
+                    || this.isAboveArea(e.clientX, e.clientY)
+            ){
+                return;
+            }
+            
+            s.mouseControlStartLayerId = -1;
+            s.selectionMode = false;
+            this.setState(s);
+
+            //There is always one instance at most in this application
+            let instance = Vizualizer.ACTIVE_INSTANCES[Vizualizer.ACTIVE_INSTANCES.length-1];
+            this.displayLayerResidues3DEventHandler([], instance);
+        }
+
         render(){
             let areas = [];
             if(this.props.isDOMReady){
@@ -723,13 +951,20 @@ namespace LayersVizualizer.UI{
                         data-layeridx={String(hitboxesCoords[i].layerIdx.valueOf())}
                         data-instanceidx={String(this.props.instanceId)}
                         onMouseOver={this.displayDetailsEventHandler.bind(this)}
-                        onMouseDown={this.displayLayerResidues3DEventHandler.bind(this)} />);
+                        onMouseDown={this.handleMouseDown.bind(this)}
+                        onMouseMove={this.handleMouseMove.bind(this)}
+                        onMouseUp={this.handleMouseUp.bind(this)}
+                    />);
                 }
             }
 
             return (
                 <map name={`layersInteractiveMap${this.props.instanceId}`} 
                     id={`layer-vizualizer-hitbox-map${this.props.instanceId}`}
+                    onTouchStart={this.handleTouchStart.bind(this)}
+                    onTouchMove={this.handleTouchMove.bind(this)}
+                    onTouchEnd={this.handleTouchEnd.bind(this)}
+                    onMouseOut={this.handleMouseOut.bind(this)}
                     >
                     {areas}
                 </map>

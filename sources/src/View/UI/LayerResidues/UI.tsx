@@ -68,21 +68,11 @@ namespace LayerResidues.UI{
             },1);
         }
 
-        private layerSelectedHandler(event:any,layerIdx:number){
+        private layerSelectedHandler(event:any, data: { layerIds:number[] }){
             let state = this.state;
 
-            if(state.layerIds.some((v,i,arr)=>{return v===layerIdx})&&state.selectionOn){
-                state.layerIds = state.layerIds.filter((v,i,arr)=>{return v!==layerIdx});
-            }
-            else{
-                if(!state.selectionOn){
-                    state.layerIds = [layerIdx];
-                }
-                else{
-                    state.layerIds.push(layerIdx);
-                }
-            }
-                
+            state.layerIds = data.layerIds;
+
             state.selectionOn = state.layerIds.length>0;
 
             this.setState(state);

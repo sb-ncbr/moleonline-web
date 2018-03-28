@@ -508,7 +508,7 @@ namespace LayersVizualizer{
             $( window ).on("lvContentResize", this.onContentResize.bind(this));
         }
 
-        public deselectLayer(){
+        public deselectLayers(){
             this.selectedLayerIds = [];
 
             let tunnels = this.getTunnels();
@@ -517,33 +517,25 @@ namespace LayersVizualizer{
             }
 
             if(tunnels.default!==null){
-                tunnels.default.tunnel.deselectLayer();
+                tunnels.default.tunnel.selectLayers([]);
             }
             if(tunnels.customizable!==null){
-                tunnels.customizable.tunnel.deselectLayer();
+                tunnels.customizable.tunnel.selectLayers([]);
             }
         }
 
-        public selectLayer(layerIdx:number){        
-            if(layerIdx<0){
-                return
-            }
-
-            this.selectedLayerIds = this.selectedLayerIds.filter((v,i,a)=>{return v!==layerIdx}).concat([layerIdx]);
+        public selectLayers(layerIds:number[]){        
+            this.selectedLayerIds = layerIds;
             let tunnels = this.getTunnels();
             if(tunnels === null){
                 return;
             }
 
             if(tunnels.default!==null){
-                for(let idx of this.selectedLayerIds){
-                    tunnels.default.tunnel.selectLayer(idx);
-                }
+                tunnels.default.tunnel.selectLayers(this.selectedLayerIds);
             }
             if(tunnels.customizable!==null){
-                for(let idx of this.selectedLayerIds){
-                    tunnels.customizable.tunnel.selectLayer(idx);
-                }
+                tunnels.customizable.tunnel.selectLayers(this.selectedLayerIds);
             }
         }
 
@@ -1053,7 +1045,7 @@ namespace LayersVizualizer{
                 positioning.customizableArrowheadLineLabel.left = positioning.customizableArrowheadLine.left
                     +ahLineWidth/2-ahLineLabelWidth/2;
                 positioning.customizableArrowheadLineLabel.top = positioning.customizableArrowheadLine.top
-                    +positioning.customizableArrowheadLine.marginTop;
+                    +positioning.customizableArrowheadLine.marginTop+1;
                 positioning.customizableArrowheadLineLabel.width = ahLineLabelWidth;
                 positioning.customizableArrowheadLineLabel.height = ahLineHeight;
             }
@@ -1444,9 +1436,7 @@ namespace LayersVizualizer{
             this.renderObjects(toRender);
             
             if(this.selectedLayerIds.length>0){
-                for(let idx of this.selectedLayerIds){
-                    this.selectLayer(idx);
-                }
+                this.selectLayers(this.selectedLayerIds);
             }
 
             this.setCurrentColorFunctionSettings("default",defaultTunnelData.colorFunctionSettings);
@@ -1518,7 +1508,7 @@ namespace LayersVizualizer{
             let selectedLayers:number[] = [];
             if(this.selectedLayerIds.length>0){
                 selectedLayers = this.selectedLayerIds;
-                this.deselectLayer();
+                this.selectLayers([]);
             }
 
             this.switchToTmpCanvas();
@@ -1530,9 +1520,7 @@ namespace LayersVizualizer{
             this.switchToMainCanvas();
 
             //Opetovne oznaceni vrstvy(stav pred exportem)
-            for(let idx of selectedLayers){
-                this.selectLayer(idx);
-            }
+            this.selectLayers(selectedLayers)
 
             return dataURL;
         }
@@ -1566,7 +1554,7 @@ namespace LayersVizualizer{
             let selectedLayers:number[] = [];
             if(this.selectedLayerIds.length>0){
                 selectedLayers = this.selectedLayerIds;
-                this.deselectLayer();
+                this.deselectLayers();
             }
 
             this.switchToTmpCanvas();
@@ -1580,9 +1568,7 @@ namespace LayersVizualizer{
             this.switchToMainCanvas();
 
             //Opetovne oznaceni vrstvy(stav pred exportem)
-            for(let idx of selectedLayers){
-                this.selectLayer(idx);
-            }
+            this.selectLayers(selectedLayers);
 
             return svg;
         }
@@ -1598,7 +1584,7 @@ namespace LayersVizualizer{
             let selectedLayers:number[] = [];
             if(this.selectedLayerIds.length>0){
                 selectedLayers = this.selectedLayerIds;
-                this.deselectLayer();
+                this.deselectLayers();
             }
 
             this.switchToTmpCanvas();
@@ -1639,9 +1625,7 @@ namespace LayersVizualizer{
             //pdf.addSVG(svg, 0, 0, width, height);
 
             //Opetovne oznaceni vrstvy(stav pred exportem)
-            for(let idx of selectedLayers){
-                this.selectLayer(idx);
-            }
+            this.selectLayers(selectedLayers);
 
             return pdf.output('datauristring');
         }

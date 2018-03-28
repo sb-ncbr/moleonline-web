@@ -4,7 +4,7 @@ import compilets from './ext/Compile'
 
 let DEBUG = false;
 let environment = (process.env.ENVIRONMENT!==void 0)?process.env.ENVIRONMENT:"local";
-var versionNumber = "1.5.1_NP_4.1";
+var versionNumber = "1.5.1_NP_5_5"+((DEBUG)?Math.random().toString():'');
 
 console.log(`Building for '${environment}' environment...`);
 
