@@ -11,7 +11,8 @@ namespace MoleOnlineWebUI.InitForm.UI{
     type CompInfo = Service.MoleAPI.CompInfo;
 
     declare function $(p:any): any;
-
+    declare function gtag(ga_type:string, action:string, options:{'event_category':string, 'event_label'?:string, 'value'?:any}):any;
+    
     interface State{
         app: App,
         useBiologicalUnit: boolean,
@@ -69,6 +70,7 @@ namespace MoleOnlineWebUI.InitForm.UI{
                 }
             }
             if(file === void 0||file===null){
+                this.triggerAnalyticsEvent((pdbid.length>0)?pdbid:null, pores, (assembly===void 0)?null:assembly, null);
                 ApiService.initWithParams(pdbid,pores,assembly)
                     .then((response)=>{
                         this.handleFormSubmitResponse(response);
@@ -79,6 +81,7 @@ namespace MoleOnlineWebUI.InitForm.UI{
                     })
             }
             else{
+                this.triggerAnalyticsEvent(null, false, null, file);
                 let data = new FormData();
                 data.append("file",file)
                 ApiService.initWithFile(data)
@@ -92,6 +95,36 @@ namespace MoleOnlineWebUI.InitForm.UI{
             }
             
             return false;
+        }
+
+        private triggerAnalyticsEvent(pdbid:string|null, pores:boolean, assembly:string|null, file:File|null){
+            if(file!==null){
+                let extension = file.name.split(".").filter((v,i,a)=>{return i!==0;}).join(".");
+                gtag('event', 'Init', {'event_category':'userStructure', 'event_label': extension});
+                return;
+            }
+            else{
+                if(pdbid === null){
+                    return;
+                }
+
+                if(pores){
+                    gtag('event', 'Init', {'event_category':pdbid, 'event_label': 'bio'});
+                    return;
+                }
+                if(assembly!==null){
+                    let assembly_number = Number(assembly);
+                    if(isNaN(assembly_number.valueOf())){
+                        assembly_number = 0;
+                    }
+                    gtag('event', 'Init', {'event_category':pdbid, 'event_label': 'assembly', 'value': assembly_number});
+                    return;
+                }
+                if(!pores && assembly === null){
+                    gtag('event', 'Init', {'event_category':pdbid, 'event_label': 'asymetricUnit'});
+                    return;
+                }
+            }
         }
 
         private handleFormSubmitResponse(response:MoleAPI.InitResponse){
@@ -197,7 +230,7 @@ namespace MoleOnlineWebUI.InitForm.UI{
                                 
                         <tr>
                             <td><label htmlFor="frm-jobSetup-setupForm-unit">Assembly ID (optional)</label>:</td>
-                            <td><input disabled={this.state.useBiologicalUnit} type="text" name="assembly" maxLength={2} size={10} className="text" id="frm-jobSetup-setupForm-unit" defaultValue="" />
+                            <td><input disabled={this.state.useBiologicalUnit} type="text" name="assembly" maxLength={3} size={10} className="text" id="frm-jobSetup-setupForm-unit" defaultValue="" />
                                 <div className="hint">
                                     no value - assymetric unit (default)
                                 </div>

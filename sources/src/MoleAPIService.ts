@@ -1,6 +1,8 @@
 namespace MoleOnlineWebUI.Service.MoleAPI{
 
     import Fetching = MoleOnlineWebUI.Service.Fetching;
+
+    declare var pako: any;
     
     export type ComputationStatus = 
         "Initializing"|
@@ -295,8 +297,6 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
                 console.log(url);
             }
 
-            if(this.DEBUG_MODE)
-                console.time("getProteinStructure");
             return new Promise<any>((res,rej)=>{
                 if(this.DEBUG_MODE)
                     console.time('protein-raw');
@@ -316,17 +316,50 @@ namespace MoleOnlineWebUI.Service.MoleAPI{
                         rej(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
                         return;
                     }
-                    rawResponse.text().then(value=>{
-                        res({
-                            data:value,
-                            filename:filename
-                        });
-                        if(this.DEBUG_MODE)
-                            console.timeEnd("getProteinStructure");
-                    })
-                    .catch(error=>{
-                        rej(error);
-                    })
+
+                    // Decompression from gz needed
+                    if(rawResponse.body!==null && filename!==null && filename.toLowerCase().indexOf(".gz")>=0){
+                        let reader = rawResponse.body.getReader();
+                        let binData:Uint8Array[] = [];
+                        reader.read().then(function handleStreamResponse(value:{ done:boolean, value:Uint8Array }){
+                            
+                            binData.push(value.value);
+                            
+                            if(value.done){
+                                let bytes = binData.reduce((p,cv,ci,a)=>{
+                                    if(cv === void 0){
+                                        cv = new Uint8Array(0);
+                                    }
+                                    let newVal = new Uint8Array(p.length+cv.length);
+                                    newVal.set(p);
+                                    newVal.set(cv, p.length);
+                                    return newVal;
+                                }, new Uint8Array(0));
+                                
+                                let stringData = pako.inflate(bytes, {to: 'string'});                                
+                                res({
+                                    data:stringData,
+                                    filename:filename
+                                });
+                                return;
+                            }
+                            reader.read().then(handleStreamResponse)
+                            .catch(error=>{
+                                rej(error);
+                            })
+                        });   
+                    }
+                    else{
+                        rawResponse.text().then(value=>{
+                            res({
+                                data:value,
+                                filename:filename
+                            });
+                        })
+                        .catch(error=>{
+                            rej(error);
+                        })
+                    }
                 })
                 .catch(error=>rej(error));
             });

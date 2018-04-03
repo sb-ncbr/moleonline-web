@@ -273,7 +273,7 @@ namespace PDFReportGenerator.UI{
                 }
                 template = this.replacePlaceholder(template, "URL",Common.Util.Router.getCurrentUrl());
                 
-                let isUserStructure = compInfo.PdbId===null;
+                let isUserStructure = compInfo.PdbId===void 0 || compInfo.PdbId===null || compInfo.PdbId === "";
 
                 template = this.replacePlaceholder(template, "PDBID",(isUserStructure)?"User structure":compInfo.PdbId);
 

@@ -7,6 +7,7 @@ namespace Controls.UI{
     import TooltipText = MoleOnlineWebUI.StaticData.TooltipText;
 
     declare function $(p:any,p1?:any): any;
+    declare function gtag(ga_type:string, action:string, options:{'event_category':string, 'event_label'?:string, 'value'?:any}):any;
 
     let validationGroup = "SettingsFormValidatonGroup";
 
@@ -233,9 +234,11 @@ namespace Controls.UI{
                 let promise;
                 
                 if(this.state.mode==="Channels"){
+                    gtag('event', 'Submit', {'event_category':'MOLE'});
                     promise = Service.ApiService.submitMoleJob(this.state.computationId, this.state.moleFormData.getPackage())
                 }
                 else{
+                    gtag('event', 'Submit', {'event_category':'Pores'});
                     promise = Service.ApiService.submitPoresJob(this.state.computationId, this.state.poresFormData.getPackage())
                 }
 
@@ -729,14 +732,32 @@ namespace Controls.UI{
             this.prepareSubmissionData(nextProps.computationInfo);
         }
 
+        private changePoresSubmissionChainsFormat(computationInfo:Service.CompInfo){
+            let submissions = computationInfo.Submissions.map((v,i,a)=>{
+                if(v.PoresConfig!==void 0
+                    && v.PoresConfig.Chains!==void 0
+                    && v.PoresConfig.Chains!==void 0 
+                    && v.PoresConfig.Chains!==null 
+                    && Array.isArray(v.PoresConfig.Chains)){    
+                        v.PoresConfig.Chains = (v.PoresConfig.Chains as string[]).join(",");
+                    }
+
+                return v;
+            });
+
+            computationInfo.Submissions = submissions;
+
+            return computationInfo;
+        }
+
         private prepareSubmissionData(computationInfo:Service.CompInfo){
             let state_ = this.state;
-            state_.computationInfo = computationInfo;
+            state_.computationInfo = this.changePoresSubmissionChainsFormat(computationInfo);
             this.setState(state_);
             
             let hasKillable = false;
 
-            if(computationInfo.PdbId!==null&&computationInfo.PdbId!==null){
+            if(computationInfo.PdbId!==void 0 && computationInfo.PdbId!==null && computationInfo.PdbId!==""){
                 MoleOnlineWebUI.Cache.ChannelsDBData.doWhenCached(computationInfo.PdbId)
                     .then(()=>{
                         MoleOnlineWebUI.Cache.ChannelsDBData.getChannelsData(computationInfo.PdbId)
@@ -1039,11 +1060,13 @@ namespace Controls.UI{
 
         private reSubmit(){
             if(CommonUtils.Misc.isMoleJob(this.props.data)){
+                gtag('event', 'Submit', {'event_category':'MOLE'});
                 MoleOnlineWebUI.Bridge.Events.invokeOnReSubmit(
                     Service.ApiService.submitMoleJob(this.props.computationId,this.props.data.MoleConfig)
                 );
             }
             else{
+                gtag('event', 'Submit', {'event_category':'Pores'});
                 MoleOnlineWebUI.Bridge.Events.invokeOnReSubmit(
                     Service.ApiService.submitPoresJob(this.props.computationId,this.props.data.PoresConfig)
                 );

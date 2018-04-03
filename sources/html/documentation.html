@@ -12,7 +12,15 @@
     <link rel="stylesheet" href="\css/init-styles.css?version=<!UI-VERSION!>" type="text/css">
 	<script src="\js/provided.js?version=<!UI-VERSION!>"></script>
 	<script src="\js/scripts.js?version=<!UI-VERSION!>"></script>     
-        
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-4336835-7"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+
+		gtag('config', 'UA-4336835-7');
+	</script>
 </head>
 
 <body>
@@ -39,7 +47,8 @@
 			<a href="/method">Method</a> | 
 			<a href="/examples">Examples</a> | 
 			<a href="/tour">Tour</a> | 
-			<a href="/faq">FAQ</a>
+			<a href="/faq">FAQ</a> |
+			<a href="/features">Features</a>
 		</div>
 
 <h2>MOLE<em>online</em> documentation</h2>
@@ -48,7 +57,7 @@
 <p><a href="/examples/">Examples section</a> shows possible uses of MOLE<em>online</em> application</p> 
 <p><a href="/tour/">Tour section</a> guide through MOLE<em>online</em> application</p>
 
-<p><a href="/faq/">FAQ</a> Frequntly Asked Questions</p>
+<p><a href="/faq/">FAQ</a> Frequently Asked Questions</p>
 
 <h3>Channels</h3>
 <p>
@@ -229,16 +238,6 @@
 </div> <!-- #page -->
 
 <div id="ajaxspinner"></div>
-
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-4336835-7"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'UA-4336835-7');
-</script>
 <script src="\MoleOnlineWebUI-Core-Init.js?version=<!UI-VERSION!>"></script>
 </body>
 </html>

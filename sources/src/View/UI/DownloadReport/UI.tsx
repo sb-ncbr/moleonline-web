@@ -2,6 +2,8 @@ namespace DownloadReport.UI{
 
     import React = LiteMol.Plugin.React;
 
+    declare function gtag(ga_type:string, action:string, options:{'event_category':string, 'event_label'?:string, 'value'?:any}):any;
+
     export function render(target: Element) {
         LiteMol.Plugin.ReactDOM.render(<App />, target);
     }
@@ -23,16 +25,9 @@ namespace DownloadReport.UI{
 
     class BootstrapDropDownMenuItem extends React.Component<{link?: string, linkText:string, targetBlank?: boolean, onClick?:()=>void},{}>{
         render(){
-            if(this.props.onClick!==void 0){
-                return(
-                    <li><a onClick={this.props.onClick}>{this.props.linkText}</a></li>
-                );    
-            }
-            else{
-                return(
-                    <li><a target={(this.props.targetBlank)?"_blank":""} href={this.props.link}>{this.props.linkText}</a></li>
-                );
-            }
+            return(
+                <li><a  onClick={this.props.onClick} target={(this.props.targetBlank)?"_blank":""} href={this.props.link}>{this.props.linkText}</a></li>
+            );
         }
     }
 
@@ -99,31 +94,48 @@ namespace DownloadReport.UI{
         
             if(computationId!==void 0){
                 items.push(
-                    <BootstrapDropDownMenuItem linkText="Molecule" link={`${linkBase}&format=molecule`} targetBlank={true} />
+                    <BootstrapDropDownMenuItem linkText="Molecule" link={`${linkBase}&format=molecule`} targetBlank={true} onClick={()=>{
+                        gtag('event', 'Download', {'event_category':'molecule'});
+                    }} />
                 );
                 if(this.state.submitId>0){
                     items.push(
-                        <BootstrapDropDownMenuItem linkText="PyMol" link={`${linkBase}&format=pymol`} targetBlank={true} />
+                        <BootstrapDropDownMenuItem linkText="PyMol" link={`${linkBase}&format=pymol`} targetBlank={true} onClick={()=>{
+                            gtag('event', 'Download', {'event_category':'pymol'});
+                        }} />
                     );
                     items.push(
-                        <BootstrapDropDownMenuItem linkText="VMD" link={`${linkBase}&format=vmd`} targetBlank={true} />
+                        <BootstrapDropDownMenuItem linkText="VMD" link={`${linkBase}&format=vmd`} targetBlank={true} onClick={()=>{
+                            gtag('event', 'Download', {'event_category':'vmd'});
+                        }} />
                     );
                     items.push(
-                        <BootstrapDropDownMenuItem linkText="PDB" link={`${linkBase}&format=pdb`} targetBlank={true} />
+                        <BootstrapDropDownMenuItem linkText="PDB" link={`${linkBase}&format=pdb`} targetBlank={true} onClick={()=>{
+                            gtag('event', 'Download', {'event_category':'pdb'});
+                        }} />
                     );
                     items.push(
-                        <BootstrapDropDownMenuItem linkText="Chimera" link={`${linkBase}&format=chimera`} targetBlank={true} />
+                        <BootstrapDropDownMenuItem linkText="Chimera" link={`${linkBase}&format=chimera`} targetBlank={true} onClick={()=>{
+                            gtag('event', 'Download', {'event_category':'chimera'});
+                        }} />
                     );
                     items.push(
-                        <BootstrapDropDownMenuItem linkText="JSON" link={`${linkBase}`} targetBlank={true} />
+                        <BootstrapDropDownMenuItem linkText="JSON" link={`${linkBase}`} targetBlank={true} onClick={()=>{
+                            gtag('event', 'Download', {'event_category':'json'});
+                        }} />
                     );
                     items.push(
-                        <BootstrapDropDownMenuItem linkText="Results" link={`${linkBase}&format=report`} targetBlank={true} />
+                        <BootstrapDropDownMenuItem linkText="Results" link={`${linkBase}&format=report`} targetBlank={true} onClick={()=>{
+                            gtag('event', 'Download', {'event_category':'zip'});
+                        }} />
                     );        
                 }        
                 if(this.state.submitId!==0){
                     items.push(
-                        <BootstrapDropDownMenuItem linkText="PDF report" onClick={()=>{MoleOnlineWebUI.Bridge.Events.invokeRunPDFReport();}}/>
+                        <BootstrapDropDownMenuItem linkText="PDF report" onClick={()=>{
+                            gtag('event', 'Download', {'event_category':'pdf'});
+                            MoleOnlineWebUI.Bridge.Events.invokeRunPDFReport();
+                        }}/>
                     );
                 }
             }

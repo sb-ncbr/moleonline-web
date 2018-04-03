@@ -36,7 +36,15 @@
 			img.mouseout(function () { $(this).next('.hint').hide();});
 		});
 	});
-	
+	</script>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script src="https://www.googletagmanager.com/gtag/js?id=UA-4336835-7"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+
+		gtag('config', 'UA-4336835-7');
 	</script>
 </head>
 
@@ -77,15 +85,7 @@
 </div> <!-- #page -->
 
 <div id="ajaxspinner"></div>
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-4336835-7"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
 
-  gtag('config', 'UA-4336835-7');
-</script>
 <script src="\MoleOnlineWebUI-Core-Init.js?version=<!UI-VERSION!>"></script>
 </body>
 </html>
