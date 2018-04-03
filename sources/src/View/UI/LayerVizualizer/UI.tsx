@@ -4,373 +4,12 @@ namespace LayersVizualizer.UI{
     import React = LiteMol.Plugin.React
     import Event = LiteMol.Bootstrap.Event;
     
-    import Q = LiteMol.Core.Structure.Query;
-    import AQ = Q.Algebraic;
     import Transformer = LiteMol.Bootstrap.Entity.Transformer;
-    import Tree = LiteMol.Bootstrap.Tree;
-    import Transform = Tree.Transform;   
     import Visualization = LiteMol.Bootstrap.Visualization;   
 
     import Tabs = CommonUtils.Tabs;
 
     declare function $(p:any): any;
-
-    interface ChannelEventInfo { 
-        kind: LiteMol.Bootstrap.Interactivity.Info.__Kind.Selection | LiteMol.Bootstrap.Interactivity.Info.__Kind.Empty,
-        source : {
-            props: {
-                tag: {
-                    element: DataInterface.Tunnel,
-                    type: String
-                }
-            },
-            ref: string
-        }
-        
-    };
-
-    function createProfileToLayerByCenterDistanceMapping(channel: DataInterface.Tunnel){
-        let map = new Map<number,number>();
-        let layers = channel.Layers.LayersInfo;
-        let profile = channel.Profile;
-        let maxProfileDistance = profile[profile.length-1].Distance;
-        let maxLayerDistance = layers[layers.length-1].LayerGeometry.EndDistance;
-
-        let lUnit = maxLayerDistance/100;
-        let pUnit = maxProfileDistance/100;
-        let layerSpaceToProfileSpace = (layerVal:number) => {
-            return (layerVal/lUnit)*pUnit;
-        };
-
-        let inRange = (profileVal:number, layerStartDistance:number, layerEndDistance:number) => {
-            return profileVal>=layerSpaceToProfileSpace(layerStartDistance) 
-                && profileVal<layerSpaceToProfileSpace(layerEndDistance);
-        };
-
-        for(let pIdx=0,lIdx=0;pIdx<profile.length;){
-            
-            if(inRange(profile[pIdx].Distance,
-                layers[lIdx].LayerGeometry.StartDistance,
-                layers[lIdx].LayerGeometry.EndDistance)
-                ){
-                map.set(pIdx,lIdx);
-                pIdx++;
-            }
-            else{
-                if(lIdx+1 == layers.length){
-                    map.set(pIdx,lIdx);
-                    pIdx++;
-                }
-                else{
-                    lIdx++;
-                }
-            }
-        }
-
-        return map;
-    };
-
-    function sphereSpaceToPercent(profileVal:number, sphereRadius:number){
-        let sUnit = sphereRadius*2/100;
-        return profileVal/sUnit;
-    };
-
-    function layerSpaceToPercent(val:number, layerLength:number){
-        let unit = layerLength/100;
-        return val/unit;
-    };
-
-    function layerSpaceToProfileSpace(layerVal:number,lUnit:number,pUnit:number){
-        return (layerVal/lUnit)*pUnit;
-    };
-
-    function percentCover(profileCenter:number, profileRadius:number, 
-        layerStartDistance:number, layerEndDistance:number, lUnit:number, pUnit:number){
-        
-        let sD_p = layerSpaceToProfileSpace(layerStartDistance,lUnit,pUnit);
-        let eD_p = layerSpaceToProfileSpace(layerEndDistance,lUnit,pUnit);
-        
-        let sk = profileCenter;//-profileRadius;
-        let ek = profileCenter;//+profileRadius*2;
-        let sv = sD_p;
-        let ev = eD_p;
-
-        let S = Math.max(sk,sv);
-        let E = Math.min(ek,ev);
-
-        if(E-S !== 0){
-            return 0;
-        }
-        else{
-            return 100;
-        }
-
-        //return sphereSpaceToPercent(E-S,profileRadius);
-        //return layerSpaceToPercent(E-S,layerEndDistance-layerStartDistance);
-        /*
-        //stred koule vlevo od vrstvy
-        let case1 = () => {
-            //koule mimo vrstvu celym profilem
-            if((profileCenter + profileRadius)-sD_p < 0){
-                return 0;
-            }
-            //koule zasahuje svou casti do vrstvy zleva
-            if((profileCenter + profileRadius)-sD_p > 0
-                && (profileCenter + profileRadius)-eD_p < 0){
-                return sphereSpaceToPercent((profileCenter+profileRadius)-sD_p,profileRadius);
-            }
-            //koule obsahuje celou vrstvu a vrstva je umistena vpravo od stredu koule
-            if((profileCenter+profileRadius)-sD_p > 0 
-                && (profileCenter+profileRadius)-eD_p > 0){
-                return sphereSpaceToPercent(eD_p-sD_p,profileRadius);
-            }
-
-            throw new Error("InvalidState - unrecognized state");
-        };
-
-        //stred koule uvnitr vrstvy
-        let case2 = () => {
-            //koule je cela ve vrstve
-            if((profileCenter-profileRadius)-sD_p >= 0 
-                && eD_p-(profileCenter+profileRadius) >= 0){
-                return 100;
-            }
-            //koule presahuje vrstvu vlevo
-            if((profileCenter-profileRadius)-sD_p <= 0
-                && eD_p-(profileCenter+profileRadius) >= 0){
-                return sphereSpaceToPercent((profileCenter+profileRadius)-sD_p,profileRadius);
-            }
-            //koule presahuje vrstvu zprava
-            if((profileCenter-profileRadius)-sD_p >= 0
-                && eD_p-(profileCenter+profileRadius) <= 0){
-                return sphereSpaceToPercent(eD_p-(profileCenter-profileRadius),profileRadius);
-            }
-            //koule presahuje vlevo i vpravo a obsahuje celou vrstvu
-            if((profileCenter-profileRadius)-sD_p <= 0
-                && eD_p-(profileCenter+profileRadius) <= 0){
-                return sphereSpaceToPercent(eD_p-sD_p,profileRadius);
-            }
-
-            throw new Error("InvalidState - unrecognized state");
-        };
-
-        //stred koule vpravo od vrstvy
-        let case3 = () => {
-            //koule nezasahuje do vrstvy
-            if((profileCenter-profileRadius)-eD_p > 0){
-                return 0;
-            }
-            //koule zasahuje levou pulkou do vrstvy, ale nepresahuje
-            if((profileCenter-profileRadius)-sD_p > 0
-                && (profileCenter-profileRadius)-eD_p < 0){
-                return sphereSpaceToPercent(eD_p-(profileCenter-profileRadius),profileRadius);
-            }
-            //koule obsahuje celou vrstvu v prave polovine
-            if((profileCenter-profileRadius)-sD_p < 0
-                && (profileCenter+profileRadius)-eD_p > 0){
-                return sphereSpaceToPercent(eD_p-sD_p,profileRadius);
-            }
-
-            throw new Error("InvalidState - unrecognized state");
-        };
-
-        if(profileCenter < sD_p){
-            return case1();
-        }
-        
-        if(profileCenter >= sD_p && profileCenter <= eD_p){
-            return case2();
-        }
-
-        if(profileCenter > eD_p){
-            return case3();
-        }
-
-        throw new Error("InvalidState - unrecognized state");
-        */
-    };
-
-    function createProfileColorMapByRadiusAndCenterDistance(channel: DataInterface.Tunnel, layerIdx:number){
-        console.log("mappingbyradiusandcenter");
-        /*let layerColors:LiteMol.Visualization.Color[] = [];*/
-        let layers = channel.Layers.LayersInfo;
-        let profile = channel.Profile;
-        let maxProfileDistance = profile[profile.length-1].Distance;
-        let maxLayerDistance = layers[layers.length-1].LayerGeometry.EndDistance;
-
-        let activeColor = LiteMol.Visualization.Color.fromRgb(255,0,0);
-        let inactiveColor = LiteMol.Visualization.Color.fromRgb(255,255,255);
-        /*
-        for(let i=0;i<layers.length;i++){
-            if(i===layerIdx){
-                layerColors.push(activeColor);
-            }
-            else{
-                layerColors.push(inactiveColor);
-            }
-        }
-        */
-
-        let lUnit = maxLayerDistance/100;
-        let pUnit = lUnit;//maxProfileDistance/100;
-
-        let colorMap = new Map<number,LiteMol.Visualization.Color>();
-        //let profileToColorMap = new Map<number,number>();
-        //let colors:LiteMol.Visualization.Color[] = [];
-        for(let pIdx=0;pIdx<profile.length;pIdx++){
-            let layerCover:{layerIdx:number, percent:number}[] = [];
-            for(let lIdx=0;lIdx<layers.length;lIdx++){
-                let sphere = profile[pIdx];
-                let layerGeometry = layers[lIdx].LayerGeometry;
-                let percent = percentCover(
-                    sphere.Distance,
-                    sphere.Radius,
-                    layerGeometry.StartDistance,
-                    layerGeometry.EndDistance,
-                    lUnit,
-                    pUnit
-                );
-                
-                if(percent>0){
-                    layerCover.push({layerIdx:lIdx,percent});
-                }
-            }
-
-            /*
-            layerCover.sort((a:{layerIdx:number,percent:number},b:{layerIdx:number,percent:number})=>{
-                return a.percent-b.percent;
-            });
-            */
-
-            /*
-            if(layerCover.length<2){
-                colorMap.set(pIdx,layerColors[layerCover[0].layerIdx]);
-                //profileToColorMap.set(pIdx,pIdx);
-                //colors.push(layerColors[layerCover[0].layerIdx]);
-                continue;
-            }*/
-
-            /*
-            let color = layerColors[layerCover[0].layerIdx];
-            let lc = layerCover[0];
-            let currentPercent = lc.percent;
-            for(let lcIdx=1;lcIdx<layerCover.length;lcIdx++){
-                let lc2 = layerCover[lcIdx];
-                let color2 = layerColors[lc2.layerIdx];
-
-                let totalPercent = currentPercent+lc2.percent;
-                let p = (currentPercent/totalPercent)*100;
-
-                color = {
-                    r:(1-(p/100)) * color.r + (p/100) * color2.r,
-                    g:(1-(p/100)) * color.g + (p/100) * color2.g,
-                    b:(1-(p/100)) * color.b + (p/100) * color2.b
-                };
-                currentPercent = totalPercent;
-            }
-            */
-
-            let color = inactiveColor;
-            let semiactiveColor = LiteMol.Visualization.Color.fromRgb(0,0,122);
-            for(let lcIdx=0;lcIdx<layerCover.length;lcIdx++){
-                let p = layerCover[lcIdx].percent;
-                if(layerCover[lcIdx].layerIdx === layerIdx){
-                    console.log(`Profile[${pIdx}] -> Layer[${layerIdx}] => cover: ${p}`);
-                    /*
-                    color = {
-                        r:(1-(p/100)) * semiactiveColor.r + (p/100) * activeColor.r,
-                        g:(1-(p/100)) * semiactiveColor.g + (p/100) * activeColor.g,
-                        b:(1-(p/100)) * semiactiveColor.b + (p/100) * activeColor.b
-                    };*/
-                    //LiteMol.Visualization.Color.interpolate(semiactiveColor,activeColor,p,color);
-                    color = activeColor;
-                    break;
-                }
-            }
-
-            /*
-            let lc1 = layerCover[layerCover.length-1];
-            let lc2 = layerCover[layerCover.length-2];
-
-            let color1 = layerColors[lc1.layerIdx];
-            let color2 = layerColors[lc2.layerIdx];
-
-            let color = {
-                r:(1-(lc1.percent/100)) * color1.r + (lc1.percent/100) * color2.r,
-                g:(1-(lc1.percent/100)) * color1.g + (lc1.percent/100) * color2.g,
-                b:(1-(lc1.percent/100)) * color1.b + (lc1.percent/100) * color2.b
-            };
-            
-            console.log(color1);
-            console.log(color2);
-            console.log(color);
-            console.log("-");
-            console.log(lc1);
-            console.log(lc2);
-            console.log("---!---");
-            */
-            colorMap.set(pIdx,color);
-            //profileToColorMap.set(pIdx,pIdx);
-            //colors.push(color);
-        }
-
-        return colorMap;
-    };
-
-    function applyTheme(theme:LiteMol.Visualization.Theme/*(e: any, props?: LiteMol.Visualization.Theme.Props | undefined) => LiteMol.Visualization.Theme*/, plugin:LiteMol.Plugin.Controller, ref: string){
-        let visual = plugin.context.select(ref)[0] as any;
-        console.log(visual);
-        let query = LiteMol.Core.Structure.Query.everything();/*.sequence('1', 'A', { seqNumber: 10 }, { seqNumber: 25 });*/
-        
-        let action = Transform.build().add(visual, Transformer.Molecule.CreateSelectionFromQuery, { query, name: 'My name' }, { ref: 'sequence-selection' })
-            // here you can create a custom style using code similar to what's in 'Load Ligand'
-            .then(Transformer.Molecule.CreateVisual, { style: LiteMol.Bootstrap.Visualization.Molecule.Default.ForType.get('BallsAndSticks') });
-        visual = plugin.context.select(ref)[0] as any;
-        console.log(visual);
-        console.log(LiteMol.Bootstrap.Utils.Molecule.findModel(visual));
-        /*let themestatic = theme(visual);*/
-        plugin.applyTransform(action).then(() => {                
-            LiteMol.Bootstrap.Command.Visual.UpdateBasicTheme.dispatch(plugin.context, { visual, theme/*: themestatic*/});
-            LiteMol.Bootstrap.Command.Entity.Focus.dispatch(plugin.context, plugin.context.select('sequence-selection'))
-            // alternatively, you can do this
-            //Command.Molecule.FocusQuery.dispatch(plugin.context, { model: selectNodes('model')[0] as any, query })
-        });
-    }
-
-    function generateLayerSelectColorTheme(activeLayerIdx: number, app: App){           
-        /*
-        let colors = new Map<number, LiteMol.Visualization.Color>();
-        let coloringPropertyKey = app.vizualizer.getColoringPropertyKey();
-        for(let layerIdx=0; layerIdx<app.state.data.length; layerIdx++){
-            if(layerIdx === activeLayerIdx){
-                colors.set(layerIdx, LiteMol.Visualization.Color.fromRgb(255,0,0));
-            }
-            else{
-                colors.set(layerIdx, LiteMol.Visualization.Color.fromRgb(255,255,255));
-            }
-        } 
-        */        
-
-        let channel = (app.props.controller.context.select(app.state.currentTunnelRef)[0] as any).props.model.entity.element as DataInterface.Tunnel;
-        let profilePartsCount = channel.Profile.length;
-        //let profileToLayerMapping = createProfileColorMapByRadiusAndCenterDistance(channel,activeLayerIdx);
-        let max = 0;
-        let colors = createProfileColorMapByRadiusAndCenterDistance(channel,activeLayerIdx);
-        let theme = LiteMol.Visualization.Theme.createMapping(LiteMol.Visualization.Theme.createColorMapMapping(
-                (idx:number)=>{
-                    return idx;
-                    /*
-                    let lIdx = profileToLayerMapping.get(idx);
-                    if(lIdx === void 0)
-                        return void 0;
-                    return lIdx;
-                    */
-                },
-                colors,
-                LiteMol.Visualization.Color.fromRgb(0,0,0)
-            ));
-        return theme;
-    }
 
     export function render(vizualizer: Vizualizer, target: Element, plugin: LiteMol.Plugin.Controller) {
         LiteMol.Plugin.ReactDOM.render(<App vizualizer={vizualizer} controller={plugin} />, target);
@@ -378,13 +17,11 @@ namespace LayersVizualizer.UI{
 
     export class App extends React.Component<{ vizualizer: Vizualizer, controller: LiteMol.Plugin.Controller }, State> {
 
-        private interactionEventStream: LiteMol.Bootstrap.Rx.IDisposable | undefined = void 0;
-
         state = {
             instanceId: -1,
             hasData: false,
             data: [] as DataInterface.LayerData[],
-            layerId: 0,
+            layerIds: [0],
             coloringPropertyKey: "",
             customColoringPropertyKey: "",
             radiusPropertyKey: "MinRadius" as RadiusProperty,
@@ -474,104 +111,8 @@ namespace LayersVizualizer.UI{
                 this.forceUpdate();
             }).bind(this));
         }
-        
-        
-        /*
-        generateLayerSelectColorTheme(activeLayerIdx: number){           
-            let colors = new Map<number, LiteMol.Visualization.Color>();
-            let coloringPropertyKey = this.vizualizer.getColoringPropertyKey();
-            for(let layerIdx=0; layerIdx<this.state.data.length; layerIdx++){
-                if(layerIdx === activeLayerIdx){
-                    colors.set(layerIdx, LiteMol.Visualization.Color.fromRgb(255,0,0));
-                }
-                else{
-                    colors.set(layerIdx, LiteMol.Visualization.Color.fromRgb(255,255,255));
-                }
-            }            
-
-            let channel = (this.props.controller.context.select(this.state.currentTunnelRef)[0] as any).props.model.entity.element as DataInterface.Tunnel;
-            let profilePartsCount = channel.Profile.length;
-            let profileToLayerMapping = this.createProfileToLayerMapping(channel);
-            let max = 0;
-            let theme = LiteMol.Visualization.Theme.createMapping(LiteMol.Visualization.Theme.createColorMapMapping(
-                    (idx:number)=>{
-                        let lIdx = profileToLayerMapping.get(idx);
-                        if(lIdx === void 0)
-                            return void 0;
-                        return lIdx;
-                    },
-                    colors,
-                    LiteMol.Visualization.Color.fromRgb(0,0,0)
-                ));
-            return theme;
-        }*/
-
-        //TODO:... vizualizace vrstev ve 3D
-        generateColorTheme(){
-            let colorSettings = this.props.vizualizer.getCurrentColoringSettings("default");
-            if(colorSettings===void 0 || colorSettings === null){
-                throw Error("No color info available!");
-            }
-            
-            let colors = new Map<number, LiteMol.Visualization.Color>();
-            let coloringPropertyKey = this.vizualizer.getColoringPropertyKey();
-            for(let layerIdx=0; layerIdx<this.state.data.length; layerIdx++){
-                let layer = this.state.data[layerIdx];
-                console.log(this.vizualizer.getColor(Number(layer.Properties[coloringPropertyKey]).valueOf(),colorSettings));
-                let color = Colors.parseRGBString(this.vizualizer.getColor(Number(layer.Properties[coloringPropertyKey]).valueOf(),colorSettings));
-                colors.set(layerIdx, LiteMol.Visualization.Color.fromRgb(color.r, color.g, color.b));
-            }            
-
-            let channel = (this.props.controller.context.select(this.state.currentTunnelRef)[0] as any).props.model.entity.element as DataInterface.Tunnel;
-            let profilePartsCount = channel.Profile.length;
-            let profileToLayerMapping = createProfileToLayerByCenterDistanceMapping(channel);
-            let max = 0;
-            let theme = LiteMol.Visualization.Theme.createMapping(LiteMol.Visualization.Theme.createColorMapMapping(
-                    (idx:number)=>{
-                        let lIdx = profileToLayerMapping.get(idx);
-                        if(lIdx === void 0 || lIdx === 0)
-                            return void 0;
-                        return lIdx;
-                    },
-                    colors,
-                    LiteMol.Visualization.Color.fromRgb(0,0,0)
-                ));
-            
-                /*
-            theme.setElementColor = (index:number, target:LiteMol.Visualization.Color)=>{
-                console.log(`index: ${index}`);
-            };*/
-
-            return theme;
-                
-                /*
-            return LiteMol.Visualization.Theme.createMapping(LiteMol.Visualization.Theme.createPalleteMapping(
-                    (idx:number)=>{console.log(`Color Idx: ${idx}`);return idx%3;},
-                    color_arr
-                ));
-                */
-            /*.createColorMapThemeProvider(
-                // here you can also use m.atoms.residueIndex, m.residues.name/.... etc.
-                // you can also get more creative and use "composite properties"
-                // for this check Bootstrap/Visualization/Theme.ts and Visualization/Base/Theme.ts and it should be clear hwo to do that.
-                //
-                // You can create "validation based" coloring using this approach as it is not implemented in the plugin for now.
-                m => ({ index: m.data.atoms.chainIndex, property: m.data.chains.asymId }),  
-                colors,
-                // this a fallback color used for elements not in the set 
-                LiteMol.Visualization.Color.fromRgb(0, 0, 123))
-                // apply it to the model, you can also specify props, check Bootstrap/Visualization/Theme.ts
-                //(model);*/
-
-            
-        }
-
-        //applyTheme
 
         componentWillUnmount(){
-            if(this.interactionEventStream !== void 0){
-                this.interactionEventStream.dispose();
-            }
         }
 
         render() {
@@ -588,7 +129,7 @@ namespace LayersVizualizer.UI{
         instanceId: number,
         hasData: boolean,
         data: DataInterface.LayerData[],
-        layerId: number,
+        layerIds: number[],
         coloringPropertyKey: string,
         customColoringPropertyKey: string,
         radiusPropertyKey: RadiusProperty,
@@ -625,69 +166,6 @@ namespace LayersVizualizer.UI{
                     >
                         Click on one of available channels to see more information...
                     </div>
-            );
-        }
-    }
-
-    class DetailsContainer extends React.Component<State,{}>{
-        render(){
-            var layerId = this.props.layerId;
-            return(
-                <div className="layer-vizualizer-detail-div"
-                    id={`layer-vizualizer-detail-div${this.props.instanceId}`}
-                    >
-                    <h3>Properties</h3>
-                    <LayerProperties layerProperties={this.props.data[layerId].Properties} />
-                    <h3>Lining residues</h3>
-                    <LayerResidues layerResidues={this.props.data[layerId].Residues} />
-                </div>
-            );
-        }
-    }
-
-    class LayerProperties extends React.Component<{ layerProperties: any },{}>{
-        render(){
-            var rv = [];
-            for(var key in this.props.layerProperties){
-                rv.push(<LayerProperty propertyKey={key} propertyValue={this.props.layerProperties[key]} />);
-            }
-
-            return(
-            <div className="properties">
-                {rv}
-            </div>
-            );
-        }
-    }
-
-    class LayerProperty extends React.Component<{ propertyKey: String, propertyValue: String },{}>{
-        render(){
-            return(
-                <span className="propertyItem">{`${this.props.propertyKey}: ${this.props.propertyValue}`}</span>
-            );
-        }
-    }
-
-    class LayerResidues extends React.Component<{ layerResidues: string[] },{}>{
-        render(){
-            var rv = [];
-            for(var key of this.props.layerResidues){
-                rv.push(<LayerResidue name={key}/>
-                );
-            }
-
-            return(
-            <div>
-                {rv}
-            </div>
-            );
-        }
-    }
-
-    class LayerResidue extends React.Component<{ name: String/*, sequenceNumber: String, chain: String*/ },{}>{
-        render(){
-            return(
-                <span className="residueItem">{`${this.props.name}`}</span>
             );
         }
     }
@@ -1024,7 +502,25 @@ namespace LayersVizualizer.UI{
         height:number
     };
 
-    class InteractionMap extends React.Component<State,{}>{
+    interface InteractionMapState{
+        mouseControlStartLayerId: number
+        selectionMode: boolean,
+        touchMode: boolean
+    };
+
+    class InteractionMap extends React.Component<State, InteractionMapState>{
+
+        state: InteractionMapState = {
+            mouseControlStartLayerId: -1,
+            selectionMode: false,
+            touchMode: false
+        };
+
+        componentDidMount(){
+            document.ontouchstart = (e)=>{
+                this.enableTouchMode();
+            };
+        }
 
         private getLayerResidues(layerIdx:number):{authAsymId:string, authSeqNumber:number}[]{
             let res = [];
@@ -1035,16 +531,9 @@ namespace LayersVizualizer.UI{
                     authSeqNumber: Number(parts[1]).valueOf()
                 });
             }
-            /*
-            console.log(`Layer ${layerIdx}:`);
-            console.log(res);
-            */
+
             return res;
         }
-        /*
-        private removeResidue3DView(){
-            LiteMol.Bootstrap.Command.Tree.RemoveNode.dispatch(this.props.app.props.controller.context, "res_visual");
-        }*/
 
         private resetFocusToTunnel(){
             LiteMol.Bootstrap.Command.Entity.Focus.dispatch(
@@ -1054,18 +543,21 @@ namespace LayersVizualizer.UI{
             );
         }
 
-        private showLayerResidues3DAndFocus(layerIdx:number){
-            /*
-            let theme = generateLayerSelectColorTheme(layerIdx,this.props.app);
-            applyTheme(theme,this.props.app.props.controller,this.props.app.state.currentTunnelRef);
-            */
-            let residues = this.getLayerResidues(layerIdx);
+        private showLayerResidues3DAndFocus(layerIds:number[]){
+
+            let residues:{
+                authAsymId: string;
+                authSeqNumber: number;
+            }[] = [];
+
+            for(let l of layerIds){
+                residues = residues.concat(this.getLayerResidues(l));
+            }
+
             let query = LiteMol.Core.Structure.Query.residues(
                 ...residues
             );
 
-            /*this.removeResidue3DView();*/
-            //CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
             CommonUtils.Selection.SelectionHelper.clearAltSelection(this.props.app.props.controller);
             
             let t = this.props.app.props.controller.createTransform();
@@ -1080,6 +572,10 @@ namespace LayersVizualizer.UI{
         }
 
         private displayDetailsEventHandler(e: React.MouseEvent<HTMLAreaElement>){
+            if(this.state.touchMode){
+                return;
+            }
+            
             let targetElement = (e.target as HTMLElement);
             let layerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
             let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
@@ -1088,39 +584,32 @@ namespace LayersVizualizer.UI{
             instance.highlightHitbox(layerIdx);
             if(!this.props.app.state.isLayerSelected){
                 let state = this.props.app.state;
-                state.layerId = layerIdx;
+                state.layerIds = [layerIdx];
                 this.props.app.setState(state);    
                 $( window ).trigger('layerTriggered',layerIdx);
-                /*$( window ).trigger('resize');
-                $( window ).trigger('contentResize');*/
             }      
         }
 
-        private displayLayerResidues3DEventHandler(e: React.MouseEvent<HTMLAreaElement>){
-            let targetElement = (e.target as HTMLElement);
-            let layerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
-            let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
-            let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];      
-            
-            if(instance.getSelectedLayer() === layerIdx){
-                this.props.app.state.isLayerSelected = false;
-                //CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
+        private displayLayerResidues3DEventHandler(layerIdxs: number[], instance: LayersVizualizer.Vizualizer){           
+            let state = this.props.app.state;
+            state.layerIds = layerIdxs;
+            state.isLayerSelected = state.layerIds.length>0;
+
+            this.props.app.setState(state);   
+            if(state.layerIds.length===0){
                 CommonUtils.Selection.SelectionHelper.clearAltSelection(this.props.app.props.controller);
                 this.resetFocusToTunnel();
-                instance.deselectLayer();
-                instance.highlightHitbox(layerIdx);
             }
-            else{
-                let state = this.props.app.state;
-                state.layerId = layerIdx;
-                state.isLayerSelected = true;
-                this.props.app.setState(state);   
-                this.showLayerResidues3DAndFocus(layerIdx);
-                instance.deselectLayer();
-                instance.selectLayer(layerIdx);
+
+            instance.selectLayers(state.layerIds);
+            for(let layerIdx of state.layerIds){
                 $( window ).trigger('layerTriggered',layerIdx);
-                $( window ).trigger('resize');
             }
+            if(state.layerIds.length > 0){
+                this.showLayerResidues3DAndFocus(state.layerIds);
+            }
+            $( window ).trigger('layerSelected',{ layerIds: state.layerIds.slice() });
+            $( window ).trigger('resize');
         }
 
         private getTunnelScale(tunnel:Tunnel | null):TunnelScale{
@@ -1230,6 +719,228 @@ namespace LayersVizualizer.UI{
             return rv;
         }
 
+        private handleMouseDown(e: React.MouseEvent<HTMLAreaElement>){
+
+            if(this.state.touchMode){
+                e.preventDefault();
+                return false;
+            }
+
+            let targetElement = (e.target as HTMLElement);
+            let layerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
+            let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
+            let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
+
+            let s = this.state;
+            if(this.props.app.state.layerIds.length === 1 
+                && this.props.app.state.layerIds[0] === layerIdx
+                && this.props.app.state.isLayerSelected
+            ){
+                    s.mouseControlStartLayerId = -1;
+                    this.displayLayerResidues3DEventHandler([], instance);
+                }
+            else{
+                s.mouseControlStartLayerId = layerIdx;
+                s.selectionMode = true;
+                this.displayLayerResidues3DEventHandler([s.mouseControlStartLayerId], instance);
+            }
+
+            this.setState(s);
+
+            // Disable drag and drop
+            e.preventDefault();
+            return false;
+        }
+
+        private enableTouchMode(){
+            let s = this.state;
+            s.touchMode = true;
+            this.setState(s);
+        }
+
+        private handleTouchStart(e: React.TouchEvent<HTMLAreaElement>){
+            /*
+            let targetElement = (e.target as HTMLElement);
+            if(!targetElement.hasAttribute("data-layeridx")){
+                return;
+            }
+
+            let layerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
+            let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
+            let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
+
+            let selectedLayers = instance.getSelectedLayer();
+            if(selectedLayers.length > 0){
+                this.displayLayerResidues3DEventHandler([], instance);
+            }   
+            */         
+        }
+
+        private handleMove(startLayerIdx: number, endLayerIdx: number, instance: LayersVizualizer.Vizualizer){
+            if(startLayerIdx > endLayerIdx){
+                let v = startLayerIdx;
+                startLayerIdx = endLayerIdx;
+                endLayerIdx = v;
+            }
+
+            let selectedLayers = instance.getSelectedLayer().slice();
+
+            selectedLayers = selectedLayers.sort();
+            
+            if(selectedLayers[0]!==startLayerIdx || selectedLayers[selectedLayers.length-1]!==endLayerIdx){
+                let layerIds = [];
+                for(let lidx = startLayerIdx; lidx <= endLayerIdx; lidx++){
+                    layerIds.push(lidx);
+                }
+            
+                instance.selectLayers(layerIds);
+            }        
+        }
+
+        private handleTouchMove(e: React.TouchEvent<HTMLAreaElement>){
+            let startElement = e.target as HTMLElement;
+            if(!startElement.hasAttribute("data-layeridx")){
+                return;
+            }
+            let endElement = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY) as HTMLElement;
+            if(!endElement.hasAttribute("data-layeridx")){
+                return;
+            }
+
+            let startLayerIdx = Number(startElement.getAttribute("data-layeridx")).valueOf();
+            let endLayerIdx = Number(endElement.getAttribute("data-layeridx")).valueOf();
+
+            let instanceIdx = Number(startElement.getAttribute("data-instanceidx")).valueOf();
+            let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
+
+            this.handleMove(startLayerIdx, endLayerIdx, instance);
+        }
+
+        private handleMouseMove(e: React.MouseEvent<HTMLAreaElement>){
+            if(this.state.mouseControlStartLayerId === -1 || !this.state.selectionMode){
+                return;
+            }
+
+            let startLayerIdx = this.state.mouseControlStartLayerId;
+
+            let targetElement = e.currentTarget;
+            if(!targetElement.hasAttribute("data-layeridx")){
+                return;
+            }
+
+            let endLayerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
+            let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
+            let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
+
+            this.handleMove(startLayerIdx, endLayerIdx, instance);
+        }
+
+        private handleEnd(startLayerIdx: number, endLayerIdx: number, instance: LayersVizualizer.Vizualizer){
+            if(startLayerIdx > endLayerIdx){
+                let v = startLayerIdx;
+                startLayerIdx = endLayerIdx;
+                endLayerIdx = v;
+            }
+
+            let selectedLayers = instance.getSelectedLayer().slice();
+            selectedLayers = selectedLayers.sort();
+            
+            if(selectedLayers[0]!==startLayerIdx || selectedLayers[selectedLayers.length-1]!==endLayerIdx){
+
+                for(let lidx = startLayerIdx; lidx <= endLayerIdx; lidx++){
+                    if(lidx in selectedLayers){
+                        continue;
+                    }
+                    selectedLayers.push(lidx);
+                }
+
+                this.displayLayerResidues3DEventHandler(selectedLayers, instance);
+            } 
+        }
+
+        private handleTouchEnd(e: React.TouchEvent<HTMLAreaElement>){
+            let startElement = e.target as HTMLElement;
+            let endElement = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY) as HTMLElement;
+
+            let startLayerIdx = Number(startElement.getAttribute("data-layeridx")).valueOf();
+            let endLayerIdx = Number(endElement.getAttribute("data-layeridx")).valueOf();
+
+            let instanceIdx = Number(startElement.getAttribute("data-instanceidx")).valueOf();
+            let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
+
+            let selectedLayers = instance.getSelectedLayer().slice();
+            if(startLayerIdx===endLayerIdx && selectedLayers.length===1 && selectedLayers[0] === startLayerIdx){
+                this.displayLayerResidues3DEventHandler([],instance);
+                return;
+            }
+
+            if(startLayerIdx===endLayerIdx){
+                this.displayLayerResidues3DEventHandler([startLayerIdx],instance);
+                return;
+            }
+
+            this.handleEnd(startLayerIdx, endLayerIdx, instance);
+        }
+
+        private handleMouseUp(e: React.MouseEvent<HTMLAreaElement>){
+            
+            let endElement = e.currentTarget;
+            
+            if(this.state.mouseControlStartLayerId === -1 || !this.state.selectionMode){
+                return;    
+            }
+            
+            let startLayerIdx = this.state.mouseControlStartLayerId;
+            let endLayerIdx = Number(endElement.getAttribute("data-layeridx")).valueOf();
+
+            let instanceIdx = Number(endElement.getAttribute("data-instanceidx")).valueOf();
+            let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
+
+            this.handleEnd(startLayerIdx, endLayerIdx, instance);
+
+            let s = this.state;
+            s.mouseControlStartLayerId = -1;
+            s.selectionMode = false;
+            this.setState(s);
+        }
+
+        private isAboveArea(x: number, y:number){
+            let elementFromPoint = document.elementFromPoint(x, y);
+
+            if(elementFromPoint === null){
+                return false;
+            }
+
+            if(elementFromPoint.tagName === null){
+                return false;
+            }
+
+            return elementFromPoint.tagName.toLowerCase() === "area" 
+                    || elementFromPoint.tagName.toLowerCase() === "map";
+        }
+
+        private handleMouseOut(e: React.MouseEvent<HTMLMapElement>){
+            let s = this.state;
+
+            if(
+                !s.selectionMode 
+                    || e.currentTarget.hasAttribute("data-layeridx") 
+                    || (e.relatedTarget as HTMLElement).tagName === null
+                    || (e.relatedTarget as HTMLElement).tagName.toLowerCase() === "area"
+                    || this.isAboveArea(e.clientX, e.clientY)
+            ){
+                return;
+            }
+            
+            s.mouseControlStartLayerId = -1;
+            s.selectionMode = false;
+            this.setState(s);
+
+            //There is always one instance at most in this application
+            let instance = Vizualizer.ACTIVE_INSTANCES[Vizualizer.ACTIVE_INSTANCES.length-1];
+            this.displayLayerResidues3DEventHandler([], instance);
+        }
+
         render(){
             let areas = [];
             if(this.props.isDOMReady){
@@ -1240,13 +951,20 @@ namespace LayersVizualizer.UI{
                         data-layeridx={String(hitboxesCoords[i].layerIdx.valueOf())}
                         data-instanceidx={String(this.props.instanceId)}
                         onMouseOver={this.displayDetailsEventHandler.bind(this)}
-                        onMouseDown={this.displayLayerResidues3DEventHandler.bind(this)} />);
+                        onMouseDown={this.handleMouseDown.bind(this)}
+                        onMouseMove={this.handleMouseMove.bind(this)}
+                        onMouseUp={this.handleMouseUp.bind(this)}
+                    />);
                 }
             }
 
             return (
                 <map name={`layersInteractiveMap${this.props.instanceId}`} 
                     id={`layer-vizualizer-hitbox-map${this.props.instanceId}`}
+                    onTouchStart={this.handleTouchStart.bind(this)}
+                    onTouchMove={this.handleTouchMove.bind(this)}
+                    onTouchEnd={this.handleTouchEnd.bind(this)}
+                    onMouseOut={this.handleMouseOut.bind(this)}
                     >
                     {areas}
                 </map>

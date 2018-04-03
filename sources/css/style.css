@@ -300,9 +300,10 @@ only screen and (max-height: 600px) {
 	width:75vw;
 	height:34vh;
 	left:0;
-	bottom:0;
+    top:66vh;
 }
 .bottom-panel.bottom-panel-toggled{
+    top: 33vh;
 	height:67vh;
 }
 
@@ -756,15 +757,13 @@ span.ATable-label {
     min-width:330px;
 }
 
-
 @media only screen and (max-width: 1830px){
     span.ATable-label {
         display:none;
     }
 }
 
-@media only screen and (max-width: 1300px),
-only screen and (max-height: 900px) {
+@media only screen and (max-width: 1300px) and (max-height: 900px) {
     .plugin{
         height:50vh;
     }
@@ -791,11 +790,9 @@ only screen and (max-height: 900px) {
         height:40vh;
     }
     .bottom-panel.bottom-panel-toggled{
+        top:39vh;
         height:60vh;
     }
-    /*.right-panel .toggler{
-        margin-top: .2em;
-    }*/
     .right-panel .ui{
         height:60vh;
     }
@@ -867,6 +864,10 @@ only screen and (max-height: 542px) {
         width: 99.5vw;
     }
 
+    .bottom-panel{
+        top:59vh;
+    }
+
     .plugin{
         border-right:none;
     }
@@ -874,12 +875,16 @@ only screen and (max-height: 542px) {
     .current-pbdbid-sign,
     .download-button,
     .button.download.dropdown-toggle,
-    .annotate{
+    .annotate,
+    .help-button{
         font-size:10pt;
     }
 
+    .help-button .help-ico{
+        vertical-align: sub !important;
+    }
+
     .current-pbdbid-sign{
-        font-size: 10pt;
         width: 125px;
         padding-left: 55px;
         padding-right: 5px;
@@ -887,17 +892,20 @@ only screen and (max-height: 542px) {
     }
 
     .annotate{
-        font-size: 10pt;
         width: 95px;
         left: 125px;
-        padding-left: 5px;
-        padding-right: 5px;
     }
 
     .download-button{
-        font-size: 10pt;
         width: 115px;
         left: 220px;
+    }
+
+    .help-button{
+        width: 90px;
+        left: 330px;
+        padding-left: 5px;
+        padding-right: 5px;
     }
 
     #controls{
@@ -965,6 +973,13 @@ only screen and (max-height: 542px) {
         cursor: pointer;
         padding-left:2px;
     }
+
+    .submit-form-container .tab-content{
+        max-height: 30.5vh;
+    }
+    .toggled .submit-form-container .tab-content{
+        max-height: 50.2vh;
+    }
 }
 
 @media only screen and (max-width: 1000px){
@@ -1020,28 +1035,18 @@ only screen and (max-height: 542px) {
     .layerVizualizer .layer-vizualizer-canvas,
     .layerVizualizer .canvas-wrapper,
     .layerVizualizer .fake-canvas{
-        height:80vh;
+        height:40vh;
     }
 
     #bottom-panel-toggler,
     #bottom-tabs-toggler{
         display:none;
     }
-    /*
-    .submit-form-container .submit-parent,
-    .chdb-panel.right-panel{
-        min-width:330px;
-    }*/
+
     .right-panel.minimized{
         min-width:4px;
     }
-    /*
-    .right-panel .ui{
-        min-width:325px;
-    }
-    #controls{
-        min-width:330px;
-    }*/
+
     .lm-viewport-controls {
         margin-right: 15px;
     }
@@ -1050,7 +1055,7 @@ only screen and (max-height: 542px) {
 @media only screen and (max-width: 700px)
 {
     .chdb-panel.right-panel{
-        top: 8vh;
+        top: 6vh;
         padding-top: 3px;
         border-top: 1px solid #aaa;
         border-bottom: 1px solid #aaa;
@@ -1087,22 +1092,159 @@ only screen and (max-height: 542px) {
         border-bottom: 1px solid #aaa;
         margin-bottom:2px;
     }
+    #right-panel-tabs .tab-content {
+        border-bottom: 1px solid #9a9a9a;
+    }
     
 }
+@media only screen and (max-width: 768px){
+    .helpDialog{
+        position: fixed;
+        right: 2%;
+        width: 96%;
+        left: 2%;
+        margin-top: 30px;
+        border-top-left-radius: 10px;
+    }
+    
+    .helpDialog .custom-box{
+        width: 90%;
+        margin-left: 5%;
+    }
 
-@media only screen and (max-width: 600px)
+    .helpDialog .error-msg{
+        width:100%;
+    }
+}
+@media only screen and (max-width: 650px)
 {
     .lm-viewport-controls {
         margin-top: 35px;
     }
     .current-pbdbid-sign .glyphicon,
     .download-button .glyphicon,
-    .annotate-button .glyphicon{
+    .annotate-button .glyphicon,
+    .help-button .glyphicon{
         display: none;
+    }
+
+    .current-pbdbid-sign{
+        width: 100px;
+    }
+
+    .download-button{
+        left: 195px;
+        width: 90px;
+    }
+
+    .annotate{
+        width: 95px;
+        left: 100px;
+    }
+
+    .help-button{
+        left: 285px;
+        border-left: none;
+        width: 60px;
+        padding-right: 15px;
     }
 }
 @media only screen and (max-width: 400px){
     .chdb-panel.right-panel{
         width:85vw;
     }
+}
+/** PHONE - right controls **/
+@media only screen and (max-width: 900px), only screen and (max-height: 375px){
+
+    .right-panel .submit-form-container{
+        height: 90%;
+        margin-top: 2%;
+    }
+    .right-panel .bottom ul.nav.nav-tabs {
+        visibility: hidden;
+    }
+    .right-panel .submit-parent,
+    #controls .submit-parent{
+        /*height:70%;*/
+        height: 8vh;
+        background-color: white;
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        border-left: 0;
+        border-right: 0;
+        border-bottom: 0;
+        padding-top: 3px;
+        position: fixed;
+        bottom: 0;
+        margin-bottom: 0px;
+        padding-bottom: 3px;
+    }
+    .right-panel .submit-form-container .submit-parent {
+        position: relative;
+    }
+    .bottom.toggled .submit-form-container .tab-content {
+        max-height: 93%;
+    }
+
+    /* ---------- */
+
+    .ui {
+        height: 90% !important;
+    }
+    .ui.toggled {
+        visibility: hidden;
+    }
+
+    #controls{
+        height: 6% !important;
+        margin-bottom: 2%;
+    }
+    #controls.toggled{
+        height: 97% !important;
+    }
+
+    .right-panel .bottom form#submission-form {
+        visibility: hidden;
+        height: 15%;
+    }
+    .right-panel .bottom.toggled form#submission-form {
+        visibility: visible;
+    }    
+
+    .right-panel .bottom ul.nav.nav-tabs {
+        visibility: hidden;
+    }
+    .right-panel .bottom.toggled ul.nav.nav-tabs {
+        visibility: visible;
+    }
+    
+    .right-panel .bottom .tab-content {
+        visibility: hidden;
+    }
+    .right-panel .bottom.toggled .tab-content {
+        visibility: visible;
+    }
+
+    /****/
+
+    .submit-form-container .submit, 
+    .submit-form-container .delete-project-button, 
+    .submit-form-container .kill-job-button, 
+    .submit-form-container .submit-arrow, 
+    .submit-form-container .submit-combo, 
+    .submit-form-container .clear-button {
+        height: 90%;
+        margin-top: 2px;
+        margin-bottom: 0.5vh;
+        line-height: normal;
+        padding: 5px 5px;
+        max-height: 90%;
+    }
+
+    .submit-form-container .submit-combo{
+        font-size: 7pt;
+    }
+    
 }

@@ -1,7 +1,6 @@
 namespace PDFReportGenerator.UI{
     
         import React = LiteMol.Plugin.React
-        import LiteMoleEvent = LiteMol.Bootstrap.Event;
         
         declare function $(p:any): any;
     
@@ -63,16 +62,16 @@ namespace PDFReportGenerator.UI{
             }
 
             private addPhysChemProps(template:string, tunnel:DataInterface.Tunnel):string{
-                let length = CommonUtils.Numbers.roundToDecimal(CommonUtils.Tunnels.getLength(tunnel),2).toString();                
+                let length = Common.Util.Numbers.roundToDecimal(CommonUtils.Tunnels.getLength(tunnel),2).toString();                
                 let bottleneck = CommonUtils.Tunnels.getBottleneck(tunnel);
-                let hydropathy = CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Hydropathy,2).toString();
-                let charge = CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Charge,2).toString();
-                let polarity = CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Polarity,2).toString();                
-                let mutability = CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Mutability,2).toString();
-                let logP = (tunnel.Properties.LogP!==null&&tunnel.Properties.LogP!==void 0)?CommonUtils.Numbers.roundToDecimal(tunnel.Properties.LogP,2).toString():'N/A';
-                let logD = (tunnel.Properties.LogD!==null&&tunnel.Properties.LogD!==void 0)?CommonUtils.Numbers.roundToDecimal(tunnel.Properties.LogD,2).toString():'N/A';
-                let logS = (tunnel.Properties.LogS!==null&&tunnel.Properties.LogS!==void 0)?CommonUtils.Numbers.roundToDecimal(tunnel.Properties.LogS,2).toString():'N/A';
-                let ionizable = (tunnel.Properties.Ionizable!==null&&tunnel.Properties.Ionizable!==void 0)?CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Ionizable,2).toString():'N/A';
+                let hydropathy = Common.Util.Numbers.roundToDecimal(tunnel.Properties.Hydropathy,2).toString();
+                let charge = Common.Util.Numbers.roundToDecimal(tunnel.Properties.Charge,2).toString();
+                let polarity = Common.Util.Numbers.roundToDecimal(tunnel.Properties.Polarity,2).toString();                
+                let mutability = Common.Util.Numbers.roundToDecimal(tunnel.Properties.Mutability,2).toString();
+                let logP = (tunnel.Properties.LogP!==null&&tunnel.Properties.LogP!==void 0)?Common.Util.Numbers.roundToDecimal(tunnel.Properties.LogP,2).toString():'N/A';
+                let logD = (tunnel.Properties.LogD!==null&&tunnel.Properties.LogD!==void 0)?Common.Util.Numbers.roundToDecimal(tunnel.Properties.LogD,2).toString():'N/A';
+                let logS = (tunnel.Properties.LogS!==null&&tunnel.Properties.LogS!==void 0)?Common.Util.Numbers.roundToDecimal(tunnel.Properties.LogS,2).toString():'N/A';
+                let ionizable = (tunnel.Properties.Ionizable!==null&&tunnel.Properties.Ionizable!==void 0)?Common.Util.Numbers.roundToDecimal(tunnel.Properties.Ionizable,2).toString():'N/A';
 
                 template = this.replacePlaceholder(template,"TUNNEL-PROPS-LENGTH",length);
                 template = this.replacePlaceholder(template,"TUNNEL-PROPS-BOTTLENECK",bottleneck);
@@ -274,7 +273,7 @@ namespace PDFReportGenerator.UI{
                 }
                 template = this.replacePlaceholder(template, "URL",Common.Util.Router.getCurrentUrl());
                 
-                let isUserStructure = compInfo.PdbId===null;
+                let isUserStructure = compInfo.PdbId===void 0 || compInfo.PdbId===null || compInfo.PdbId === "";
 
                 template = this.replacePlaceholder(template, "PDBID",(isUserStructure)?"User structure":compInfo.PdbId);
 

@@ -48,7 +48,6 @@ namespace MoleOnlineWebUI.DataProxy{
                 }
 
                 let hndlrs = [];
-                //this.handlers = [];
                 for(let h of this.handlers){
                     if(h.compId===compId){
                         h.handler(compId,info);
@@ -279,7 +278,6 @@ namespace MoleOnlineWebUI.DataProxy{
                 }
 
                 let hndlrs = [];
-                //this.handlers = [];
                 for(let h of this.handlers){
                     if(h.compId===compId){
                         h.handler(compId,info);
@@ -387,7 +385,6 @@ namespace MoleOnlineWebUI.DataProxy{
                     return;
                 }
 
-                //this.handlers = [];
                 for(let h of this.handlers){
                     h.handler(info);
                 }

@@ -1,7 +1,6 @@
 namespace LoadingScreen.UI{
     
         import React = LiteMol.Plugin.React
-        import LiteMoleEvent = LiteMol.Bootstrap.Event;
     
         export function render(target: Element) {
             LiteMol.Plugin.ReactDOM.render(<App />, target);

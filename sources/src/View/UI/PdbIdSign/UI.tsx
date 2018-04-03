@@ -1,7 +1,6 @@
 namespace PdbIdSign.UI{
 
     import React = LiteMol.Plugin.React
-    import LiteMoleEvent = LiteMol.Bootstrap.Event;
 
     export function render(target: Element) {
         LiteMol.Plugin.ReactDOM.render(<App />, target);
@@ -17,7 +16,12 @@ namespace PdbIdSign.UI{
                 return;
             }
             MoleOnlineWebUI.Service.MoleAPI.ApiService.getComputationInfoList(params.computationId).then((res)=>{
-               this.setState({pdbid:res.PdbId}); 
+                if(res.PdbId===""||res.PdbId===null||res.PdbId===void 0){
+                    this.setState({err:"---"});
+                }
+                else{
+                    this.setState({pdbid:res.PdbId}); 
+                }
             })
             .catch(err=>{
                 this.setState({err:"<Error>"});

@@ -7,7 +7,6 @@ namespace LiteMol.Example.Channels.UI {
     declare function $(p:any): any;
 
     import React = LiteMol.Plugin.React
-    import Transformer = LiteMol.Bootstrap.Entity.Transformer;
 
     export function render(plugin: Plugin.Controller, target: Element) {
         LiteMol.Plugin.ReactDOM.render(<App plugin={plugin} />, target);
@@ -57,7 +56,7 @@ namespace LiteMol.Example.Channels.UI {
         }
 
         load(channelsDB:boolean) {
-            this.setState({ isLoading: true, error: void 0 });      //https://webchem.ncbr.muni.cz/API/ChannelsDB/PDB/1tqn
+            this.setState({ isLoading: true, error: void 0 });
             State.loadData(this.props.plugin,channelsDB)
                 .then(data => {
                     if(Config.CommonOptions.DEBUG_MODE)
@@ -94,7 +93,12 @@ namespace LiteMol.Example.Channels.UI {
                     }
                 })
                 .catch(e => {
-                    this.setState({ isLoading: false, error: 'Application was unable to load data. Please try again later.', data: void 0 });
+                    let errMessage = 'Application was unable to load data. Please try again later.';
+                    if(e!==void 0 && e!==null && String(e).length>0){
+                        errMessage = String(e);
+                    }
+
+                    this.setState({ isLoading: false, error: errMessage, data: void 0 });
                 });
         }
 
@@ -266,7 +270,6 @@ namespace LiteMol.Example.Channels.UI {
     export class Selection extends React.Component<State, { label?: string|JSX.Element }> {
         state = { label: void 0}
 
-        //private observer: Bootstrap.Rx.IDisposable | undefined = void 0;
         private observerChannels: Bootstrap.Rx.IDisposable | undefined = void 0;
         componentWillMount() {
             CommonUtils.Selection.SelectionHelper.attachOnResidueBulkSelectHandler(((r:CommonUtils.Selection.LightResidueInfo[])=>{    
@@ -355,10 +358,6 @@ namespace LiteMol.Example.Channels.UI {
         }
 
         componentWillUnmount() {
-            /*if (this.observer) {
-                this.observer.dispose();
-                this.observer = void 0;
-            }*/
             if (this.observerChannels) {
                 this.observerChannels.dispose();
                 this.observerChannels = void 0;
@@ -372,7 +371,6 @@ namespace LiteMol.Example.Channels.UI {
                     <div className="btn btn-xs btn-default ui-selection-clear" onClick={(e)=>{
                         let plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
                         CommonUtils.Selection.SelectionHelper.clearSelection(plugin);
-                        //CommonUtils.Selection.SelectionHelper.clearAltSelection(plugin);
                         }} title="Clear selection"><span className="glyphicon glyphicon-trash"/></div>
                 </div>  
                 <div className="ui-selection">{ !this.state.label 
@@ -398,31 +396,6 @@ namespace LiteMol.Example.Channels.UI {
             </div>
         }
     }
-
-    /*
-    export class Renderable extends React.Component<{ label: string | JSX.Element, annotations?:MoleOnlineWebUI.Service.ChannelsDBAPI.ChannelAnnotation[], element: any, toggle: (plugin: Plugin.Controller, elements: any[], visible: boolean) => Promise<any> } & State, { }> {
-    
-        private toggle() {
-            this.props.element.__isBusy = true;
-            this.forceUpdate(() =>
-                this.props.toggle(this.props.plugin, [this.props.element], !this.props.element.__isVisible)
-                    .then(() => this.forceUpdate()).catch(() => this.forceUpdate()));
-        }
-
-        private highlight(isOn: boolean) {
-            this.props.plugin.command(Bootstrap.Command.Entity.Highlight, { entities: this.props.plugin.context.select(this.props.element.__id), isOn });
-        }
-
-
-        render() {           
-            return <div className="ui-label">
-                <input type='checkbox' checked={!!this.props.element.__isVisible} onChange={() => this.toggle()} disabled={!!this.props.element.__isBusy} />
-                <label className="ui-label-element" onMouseEnter={() => this.highlight(true)} onMouseLeave={() => this.highlight(false)} >
-                     {this.props.label}
-                </label>
-            </div>
-        }
-    }*/
 
     export class Renderable extends React.Component<{ label: string | JSX.Element, element: any, annotations?: MoleOnlineWebUI.Service.ChannelsDBAPI.ChannelAnnotation[], toggle: (plugin: Plugin.Controller, elements: any[], visible: boolean) => Promise<any> } & State, { isAnnotationsVisible:boolean }> {
         
@@ -520,23 +493,6 @@ namespace LiteMol.Example.Channels.UI {
                     this.selectChannel(false);
                 }
             }).bind(this));
-        }
-
-        private dataWaitHandler(){
-            let state = this.state;
-            state.isWaitingForData = false;
-            this.setState(state);
-        }
-
-        public invokeDataWait(){
-            if(this.state.isWaitingForData){
-                return;
-            }
-
-            let state = this.state;
-            state.isWaitingForData = true;
-            this.setState(state);
-            //Annotation.AnnotationDataProvider.subscribeForData(this.dataWaitHandler.bind(this));
         }
 
         render() {

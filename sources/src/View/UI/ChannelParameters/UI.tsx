@@ -2,14 +2,11 @@ namespace ChannelParameters.UI{
 
     import DGComponents = Datagrid.Components;
     import React = LiteMol.Plugin.React
-    import LiteMoleEvent = LiteMol.Bootstrap.Event;
-    import TunnelUtils = CommonUtils.Tunnels;
     
     let DGTABLE_COLS_COUNT = 2;
     let NO_DATA_MESSAGE = "Select channel in 3D view for details...";
 
     declare function $(p:any): any;
-    declare function datagridOnResize(str:string,str1:string,str2:string):any;
 
     interface State{
         data: DataInterface.Tunnel[] | null,
@@ -17,27 +14,11 @@ namespace ChannelParameters.UI{
         app: App
     };
 
-    interface ChannelEventInfo { 
-        kind: LiteMol.Bootstrap.Interactivity.Info.__Kind.Selection | LiteMol.Bootstrap.Interactivity.Info.__Kind.Empty,
-        source : {
-            props: {
-                tag: {
-                    element: DataInterface.Tunnel,
-                    type: String
-                }
-            },
-            ref: string
-        }
-        
-    };
-
     export function render(target: Element, plugin: LiteMol.Plugin.Controller) {
         LiteMol.Plugin.ReactDOM.render(<App controller={plugin} />, target);
     }
 
     export class App extends React.Component<{controller: LiteMol.Plugin.Controller }, State> {
-
-        private interactionEventStream: LiteMol.Bootstrap.Rx.IDisposable | undefined = void 0;
 
         state:State = {
             data: null,
@@ -174,7 +155,7 @@ namespace ChannelParameters.UI{
                 if(t.Id===this.props.currentTunnel){
                     let length = [
                         <span><span className="glyphicon glyphicon-resize-horizontal properties-icon" />{"Length"}</span>,
-                        <span>{CommonUtils.Numbers.roundToDecimal(CommonUtils.Tunnels.getLength(t),2).toString()}</span>
+                        <span>{Common.Util.Numbers.roundToDecimal(CommonUtils.Tunnels.getLength(t),2).toString()}</span>
                     ];
                     let bottleneck = [
                         <span><span className="icon bottleneck black properties-icon" />{"Bottleneck"}</span>,
@@ -182,35 +163,35 @@ namespace ChannelParameters.UI{
                     ];
                     let hydropathy = [
                         <span><span className="glyphicon glyphicon-tint properties-icon" />{"Hydropathy"}</span>,
-                        <span>{CommonUtils.Numbers.roundToDecimal(t.Properties.Hydropathy,2).toString()}</span>
+                        <span>{Common.Util.Numbers.roundToDecimal(t.Properties.Hydropathy,2).toString()}</span>
                     ];
                     let charge = [
                         <span><span className="glyphicon glyphicon-flash properties-icon" />{"Charge"}</span>,
-                        <span>{CommonUtils.Numbers.roundToDecimal(t.Properties.Charge,2).toString()}</span>
+                        <span>{Common.Util.Numbers.roundToDecimal(t.Properties.Charge,2).toString()}</span>
                     ];
                     let polarity = [
                         <span><span className="glyphicon glyphicon-plus properties-icon" />{"Polarity"}</span>,
-                        <span>{CommonUtils.Numbers.roundToDecimal(t.Properties.Polarity,2).toString()}</span>
+                        <span>{Common.Util.Numbers.roundToDecimal(t.Properties.Polarity,2).toString()}</span>
                     ];
                     let mutability = [
                         <span><span className="glyphicon glyphicon-scissors properties-icon" />{"Mutability"}</span>,
-                        <span>{CommonUtils.Numbers.roundToDecimal(t.Properties.Mutability,2).toString()}</span>
+                        <span>{Common.Util.Numbers.roundToDecimal(t.Properties.Mutability,2).toString()}</span>
                     ];
                     let logP=[
                         <span><span className="icon logp black properties-icon" />{"LogP"}</span>,
-                        <span>{(t.Properties.LogP)?CommonUtils.Numbers.roundToDecimal(t.Properties.LogP,2):'N/A'}</span>
+                        <span>{(t.Properties.LogP)?Common.Util.Numbers.roundToDecimal(t.Properties.LogP,2):'N/A'}</span>
                     ];
                     let logD=[
                         <span><span className="icon logd black properties-icon" />{"LogD"}</span>,
-                        <span>{(t.Properties.LogD)?CommonUtils.Numbers.roundToDecimal(t.Properties.LogD,2):'N/A'}</span>
+                        <span>{(t.Properties.LogD)?Common.Util.Numbers.roundToDecimal(t.Properties.LogD,2):'N/A'}</span>
                     ];
                     let logS=[
                         <span><span className="icon logs black properties-icon" />{"LogS"}</span>,
-                        <span>{(t.Properties.LogS)?CommonUtils.Numbers.roundToDecimal(t.Properties.LogS,2):'N/A'}</span>
+                        <span>{(t.Properties.LogS)?Common.Util.Numbers.roundToDecimal(t.Properties.LogS,2):'N/A'}</span>
                     ];
                     let ionizable=[
                         <span><span className="icon ionizable black properties-icon" />{"Ionizable"}</span>,
-                        <span>{(t.Properties.Ionizable)?CommonUtils.Numbers.roundToDecimal(t.Properties.Ionizable,2):'N/A'}</span>
+                        <span>{(t.Properties.Ionizable)?Common.Util.Numbers.roundToDecimal(t.Properties.Ionizable,2):'N/A'}</span>
                     ];
                     //Length
                     rows.push(

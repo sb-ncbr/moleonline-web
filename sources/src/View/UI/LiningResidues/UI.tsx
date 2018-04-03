@@ -2,33 +2,15 @@ namespace LiningResidues.UI{
 
     import DGComponents = Datagrid.Components;
     import React = LiteMol.Plugin.React
-    import LiteMoleEvent = LiteMol.Bootstrap.Event;
-    import TunnelUtils = CommonUtils.Tunnels;
-    
+
     let DGTABLE_COLS_COUNT = 2;
     let NO_DATA_MESSAGE = "Select channel in 3D view for details...";
 
-    declare function $(p:any): any;
-    declare function datagridOnResize(str:string,str1:string,str2:string):any;
+    declare function $(p:any): any;    
 
     interface State{
         data: string[] | null,
         app: App,
-        isWaitingForData: boolean
-    };
-
-    interface ChannelEventInfo { 
-        kind: LiteMol.Bootstrap.Interactivity.Info.__Kind.Selection | LiteMol.Bootstrap.Interactivity.Info.__Kind.Empty,
-        source : {
-            props: {
-                tag: {
-                    element: DataInterface.Tunnel,
-                    type: String
-                }
-            },
-            ref: string
-        }
-        
     };
 
     export function render(target: Element, plugin: LiteMol.Plugin.Controller) {
@@ -37,12 +19,9 @@ namespace LiningResidues.UI{
 
     export class App extends React.Component<{controller: LiteMol.Plugin.Controller }, State> {
 
-        private interactionEventStream: LiteMol.Bootstrap.Rx.IDisposable | undefined = void 0;
-
         state:State = {
             data: null,
             app: this,
-            isWaitingForData: false
         };
 
         layerIdx = -1;
@@ -69,19 +48,6 @@ namespace LiningResidues.UI{
                 this.setState(state);
             });
         }
-        /*
-        private dataWaitHandler(){
-            this.setState({isWaitingForData:false});
-        }
-
-        public invokeDataWait(){
-            if(this.state.isWaitingForData){
-                return;
-            }
-
-            this.setState({isWaitingForData: true});
-            Annotation.AnnotationDataProvider.subscribeForData(this.dataWaitHandler.bind(this));
-        }*/
 
         componentWillUnmount(){
         }
@@ -133,7 +99,6 @@ namespace LiningResidues.UI{
                 residues.push(residueStringToResidueLight(residue));
             }
 
-            //CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
             CommonUtils.Selection.SelectionHelper.addResiduesToSelection(residues,false);
         }
 
@@ -157,7 +122,6 @@ namespace LiningResidues.UI{
                 }
             }
 
-            //CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
             CommonUtils.Selection.SelectionHelper.addResiduesToSelection(ionizableResidues,false);
         }
 
@@ -166,7 +130,6 @@ namespace LiningResidues.UI{
                 <span className="btn-xs btn-default bt-ionizable hand" onClick={this.selectIonizable.bind(this)}>Select ionizable</span>
                 <span className="btn-xs btn-default bt-all hand" onClick={this.selectAll.bind(this)}>Select all</span>
             </div>
-            //<span className="btn-xs btn-default bt-none hand" onClick={this.clearSelection.bind(this)}>Clear selection</span>
         }
     }
 
@@ -243,7 +206,7 @@ namespace LiningResidues.UI{
         private generateSpannedRows(residue:string, annotations: MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation[]){
             let trs:JSX.Element[] = [];
 
-            let residueNameEl = this.getSelect3DLink(residue);//(this.isBackbone(residue))?<i><strong>{this.shortenBackbone(residue)}</strong></i>:<span>{residue}</span>;
+            let residueNameEl = this.getSelect3DLink(residue);
 
             let first = true;
             for(let annotation of annotations){
@@ -274,8 +237,7 @@ namespace LiningResidues.UI{
         }
 
         private generateRows(){
-            /*let channelsDBMode = CommonUtils.Router.isInChannelsDBMode();*/
-            let columnsCount = DGTABLE_COLS_COUNT;/* + ((channelsDBMode)?1:0);*/
+            let columnsCount = DGTABLE_COLS_COUNT;
             if(this.props.data === null){
                 return <DGComponents.DGNoDataInfoRow columnsCount={DGTABLE_COLS_COUNT} infoText={NO_DATA_MESSAGE}/>;
             }
@@ -294,7 +256,7 @@ namespace LiningResidues.UI{
 
                 let seqNumberAndChain = `${residueInfo[0].authSeqNumber} ${residueInfo[0].chain.authAsymId}`;
                 let annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getResidueAnnotationsImmediate(seqNumberAndChain);
-                if(/*channelsDBMode && */annotations !== null && annotations.length>0){             
+                if(annotations !== null && annotations.length>0){             
                     if(annotations.length>1){
                         rows = rows.concat(
                             this.generateSpannedRows(residue,annotations)

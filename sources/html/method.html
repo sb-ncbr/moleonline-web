@@ -9,11 +9,21 @@
 	<link rel="shortcut icon" href="\images/favicon.ico" type="image/icon">
 	<script type="text/javascript" src="\js/old-web/jsloader.js"></script>
 	<link rel="stylesheet" type="text/css" media="screen" href="\css/old-web/cssloader.css">
-		<link rel="stylesheet" href="\css/old-web/print.front.css" type="text/css" media="print">
-		<link rel="stylesheet" href="\css/old-web/LiteMol-plugin.css" type="text/css">
-		<link rel="stylesheet" href="\css/init-styles.css?version=1.5.1.1" type="text/css">
+	<link rel="stylesheet" href="\css/old-web/print.front.css" type="text/css" media="print">
+	<link rel="stylesheet" href="\css/old-web/LiteMol-plugin.css" type="text/css">
+	<link rel="stylesheet" href="\css/init-styles.css?version=<!UI-VERSION!>" type="text/css">
+	<script src="\js/provided.js?version=<!UI-VERSION!>"></script>
+	<script src="\js/scripts.js?version=<!UI-VERSION!>"></script>  
 
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-4336835-7"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
 
+		gtag('config', 'UA-4336835-7');
+	</script>
 </head>
 
 <body>
@@ -39,7 +49,8 @@
 			<a class="active" href="/method">Method</a> | 
 			<a href="/examples">Examples</a> | 
 			<a href="/tour">Tour</a> | 
-			<a href="/faq">FAQ</a>
+			<a href="/faq">FAQ</a> |
+			<a href="/features">Features</a>
 		</div>
 	<h3>Methods and other Details</h3>
 	<h4>MOLE<em>online</em> algorithm </h4>
@@ -237,21 +248,15 @@
 	</figure>
 
 	</div> <!-- #content -->
-	<hr class="cleaner">
 
+	<hr class="cleaner">
+	<div id="version-block" data-ui-version="<!UI-VERSION!>" />
+		
 </div> <!-- #page -->
 
 <div id="ajaxspinner"></div>
 
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-4336835-7"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'UA-4336835-7');
-</script>
+<script src="\MoleOnlineWebUI-Core-Init.js?version=<!UI-VERSION!>"></script>
 </body>
 </html>
 

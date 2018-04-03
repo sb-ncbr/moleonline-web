@@ -1,8 +1,6 @@
 namespace SequenceViewer.UI{
 
     import React = LiteMol.Plugin.React
-    import LiteMoleEvent = LiteMol.Bootstrap.Event;
-    import Transformer = LiteMol.Bootstrap.Entity.Transformer;
     
     declare function $(p:any): any;
 

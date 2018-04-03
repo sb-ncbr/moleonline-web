@@ -9,12 +9,10 @@ namespace AglomeredParameters.UI{
     let DGTABLE_COLS_COUNT = 11;
 
     declare function $(p:any): any;
-    declare function datagridOnResize(str:string):any;
 
     interface State{
         data: DataInterface.Tunnel[] | null,
         app: App,
-        isWaitingForData: boolean
     };
 
     export function render(target: Element, plugin: LiteMol.Plugin.Controller) {
@@ -24,18 +22,14 @@ namespace AglomeredParameters.UI{
     interface Props{controller: LiteMol.Plugin.Controller}
     export class App extends React.Component<Props, State> {
 
-        private interactionEventStream: LiteMol.Bootstrap.Rx.IDisposable | undefined = void 0;
-
         state:State = {
             data: null,
             app: this,
-            isWaitingForData: false
         };
 
         componentDidMount() {
             MoleOnlineWebUI.Bridge.Events.subscribeChannelDataLoaded((data)=>{
                 let toShow:DataInterface.Tunnel[] = [];
-                /*let data = e.data.props.data as DataInterface.MoleOnlineData;*/
                 let channelsDbTunnels = data.Channels as DataInterface.ChannelsDBChannels;
                 let moleTunnels = data.Channels as DataInterface.MoleChannels;
 
@@ -54,21 +48,7 @@ namespace AglomeredParameters.UI{
                 this.setState(state);
                 $( window ).trigger("contentResize");
             });
-            /*
-            LiteMoleEvent.Tree.NodeAdded.getStream(this.props.controller.context).subscribe(e => {
-                if(e.data.tree !== void 0 && e.data.ref === "mole-data"){
-                    let toShow:DataInterface.Tunnel[] = [];
-                    let data = e.data.props.data as DataInterface.MoleOnlineData;
-                    toShow = toShow.concat(data.Channels.Tunnels);
-                    toShow = toShow.concat(data.Channels.Paths);
-                    toShow = toShow.concat(data.Channels.Pores);
-                    toShow = toShow.concat(data.Channels.MergedPores);
-                    let state = this.state;
-                    state.data = toShow;
-                    this.setState(state);
-                    $( window ).trigger("contentResize");
-                }
-            });*/
+
             LiteMoleEvent.Tree.NodeRemoved.getStream(this.props.controller.context).subscribe(e => {
                 if(e.data.tree !== void 0 && e.data.ref === "mole-data"){
                     let state = this.state;
@@ -78,20 +58,7 @@ namespace AglomeredParameters.UI{
             });
             this.forceUpdate();
         }
-/*
-        private dataWaitHandler(){
-            this.setState({isWaitingForData:false});
-        }
 
-        public invokeDataWait(){
-            if(this.state.isWaitingForData){
-                return;
-            }
-
-            this.setState({isWaitingForData: true});
-            Annotation.AnnotationDataProvider.subscribeForData(this.dataWaitHandler.bind(this));
-        }
-*/
         componentWillUnmount(){
         }
 
@@ -228,28 +195,28 @@ namespace AglomeredParameters.UI{
                             {CommonUtils.Tunnels.getBottleneck(this.props.tunnel)} Å
                         </td>
                         <td className="col col-4">
-                            {CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.Hydropathy,2)}
+                            {Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.Hydropathy,2)}
                         </td>
                         <td className="col col-5">
-                            {CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.Charge,2)}
+                            {Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.Charge,2)}
                         </td>
                         <td className="col col-6">
-                            {CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.Polarity,2)}
+                            {Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.Polarity,2)}
                         </td>
                         <td className="col col-7">
-                            {CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.Mutability,2)}
+                            {Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.Mutability,2)}
                         </td>        
                         <td className="col col-8">
-                            {(this.props.tunnel.Properties.LogP)?CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.LogP,2):'N/A'}
+                            {(this.props.tunnel.Properties.LogP)?Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.LogP,2):'N/A'}
                         </td>               
                         <td className="col col-9">
-                            {(this.props.tunnel.Properties.LogD)?CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.LogD,2):'N/A'}
+                            {(this.props.tunnel.Properties.LogD)?Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.LogD,2):'N/A'}
                         </td>               
                         <td className="col col-10">
-                            {(this.props.tunnel.Properties.LogS)?CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.LogS,2):'N/A'}
+                            {(this.props.tunnel.Properties.LogS)?Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.LogS,2):'N/A'}
                         </td>               
                         <td className="col col-11">
-                            {(this.props.tunnel.Properties.Ionizable)?CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.Ionizable,2):'N/A'}
+                            {(this.props.tunnel.Properties.Ionizable)?Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.Ionizable,2):'N/A'}
                         </td>               
                     </tr>);
         }

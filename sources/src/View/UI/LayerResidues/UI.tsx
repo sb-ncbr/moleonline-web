@@ -2,34 +2,17 @@ namespace LayerResidues.UI{
 
     import DGComponents = Datagrid.Components;
     import React = LiteMol.Plugin.React
-    import LiteMoleEvent = LiteMol.Bootstrap.Event;
-    import TunnelUtils = CommonUtils.Tunnels;
     
     let DGTABLE_COLS_COUNT = 2;
     let NO_DATA_MESSAGE = "Hover over channel(2D) for details...";
 
     declare function $(p:any): any;
-    declare function datagridOnResize(str:string,str1:string,str2:string):any;
 
     interface State{
         data: DataInterface.LayersInfo[] | null,
         app: App,
-        layerIdx: number,
-        /*isWaitingForData: boolean*/
-    };
-
-    interface ChannelEventInfo { 
-        kind: LiteMol.Bootstrap.Interactivity.Info.__Kind.Selection | LiteMol.Bootstrap.Interactivity.Info.__Kind.Empty,
-        source : {
-            props: {
-                tag: {
-                    element: DataInterface.Tunnel,
-                    type: String
-                }
-            },
-            ref: string
-        }
-        
+        layerIds: number[],
+        selectionOn: boolean
     };
 
     export function render(target: Element, plugin: LiteMol.Plugin.Controller) {
@@ -38,46 +21,60 @@ namespace LayerResidues.UI{
 
     export class App extends React.Component<{controller: LiteMol.Plugin.Controller }, State> {
 
-        private interactionEventStream: LiteMol.Bootstrap.Rx.IDisposable | undefined = void 0;
-
         state:State = {
             data: null,
             app: this,
-            layerIdx: -1,
-            /*isWaitingForData: false*/
+            layerIds: [],
+            selectionOn: false
         };
-
-        layerIdx = -1;
 
         componentDidMount() {
             CommonUtils.Selection.SelectionHelper.attachOnChannelDeselectHandler(()=>{
                 let state = this.state;
-                state.layerIdx = -1;
+                state.layerIds = [];
                 state.data = null;
                 this.setState(state);
             });
             CommonUtils.Selection.SelectionHelper.attachOnChannelSelectHandler((data)=>{
                 let state = this.state;
-                state.layerIdx = -1;
+                state.layerIds = [];
                 state.data = data.LayersInfo;
                 this.setState(state);
             });
             MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId(()=>{
                 let state = this.state;
-                state.layerIdx = -1;
+                state.layerIds = [];
                 state.data = null;
                 this.setState(state);
             });
             
             $( window ).on('layerTriggered', this.layerTriggerHandler.bind(this));
+            $( window ).on('layerSelected', this.layerSelectedHandler.bind(this));
         }
 
-        private layerTriggerHandler(event:any,layerIdx:number){
-
-            this.layerIdx = layerIdx;
-            
+        private layerTriggerHandler(event:any,layerIdx:number){            
             let state = this.state;
-            state.layerIdx = layerIdx;
+
+            if(state.selectionOn){
+                return;
+            }
+
+            state.layerIds = [layerIdx];
+
+            this.setState(state);
+
+            setTimeout(function(){
+                $( window ).trigger('contentResize');
+            },1);
+        }
+
+        private layerSelectedHandler(event:any, data: { layerIds:number[] }){
+            let state = this.state;
+
+            state.layerIds = data.layerIds;
+
+            state.selectionOn = state.layerIds.length>0;
+
             this.setState(state);
 
             setTimeout(function(){
@@ -89,7 +86,7 @@ namespace LayerResidues.UI{
         }
 
         render() {
-            if (this.state.data !== null && this.state.layerIdx>=0) {
+            if (this.state.data !== null && this.state.layerIds.length>0) {
                 return(
                     <div>
                         <DGTable {...this.state} />
@@ -166,7 +163,7 @@ namespace LayerResidues.UI{
         private generateSpannedRows(residue:string, annotations: MoleOnlineWebUI.Service.ChannelsDBAPI.ResidueAnnotation[]){
             let trs:JSX.Element[] = [];
 
-            let residueNameEl = residue;//(this.isBackbone(residue))?<i><strong>{this.shortenBackbone(residue)}</strong></i>:<span>{residue}</span>;
+            let residueNameEl = residue;
 
             let first = true;
             for(let annotation of annotations){
@@ -195,16 +192,31 @@ namespace LayerResidues.UI{
             }
             return trs;
         }
+
+        private getResidues(layerIds:number[]):string[]{
+            if(this.props.data===null){
+                return [];
+            }
+
+            let residuesSet = new Set();
+            for(let idx of layerIds){
+                for(let r of this.props.data[idx].Residues){
+                    residuesSet.add(r);
+                }
+            }
+
+            return Array.from(residuesSet.values());
+        }
         
         private generateRows(){
-            /*let channelsDBMode = CommonUtils.Router.isInChannelsDBMode();*/
-            let columnCount = DGTABLE_COLS_COUNT;/*+((channelsDBMode)?1:0);*/
+
+            let columnCount = DGTABLE_COLS_COUNT;
 
             if(this.props.data === null){
                 return <DGComponents.DGNoDataInfoRow columnsCount={columnCount} infoText={NO_DATA_MESSAGE}/>;
-            }
+            }            
 
-            let layerData = CommonUtils.Residues.sort(this.props.data[this.props.layerIdx].Residues,void 0, true, true);
+            let layerData = CommonUtils.Residues.sort(this.getResidues(this.props.layerIds),void 0, true, true);
             let rows:JSX.Element[] = [];
             
             for(let residue of layerData){
@@ -216,7 +228,7 @@ namespace LayerResidues.UI{
                 );
                 let seqNumberAndChain = `${residueInfo[0].authSeqNumber} ${residueInfo[0].chain.authAsymId}`;
                 let annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getResidueAnnotationsImmediate(seqNumberAndChain);
-                if(/*channelsDBMode&&*/annotations!==null&&annotations.length>0){
+                if(annotations!==null&&annotations.length>0){
                     if(annotations.length>1){
                         rows = rows.concat(this.generateSpannedRows(residueId,annotations));
                     }

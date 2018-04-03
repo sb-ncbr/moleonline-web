@@ -3,7 +3,8 @@ import * as gulp from 'gulp'
 import compilets from './ext/Compile'
 
 let DEBUG = false;
-let  environment = (process.env.ENVIRONMENT!==void 0)?process.env.ENVIRONMENT:"local";
+let environment = (process.env.ENVIRONMENT!==void 0)?process.env.ENVIRONMENT:"local";
+var versionNumber = "1.5.1_NP_6"+((DEBUG)?Math.random().toString():'');
 
 console.log(`Building for '${environment}' environment...`);
 
@@ -119,6 +120,14 @@ function copyHtmlFiles(){
         return plugins.merge()([files]);
 }
 
+function WebVersions() {
+    return gulp.src(['./build/online/**/*.html'])
+        .pipe(plugins.replace()(/<!UI-VERSION!>/g, function (s) {
+            return versionNumber;
+        })) 
+        .pipe(gulp.dest('./build/online'));
+}
+
 gulp.task('Clean', ['Clean-Tmp'], function () {
     console.log("Cleaning build folder...");
     return gulp
@@ -154,11 +163,14 @@ gulp.task('MoleOnlineWebUI-View-Resources', ['MoleOnlineWebUI-View-Core'], build
 gulp.task('MoleOnlineWebUI-Init-Resources', ['MoleOnlineWebUI-Init-Core'], buildInitResources);
 gulp.task('MoleOnlineWebUI-Copy-Html-Files', ['Clean'], copyHtmlFiles);
 
+gulp.task('MoleOnlineWebUI-Set-Version', ['MoleOnlineWebUI-Copy-Html-Files'], WebVersions);
+
 gulp.task('default', [
     'Clean',
     'MoleOnlineWebUI-View-Resources',
     'MoleOnlineWebUI-Init-Resources',
-    'MoleOnlineWebUI-Copy-Html-Files'
+    //'MoleOnlineWebUI-Copy-Html-Files'
+    'MoleOnlineWebUI-Set-Version'
 ], function () {
     console.log('Done');
 });

@@ -149,8 +149,8 @@ namespace CommonUtils.Selection{
         }
 
         public static clearSelection(plugin:LiteMol.Plugin.Controller){
-            this.clearSelectionPrivate(plugin);    
-            this.invokeOnClearSelectionHandlers();        
+            this.clearSelectionPrivate(plugin); 
+            this.invokeOnClearSelectionHandlers();           
             //this.resetScene(plugin);
         }
 
@@ -710,7 +710,6 @@ namespace CommonUtils.Selection{
                     //Trigger Sequence Viewer to deselect selected residues
                     this.clearSelection(plugin);
                 }
-
                 this.selectedChannelRef = i.source.ref;
                 this.selectedChannelData = i.source.props.tag.element.Layers;
                 this.selectedChannelId = i.source.props.tag.element.Id;

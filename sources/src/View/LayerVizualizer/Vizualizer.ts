@@ -129,7 +129,7 @@ namespace LayersVizualizer{
 
         private resizePercentPrecision: number;
 
-        private selectedLayerIdx: number;
+        private selectedLayerIds: number[];
 
         private __colorFunctionSetings: Map<string,ColorPaletteFunctionSettings>;
 
@@ -498,7 +498,7 @@ namespace LayersVizualizer{
 
             this.tmpCanvasId = `tmpCanvas_${this.publicInstanceIdx}`;
 
-            this.selectedLayerIdx = -1;
+            this.selectedLayerIds = [];
 
             this.__colorFunctionSetings = new Map<string,ColorPaletteFunctionSettings>();
 
@@ -508,8 +508,8 @@ namespace LayersVizualizer{
             $( window ).on("lvContentResize", this.onContentResize.bind(this));
         }
 
-        public deselectLayer(){
-            this.selectedLayerIdx = -1;
+        public deselectLayers(){
+            this.selectedLayerIds = [];
 
             let tunnels = this.getTunnels();
             if(tunnels === null){
@@ -517,34 +517,30 @@ namespace LayersVizualizer{
             }
 
             if(tunnels.default!==null){
-                tunnels.default.tunnel.deselectLayer();
+                tunnels.default.tunnel.selectLayers([]);
             }
             if(tunnels.customizable!==null){
-                tunnels.customizable.tunnel.deselectLayer();
+                tunnels.customizable.tunnel.selectLayers([]);
             }
         }
 
-        public selectLayer(layerIdx:number){        
-            if(layerIdx<0){
-                return
-            }
-
-            this.selectedLayerIdx = layerIdx;
+        public selectLayers(layerIds:number[]){        
+            this.selectedLayerIds = layerIds;
             let tunnels = this.getTunnels();
             if(tunnels === null){
                 return;
             }
 
             if(tunnels.default!==null){
-                tunnels.default.tunnel.selectLayer(layerIdx);
+                tunnels.default.tunnel.selectLayers(this.selectedLayerIds);
             }
             if(tunnels.customizable!==null){
-                tunnels.customizable.tunnel.selectLayer(layerIdx);
+                tunnels.customizable.tunnel.selectLayers(this.selectedLayerIds);
             }
         }
 
-        public getSelectedLayer():number{
-            return this.selectedLayerIdx;
+        public getSelectedLayer():number[]{
+            return this.selectedLayerIds;
         }
 
         public setResizePercentPrecision(percentPrecision:number){
@@ -583,7 +579,7 @@ namespace LayersVizualizer{
         
         public setData(layersData:DataInterface.LayerData[]){
             this.currentLayerIdx = -1;
-            this.selectedLayerIdx = -1;
+            this.selectedLayerIds = [];
             this.data = layersData;
             this.dataDirty = true;
         }
@@ -754,7 +750,7 @@ namespace LayersVizualizer{
                 positioning.defaultColorMixerHorizontal.top = 
                     positioning.defaultTunnel.top
                     +positioning.defaultTunnel.marginTop
-                    -(cmhHeight+1/*1=margin-bottom*/);
+                    -(cmhHeight+1/*(1=>margin-bottom)*/);
                 positioning.defaultColorMixerHorizontal.height = cmhHeight;
             }
             //Customizable Color Mixer
@@ -1049,7 +1045,7 @@ namespace LayersVizualizer{
                 positioning.customizableArrowheadLineLabel.left = positioning.customizableArrowheadLine.left
                     +ahLineWidth/2-ahLineLabelWidth/2;
                 positioning.customizableArrowheadLineLabel.top = positioning.customizableArrowheadLine.top
-                    +positioning.customizableArrowheadLine.marginTop;
+                    +positioning.customizableArrowheadLine.marginTop+1;
                 positioning.customizableArrowheadLineLabel.width = ahLineLabelWidth;
                 positioning.customizableArrowheadLineLabel.height = ahLineHeight;
             }
@@ -1222,7 +1218,7 @@ namespace LayersVizualizer{
             let layers = this.prepareLayersForVizualization();
 
             let maxDistance = layers.defaultTunnelLayers[layers.defaultTunnelLayers.length-1].end;
-            maxDistance = CommonUtils.Numbers.roundToDecimal(maxDistance,1); // round to 1 decimal
+            maxDistance = Common.Util.Numbers.roundToDecimal(maxDistance,1); // round to 1 decimal
 
             let positioning = this.getComponentsPositioning();
             
@@ -1277,8 +1273,6 @@ namespace LayersVizualizer{
                 tunnel: customizableTunnelData.tunnel,
                 bounds: customizableTunnelBounds
             };
-
-            //console.log(this.__tunnels);
 
             //Prepare color mixer objects
 
@@ -1359,12 +1353,12 @@ namespace LayersVizualizer{
             */
             // Label on top left side of color mixer for default tunnel
             toRender.push({
-                drawable: new TextBox(`${CommonUtils.Numbers.roundToDecimal(dTminVal,2)}`,context,"small","left"),
+                drawable: new TextBox(`${Common.Util.Numbers.roundToDecimal(dTminVal,2)}`,context,"small","left"),
                 bounds: positioning.dColorMixerLeftLabel.toBounds(canvasWidth,canvasHeight)   
             });
             // Label on top right side of color mixer for default tunnel
             toRender.push({
-                drawable: new TextBox(`${CommonUtils.Numbers.roundToDecimal(dTmaxVal,2)}`,context,"small","right"),
+                drawable: new TextBox(`${Common.Util.Numbers.roundToDecimal(dTmaxVal,2)}`,context,"small","right"),
                 bounds: positioning.dColorMixerRightLabel.toBounds(canvasWidth,canvasHeight)   
             });
             /*
@@ -1381,17 +1375,17 @@ namespace LayersVizualizer{
             */
             // Label on bottom left side of color mixer for customizable tunnel
             toRender.push({
-                drawable: new TextBox(`${CommonUtils.Numbers.roundToDecimal(cTminVal,2)}`,context,"small","left"),
+                drawable: new TextBox(`${Common.Util.Numbers.roundToDecimal(cTminVal,2)}`,context,"small","left"),
                 bounds: positioning.cColorMixerLeftLabel.toBounds(canvasWidth,canvasHeight)   
             });
             // Label on bottom right side of color mixer for customizable tunnel
             toRender.push({
-                drawable: new TextBox(`${CommonUtils.Numbers.roundToDecimal(cTmaxVal,2)}`,context,"small","right"),
+                drawable: new TextBox(`${Common.Util.Numbers.roundToDecimal(cTmaxVal,2)}`,context,"small","right"),
                 bounds: positioning.cColorMixerRightLabel.toBounds(canvasWidth,canvasHeight)   
             });
             // Curly brackets for default tunnel
             toRender.push({
-                drawable: new CurlyBrackets(context/*,true*/),
+                drawable: new CurlyBrackets(context),
                 bounds: positioning.defaultCurlyBrackets.toBounds(canvasWidth,canvasHeight)   
             });
             // Curly brackets Label for default tunnel
@@ -1401,7 +1395,7 @@ namespace LayersVizualizer{
             });
             // Curly brackets for customizable tunnel
             toRender.push({
-                drawable: new CurlyBrackets(context/*,true*/),
+                drawable: new CurlyBrackets(context),
                 bounds: positioning.customizableCurlyBrackets.toBounds(canvasWidth,canvasHeight)   
             });
             // Curly brackets Label for customizable tunnel
@@ -1441,8 +1435,8 @@ namespace LayersVizualizer{
             });
             this.renderObjects(toRender);
             
-            if(this.selectedLayerIdx !== -1){
-                this.selectLayer(this.selectedLayerIdx);
+            if(this.selectedLayerIds.length>0){
+                this.selectLayers(this.selectedLayerIds);
             }
 
             this.setCurrentColorFunctionSettings("default",defaultTunnelData.colorFunctionSettings);
@@ -1511,10 +1505,10 @@ namespace LayersVizualizer{
             }
             
             //Deselekce vrstvy
-            let selectedLayer = -1;
-            if(this.selectedLayerIdx !== -1){
-                selectedLayer = this.selectedLayerIdx;
-                this.deselectLayer();
+            let selectedLayers:number[] = [];
+            if(this.selectedLayerIds.length>0){
+                selectedLayers = this.selectedLayerIds;
+                this.selectLayers([]);
             }
 
             this.switchToTmpCanvas();
@@ -1526,7 +1520,7 @@ namespace LayersVizualizer{
             this.switchToMainCanvas();
 
             //Opetovne oznaceni vrstvy(stav pred exportem)
-            this.selectLayer(selectedLayer);
+            this.selectLayers(selectedLayers)
 
             return dataURL;
         }
@@ -1557,10 +1551,10 @@ namespace LayersVizualizer{
             }
             
             //Deselekce vrstvy
-            let selectedLayer = -1;
-            if(this.selectedLayerIdx !== -1){
-                selectedLayer = this.selectedLayerIdx;
-                this.deselectLayer();
+            let selectedLayers:number[] = [];
+            if(this.selectedLayerIds.length>0){
+                selectedLayers = this.selectedLayerIds;
+                this.deselectLayers();
             }
 
             this.switchToTmpCanvas();
@@ -1574,11 +1568,12 @@ namespace LayersVizualizer{
             this.switchToMainCanvas();
 
             //Opetovne oznaceni vrstvy(stav pred exportem)
-            this.selectLayer(selectedLayer);
+            this.selectLayers(selectedLayers);
 
             return svg;
         }
 
+        //TODO: Not working properly - image is not the same in PDF output as on screen => seems like a bug in jsPDF library
         public exportPDF():string{
 
             if(!this.isDOMBound||this.isDataDirty()){
@@ -1586,10 +1581,10 @@ namespace LayersVizualizer{
             }
 
             //Deselekce vrstvy
-            let selectedLayer = -1;
-            if(this.selectedLayerIdx !== -1){
-                selectedLayer = this.selectedLayerIdx;
-                this.deselectLayer();
+            let selectedLayers:number[] = [];
+            if(this.selectedLayerIds.length>0){
+                selectedLayers = this.selectedLayerIds;
+                this.deselectLayers();
             }
 
             this.switchToTmpCanvas();
@@ -1630,7 +1625,7 @@ namespace LayersVizualizer{
             //pdf.addSVG(svg, 0, 0, width, height);
 
             //Opetovne oznaceni vrstvy(stav pred exportem)
-            this.selectLayer(selectedLayer);
+            this.selectLayers(selectedLayers);
 
             return pdf.output('datauristring');
         }

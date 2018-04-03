@@ -26,7 +26,7 @@
 
     //Common Utils
     "CommonUtils/Tunnels.ts",  
-    "CommonUtils/Numbers.ts", 
+    "../Common/Util/Numbers.ts", 
     "CommonUtils/Residues.ts", 
     "CommonUtils/Selection.ts", 
     "../Common/Util/Router.ts", 
@@ -51,6 +51,7 @@
     "../TemplateService.ts",
     "../DataProxy.ts",
     "../Cache.ts",
+    "../PhysicoChemicalProperties.ts",
 
     //Layer Vizualizer
     "UI/LayerVizualizer/UI.tsx",
@@ -94,23 +95,21 @@
     //Channel Properties
     "UI/ChannelParameters/UI.tsx",
 
-    //Residue Annotations
-    /*"UI/ResidueAnnotations/UI.tsx", */
-
-    //Protein Annotations
-    /*"UI/ProteinAnnotations/UI.tsx",*/
-
     //PDF Report generátor
     "UI/PDFReportGenerator/UI.tsx",
 
     //Submit Settings
     "UI/Controls/UI.tsx",
+    "UI/Controls/FormData.ts",
 
     //Download report
     "UI/DownloadReport/UI.tsx",
 
     //PDB id sign
     "UI/PdbIdSign/UI.tsx",
+
+    //Help
+    "UI/Help/UI.tsx",
     
     //Sequence Viewer
     "UI/SequenceViewer/UI.tsx",

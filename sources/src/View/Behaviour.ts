@@ -10,15 +10,15 @@ namespace LiteMol.Example.Channels.Behaviour {
 
     export const CavityTheme = {
         inner: Visualization.Theme.createUniform({ 
-            colors: LiteMol.Core.Utils.FastMap.ofArray<string, LiteMol.Visualization.Color>([['Uniform', ColorScheme.Colors.get(ColorScheme.Enum.CavityInner)/*Visualization.Color.fromHex(0x999999)*/]]),
+            colors: LiteMol.Core.Utils.FastMap.ofArray<string, LiteMol.Visualization.Color>([['Uniform', ColorScheme.Colors.get(ColorScheme.Enum.CavityInner)]]),
             transparency: { alpha: 0.33 }
         }),
         boundary: Visualization.Theme.createUniform({ 
-            colors: LiteMol.Core.Utils.FastMap.ofArray<string, LiteMol.Visualization.Color>([['Uniform', ColorScheme.Colors.get(ColorScheme.Enum.CavityBoundary)/*Visualization.Color.fromHex(0x90ee90)*/]]),
+            colors: LiteMol.Core.Utils.FastMap.ofArray<string, LiteMol.Visualization.Color>([['Uniform', ColorScheme.Colors.get(ColorScheme.Enum.CavityBoundary)]]),
             transparency: { alpha: 0.66 }
         }),
         selectableBoundary: Visualization.Theme.createUniform({ 
-            colors: LiteMol.Core.Utils.FastMap.ofArray<string, LiteMol.Visualization.Color>([['Uniform', ColorScheme.Colors.get(ColorScheme.Enum.CavitySelectable)/*Visualization.Color.fromHex(0xee3010)*/]]),
+            colors: LiteMol.Core.Utils.FastMap.ofArray<string, LiteMol.Visualization.Color>([['Uniform', ColorScheme.Colors.get(ColorScheme.Enum.CavitySelectable)]]),
             transparency: { alpha: 1.0 }
         })
     };

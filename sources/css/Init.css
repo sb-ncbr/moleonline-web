@@ -183,3 +183,8 @@ figure img{
     width: 100%;
     text-align: center;
 }
+
+.version-strip{
+    text-align: center;
+    margin-top: 5px;
+}

@@ -43,7 +43,7 @@
 }
 
 .submit-form-container .tab-content{
-    max-height: 24.5vh;
+    max-height: 25vh;
     overflow-y: auto;
     overflow-x: hidden;
     border-bottom: #ccc 1px solid;
@@ -73,7 +73,6 @@
 }
 
 .submit-form-container .submit{
-    width: 18%;
     max-height: 3.5vh;
     margin-top: 0.75vh;
     margin-bottom: 0.75vh;
@@ -407,9 +406,6 @@
 
 @media only screen and (max-width: 1300px),
 only screen and (max-height: 900px) {
-    .submit-form-container .tab-content{
-        max-height: 29vh;
-    }
     .submit-form-container .nav-tabs > li > a {
         line-height: 3.5vh !important;
         height: 4.5vh !important;
@@ -436,9 +432,8 @@ only screen and (max-height: 900px) {
         padding:0;
     }
 
-    .toggled .submit-form-container .tab-content{
-        border-bottom: none;
-        max-height: 50vh;
+    .submit-form-container .tab-content{
+        max-height: 24.5vh;
     }
 
     .submit-form-container .mode-switch{

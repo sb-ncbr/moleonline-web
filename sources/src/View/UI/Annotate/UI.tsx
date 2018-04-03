@@ -1,7 +1,6 @@
 namespace Annotate.UI{
 
     import React = LiteMol.Plugin.React
-    import LiteMoleEvent = LiteMol.Bootstrap.Event;
     import Bundle = MoleOnlineWebUI.StaticData.Bundle;
 
     declare function $(p:any,p1?:any): any;

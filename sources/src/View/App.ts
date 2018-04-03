@@ -9,10 +9,18 @@ namespace LiteMol.Example.Channels {
     // you can subsribe to any command or event using <Event/Command>.getStream(plugin.context).subscribe(e => ....)
     import Command = Bootstrap.Command;
     import Event = Bootstrap.Event;
-    import Vizualizer = LayersVizualizer;    
+    import Vizualizer = LayersVizualizer;  
+    
+    declare function $(p:any): any;
 
     (function() {
-        
+        (window as any).TOUCH_MODE = false;
+        window.addEventListener('touchstart', function onFirstTouch() {
+            (window as any).TOUCH_MODE = true;
+            window.removeEventListener('touchstart', onFirstTouch, false);
+            $( window ).trigger('resize');
+        }, false);
+
         SimpleRouter.GlobalRouter.init(Config.Routing.ROUTING_OPTIONS[Config.Routing.ROUTING_MODE]);
         console.log(Config.Routing.ROUTING_MODE);
 
@@ -74,6 +82,8 @@ namespace LiteMol.Example.Channels {
         PDFReportGenerator.UI.render(document.getElementById("pdf-report-generator") !); 
 
         PdbIdSign.UI.render(document.getElementById("pdbid-sign") !);     
+
+        Help.UI.render(document.getElementById("help-button") !);     
 
         Annotate.UI.render(document.getElementById("annotate") !);     
 

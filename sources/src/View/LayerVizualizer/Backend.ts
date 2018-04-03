@@ -58,17 +58,6 @@ namespace LayersVizualizer{
             this.context.clip();
         }
 
-/*
-        public setContext(context:CanvasRenderingContext2D){
-            this.context = context;
-        }
-*/
-/* Context must be known before hitbox generation
-        public draw(x: number, y:number, width:number, height:number, context?:CanvasRenderingContext2D):void{
-            this.setContext(context);
-            this.draw(x,y,width,height);
-        }
-*/
         public drawFromBounds(bounds: Rectangle){
             this.draw(bounds.x,bounds.y,bounds.width,bounds.height);         
         }
@@ -165,10 +154,10 @@ namespace LayersVizualizer{
 
         private isLeftToRight:boolean;
 
-        public constructor(context:CanvasRenderingContext2D/*, isLeftToRight:boolean=true*/){
+        public constructor(context:CanvasRenderingContext2D){
             super(context);
 
-            this.isLeftToRight = true;/*isLeftToRight;*/
+            this.isLeftToRight = true;
         }
 
         public draw(x: number, y:number, width:number, height:number): void{  
@@ -521,6 +510,8 @@ namespace LayersVizualizer{
             this.paletteFunctionSettings = paletteFunctionSettings;
 
             this.hasBounds = false;
+            this.selectedLayers = [];
+            this.layersData = null;
         }
 
         public setBounds(x: number, y:number, width:number, height:number){
@@ -534,15 +525,8 @@ namespace LayersVizualizer{
         }
 
         protected clear(bounds:Rectangle){
-            let lineCorrection = this.getCorrectionWidth();
-
-            this.context.clearRect(bounds.x-lineCorrection,bounds.y-lineCorrection,
-                bounds.width+lineCorrection*2,bounds.height+lineCorrection*2);
-        }
-
-        private getCorrectionWidth(){
-            var width = Math.max(this.lineWidth,this.hitboxLineWidth);
-            return Math.max(width,this.highlightLineWidth);
+            this.context.clearRect(bounds.x,bounds.y,
+                bounds.width,bounds.height);
         }
 
         public draw(x: number, y:number, width:number, height:number): void{
@@ -560,10 +544,10 @@ namespace LayersVizualizer{
 
             this.currentVisualPlain = this.context.getImageData(
                 this.bounds.x,this.bounds.y,
-                this.bounds.width+1,this.bounds.height+1
+                this.bounds.width,this.bounds.height
                 );
             this.currentVisual = this.currentVisualPlain;
-        
+
             //this.highlightHitbox(0);
         }
 
@@ -581,47 +565,56 @@ namespace LayersVizualizer{
             return rv;
         }
 
+        private highlightedLayerIdx: number = -1;
+
         public highlightHitbox(layerIdx: number){
-            this.clear(this.bounds);
+            let touchMode = (window as any).TOUCH_MODE as boolean;
 
-            this.context.putImageData(this.currentVisual,this.bounds.x,this.bounds.y);
+            let layersData = this.layersData;
+            let scale = this.getScale();
 
-            let hitbox = this.getHitbox(layerIdx);
-            let bottom = this.getBottom();
-            
-            this.drawSolidLine(hitbox.x,hitbox.y,hitbox.x+hitbox.width, hitbox.y,this.highlightLineWidth,this.highlightLineColor);
-            this.drawSolidLine(hitbox.x+hitbox.width, hitbox.y,hitbox.x+hitbox.width, hitbox.y+hitbox.height,this.highlightLineWidth,this.highlightLineColor);
-            this.drawSolidLine(hitbox.x+hitbox.width, hitbox.y+hitbox.height,hitbox.x, hitbox.y+hitbox.height,this.highlightLineWidth,this.highlightLineColor);
-            this.drawSolidLine(hitbox.x, hitbox.y+hitbox.height,hitbox.x, hitbox.y,this.highlightLineWidth,this.highlightLineColor);
+            if(layersData === null || scale === null){
+                return;
+            }            
 
-            //this.paintBox();
+            let graphLine = layersData.path.slice().sort((a,b)=>{return a.x-b.x;});
+
+            if(this.highlightedLayerIdx>=0){
+                this.renderSelectedDeselectedLayer(
+                    graphLine, this.highlightedLayerIdx, scale, this.bounds, this.selectedLayers.indexOf(this.highlightedLayerIdx)>=0);
+            }
+
+            if(touchMode){
+                this.highlightedLayerIdx = -1;
+                return;
+            }
+
+            let path = [graphLine[layerIdx],graphLine[layerIdx+1]];
+
+            let restOfBody = [
+                {
+                    x: this.bounds.x + this.layers[layerIdx].end*scale.x,
+                    y: this.getTop() + (this.isInverted()?-1:1)*this.lineWidth
+                },
+                {
+                    x: this.bounds.x + this.layers[layerIdx].start*scale.x,
+                    y: this.getTop() + (this.isInverted()?-1:1)*this.lineWidth
+                },
+                {
+                    x: path[0].x,
+                    y: path[0].y
+                }
+            ];            
+
+            this.colorBackground("#cccccc", path, restOfBody);
+
+            this.highlightedLayerIdx = layerIdx;
         }
 
-        public deselectLayer(){
-            this.clear(this.bounds);
+        private selectedLayers: number[] = [];
 
-            this.currentVisual = this.currentVisualPlain;
-
-            this.context.putImageData(this.currentVisual,this.bounds.x,this.bounds.y);
-        }
-
-        public selectLayer(layerIdx: number){
-            this.clear(this.bounds);
-
-            this.context.putImageData(this.currentVisual,this.bounds.x,this.bounds.y);
-
-            let hitbox = this.getHitbox(layerIdx);
-            let bottom = this.getBottom();
-            
-            this.drawSolidLine(hitbox.x,hitbox.y,hitbox.x+hitbox.width, hitbox.y,this.highlightLineWidth,"#ff0000");
-            this.drawSolidLine(hitbox.x+hitbox.width, hitbox.y,hitbox.x+hitbox.width, hitbox.y+hitbox.height,this.highlightLineWidth,"#ff0000");
-            this.drawSolidLine(hitbox.x+hitbox.width, hitbox.y+hitbox.height,hitbox.x, hitbox.y+hitbox.height,this.highlightLineWidth,"#ff0000");
-            this.drawSolidLine(hitbox.x, hitbox.y+hitbox.height,hitbox.x, hitbox.y,this.highlightLineWidth,"#ff0000");
-
-            this.currentVisual = this.context.getImageData(
-                this.bounds.x,this.bounds.y,
-                this.bounds.width+1,this.bounds.height+1
-                );
+        public selectLayers(layerIds: number[]){  
+            this.renderSelectedLayers(layerIds.slice());
         }
 
         private paintBox(){
@@ -649,9 +642,13 @@ namespace LayersVizualizer{
             return this.scale;
         }
 
-        private renderAllLayers(){
-            this.context.save();
-            
+        private layersData:{
+            gradient: CanvasGradient,
+            restOfBody: XYPoint[],
+            path: XYPoint[]
+        }|null = null;
+
+        private prepareLayersData(){
             //Mozilla odmita v urcitych pripadech v 1. polovine tunelu zobrazit barevny prechod kdyz je zapnuty clip()
             //this.clipToBounds(this.bounds);
             let gLine = {
@@ -673,11 +670,6 @@ namespace LayersVizualizer{
                 lastColorStop = this.prepareLayer(i,gradient,path,lastColorStop);
             }
 
-            this.context.fillStyle = gradient;
-
-            this.context.beginPath();
-            this.drawPath(path);
-
             let scale = this.getScale();
             if(scale === null){
                 throw new Error("Value of scale not computed");
@@ -695,7 +687,29 @@ namespace LayersVizualizer{
                 path[0]  
             ];
 
-            this.drawPath(restOfBody);
+            this.layersData={
+                gradient,
+                restOfBody: restOfBody.slice(),
+                path: path.slice()
+            }
+
+            return this.layersData;
+        }
+
+        private renderAllLayers(){
+
+            let layersData = this.layersData; 
+            if(layersData === null){
+                layersData = this.prepareLayersData();
+            }
+
+            this.context.save();
+
+            this.context.fillStyle = layersData.gradient;
+
+            this.context.beginPath();
+            this.drawPath(layersData.path);
+            this.drawPath(layersData.restOfBody);
 
             this.context.closePath();
 
@@ -711,6 +725,71 @@ namespace LayersVizualizer{
             this.context.lineWidth   = this.lineWidth;
 
             this.context.beginPath();
+            this.context.moveTo(layersData.path[0].x,layersData.path[0].y);
+            this.drawPath(layersData.path);
+            this.drawPath(layersData.path.reverse());
+            this.context.closePath();
+            this.context.stroke();
+
+            this.context.restore();
+        }
+
+        private renderSelectedDeselectedLayer(graphLine: XYPoint[], layerIdx: number, scale: {x:number, y:number}, bounds: {x:number, y:number, width: number, height: number}, selected:boolean){
+            let path = [
+                {
+                    x: graphLine[layerIdx].x,
+                    y: graphLine[layerIdx].y
+                },
+                {
+                    x: graphLine[layerIdx+1].x,
+                    y: graphLine[layerIdx+1].y
+                }
+            ];
+
+            let selectedLayers = this.selectedLayers.slice().sort((a,b)=>{return a-b});
+
+            let restOfBody = [
+                {
+                    x: path[1].x + this.lineWidth,
+                    y: path[1].y
+                },
+                {
+                    //x: bounds.x - ((selectedLayers[selectedLayers.length-1]===layerIdx)?this.lineWidth:-this.lineWidth) + this.layers[layerIdx].end*scale.x,
+                    x: bounds.x + this.lineWidth + this.layers[layerIdx].end*scale.x,
+                    y: this.getTop() + (this.isInverted()?-1:1)*this.lineWidth
+                },
+                {
+                    //x: bounds.x + ((selectedLayers[0]===layerIdx)?this.lineWidth:-this.lineWidth) + this.layers[layerIdx].start*scale.x,
+                    x: bounds.x - this.lineWidth + this.layers[layerIdx].start*scale.x,
+                    y: this.getTop() + (this.isInverted()?-1:1)*this.lineWidth
+                },
+                {
+                    x: path[0].x - this.lineWidth,
+                    y: path[0].y
+                }
+            ];
+
+            this.colorBackground((selected)?"#efefef":"#ffffff", path, restOfBody);
+        }
+
+        private colorBackground(color:string, path: XYPoint[], restOfBody: XYPoint[]){
+            this.context.save();
+
+            this.clipToBounds(this.bounds);
+
+            this.context.lineWidth   = this.lineWidth;
+            this.context.fillStyle   = color;
+
+            this.context.beginPath();
+            this.context.moveTo(path[0].x,path[0].y);
+            this.drawPath(path.concat(restOfBody));
+            this.context.closePath();
+            this.context.fill();
+            
+            
+            this.context.strokeStyle   = this.lineColor;
+
+            this.context.beginPath();
             this.context.moveTo(path[0].x,path[0].y);
             this.drawPath(path);
             this.drawPath(path.reverse());
@@ -718,7 +797,119 @@ namespace LayersVizualizer{
             this.context.stroke();
 
             this.context.restore();
+        }
 
+        private renderSelectedLock: number = 0;
+        private renderSelectedQueue: number[][] = []
+
+        private renderSelectedLayers(layerIds: number[], internalCall?: boolean){
+            let layersData = this.layersData;
+            if(layersData === null){
+                throw new Error("Data not prepared");
+            }
+
+            let bounds = this.bounds;
+
+            if(internalCall === void 0){
+                internalCall = false;
+            }
+
+            if(this.renderSelectedLock++ > 0 && !internalCall){
+                this.renderSelectedQueue.unshift(layerIds);
+                return;
+            }
+
+            let selectedOld = this.selectedLayers.slice().sort((a,b)=>{return a-b;});
+
+            let selected = layerIds.slice().sort((a,b)=>{return a-b;});
+            let graphLine = layersData.path.slice().sort((a,b)=>{return a.x-b.x;});
+
+            if(graphLine.length-1 < selected.length){
+                throw new Error("Data are not synchronized correctly!");
+            }
+
+            let scale = this.getScale();
+            if(scale === null){
+                throw new Error("Value of scale not computed");
+            }
+            
+            let toSelect = selected.filter((v,i,a)=>{return !(selectedOld.indexOf(v)>=0);});
+            let toUnSelect = selectedOld.filter((v,i,a)=>{return !(selected.indexOf(v)>=0);});
+
+            if(toSelect.length === 0 && toUnSelect.length === 0){
+                this.handleQueue(internalCall);
+                return;
+            }            
+
+            for(let layerIdx of toSelect){
+                this.renderSelectedDeselectedLayer(graphLine, layerIdx, scale, bounds, true);
+            }
+
+            for(let layerIdx of toUnSelect){
+                this.renderSelectedDeselectedLayer(graphLine, layerIdx, scale, bounds, false);
+            }
+                
+            this.context.save();
+
+            let endBorderline = [
+                {
+                    x: bounds.x + this.layers[this.layers.length-1].end*scale.x,
+                    y: this.getBottom()
+                },
+                {
+                    x: bounds.x + this.layers[this.layers.length-1].end*scale.x,
+                    y: this.getTop()
+                }
+            ];
+
+            this.context.strokeStyle = "#d1d1d1";
+            this.context.lineWidth = this.lineWidth;
+
+            this.context.beginPath();
+            this.context.moveTo(endBorderline[0].x,endBorderline[0].y);
+            this.drawPath(endBorderline);
+            this.drawPath(endBorderline.reverse());
+            this.context.closePath();
+            this.context.stroke();
+
+            if(toSelect.indexOf(0)>=0){
+                let line = [
+                    {
+                        x: bounds.x,
+                        y: this.getBottom()
+                    },
+                    {
+                        x: bounds.x,
+                        y: this.getTop()
+                    }
+                ];
+
+                this.context.beginPath();
+                this.context.moveTo(line[0].x,line[0].y);
+                this.drawPath(line);
+                this.drawPath(line.reverse());
+                this.context.closePath();
+                this.context.stroke();
+            }
+            
+            this.context.restore();
+
+            this.selectedLayers = selected;
+
+            this.handleQueue(internalCall);
+        }
+
+        private handleQueue(internalCall:boolean){
+            if(this.renderSelectedQueue.length > 0){
+                let layerIdsNext = this.renderSelectedQueue.pop();
+                if(layerIdsNext!==void 0){
+                    this.renderSelectedLayers(layerIdsNext, true);
+                }
+            }
+            
+            if(!internalCall){
+                this.renderSelectedLock = 0;
+            }
         }
 
         private drawPath(path:XYPoint[]){
@@ -727,7 +918,7 @@ namespace LayersVizualizer{
             }
         }
 
-        private prepareLayer(layerIdx: number,gradient:CanvasGradient,path:XYPoint[],lastColorStop:number){
+        private prepareLayer(layerIdx: number,gradient:CanvasGradient|null,path:XYPoint[],lastColorStop:number){
             if(layerIdx < 0){
                 throw new Error("layerIdx must be greater or equal to 0");
             }
@@ -777,7 +968,9 @@ namespace LayersVizualizer{
                 currentColorStop=(currLength/totalLenght);
             }
 
-            gradient.addColorStop(currentColorStop,color);
+            if(gradient !== null){
+                gradient.addColorStop(currentColorStop,color);
+            }
 
             return currentColorStop;
         }

@@ -2,7 +2,7 @@
  * Copyright (c) 2016 - now David Sehnal, licensed under Apache 2.0, See LICENSE file for more info.
  */
 
-namespace LiteMol.Example.Channels.State {
+namespace LiteMol.Example.Channels.State {    
 
     import ApiService = MoleOnlineWebUI.Service.MoleAPI.ApiService;
     import MoleAPI = MoleOnlineWebUI.Service.MoleAPI;
@@ -255,7 +255,8 @@ namespace LiteMol.Example.Channels.State {
 
                 let format = Core.Formats.Molecule.SupportedFormats.mmCIF;
                 if(data.filename!==null){
-                    let f = Core.Formats.FormatInfo.getFormat(data.filename, Core.Formats.Molecule.SupportedFormats.All);
+                    let filename = data.filename.replace(".gz","");
+                    let f = Core.Formats.FormatInfo.getFormat(filename, Core.Formats.Molecule.SupportedFormats.All);                    
                     if(f!==void 0){
                         format = f;
                     }
@@ -266,7 +267,7 @@ namespace LiteMol.Example.Channels.State {
                     .then(Transformer.Molecule.CreateFromData, {format}, { isBinding: true })
                     .then(Transformer.Molecule.CreateModel, { modelIndex: 0 })
                     .then(Transformer.Molecule.CreateMacromoleculeVisual, { polymer: true, polymerRef: 'polymer-visual', het: true });
-                
+
                 plugin.applyTransform(protein)
                     .then(() => {
                         let polymerVisual = plugin.context.select('polymer-visual');
@@ -279,9 +280,15 @@ namespace LiteMol.Example.Channels.State {
                             MoleOnlineWebUI.Bridge.Events.invokeProteinDataLoaded((polymerVisual[0].props as any).model.model);
                         }
                     })
-                    .catch(error=>rej(error));
+                    .catch(error=>{
+                        console.log(error);
+                        rej(error)}
+                    );
             })
-            .catch(error=>rej(error));
+            .catch(error=>{
+                console.log(error);
+                rej(error)
+            });
         });
     }
 
@@ -398,6 +405,7 @@ namespace LiteMol.Example.Channels.State {
                     console.profileEnd();
             })
             .catch((error)=>{
+                console.log(error);                
                 rej(error);
             })
     }
@@ -469,16 +477,18 @@ namespace LiteMol.Example.Channels.State {
             if((idxCounter-1)%idxFilter!==0){
                 continue;
             }
-            s.add({ type: 'Sphere', id: 0/*id++*/, radius: sphere.Radius, center: [ sphere.X, sphere.Y, sphere.Z ], tessalation: 2 });
+            s.add({ type: 'Sphere', id: 0, radius: sphere.Radius, center: [ sphere.X, sphere.Y, sphere.Z ], tessalation: 2 });
         }        
         return s.buildSurface().run();
     }    
         
     function getSurfaceColorByType(type:string){
         switch(type){
-            /*case 'Cavity': return ColorScheme.Colors.get(ColorScheme.Enum.Cavity);
+            /*
+            case 'Cavity': return ColorScheme.Colors.get(ColorScheme.Enum.Cavity);
             case 'MolecularSurface': return ColorScheme.Colors.get(ColorScheme.Enum.Surface);
-            case 'Void': return ColorScheme.Colors.get(ColorScheme.Enum.Void);*/
+            case 'Void': return ColorScheme.Colors.get(ColorScheme.Enum.Void);
+            */
             default : return ColorScheme.Colors.get(ColorScheme.Enum.DefaultColor);
         }
     }
