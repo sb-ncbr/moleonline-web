@@ -188,3 +188,7 @@ figure img{
     text-align: center;
     margin-top: 5px;
 }
+
+ol.lower-alpha{
+    list-style-type: lower-alpha;
+}

@@ -48,7 +48,7 @@
 			<a href="/examples">Examples</a> | 
 			<a href="/tour">Tour</a> | 
 			<a href="/faq">FAQ</a> |
-			<a href="/features">Features</a>
+			<a href="/updates">Updates</a>
 		</div>
 
 <h2>MOLE<em>online</em> documentation</h2>
@@ -56,8 +56,9 @@
 <p><a href="/method/">Method section</a> describes the channel detection algorithm used in MOLE</p>
 <p><a href="/examples/">Examples section</a> shows possible uses of MOLE<em>online</em> application</p> 
 <p><a href="/tour/">Tour section</a> guide through MOLE<em>online</em> application</p>
-
 <p><a href="/faq/">FAQ</a> Frequently Asked Questions</p>
+<p><a href="/updates/">Updates</a> - list of new features implemented in individual MOLEonline versions</p>
+
 
 <h3>Channels</h3>
 <p>
@@ -65,17 +66,143 @@
 	Tunnels connect internal spaces of biomacromolecules with exterior enabling, e.g., substrate/product transport 
 	towards enzymes’ active sites, nascent synthesized proteins to leave ribosomal proteosynthetic center via ribosomal 
 	exit tunnel, etc. Pores are channels passing through the whole biomacromolecular structure, typically facilitating 
-	transport of ions or molecules through cellular biomembranes.
+	transport of ions or molecules through cellular biomembranes. (Figure 1)
 </p>
+
+<figure>
+	<img src="\images/documentation_GUI_with_description.png" alt="Description of GUI">
+	<figcaption>Figure 1 – UX design of MOLEonline result webpage for human aquaporin (PDB ID: <a href="/pdbid/?pdbid=4CSK">4CSK</a>).</figcaption>
+</figure>
+
+<h4>MOLEonline Features</h4>
+<ul>
+	<li>
+		Channel calculation
+		<ul>
+			<li>
+				Tunnels from the stating point to surface or any other end point
+			</li>
+			<li>
+				Automatic transmembrane Pores
+			</li>
+			<li>
+				Help form with integrated submission for easier support
+			</li>
+		</ul>
+	</li>
+	<li>
+		Input
+		<ul>
+			<li>
+				PDB and <a href="http://mmcif.wwpdb.org/" target="_blank">mmCIF</a> parsing
+			</li>
+			<li>
+				PDBe integration
+			</li>
+			<li>
+				<a href="https://webchem.ncbr.muni.cz/Platform/PatternQuery" target="_blank">PatternQuery</a> language support (ignore residues, start points)
+			</li>
+		</ul>
+	</li>
+	<li>
+		Parameters of calculation
+		<ul>
+			<li>
+				Automatic starting points from cavities in 3D structure - Origin points
+			</li>
+			<li>
+				Selection of starting/end points in sequence, residue selection, or XYZ point
+			</li>
+			<li>
+				Selection of end points (It is possible to compute tunnels to only 1 user specified exit)
+			</li>
+			<li>
+				Several weight functions for computing tunnels (Length, Voronoi scale weight functions)
+			</li>
+			<li>
+				Computation of "User Pores" now works for any cavity, not just the "surface". 
+			</li>
+			<li>
+				Selection of end points with Ctrl+left click					
+			</li>
+		</ul>
+	</li>
+	<li>
+		Pore mode
+		<ul>
+			<li>
+				Enhancement of transmembrane pore calculations with use of OPM database or MEMEMBED program
+			</li>
+			<li>
+				Vizualization of membrane region
+			</li>
+		</ul>
+	</li>
+	<li>
+		Visualization
+		<ul>
+			<li>
+				<a href="https://webchemdev.ncbr.muni.cz/LiteMol/" target="_blank">LiteMol</a> Viewer
+			</li>
+			<li>
+				Layered Channel profile with physicochemical properties and residue lists
+			</li>
+			<li>
+				Multiple layers can be selected/deselected to show average properties and list of residues only around important area of the channel.
+			</li>
+			<li>
+				Connectivity to <a href="http://ncbr.muni.cz/ChannelsDB/" target="_blank">ChannelsDB</a>
+			</li>
+		</ul>
+	</li>
+	<li>
+		Properties of channels
+		<ul>
+			<li>
+				Geometrical properties
+				<ul>
+					<li>
+						Length, Radius, Free Radius and BRadius 
+					</li>
+				</ul>
+			</li>
+			<li>
+				Physicochemical properties
+				<ul>
+					<li>
+						Charge, Mutability, Polarity, Hydropathy, Hydrophobicity, Lipophilicity, Water solubility
+					</li>
+				</ul>
+			</li>
+		</ul>
+	</li>
+	<li>
+		Export of results
+		<ul>
+			<li>
+				Properties of channels - CSV, XML, JSON
+			</li>
+			<li>
+				Channel profile in PNG or SVG format
+			</li>
+			<li>
+				Output visualization to PyMOL, VMD, and Chimera.
+			</li>
+			<li>
+				PDF report or within ZIP archive
+			</li>
+			<li>
+				User contributions to ChannelsDB annotations
+			</li>
+		</ul>
+	</li>
+</ul>
+
 <p>
 	The calculation setup is realized via an interactive interface consisting of a few components (Figure 1). 
 	Structure visualization is achieved by <a target="_blank" href="http://www.litemol.org/">LiteMol Viewer</a> JavaScript application 
 	which is capable to visualize the uploaded structure and the computed channels.
 </p>
-<figure>
-	<img src="\images/documentation_GUI_with_description.png" alt="Description of GUI">
-	<figcaption>Figure 1 – UX design of MOLEonline result webpage for human aquaporin (PDB ID: <a href="/pdbid/?pdbid=4CSK">4CSK</a>).</figcaption>
-</figure>
 
 <h4>Initialization</h4>
 <ul>

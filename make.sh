@@ -26,7 +26,7 @@ sudo cp ./build/online/faq.html /var/www/html
 sudo cp ./build/online/tour.html /var/www/html
 sudo cp ./build/online/examples.html /var/www/html
 sudo cp ./build/online/method.html /var/www/html
-sudo cp ./build/online/features.html /var/www/html
+sudo cp ./build/online/updates.html /var/www/html
 
 sudo mkdir /var/www/html/assets/old-web
 sudo cp -r ./static/old-web/* /var/www/html/assets/old-web

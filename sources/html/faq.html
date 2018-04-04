@@ -50,7 +50,7 @@
 			<a href="/examples">Examples</a> | 
 			<a href="/tour">Tour</a> | 
 			<a class="active" href="/faq">FAQ</a> |
-			<a href="/features">Features</a>
+			<a href="/updates">Updates</a>
 		</div>
 
 <h2>FAQ</h2>
@@ -60,143 +60,23 @@
 <p>Q: Do you have a question?</p>
 <ul>
 	<li>Please don’t hesitate and ask! You can reach us on facebook or email. Contacts are available in the <a href="/about/">About</a> tab.</li>
+	<li>You can also use Help button in your session that will directly point us to your problem at hand.</li>
 </ul>
 <br/>
 
-<h3>MOLEonline versions</h3>
-
-<p>Q: What is new in MOLEonline version 2018 vs MOLEonline 2.0?</p>
+<p>Q: I am a first time user. What do I do to find channels in my structure?</p>
 <ul>
 	<li>
-		Input
-		<ul>
-			<li>
-				<a target="_blank" href="http://mmcif.wwpdb.org/">mmCIF</a> parsing 
-			</li>
-			<li>
-				Added <a target="_blank" href="https://webchem.ncbr.muni.cz/Platform/PatternQuery">PatternQuery</a> language support (ignore residues, start points).
-			</li>
-			<li>
-				Automatic starting points from cavities in 3D structure - Origin points 
-			</li>
-			<li>
-				Transmembrane Pore mode
-			</li>
-		</ul>
-	</li>
-	<li>
-		Parameters of calculation
-		<ul>
-			<li>
-				Selection of end points (It is possible to compute tunnels to only 1 user specified exit)
-			</li>
-			<li>
-				New weight functions for computing tunnels (added Length, Voronoi scale weight functions)
-			</li>
-			<li>
-				Computation of "User Pores" now works for any cavity, not just the "surface".
-			</li>
-			<li>
-				Selection of end points with Ctrl+left click
-			</li>
-		</ul>
-	</li>
-	<li>
-		Pore mode
-		<ul>
-			<li>
-				Enhancement of transmembrane pore calculations with use of OPM database or MEMEMBED program
-			</li>
-		</ul>
-	</li>
-	<li>
-		Visualization
-		<ul>
-			<li>
-				<a target="_blank" href="http://www.litemol.org/">LiteMol</a> instead of Jmol
-			</li>
-			<li>
-				Layered Channel profile with physicochemical properties
-			</li>
-			<li>
-				Connectivity to <a target="_blank" href="https://webchemdev.ncbr.muni.cz/ChannelsDB/">ChannelsDB</a>
-			</li>
-		</ul>
-	</li>
-	<li>
-		New properties
-		<ul>
-			<li>
-				Free Radius for channels (Free Radius is the distance to the closest backbone or HET atom)
-			</li>
-			<li>
-				BRadius for channels (BRadius is the Radius + RMSF (from Bfactors) to estimate local flexibility)
-			</li>
-			<li>
-				Lipophilicity (logP and logD@pH 7.4 scales of channel-lining residues)
-			</li>
-			<li>
-				Water solubility (logS-like scale of channel-lining residues)
-			</li>
-		</ul>
-	</li>
-	<li>
-		Export of results
-		<ul>
-			<li>
-				Ability to export residues surrounding a cavity or channel
-			</li>
-			<li>
-				CSV output of properties along the individual channels
-			</li>
-			<li>
-				Export current computation settings in XML
-			</li>
-			<li>
-				Rich JSON output for programmatic analysis
-			</li>
-			<li>
-				Export of channel profile in PNG or SVG format
-			</li>
-			<li>
-				Output to PyMOL, VMD, and Chimera.
-			</li>
-			<li>
-				Export of results for individual channels to PDF report or within ZIP archive
-			</li>
-			<li>
-				User contributions to ChannelsDB annotations
-			</li>
-		</ul>
+		First, at least briefly skim through the documentation, as this will give you a better idea who is this service meant 
+		for and how you can take the best of it. First, try automatic detection of starting points (just press <b>submit</b>). 
+		This might give you a clue, where there are channels in your structure and then you can select those closest 
+		to the site of your interest (i.e. active site, cofactors, etc.) or try to select end points of pore by clicking 
+		on the molecular surface.. Alternatively, load any existing channels 
+		deposited in the <a href="http://ncbr.muni.cz/ChannelsDB/" target="_blank">ChannelsDB</a>.
 	</li>
 </ul>
 <br/>
 
-<p>Q: What was new in the MOLE 2 in comparison with original MOLE?</p>
-<ul>
-	<li>
-		better macromolecular surface representation (probe radius in MOLE 2 vs. convex hull in MOLE)
-	</li>
-	<li>
-		no need to determine the number of channels prior calculation
-	</li>
-	<li>
-		quicker calculation due to the division of the internal space within the macromolecule to separate sub-cavities
-	</li>
-	<li>	
-		better removal of duplicate channels (surface cover radius parameter, similar channels with RMSD &lt; 0.5 A are reported only once in shorter variant
-	</li>
-	<li>
-		automatic selection of the starting points based on detected cavities
-	</li>
-	<li>
-		better visualization of the starting points and their optimized position
-	</li>
-	<li>
-		experimental feature - calculation of physicochemical properties of the residues lining the channel
-	</li>
-</ul>
-<br/>
 
 <h3>Tunnel detection</h3>
 
@@ -211,25 +91,123 @@
 	The second limitation is in use of atom-centered Voronoi mesh. It is difficult to overcome and the real improvement is debatable. The atom centered Voronoi mesh can be replaced e.g. by power diagram, which will lead to some improvement in precision. However, such improvement is small compared to the uncertainties associated with the chosen structures (e.g. X-ray structures with finite resolution, which is generally higher than 0.8 Å).
 </p>
 <p>
-	The third limitation is that MOLEonline is able to receive only a limited amount of data. Such problem can be overcome by manual preparation and size reduction of macromolecular structure in pdb in any other software prior submitting to server.
-</p>
-<p>
 	However, we are certain that a user can face many problems trying to analyze his/her specific molecule. We are ready to help users and we provide a feedback via e-mail or Facebook page to resolve specific problems.
 </p>
 <br/>
 
-<p>Q: I have tried to find tunnels, but I was not able to get any, what should I do?</p>
+<p>Q: I have tried to find tunnels, but I was not able to get any, or they do not seem to be relevant to my query, what should I do?</p>
 <p>
-	First - try automatic detection of starting points, This might give you a clue, where there are tunnels in your structure and then you can select those closest to the site of your interest (i.e. active site).
+	This can be caused by a number of reasons. Always bear in mind, that we are happy to help you with any issues you might come across, so don’t be shy and ask for a help! Here is a list of the most common issues:
 </p>
-<p>
-	Another option is to visualize molecular surface. It might happen, that Probe radius parameter is too small and therefore the probe (detecting the molecular surface) can enter into the structure and your tunnel will not appear.
-</p>
+<ol class="lower-alpha">
+	<li>
+		Wrong setup of ProbeRadius, InteriorThreshold or filtering criteria.
+	</li>
+	<li>
+		Wrong location of the active site (channel starting point).
+	</li>
+	<li>
+		Substrate is blocking the channel.
+	</li>
+	<li>
+		There is no channel at all.
+	</li>
+</ol>
 <br/>
+<ol class="lower-alpha">
+	<li>
+		<p>
+			Setting up  the two key parameters can be at times indeed critical for proper identification of channels. 
+			These parameters can be think of as a lower bound (<i>InteriorThreshold</i>) and an upper bound (<i>ProbeRadius</i>) 
+			threshold for a channel radius. Therefore, if the expected channel is supposed to be wide in its radius the 
+			<i>ProbeRadius</i> parameter needs to be increased preferably above the expected channel radius. Likewise if 
+			the channel is expected to pass through a constringency region, which features a local narrowing, 
+			the <i>InteriorThreshold</i> needs to be set below the expected minimal channel radius. 
+		</p>
+		<p>
+			Finally, all the channels are a subject of filtering step. Try adjusting the values of 
+			<i>MaxTunnelSimilarity</i>, <i>BottleneckRadius</i> or <i>BottleneckLength</i>. It is always good 
+			practice to set <i>BottleneckRadius</i> a little lower than <i>InteriorThreshold</i> and allow 
+			<i>BottleneckLength</i> to cover for small local narrowings beyond this threshold.
+		</p>
+		<p>
+			Example:
+			<figure>
+				<img src="\images/faq_a_example.png" alt="Left - Channel of PLP-dependent Acetyl-CoA transferase CqsA (PDB ID: 3KKI) ProbeRadius set to value 5. Right - ProbeRadius set to 20 showed overestimation of the parameter.">
+				<figcaption>Left - Channel of PLP-dependent Acetyl-CoA transferase CqsA (PDB ID: 3KKI) ProbeRadius set to value 5. Right - ProbeRadius set to 20 showed overestimation of the parameter.</figcaption>
+			</figure>
+		</p>
+	</li>
+	<li>
+		<p>
+			In certain cases even if the two major parameters are set correctly the deemed channels still cannot be 
+			seen. The MOLE algorithm is designed to identify channels leading to the buried sites inside the protein 
+			structure, therefore, if your active site is located in a shallow pocket or even on the protein surface, 
+			the channel analysis will not help here.
+		</p>
+		<p>
+			Alternatively, if your active site is indeed buried within a protein body, you can enlarge the space to 
+			be searched for potential channel starts by increasing <i>OriginRadius</i> parameter.
+		</p>
+		<p>
+			Example:
+			<figure>
+				<img src="\images/faq_b_example.png" alt="Tyrosine kinase EphB4 (pdb id: 2vwx) with shallow open pocket, for which the channel analysis is pointless.">
+				<figcaption>Tyrosine kinase EphB4 (pdb id: 2vwx) with shallow open pocket, for which the channel analysis is pointless.</figcaption>
+			</figure>
+		</p>
+	</li>
+	<li>
+		<p>
+			MOLE in its default settings considers only protein/DNA/RNA atoms, effectively discarding any het groups 
+			and solvent molecules prior to the calculation. However, even this can be modified in order to keep 
+			for instance cofactors in the structure prior to the calculation. The algorithm heavily relies on the 
+			correct annotation in the input structure. That is the annotation of the _atom_site.group_PDB field, 
+			which is set to either ATOM or HETATM in the mmcif/PDB language.
+		</p>
+		<p>
+			Example:
+			<figure>
+				<img src="\images/faq_c_example.png" alt="Structure of CYP3A4 with bound erythromycin (PDB ID: 2J0D; left) which is blocking the opening of the access channels. Discarding of the erythromycin molecule allows the proper calculation of access channels (right).">
+				<figcaption>Structure of CYP3A4 with bound erythromycin (PDB ID: 2J0D; left) which is blocking the opening of the access channels. Discarding of the erythromycin molecule allows the proper calculation of access channels (right).</figcaption>
+			</figure>
+		</p>
+		<p>
+			In case you require to switch off a certain part of the structure (residues, or even certain atom groups) 
+			prior to the calculation. You can select those in the active atoms/residues section. We strongly encourage 
+			you to try the PatternQuery syntax, as this is the most flexible option. For example to discard all the 
+			alanine residues you just type in: Residues('ALA'). To discard ammonium group of lysine residues capable 
+			of carrying protons simply add: AtomNames('NZ').Inside(Residues('LYS')). If you want to combine both, 
+			just join them to: Or(Residues('ALA'), AtomNames('NZ').Inside(Residues('LYS'))). More details on 
+			PatternQuery syntax can be found in the documentation.
+		</p>
+	</li>
+	<li>
+		The final option, if none of the above helped. There is always a possibility that there are no reasonably 
+		sized channels in the protein conformation you provided. Drop us an <a href="mailto:mole@upol.cz">e-mail</a>, 
+		so we can take a look, whether or not this is the case!
+	</li>
+</ol>
+<br/>
+
+<p>Q: I cannot detect my transmembrane pore. Or the result is unlikely to be of a biological relevance.</p>
+<p>
+	Give it a go in the <b>pore mode</b>. This is the most comfortable option for the majority of transmembrane molecular 
+	pores, as it requires almost no setup. After the calculation check the position of membrane. If the position 
+	is not of a biological relevance the pore will not be found or will be likely wrong. If the pore module fails, 
+	please let us know. There is always a room for improvement.
+</p>
+<p>
+	In most of the transmembrane channel structures the putative centerline can be seen by a naked eye. 
+	In this case switch back to the <b>channels mode</b>, display the cavity from the upper right panel and select 
+	pore end points with the Ctrl + left click option. Lastly, identify them to be channel end points in the menu. 
+	Do not forget to change parameters of <i>ProbeRadius</i> and <i>InteriorThreshold</i>, as those are different 
+	in <b>pore</b> and <b>channels mode</b>.
+</p>
 
 <p>Q: My channel is visibly present and MOLEonline do not detect it. Why?</p>
 <p>
-	If the channel is large enough to be visible by naked eye, it can be larger usually shown as a part of the surface and consequently, it is necessary to enlarge Probe radius to cover such structure
+	If the channel is large enough to be visible by naked eye, it can be larger usually shown as a part of the surface and consequently, it is necessary to enlarge Probe radius to cover such structure.
 </p>
 <br/>
 
@@ -243,7 +221,12 @@
 
 <p>Q: It is unclear whether reporting the averages of some channel properties will be that useful?</p>
 <p>
-	MOLEonline enables analysis of some basic physicochemical properties - hydropathy, hydrophobicity, polarity, lipophilicity, solubility and mutability. We believe that this is a step forward in channel analysis, but we are certain that it will take some time to optimize analysis of these features and to fully understand their biological relevance. Considering all pros and contras, we decided to keep this functionality in the current version to enable “experiments” with this feature to a broad scientific community.
+	MOLEonline enables analysis of some basic physicochemical properties - hydropathy, hydrophobicity, polarity, 
+	lipophilicity, solubility and mutability, lipophilicity (logP and logD), water solubility (logS-like scale of 
+	channel-lining residues). We believe that this is a step forward in channel analysis, 
+	but we are certain that it will take some time to optimize analysis of these features and to fully understand 
+	their biological relevance. Considering all pros and contras, we decided to keep this functionality in the current 
+	version to enable “experiments” with this feature to a broad scientific community.
 </p>
 <br/>
 
