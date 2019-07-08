@@ -812,7 +812,7 @@ namespace Common.Controls.FromLiteMol{
 
     }
     interface StartingPointCofactorBoxState{
-        cofactors:Map<string,string>|null,
+        cofactors:Map<string, string>|null,
         isLoading:boolean
         selected:string|null
     }
@@ -823,21 +823,31 @@ namespace Common.Controls.FromLiteMol{
         componentDidMount(){
             MoleOnlineWebUI.DataProxy.Cofactors.DataProvider.get((cofactors)=>{
                 let selected = null;
-                if(cofactors.size>0){
-                    selected = cofactors.keys().next().value;
+                let validCofactors = this.getValidCofactors(cofactors);
+                if(validCofactors.size>0){
+                    selected = validCofactors.keys().next().value;
                 }
-                this.setState({isLoading:false,cofactors,selected});
+                this.setState({isLoading:false,cofactors: validCofactors,selected});
             });
+        }
+
+        getValidCofactors(cofactors:MoleOnlineWebUI.Service.MoleAPI.Cofactors){
+            let items = new Map<string, string>();
+            cofactors.forEach((value,key,map)=>{
+                if(!CommonUtils.Residues.currentContextHasResidue(key)||this.state.selected===value){
+                    return;
+                }
+                items.set(key, value);
+            });
+
+            return items;
         }
 
         generateItems(cofactors:MoleOnlineWebUI.Service.MoleAPI.Cofactors){
             let items:ComboBoxItem[] = [];
             cofactors.forEach((value,key,map)=>{
-                if(!CommonUtils.Residues.currentContextHasResidue(key)||this.state.selected===value){
-                    return;
-                }
                 items.push(
-                    new ComboBoxItem(value,key)
+                    new ComboBoxItem(key,key)
                 );
             });
 

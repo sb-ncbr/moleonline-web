@@ -1,5 +1,9 @@
 {
   "HEM": "Atoms('Fe').Inside(Residues('HEM'))",
+  "HEC": "Atoms('Fe').Inside(Residues('HEC'))",
+  "HEA": "Atoms('Fe').Inside(Residues('HEA'))",
+  "FAD": "AtomNames('N5').Inside(Residues('FAD'))",
+  "FMN": "AtomNames('N5').Inside(Residues('FMN'))",
   "NAD": "AtomNames('N1N').Inside(Residues('NAD'))",
   "NAP": "AtomNames('N1N').Inside(Residues('NAP'))",
   "NDP": "AtomNames('N1N').Inside(Residues('NDP'))",
