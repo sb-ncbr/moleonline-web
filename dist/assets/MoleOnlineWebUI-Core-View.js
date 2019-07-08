@@ -103,7 +103,7 @@ var Config;
 })(Config || (Config = {}));
 var Config;
 (function (Config) {
-    Config.Routing.ROUTING_MODE = "local";
+    Config.Routing.ROUTING_MODE = "prod";
     Config.DataSources.MODE = "upol";
     Config.DataSources.PATTERN_QUERY_MODE = "webchem";
     Config.DataSources.ANNOTATION_API_MODE = "webchem";
@@ -2559,8 +2559,8 @@ var MoleOnlineWebUI;
                 };
                 ApiService.getCofactors = function () {
                     var _this = this;
-                    //let url = `${this.baseUrl}/inputs/cofactors.json`;
-                    var url = "/online/cofactors.json";
+                    var url = this.baseUrl + "/inputs/cofactors.json";
+                    //let url = `/online/cofactors.json`;
                     if (this.DEBUG_MODE) {
                         console.log(url);
                     }
