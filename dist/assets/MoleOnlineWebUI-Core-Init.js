@@ -60,7 +60,7 @@ var Config;
 })(Config || (Config = {}));
 var Config;
 (function (Config) {
-    Config.Routing.ROUTING_MODE = "prod";
+    Config.Routing.ROUTING_MODE = "local";
     Config.DataSources.MODE = "upol";
     Config.DataSources.PATTERN_QUERY_MODE = "webchem";
     Config.DataSources.ANNOTATION_API_MODE = "webchem";
@@ -298,7 +298,6 @@ var SimpleRouter;
         };
         URL.prototype.removeParameters = function () {
             var path = this.url.split("?")[0];
-            console.log("path: " + path);
             return new URL(path);
         };
         URL.prototype.getProtocol = function () {
@@ -317,11 +316,6 @@ var SimpleRouter;
         function Router(contextPath) {
             this.contextPath = contextPath;
         }
-        /* Buggy !!
-        getRelativePath(){
-            return new SrURL(document.URL).substractPathFromStart(this.contextPath);
-        }
-        */
         Router.prototype.getAbsoluePath = function () {
             return new URL(document.URL);
         };
@@ -352,16 +346,6 @@ var SimpleRouter;
                 pid = lastPathPartAsParam === "" ? null : lastPathPartAsParam;
             }
             this.currentPid = (pid !== null) ? pid : this.defaultPid;
-            /*
-            if(pid !== this.currentPid){
-                if(this.useParameterAsPid === true){
-                    this.router.changeUrl("detail",document.title,`${url}/?pid=${this.currentPid}`);
-                }
-                else if(this.useLastPathPartAsPid === true){
-                    this.router.changeUrl("detail",document.title,`${url}/${this.currentPid}`);
-                }
-            }
-            */
             this.isInitialized = true;
         };
         GlobalRouter.getCurrentPid = function () {
@@ -420,6 +404,9 @@ var MoleOnlineWebUI;
         var MoleAPI;
         (function (MoleAPI) {
             var Fetching = MoleOnlineWebUI.Service.Fetching;
+            ;
+            ;
+            ;
             ;
             ;
             ;
@@ -560,11 +547,18 @@ var MoleOnlineWebUI;
                     return this.sendPOSTjson(url, data);
                 };
                 ApiService.submitPoresJob = function (computationId, data) {
-                    var url = this.baseUrl + "/Submit/Pores/" + computationId + "?isBetaStructure=" + data.IsBetaBarel + "&inMembrane=" + data.InMembrane + "&chains=" + ((data.Chains === null) ? "" : data.Chains);
+                    var url = this.baseUrl + "/Submit/Pores/" + computationId;
                     if (this.DEBUG_MODE) {
                         console.log(url);
                     }
-                    return this.sendGET(url);
+                    var jsonRequestData = {
+                        IsBetaStructure: data.IsBetaBarel,
+                        InMembrane: data.InMembrane,
+                        Chains: (data.Chains === null) ? "" : data.Chains,
+                        InteriorThreshold: (data.InteriorThreshold === void 0 || data.InteriorThreshold === null) ? null : data.InteriorThreshold,
+                        ProbeRadius: (data.ProbeRadius === void 0 || data.ProbeRadius === null) ? null : data.ProbeRadius
+                    };
+                    return this.sendPOSTjson(url, jsonRequestData);
                 };
                 ApiService.getFilenameFromResponseHeader = function (r) {
                     var contentDisposition = r.headers.get("Content-Disposition");
@@ -588,8 +582,6 @@ var MoleOnlineWebUI;
                     if (this.DEBUG_MODE) {
                         console.log(url);
                     }
-                    if (this.DEBUG_MODE)
-                        console.time("getProteinStructure");
                     return new Promise(function (res, rej) {
                         if (_this.DEBUG_MODE)
                             console.time('protein-raw');
@@ -609,17 +601,46 @@ var MoleOnlineWebUI;
                                 rej("GET: " + url + " " + rawResponse.status + ": " + rawResponse.statusText);
                                 return;
                             }
-                            rawResponse.text().then(function (value) {
-                                res({
-                                    data: value,
-                                    filename: filename
+                            // Decompression from gz needed
+                            if (rawResponse.body !== null && filename !== null && filename.toLowerCase().indexOf(".gz") >= 0) {
+                                var reader_1 = rawResponse.body.getReader();
+                                var binData_1 = [];
+                                reader_1.read().then(function handleStreamResponse(value) {
+                                    binData_1.push(value.value);
+                                    if (value.done) {
+                                        var bytes = binData_1.reduce(function (p, cv, ci, a) {
+                                            if (cv === void 0) {
+                                                cv = new Uint8Array(0);
+                                            }
+                                            var newVal = new Uint8Array(p.length + cv.length);
+                                            newVal.set(p);
+                                            newVal.set(cv, p.length);
+                                            return newVal;
+                                        }, new Uint8Array(0));
+                                        var stringData = pako.inflate(bytes, { to: 'string' });
+                                        res({
+                                            data: stringData,
+                                            filename: filename
+                                        });
+                                        return;
+                                    }
+                                    reader_1.read().then(handleStreamResponse)
+                                        .catch(function (error) {
+                                        rej(error);
+                                    });
                                 });
-                                if (_this.DEBUG_MODE)
-                                    console.timeEnd("getProteinStructure");
-                            })
-                                .catch(function (error) {
-                                rej(error);
-                            });
+                            }
+                            else {
+                                rawResponse.text().then(function (value) {
+                                    res({
+                                        data: value,
+                                        filename: filename
+                                    });
+                                })
+                                    .catch(function (error) {
+                                    rej(error);
+                                });
+                            }
                         })
                             .catch(function (error) { return rej(error); });
                     });
@@ -635,6 +656,20 @@ var MoleOnlineWebUI;
                     return this.handleJsonToStringResponse(this.sendGET(url)).then(function (s) {
                         if (_this.DEBUG_MODE)
                             console.timeEnd("getChannelsData");
+                        return s;
+                    });
+                };
+                ApiService.getMembraneData = function (computationId) {
+                    var _this = this;
+                    var url = this.baseUrl + "/Data/" + computationId + "?format=membrane";
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
+                    if (this.DEBUG_MODE)
+                        console.time("getMembraneData");
+                    return this.sendGET(url).then(function (s) {
+                        if (_this.DEBUG_MODE)
+                            console.timeEnd("getMembraneData");
                         return s;
                     });
                 };
@@ -661,8 +696,8 @@ var MoleOnlineWebUI;
                 };
                 ApiService.getCofactors = function () {
                     var _this = this;
-                    var url = this.baseUrl + "/inputs/cofactors.json";
-                    //let url = `/online/cofactors.json`;
+                    //let url = `${this.baseUrl}/inputs/cofactors.json`;
+                    var url = "/online/cofactors.json";
                     if (this.DEBUG_MODE) {
                         console.log(url);
                     }
@@ -679,6 +714,29 @@ var MoleOnlineWebUI;
                         if (_this.DEBUG_MODE)
                             console.timeEnd("getCofactors");
                         return rv;
+                    });
+                };
+                ApiService.submitFeedback = function (params) {
+                    var url = this.baseUrl + "/__Mail";
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
+                    return this.sendPOSTjson(url, params).then(function (val) {
+                        return val;
+                    });
+                };
+                ApiService.getVersions = function () {
+                    var _this = this;
+                    var url = this.baseUrl + "/Version";
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
+                    if (this.DEBUG_MODE)
+                        console.time("getVersions");
+                    return this.sendGET(url).then(function (s) {
+                        if (_this.DEBUG_MODE)
+                            console.timeEnd("getVersions");
+                        return s;
                     });
                 };
                 return ApiService;
@@ -755,22 +813,7 @@ var DataInterface;
     function convertLayersToLayerData(layersObject) {
         var layersData = [];
         var layerCount = layersObject.LayersInfo.length;
-        /*
-        export interface LayerData{
-        StartDistance: number,
-        EndDistance: number,
-        MinRadius: number,
-        MinFreeRadius: number,
-        Properties: any,
-        Residues: any
-        */
         for (var i = 0; i < layerCount; i++) {
-            /*
-            Hydrophobicity: number,
-            Hydropathy: number,
-            Polarity: number,
-            Mutability: number
-            */
             var properties = {
                 Charge: layersObject.LayersInfo[i].Properties.Charge,
                 NumPositives: layersObject.LayersInfo[i].Properties.NumPositives,
@@ -841,6 +884,7 @@ var MoleOnlineWebUI;
             HandlerTypes.CopyParametersType = "COPY-PARAMETERS";
             HandlerTypes.OnReSubmitType = "ON-RESUBMIT";
             HandlerTypes.OnSequneceViewerToggleType = "ON-SEQ-VIEWER-TOGGLE";
+            HandlerTypes.OnMembraneDataReadyType = "ON-MEMBRANE-DATA-READY";
         })(HandlerTypes || (HandlerTypes = {}));
         ;
         var Events = (function () {
@@ -1051,12 +1095,615 @@ var MoleOnlineWebUI;
                     }
                 }
             };
+            Events.subscribeOnMembraneDataReady = function (h) {
+                var list = this.handlers.get(HandlerTypes.OnMembraneDataReadyType);
+                if (list === void 0) {
+                    list = [];
+                }
+                list.push(h);
+                this.handlers.set(HandlerTypes.OnMembraneDataReadyType, list);
+            };
+            Events.invokeOnMembraneDataReady = function () {
+                var hndlrs = this.handlers.get(HandlerTypes.OnMembraneDataReadyType);
+                if (hndlrs !== void 0) {
+                    for (var _i = 0, hndlrs_13 = hndlrs; _i < hndlrs_13.length; _i++) {
+                        var h = hndlrs_13[_i];
+                        h();
+                    }
+                }
+            };
             return Events;
         }());
         Events.handlers = new Map();
         Bridge.Events = Events;
     })(Bridge = MoleOnlineWebUI.Bridge || (MoleOnlineWebUI.Bridge = {}));
 })(MoleOnlineWebUI || (MoleOnlineWebUI = {}));
+var MoleOnlineWebUI;
+(function (MoleOnlineWebUI) {
+    var DataProxy;
+    (function (DataProxy) {
+        var Service = MoleOnlineWebUI.Service.MoleAPI.ApiService;
+        var ComputationInfo;
+        (function (ComputationInfo) {
+            var DataProvider = (function () {
+                function DataProvider() {
+                }
+                //--
+                DataProvider.hasPending = function (compId) {
+                    if (this.pending === void 0) {
+                        return false;
+                    }
+                    var isPending = this.pending.get(compId);
+                    return (isPending === void 0) ? false : isPending;
+                };
+                DataProvider.setPending = function (compId, isPending) {
+                    if (this.pending === void 0) {
+                        this.pending = new Map();
+                    }
+                    this.pending.set(compId, isPending);
+                };
+                DataProvider.setData = function (compId, info) {
+                    if (this.data === void 0) {
+                        this.data = new Map();
+                    }
+                    this.data.set(compId, info);
+                    this.runHandlers(compId, info);
+                };
+                DataProvider.runHandlers = function (compId, info) {
+                    if (this.handlers === void 0) {
+                        return;
+                    }
+                    var hndlrs = [];
+                    for (var _i = 0, _a = this.handlers; _i < _a.length; _i++) {
+                        var h = _a[_i];
+                        if (h.compId === compId) {
+                            h.handler(compId, info);
+                        }
+                        if (h.stayForUpdate === true || h.compId !== compId) {
+                            hndlrs.push(h);
+                        }
+                    }
+                    this.handlers = hndlrs;
+                };
+                DataProvider.requestData = function (compId) {
+                    var _this = this;
+                    if (this.hasPending(compId)) {
+                        return;
+                    }
+                    this.setPending(compId, true);
+                    Service.getComputationInfoList(compId).then(function (val) {
+                        _this.setPending(compId, false);
+                        if (Config.CommonOptions.DEBUG_MODE)
+                            console.log(val);
+                        _this.setData(compId, val);
+                    }).catch(function (err) {
+                        if (Config.CommonOptions.DEBUG_MODE)
+                            console.log(err);
+                        window.setTimeout((function () { _this.requestData(compId); }).bind(_this), 100);
+                    });
+                };
+                DataProvider.attachHandler = function (compId, handler, stayForUpdate) {
+                    if (this.handlers === void 0) {
+                        this.handlers = [];
+                    }
+                    this.handlers.push({
+                        compId: compId,
+                        handler: handler,
+                        stayForUpdate: stayForUpdate
+                    });
+                    this.requestData(compId);
+                };
+                //--
+                DataProvider.get = function (compId, handler, onlyFresh) {
+                    if (this.data !== void 0 && !onlyFresh) {
+                        var data = this.data.get(compId);
+                        if (data !== void 0) {
+                            handler(compId, data);
+                            return;
+                        }
+                    }
+                    this.attachHandler(compId, handler, false);
+                };
+                DataProvider.subscribe = function (compId, handler, onlyFresh) {
+                    if (this.data !== void 0 && !onlyFresh) {
+                        var data = this.data.get(compId);
+                        if (data !== void 0) {
+                            handler(compId, data);
+                        }
+                    }
+                    this.attachHandler(compId, handler, true);
+                };
+                return DataProvider;
+            }());
+            ComputationInfo.DataProvider = DataProvider;
+        })(ComputationInfo = DataProxy.ComputationInfo || (DataProxy.ComputationInfo = {}));
+        var JobStatus;
+        (function (JobStatus) {
+            var Watcher = (function () {
+                function Watcher() {
+                }
+                Watcher.makeHash = function (computationId, submitId) {
+                    return computationId + ":" + computationId;
+                };
+                Watcher.registerErrHandler = function (computationId, submitId, handler) {
+                    if (this.errHandlers === void 0) {
+                        this.errHandlers = new Map();
+                    }
+                    var key = this.makeHash(computationId, submitId);
+                    var handlers = this.errHandlers.get(key);
+                    if (handlers === void 0) {
+                        handlers = [];
+                    }
+                    handlers.push(handler);
+                    this.errHandlers.set(key, handlers);
+                };
+                Watcher.registerOnChangeHandler = function (computationId, submitId, handler, onErr) {
+                    if (this.handlers === void 0) {
+                        this.handlers = new Map();
+                    }
+                    var key = this.makeHash(computationId, submitId);
+                    var handlers = this.handlers.get(key);
+                    var shouldStartLoop = false;
+                    if (handlers === void 0) {
+                        handlers = [];
+                        shouldStartLoop = true;
+                    }
+                    handlers.push(handler);
+                    this.handlers.set(key, handlers);
+                    this.registerErrHandler(computationId, submitId, onErr);
+                    if (shouldStartLoop) {
+                        this.waitForResult(computationId, submitId);
+                    }
+                };
+                Watcher.notifyStatusUpdate = function (computationId, submitId, status) {
+                    var handlers = this.handlers.get(this.makeHash(computationId, submitId));
+                    if (handlers === void 0) {
+                        return;
+                    }
+                    for (var _i = 0, handlers_1 = handlers; _i < handlers_1.length; _i++) {
+                        var h = handlers_1[_i];
+                        h(status);
+                    }
+                };
+                Watcher.removeHandlers = function (computationId, submitId) {
+                    var key = this.makeHash(computationId, submitId);
+                    this.handlers.delete(key);
+                    this.errHandlers.delete(key);
+                };
+                Watcher.waitForResult = function (computationId, submitId) {
+                    var _this = this;
+                    Service.getStatus(computationId, submitId).then(function (state) {
+                        if (Config.CommonOptions.DEBUG_MODE)
+                            console.log(state);
+                        /*
+                        "Initializing"| OK
+                        "Initialized"| OK
+                        "FailedInitialization"| OK
+                        "Running"| OK
+                        "Finished"| OK
+                        "Error"| OK
+                        "Deleted"| OK
+                        "Aborted"; OK
+                        */
+                        switch (state.Status) {
+                            case "Initializing":
+                            case "Running":
+                                _this.notifyStatusUpdate(computationId, submitId, state);
+                                window.setTimeout(function () { _this.waitForResult(computationId, submitId); }, 1000);
+                                break;
+                            case "Initialized":
+                            case "FailedInitialization":
+                            case "Error":
+                            case "Deleted":
+                            case "Aborted":
+                            case "Finished":
+                                _this.notifyStatusUpdate(computationId, submitId, state);
+                                _this.removeHandlers(computationId, submitId);
+                                break;
+                        }
+                    })
+                        .catch(function (err) {
+                        var h = _this.errHandlers.get(_this.makeHash(computationId, submitId));
+                        if (h === void 0) {
+                            throw new Error(err);
+                        }
+                        for (var _i = 0, h_1 = h; _i < h_1.length; _i++) {
+                            var handler = h_1[_i];
+                            handler(err);
+                        }
+                    });
+                };
+                return Watcher;
+            }());
+            JobStatus.Watcher = Watcher;
+        })(JobStatus = DataProxy.JobStatus || (DataProxy.JobStatus = {}));
+        var CSAResidues;
+        (function (CSAResidues_1) {
+            var DataProvider = (function () {
+                function DataProvider() {
+                }
+                //--
+                DataProvider.hasPending = function (compId) {
+                    if (this.pending === void 0) {
+                        return false;
+                    }
+                    var isPending = this.pending.get(compId);
+                    return (isPending === void 0) ? false : isPending;
+                };
+                DataProvider.setPending = function (compId, isPending) {
+                    if (this.pending === void 0) {
+                        this.pending = new Map();
+                    }
+                    this.pending.set(compId, isPending);
+                };
+                DataProvider.setData = function (compId, info) {
+                    if (this.data === void 0) {
+                        this.data = new Map();
+                    }
+                    this.data.set(compId, info);
+                    this.runHandlers(compId, info);
+                };
+                DataProvider.runHandlers = function (compId, info) {
+                    if (this.handlers === void 0) {
+                        return;
+                    }
+                    var hndlrs = [];
+                    for (var _i = 0, _a = this.handlers; _i < _a.length; _i++) {
+                        var h = _a[_i];
+                        if (h.compId === compId) {
+                            h.handler(compId, info);
+                        }
+                        if (h.stayForUpdate === true || h.compId !== compId) {
+                            hndlrs.push(h);
+                        }
+                    }
+                    this.handlers = hndlrs;
+                };
+                DataProvider.requestData = function (compId) {
+                    var _this = this;
+                    if (this.hasPending(compId)) {
+                        return;
+                    }
+                    this.setPending(compId, true);
+                    Service.getCSAResidues(compId).then(function (val) {
+                        _this.setPending(compId, false);
+                        if (Config.CommonOptions.DEBUG_MODE)
+                            console.log(val);
+                        _this.setData(compId, val);
+                    }).catch(function (err) {
+                        if (Config.CommonOptions.DEBUG_MODE)
+                            console.log(err);
+                        window.setTimeout((function () { _this.requestData(compId); }).bind(_this), 100);
+                    });
+                };
+                DataProvider.attachHandler = function (compId, handler, stayForUpdate) {
+                    if (this.handlers === void 0) {
+                        this.handlers = [];
+                    }
+                    this.handlers.push({
+                        compId: compId,
+                        handler: handler,
+                        stayForUpdate: stayForUpdate
+                    });
+                    this.requestData(compId);
+                };
+                //--
+                DataProvider.get = function (compId, handler, onlyFresh) {
+                    if (this.data !== void 0 && !onlyFresh) {
+                        var data = this.data.get(compId);
+                        if (data !== void 0) {
+                            handler(compId, data);
+                            return;
+                        }
+                    }
+                    this.attachHandler(compId, handler, false);
+                };
+                DataProvider.subscribe = function (compId, handler, onlyFresh) {
+                    if (this.data !== void 0 && !onlyFresh) {
+                        var data = this.data.get(compId);
+                        if (data !== void 0) {
+                            handler(compId, data);
+                        }
+                    }
+                    this.attachHandler(compId, handler, true);
+                };
+                return DataProvider;
+            }());
+            CSAResidues_1.DataProvider = DataProvider;
+        })(CSAResidues = DataProxy.CSAResidues || (DataProxy.CSAResidues = {}));
+        var Cofactors;
+        (function (Cofactors_1) {
+            var DataProvider = (function () {
+                function DataProvider() {
+                }
+                //--
+                DataProvider.hasPending = function () {
+                    if (this.pending === void 0) {
+                        return false;
+                    }
+                    return this.pending;
+                };
+                DataProvider.setPending = function (isPending) {
+                    this.pending = isPending;
+                };
+                DataProvider.setData = function (info) {
+                    this.data = info;
+                    this.runHandlers(info);
+                };
+                DataProvider.runHandlers = function (info) {
+                    if (this.handlers === void 0) {
+                        return;
+                    }
+                    for (var _i = 0, _a = this.handlers; _i < _a.length; _i++) {
+                        var h = _a[_i];
+                        h.handler(info);
+                    }
+                    this.handlers = [];
+                };
+                DataProvider.requestData = function () {
+                    var _this = this;
+                    if (this.hasPending()) {
+                        return;
+                    }
+                    this.setPending(true);
+                    Service.getCofactors().then(function (val) {
+                        _this.setPending(false);
+                        if (Config.CommonOptions.DEBUG_MODE)
+                            console.log(val);
+                        _this.setData(val);
+                    }).catch(function (err) {
+                        if (Config.CommonOptions.DEBUG_MODE)
+                            console.log(err);
+                        window.setTimeout((function () { _this.requestData(); }).bind(_this), 100);
+                    });
+                };
+                DataProvider.attachHandler = function (handler) {
+                    if (this.handlers === void 0) {
+                        this.handlers = [];
+                    }
+                    this.handlers.push({
+                        handler: handler
+                    });
+                    this.requestData();
+                };
+                //--
+                DataProvider.get = function (handler, onlyFresh) {
+                    if (this.data !== void 0 && !onlyFresh) {
+                        var data = this.data;
+                        if (data !== void 0) {
+                            handler(data);
+                            return;
+                        }
+                    }
+                    this.attachHandler(handler);
+                };
+                DataProvider.hasData = function () {
+                    return this.data !== void 0;
+                };
+                return DataProvider;
+            }());
+            Cofactors_1.DataProvider = DataProvider;
+        })(Cofactors = DataProxy.Cofactors || (DataProxy.Cofactors = {}));
+    })(DataProxy = MoleOnlineWebUI.DataProxy || (MoleOnlineWebUI.DataProxy = {}));
+})(MoleOnlineWebUI || (MoleOnlineWebUI = {}));
+var Common;
+(function (Common) {
+    var Util;
+    (function (Util) {
+        var Router;
+        (function (Router) {
+            ;
+            function getParameters() {
+                var parametersChannelsDBTest = SimpleRouter.GlobalRouter.getParametersByRegex(/\/online\/([a-zA-Z0-9]+)\/ChannelsDB/g);
+                var parameters = SimpleRouter.GlobalRouter.getParametersByRegex(/\/online\/([a-zA-Z0-9]+)\/*([0-9]*)/g);
+                var computationId = null;
+                var submitId = 0;
+                if ((parameters === null) || (parameters.length === 0) || (parameters.length > 3)) {
+                    console.log(parameters);
+                    console.log("Corrupted url found - cannot parse parameters.");
+                    return null;
+                }
+                computationId = parameters[1];
+                if (parameters[2] !== '') {
+                    submitId = Number(parameters[2]);
+                }
+                return {
+                    submitId: submitId,
+                    computationId: computationId,
+                    isChannelsDB: parametersChannelsDBTest !== null && parametersChannelsDBTest.length > 0
+                };
+            }
+            Router.getParameters = getParameters;
+            function redirect(computationId, submitId) {
+                SimpleRouter.GlobalRouter.redirect("/" + computationId + "/" + submitId, true);
+            }
+            Router.redirect = redirect;
+            function fakeRedirect(computationId, submitId) {
+                if (submitId !== void 0) {
+                    SimpleRouter.GlobalRouter.fakeRedirect("/" + computationId + "/" + submitId, true);
+                }
+                else {
+                    SimpleRouter.GlobalRouter.fakeRedirect("/" + computationId + "/", true);
+                }
+                Common.Util.LastNSessions.updateWithCurrentSession();
+            }
+            Router.fakeRedirect = fakeRedirect;
+            function isInChannelsDBMode() {
+                var params = getParameters();
+                return params !== null && params.isChannelsDB;
+            }
+            Router.isInChannelsDBMode = isInChannelsDBMode;
+            function getCurrentUrl() {
+                return window.location.href;
+            }
+            Router.getCurrentUrl = getCurrentUrl;
+        })(Router = Util.Router || (Util.Router = {}));
+    })(Util = Common.Util || (Common.Util = {}));
+})(Common || (Common = {}));
+var Common;
+(function (Common) {
+    var Util;
+    (function (Util) {
+        var Cookies;
+        (function (Cookies) {
+            function setCookie(c_name, value, exdays) {
+                var exdate = new Date();
+                if (exdays !== void 0) {
+                    exdate.setDate(exdate.getDate() + exdays);
+                }
+                var c_value = encodeURI(value) + ((exdays === void 0) ? "" : "; expires=" + exdate.toUTCString()) + "; path=/";
+                document.cookie = c_name + "=" + c_value;
+            }
+            Cookies.setCookie = setCookie;
+            function getCookie(c_name) {
+                var i, x, y, ARRcookies = document.cookie.split(";");
+                for (i = 0; i < ARRcookies.length; i++) {
+                    x = ARRcookies[i].substr(0, ARRcookies[i].indexOf("="));
+                    y = ARRcookies[i].substr(ARRcookies[i].indexOf("=") + 1);
+                    x = x.replace(/^\s+|\s+$/g, "");
+                    if (x == c_name) {
+                        return decodeURI(y);
+                    }
+                }
+            }
+            Cookies.getCookie = getCookie;
+        })(Cookies = Util.Cookies || (Util.Cookies = {}));
+    })(Util = Common.Util || (Common.Util = {}));
+})(Common || (Common = {}));
+var Common;
+(function (Common) {
+    var Util;
+    (function (Util) {
+        var LastNSessions;
+        (function (LastNSessions) {
+            var Cookies = Common.Util.Cookies;
+            var Router = Common.Util.Router;
+            LastNSessions.LAST_N_SESSIONS_N = 5;
+            var cookieNamePrefix = "LastNSessionsWithDate";
+            var version = 4;
+            function getNthSession(n) {
+                var val = Cookies.getCookie(cookieNamePrefix + "_" + version + "_" + n);
+                if (val === void 0 || val === null || val === "") {
+                    return "";
+                }
+                return val;
+            }
+            LastNSessions.getNthSession = getNthSession;
+            function formatDate(date) {
+                var day = "" + date.getDate();
+                if (day.length == 1) {
+                    day = "0" + day;
+                }
+                var month = "" + (date.getMonth() + 1);
+                if (month.length === 1) {
+                    month = "0" + month;
+                }
+                var hours = "" + date.getHours();
+                if (hours.length === 1) {
+                    hours = "0" + hours;
+                }
+                var minutes = "" + date.getMinutes();
+                if (minutes.length === 1) {
+                    minutes = "0" + minutes;
+                }
+                return day + "." + month + "." + date.getFullYear() + " " + hours + ":" + minutes;
+            }
+            function setNthSession(n, value) {
+                Cookies.setCookie(cookieNamePrefix + "_" + version + "_" + n, formatDate(new Date()) + "|" + value);
+            }
+            LastNSessions.setNthSession = setNthSession;
+            function updateWithCurrentSession() {
+                var params = Router.getParameters();
+                if (params === null) {
+                    return;
+                }
+                var computationId = params.computationId;
+                var submitIdPart = (params.isChannelsDB) ? "/ChannelsDB" : (params.submitId === 0) ? "" : "/" + params.submitId;
+                for (var i = 0; i < LastNSessions.LAST_N_SESSIONS_N; i++) {
+                    var session = getNthSession(i);
+                    if (session === "") {
+                        setNthSession(i, "" + computationId + submitIdPart);
+                        return;
+                    }
+                    var compId = session.split("|")[1].split("/")[0];
+                    if (compId === params.computationId) {
+                        setNthSession(i, "" + computationId + submitIdPart);
+                        return;
+                    }
+                }
+                for (var i = 1; i < LastNSessions.LAST_N_SESSIONS_N; i++) {
+                    setNthSession(i - 1, getNthSession(i).split("|")[1]);
+                }
+                setNthSession(LastNSessions.LAST_N_SESSIONS_N - 1, "" + computationId + submitIdPart);
+            }
+            LastNSessions.updateWithCurrentSession = updateWithCurrentSession;
+        })(LastNSessions = Util.LastNSessions || (Util.LastNSessions = {}));
+    })(Util = Common.Util || (Common.Util = {}));
+})(Common || (Common = {}));
+var Common;
+(function (Common) {
+    var Tabs;
+    (function (Tabs) {
+        var BootstrapTabs;
+        (function (BootstrapTabs) {
+            var React = LiteMol.Plugin.React;
+            var TabbedContainer = (function (_super) {
+                __extends(TabbedContainer, _super);
+                function TabbedContainer() {
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                TabbedContainer.prototype.componentDidMount = function () {
+                };
+                TabbedContainer.prototype.header = function () {
+                    var _this = this;
+                    var rv = [];
+                    var _loop_1 = function (idx) {
+                        var header = this_1.props.header[idx];
+                        rv.push(React.createElement("li", { className: (idx === this_1.props.activeTab) ? "active" : "" },
+                            React.createElement("a", { "data-toggle": "tab", href: "#" + this_1.props.namespace + (idx + 1), onClick: (function () {
+                                    window.setTimeout(function () {
+                                        if (_this.props.onChange !== void 0) {
+                                            _this.props.onChange(idx);
+                                        }
+                                    });
+                                }).bind(this_1) }, header)));
+                    };
+                    var this_1 = this;
+                    for (var idx = 0; idx < this.props.header.length; idx++) {
+                        _loop_1(idx);
+                    }
+                    return rv;
+                };
+                TabbedContainer.prototype.contents = function () {
+                    var rv = [];
+                    for (var idx = 0; idx < this.props.tabContents.length; idx++) {
+                        var contents = this.props.tabContents[idx];
+                        rv.push(React.createElement("div", { id: "" + this.props.namespace + (idx + 1), className: "tab-pane fade " + ((idx === this.props.activeTab) ? "in active" : "") }, contents));
+                    }
+                    return rv;
+                };
+                TabbedContainer.prototype.render = function () {
+                    return (React.createElement("div", { className: this.props.htmlClassName, id: this.props.htmlId },
+                        React.createElement("ul", { className: "nav nav-tabs" }, this.header()),
+                        React.createElement("div", { className: "tab-content" }, this.contents())));
+                };
+                return TabbedContainer;
+            }(React.Component));
+            BootstrapTabs.TabbedContainer = TabbedContainer;
+            var Tab = (function (_super) {
+                __extends(Tab, _super);
+                function Tab() {
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                Tab.prototype.render = function () {
+                    return (React.createElement("div", { id: "" + this.props.namespace + this.props.tabIndex, className: (this.props.active) ? "active" : "" }, this.props.contents));
+                };
+                return Tab;
+            }(React.Component));
+            BootstrapTabs.Tab = Tab;
+        })(BootstrapTabs = Tabs.BootstrapTabs || (Tabs.BootstrapTabs = {}));
+    })(Tabs = Common.Tabs || (Common.Tabs = {}));
+})(Common || (Common = {}));
 var AlertMessages;
 (function (AlertMessages) {
     var UI;
@@ -1161,6 +1808,7 @@ var MoleOnlineWebUI;
             var ApiService = MoleOnlineWebUI.Service.MoleAPI.ApiService;
             var React = LiteMol.Plugin.React;
             var ReactDOM = LiteMol.Plugin.ReactDOM;
+            var LastNSessions = Common.Util.LastNSessions;
             ;
             function render(target) {
                 ReactDOM.render(React.createElement(App, null), target);
@@ -1173,7 +1821,7 @@ var MoleOnlineWebUI;
                     _this.state = {
                         app: _this,
                         useBiologicalUnit: false,
-                        status: null
+                        activeTabIdx: 0,
                     };
                     return _this;
                 }
@@ -1194,8 +1842,6 @@ var MoleOnlineWebUI;
                     for (var idx = 0; idx < form.length; idx++) {
                         var item = form[idx];
                         var name_1 = item.getAttribute('name');
-                        console.log(name_1);
-                        console.log(item.value);
                         switch (name_1) {
                             case 'pdbid':
                                 pdbid = item.value;
@@ -1212,6 +1858,7 @@ var MoleOnlineWebUI;
                         }
                     }
                     if (file === void 0 || file === null) {
+                        this.triggerAnalyticsEvent((pdbid.length > 0) ? pdbid : null, pores, (assembly === void 0) ? null : assembly, null);
                         ApiService.initWithParams(pdbid, pores, assembly)
                             .then(function (response) {
                             _this.handleFormSubmitResponse(response);
@@ -1222,6 +1869,7 @@ var MoleOnlineWebUI;
                         });
                     }
                     else {
+                        this.triggerAnalyticsEvent(null, false, null, file);
                         var data = new FormData();
                         data.append("file", file);
                         ApiService.initWithFile(data)
@@ -1234,6 +1882,34 @@ var MoleOnlineWebUI;
                         });
                     }
                     return false;
+                };
+                App.prototype.triggerAnalyticsEvent = function (pdbid, pores, assembly, file) {
+                    if (file !== null) {
+                        var extension = file.name.split(".").filter(function (v, i, a) { return i !== 0; }).join(".");
+                        gtag('event', 'Init', { 'event_category': 'userStructure', 'event_label': extension });
+                        return;
+                    }
+                    else {
+                        if (pdbid === null) {
+                            return;
+                        }
+                        if (pores) {
+                            gtag('event', 'Init', { 'event_category': pdbid, 'event_label': 'bio' });
+                            return;
+                        }
+                        if (assembly !== null) {
+                            var assembly_number = Number(assembly);
+                            if (isNaN(assembly_number.valueOf())) {
+                                assembly_number = 0;
+                            }
+                            gtag('event', 'Init', { 'event_category': pdbid, 'event_label': 'assembly', 'value': assembly_number });
+                            return;
+                        }
+                        if (!pores && assembly === null) {
+                            gtag('event', 'Init', { 'event_category': pdbid, 'event_label': 'asymetricUnit' });
+                            return;
+                        }
+                    }
                 };
                 App.prototype.handleFormSubmitResponse = function (response) {
                     if (response.Status === "FailedInitialization") {
@@ -1272,64 +1948,222 @@ var MoleOnlineWebUI;
                 App.prototype.waitForComputationInitialization = function () {
                     var _this = this;
                     ApiService.getStatus(this.computationId, this.submitId).then(function (response) {
-                        console.log(response);
                         _this.handleFormSubmitResponse(response);
                     });
                 };
                 App.prototype.biologicalUnitChange = function (e) {
                     var el = e.target;
-                    this.setState({ useBiologicalUnit: el.checked });
+                    var s = this.state;
+                    s.useBiologicalUnit = el.checked;
+                    this.setState(s);
                 };
                 App.prototype.render = function () {
+                    var _this = this;
+                    var buttons = React.createElement("input", { type: "submit", name: "next", className: "button", id: "frm-jobSetup-setupForm-next", value: "Next" });
+                    var content = this.formByPDBID();
+                    var tabs = [];
+                    tabs.push(this.formByPDBID());
+                    tabs.push(this.formByFile());
+                    tabs.push(this.formByLastNSessions());
+                    if (this.state.activeTabIdx === 2) {
+                        buttons = React.createElement("span", null);
+                    }
                     return (React.createElement("div", { className: "InitForm" },
                         React.createElement("form", { onSubmit: this.handleFormSubmit.bind(this), action: Config.Routing.ROUTING_OPTIONS[Config.Routing.ROUTING_MODE].defaultContextPath + "/", method: "post", encType: "multipart/form-data" },
                             React.createElement("div", { className: "groupbox" },
-                                React.createElement("table", { style: { width: "100%" } },
-                                    React.createElement("tbody", null,
-                                        React.createElement("tr", null,
-                                            React.createElement("td", null,
-                                                React.createElement("label", { htmlFor: "frm-jobSetup-setupForm-code" }, "PDB ID"),
-                                                ":"),
-                                            React.createElement("td", null,
-                                                React.createElement("input", { type: "text", name: "pdbid", maxLength: 4, size: 10, className: "text", id: "frm-jobSetup-setupForm-code", defaultValue: "1tqn" }),
-                                                React.createElement("div", { className: "hint" }, "PDB ID code as can be found on www.pdb.org, for example 1z10."))),
-                                        React.createElement("tr", null,
-                                            React.createElement("td", null,
-                                                React.createElement("label", { htmlFor: "frm-jobSetup-setupForm-unit" }, "Assembly ID(optional)"),
-                                                ":"),
-                                            React.createElement("td", null,
-                                                React.createElement("input", { disabled: this.state.useBiologicalUnit, type: "text", name: "assembly", maxLength: 2, size: 10, className: "text", id: "frm-jobSetup-setupForm-unit", defaultValue: "" }),
-                                                React.createElement("div", { className: "hint" }, "no value - assymetric unit (default)"))),
-                                        React.createElement("tr", null,
-                                            React.createElement("td", null,
-                                                React.createElement("label", { htmlFor: "frm-jobSetup-setupForm-chains" }, "Use biological unit"),
-                                                ":"),
-                                            React.createElement("td", null,
-                                                React.createElement("input", { type: "checkbox", onChange: this.biologicalUnitChange.bind(this), name: "biological-unit", className: "checkbox", defaultChecked: true }),
-                                                React.createElement("div", { className: "hint" }, "use biological unit"))),
-                                        React.createElement("tr", null,
-                                            React.createElement("td", { colSpan: 2 },
-                                                React.createElement("hr", null))),
-                                        React.createElement("tr", null,
-                                            React.createElement("td", null,
-                                                React.createElement("label", { htmlFor: "frm-jobSetup-setupForm-file" }, "Or upload your own file"),
-                                                ":"),
-                                            React.createElement("td", null,
-                                                React.createElement("input", { type: "file", name: "file", className: "text", id: "frm-jobSetup-setupForm-file" }),
-                                                React.createElement("div", { className: "hint" },
-                                                    "Plain text PDB files (UTF-8 encoding), ZIP and GZIP archives are supported, maximal file size is 50MB.",
-                                                    React.createElement("br", null),
-                                                    "E.g. cleaned PDB with only one chain and without unnecessary HETATMs.")))))),
-                            React.createElement("div", { className: "buttons" },
-                                React.createElement("input", { type: "submit", name: "next", className: "button", id: "frm-jobSetup-setupForm-next", value: "Next" })),
+                                React.createElement(Common.Tabs.BootstrapTabs.TabbedContainer, { header: ["PDBID", "File", "Last session"], tabContents: tabs, namespace: "quick-start-panel-tabs-", htmlClassName: "tabs", htmlId: "quick-start-panel-tabs", activeTab: this.state.activeTabIdx, onChange: (function (tabIdx) {
+                                        var s = _this.state;
+                                        s.activeTabIdx = tabIdx;
+                                        _this.setState(s);
+                                    }).bind(this) })),
+                            React.createElement("div", { className: "buttons" }, buttons),
                             React.createElement("div", null,
                                 React.createElement("input", { type: "hidden", name: "do", value: "jobSetup-setupForm-submit" })))));
+                };
+                App.prototype.formByPDBID = function () {
+                    return (React.createElement("table", { style: { width: "100%" } },
+                        React.createElement("tbody", null,
+                            React.createElement("tr", null,
+                                React.createElement("td", null,
+                                    React.createElement("label", { htmlFor: "frm-jobSetup-setupForm-code" }, "PDB ID"),
+                                    ":"),
+                                React.createElement("td", null,
+                                    React.createElement("input", { type: "text", name: "pdbid", maxLength: 4, size: 10, className: "text", id: "frm-jobSetup-setupForm-code", defaultValue: "1tqn" }),
+                                    React.createElement("div", { className: "hint" }, "PDB ID code as can be found on www.pdb.org, for example 1z10."))),
+                            React.createElement("tr", null,
+                                React.createElement("td", null,
+                                    React.createElement("label", { htmlFor: "frm-jobSetup-setupForm-unit" }, "Assembly ID (optional)"),
+                                    ":"),
+                                React.createElement("td", null,
+                                    React.createElement("input", { disabled: this.state.useBiologicalUnit, type: "text", name: "assembly", maxLength: 3, size: 10, className: "text", id: "frm-jobSetup-setupForm-unit", defaultValue: "" }),
+                                    React.createElement("div", { className: "hint" }, "no value - assymetric unit (default)"))),
+                            React.createElement("tr", null,
+                                React.createElement("td", null,
+                                    React.createElement("label", { htmlFor: "frm-jobSetup-setupForm-chains" }, "Use biological unit"),
+                                    ":"),
+                                React.createElement("td", null,
+                                    React.createElement("input", { type: "checkbox", onChange: this.biologicalUnitChange.bind(this), name: "biological-unit", className: "checkbox", defaultChecked: true }),
+                                    React.createElement("div", { className: "hint" }, "use biological unit"))))));
+                };
+                App.prototype.formByFile = function () {
+                    return (React.createElement("table", { style: { width: "100%" } },
+                        React.createElement("tbody", null,
+                            React.createElement("tr", null,
+                                React.createElement("td", null,
+                                    React.createElement("label", { htmlFor: "frm-jobSetup-setupForm-file" }, "Upload your own file"),
+                                    ":"),
+                                React.createElement("td", null,
+                                    React.createElement("input", { type: "file", name: "file", className: "text", id: "frm-jobSetup-setupForm-file" }),
+                                    React.createElement("div", { className: "hint" },
+                                        "Plain text PDB files (UTF-8 encoding), ZIP and GZIP archives are supported, maximal file size is 50MB.",
+                                        React.createElement("br", null),
+                                        "E.g. cleaned PDB with only one chain and without unnecessary HETATMs."))))));
+                };
+                App.prototype.getLastNSessions = function () {
+                    var sessions = [];
+                    for (var i = 0; i < LastNSessions.LAST_N_SESSIONS_N; i++) {
+                        var session = LastNSessions.getNthSession(i);
+                        if (session === "") {
+                            break;
+                        }
+                        sessions.push(React.createElement(LastSession, { session: session, parent: this }));
+                    }
+                    if (sessions.length === 0) {
+                        sessions.push(React.createElement("tr", null,
+                            React.createElement("td", { colSpan: 4 }, "There are no last openned sessions available...")));
+                    }
+                    return sessions;
+                };
+                App.prototype.formByLastNSessions = function () {
+                    var sessions = this.getLastNSessions();
+                    return (React.createElement("table", { style: { width: "100%" }, className: "last-session-form" },
+                        React.createElement("thead", null,
+                            React.createElement("tr", null,
+                                React.createElement("th", null, "Created"),
+                                React.createElement("th", null, "PDB ID"),
+                                React.createElement("th", null, "Assembly ID"),
+                                React.createElement("th", null, "Submission"))),
+                        React.createElement("tbody", null, sessions)));
                 };
                 return App;
             }(React.Component));
             UI.App = App;
+            ;
+            var LastSession = (function (_super) {
+                __extends(LastSession, _super);
+                function LastSession() {
+                    var _this = _super !== null && _super.apply(this, arguments) || this;
+                    _this.state = { loaded: false, data: null };
+                    return _this;
+                }
+                LastSession.prototype.componentDidMount = function () {
+                    var _this = this;
+                    var computationId = this.props.session.split("|")[1].split("/")[0];
+                    MoleOnlineWebUI.DataProxy.ComputationInfo.DataProvider.get(computationId, function (compId, info) {
+                        var s = _this.state;
+                        _this.setState({
+                            loaded: true,
+                            data: info
+                        });
+                    });
+                };
+                LastSession.prototype.render = function () {
+                    var date = this.props.session.split("|")[0];
+                    var sessionUrl = this.props.session.split("|")[1];
+                    if (this.state.loaded && this.state.data !== null) {
+                        var pdbid = void 0;
+                        if (this.state.data.PdbId !== null && this.state.data.PdbId !== "") {
+                            pdbid = this.state.data.PdbId;
+                        }
+                        else {
+                            pdbid = "User structure";
+                        }
+                        var assemblyId = void 0;
+                        if (this.state.data.AssemblyId !== null && this.state.data.AssemblyId !== "") {
+                            assemblyId = this.state.data.AssemblyId;
+                        }
+                        if (assemblyId === null) {
+                            assemblyId = "Assymetric unit";
+                        }
+                        var submitIdParts = sessionUrl.split("/");
+                        var submission = void 0;
+                        if (submitIdParts.length === 2) {
+                            var submitId = submitIdParts[1];
+                            submission = submitId;
+                        }
+                        return React.createElement("tr", { onClick: function () {
+                                SimpleRouter.GlobalRouter.redirect("/online/" + sessionUrl);
+                            }, className: "linkLike" },
+                            React.createElement("td", null, date),
+                            React.createElement("td", null, pdbid),
+                            React.createElement("td", null, assemblyId),
+                            React.createElement("td", null, submission));
+                    }
+                    else {
+                        return React.createElement("tr", { onClick: function () {
+                                SimpleRouter.GlobalRouter.redirect("/online/" + sessionUrl);
+                            }, className: "linkLike" },
+                            React.createElement("td", null, date),
+                            React.createElement("td", { colSpan: 3 }, sessionUrl));
+                    }
+                };
+                return LastSession;
+            }(React.Component));
         })(UI = InitForm.UI || (InitForm.UI = {}));
     })(InitForm = MoleOnlineWebUI.InitForm || (MoleOnlineWebUI.InitForm = {}));
+})(MoleOnlineWebUI || (MoleOnlineWebUI = {}));
+var MoleOnlineWebUI;
+(function (MoleOnlineWebUI) {
+    var VersionStrip;
+    (function (VersionStrip) {
+        var UI;
+        (function (UI) {
+            var MoleAPI = MoleOnlineWebUI.Service.MoleAPI;
+            var React = LiteMol.Plugin.React;
+            var ReactDOM = LiteMol.Plugin.ReactDOM;
+            ;
+            function render(target) {
+                ReactDOM.render(React.createElement(App, null), target);
+            }
+            UI.render = render;
+            var App = (function (_super) {
+                __extends(App, _super);
+                function App() {
+                    var _this = _super !== null && _super.apply(this, arguments) || this;
+                    _this.state = {
+                        app: _this,
+                        versions: {
+                            apiVersion: "loading...",
+                            moleVersion: "loading...",
+                            poresVersion: "loading...",
+                            uiVersion: "loading..."
+                        }
+                    };
+                    return _this;
+                }
+                App.prototype.componentDidMount = function () {
+                    var _this = this;
+                    var s = this.state;
+                    s.versions.uiVersion = $("#version-block").data("ui-version");
+                    this.setState(s);
+                    MoleAPI.ApiService.getVersions().then(function (val) {
+                        var s1 = _this.state;
+                        s1.versions.apiVersion = val.APIVersion + " (" + val.Build + ")";
+                        s1.versions.moleVersion = val.MoleVersion;
+                        s1.versions.poresVersion = val.PoresVersion;
+                        _this.setState(s1);
+                    });
+                };
+                App.prototype.componentWillUnmount = function () {
+                };
+                App.prototype.render = function () {
+                    return (React.createElement("div", { className: "version-strip" }, "WEB UI Version: " + this.state.versions.uiVersion + " | API Version: " + this.state.versions.apiVersion + " | MOLE Version: " + this.state.versions.moleVersion + " | Pores Version: " + this.state.versions.poresVersion));
+                };
+                return App;
+            }(React.Component));
+            UI.App = App;
+        })(UI = VersionStrip.UI || (VersionStrip.UI = {}));
+    })(VersionStrip = MoleOnlineWebUI.VersionStrip || (MoleOnlineWebUI.VersionStrip = {}));
 })(MoleOnlineWebUI || (MoleOnlineWebUI = {}));
 /*
  * Copyright (c) 2016 - now David Sehnal, licensed under Apache 2.0, See LICENSE file for more info.
@@ -1349,10 +2183,11 @@ var LiteMol;
             var MoleUI = MoleOnlineWebUI;
             (function () {
                 SimpleRouter.GlobalRouter.init(Config.Routing.ROUTING_OPTIONS[Config.Routing.ROUTING_MODE]);
-                console.log(Config.Routing.ROUTING_MODE);
-                console.log(SimpleRouter.GlobalRouter.getCurrentPage());
-                AlertMessages.UI.render(document.getElementById("alert-messages"));
-                MoleUI.InitForm.UI.render(document.getElementById("init-form"));
+                if (document.getElementById("alert-messages") !== null)
+                    AlertMessages.UI.render(document.getElementById("alert-messages"));
+                if (document.getElementById("init-form") !== null)
+                    MoleUI.InitForm.UI.render(document.getElementById("init-form"));
+                MoleUI.VersionStrip.UI.render(document.getElementById("version-block"));
             })();
         })(Channels = Example.Channels || (Example.Channels = {}));
     })(Example = LiteMol.Example || (LiteMol.Example = {}));

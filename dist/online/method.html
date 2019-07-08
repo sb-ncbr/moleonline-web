@@ -9,11 +9,21 @@
 	<link rel="shortcut icon" href="\images/favicon.ico" type="image/icon">
 	<script type="text/javascript" src="\js/old-web/jsloader.js"></script>
 	<link rel="stylesheet" type="text/css" media="screen" href="\css/old-web/cssloader.css">
-		<link rel="stylesheet" href="\css/old-web/print.front.css" type="text/css" media="print">
-		<link rel="stylesheet" href="\css/old-web/LiteMol-plugin.css" type="text/css">
-		<link rel="stylesheet" href="\css/init-styles.css?version=1.4.7" type="text/css">
+	<link rel="stylesheet" href="\css/old-web/print.front.css" type="text/css" media="print">
+	<link rel="stylesheet" href="\css/old-web/LiteMol-plugin.css" type="text/css">
+	<link rel="stylesheet" href="\css/init-styles.css?version=1.5.2.1" type="text/css">
+	<script src="\js/provided.js?version=1.5.2.1"></script>
+	<script src="\js/scripts.js?version=1.5.2.1"></script>  
 
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-4336835-7"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
 
+		gtag('config', 'UA-4336835-7');
+	</script>
 </head>
 
 <body>
@@ -39,7 +49,8 @@
 			<a class="active" href="/method">Method</a> | 
 			<a href="/examples">Examples</a> | 
 			<a href="/tour">Tour</a> | 
-			<a href="/faq">FAQ</a>
+			<a href="/faq">FAQ</a> |
+			<a href="/updates">Updates</a>
 		</div>
 	<h3>Methods and other Details</h3>
 	<h4>MOLE<em>online</em> algorithm </h4>
@@ -116,6 +127,27 @@
 		highly depends on the secondary structure of the studied molecule. 
 	</p>
 
+	<h3>Further reading</h3>
+	<ul>
+		<li>
+			Pravda L., Berka K., Sehnal D., Otyepka M., Svobodová Vařeková R., Koča J.Koča J, Svobodová Vařeková R, 
+			Pravda L, Berka K, Geidl S, Sehnal D, Otyepka M. 
+			<a href="https://www.springer.com/cn/book/9783319473871" target="_blank">Detection of Channels. Structural 
+			Bioinformatics Tools for Drug Design.</a> 2016; Cham: Springer. 59–69.
+		</li>
+		<li>
+			Simões T., Lopes D., Dias S., Fernandes F., Pereira J., Jorge J., Bajaj C., Gomes A. 
+			<a href="http://dx.doi.org/10.1111/cgf.13158" target="_blank">Geometric detection algorithms for cavities 
+			on protein surfaces in molecular graphics: a survey.</a> Comput. Graph. Forum. 2017. <i>Excellent review not 
+			only about different methods for channel analysis but also about the theory behind</i>.
+		</li>
+		<li>
+			Edelsbrunner, H., &amp; Mücke, E. P. <a href="https://doi.org/10.1145/174462.156635" target="_blank">
+			Three-dimensional alpha shapes</a>. ACM Transactions on Graphics, 
+			13(1), 43–72. 1994. <i>Mathematical background of Voronoi diagrams construction used in MOLE algorithm</i>. 
+		</li>
+	</ul>
+
 	<h3>Other Details</h3>
 
 	<h4>Origins</h4>
@@ -191,6 +223,27 @@
 	</p>
 
 	<p>
+		<b>Lipophilicity</b> <i>(logP-scale)</i> is calculated as octanol/water partition coefficients of Cβ fragments of side-chains and mainchain (-0.86) via <a target="_blank" href="www.chemicalize.org">www.chemicalize.org</a>.
+	</p>
+	<p>
+		LogP values ranges from lipophobic fragments (ASN -1.03; SER -0.52; GLN -0.33; THR -0.16) through acids (ASP -0.22; GLU 0.48) and bases (ARG -0.08; HIS -0.01; LYS 0.7), to sulphur-containing (CYS 0.84; MET 1.48), aliphatic (ALA 1.08; VAL 1.8; PRO 1.8; LEU 2.08; ILE  2.24) to most lipophilic aromatic residues (TYR 2.18; PHE 2.49; TRP 2.59). GLY has no sidechain fragment and therefore its value is set to 0.
+	</p>
+
+	<p>
+		<b>Lipophilicity</b> <i>(logD-scale)</i> is calculated as octanol/water distribution coefficients of Cβ fragments of side-chains and mainchain (-0.86) at pH 7.4 via <a target="_blank" href="www.chemicalize.org">www.chemicalize.org</a>. Distribution coefficient take into account ionization of compounds.
+	</p>
+	<p>
+		LogD values ranges from highly lipophobic charged fragments (ASP -3.00; ARG -2.49; GLU -2.12; LYS -1.91) through polar ones (ASN -1.03; SER -0.52; GLN -0.33; THR -0.16, HIS -0.11) to sulphur-containing (CYS 0.84; MET 1.48), aliphatic (ALA 1.08; VAL 1.8; PRO 1.8; LEU 2.08; ILE  2.24) to most lipophilic aromatic residues (TYR 2.18; PHE 2.49; TRP 2.59). GLY has no sidechain fragment and therefore its value is set to 0.
+	</p>
+
+	<p>
+		<b>Solubility</b> <i>(logS-scale)</i> is calculated as water solubility of Cβ fragments of side-chains and mainchain (0.81) at pH 7.4 via <a target="_blank" href="www.chemicalize.org">www.chemicalize.org</a>. Our estimated logS value is a unit stripped logarithm (base 10) of the solubility measured in mol/liter and it is a measure how well can be individual residues interacting with water molecules.
+	</p>
+	<p>
+		LogS values ranges from lowest solubility of aromatic residues (TRP -2.48: PHE -1.81; TYR -1.44;)  followed by aliphatic (LEU -1.79; ILE -1.85; PRO -1.3; VAL -1.3; ALA 0.59) and sulphur-containing residues (MET -0.72; CYS 0.16) up to polar ones (HIS -0.2; GLN 0.13; ASN 0.54; THR 0.77; SER 1.11) whereas the most water molecules will attract charged residues (LYS 1.46; ARG 1.63; GLU 2.23; ASP 2.63). GLY has no sidechain fragment and therefore its value is set to 0. 
+	</p>
+
+	<p>
 		<b>Mutability</b> is calculated as an average of relative mutability index (<a target="_blank" href="https://www.ncbi.nlm.nih.gov/pubmed/1633570">Jones,D.T., Taylor,W.R. 
 		and Thornton,J.M. (1992) The Rapid Generation of Mutation Data Matrices from Protein Sequences. <i>Bioinformatics</i>, 
 		<b>8</b>, 275–282</a>). Relative mutability is based on empirical substitution matrices between similar protein sequences.
@@ -200,6 +253,10 @@
 		It is high wherever amino acid can be easily substituted for another e.g. in case of small polar amino acids (SER = 117, THR  = 107, ASN = 104) or in case of small aliphatic amino acids (ALA = 100, VAL = 98, ILE = 103). On the other hand it is low  when amino acid plays important structural role such as in case of aromatic amino acids (TRP = 25, PHE = 51, TYR = 50) or in case of special amino acids (CYS = 44, PRO = 58, GLY = 50). Specific example of amino acid with low relative mutability is the most abundant amino acid /LEU = 54) which has the highest probability to mutate back to itself.
 	</p>
 
+	<p>
+		<b>Ionizable</b> residues can be also viewed in the channel profile or directly as selection on the visualized structure.
+	</p>
+
 	<figure>
 		<img src="\images/method_other_computed_hphys_chem_props.png" alt="Example of computed physicochemical properties">
 		<figcaption>Figure 4. Example of computed physicochemical properties (Pore of structure 1K4C).</figcaption>
@@ -207,30 +264,24 @@
 
 	<h3>Annotations</h3>
 	<p>
-		You can contribute to the ChannelsDB database (<a target="_blank" href="https://webchemdev.ncbr.muni.cz/ChannelsDB/">https://webchemdev.ncbr.muni.cz/ChannelsDB/</a>) by Annotation button in the upper left corner of the visualization window. Annotation can be easily written to the boxes in the Annotation window and channels selected from those calculated within the window (Figure 5). 
+		You can contribute to the ChannelsDB database (<a target="_blank" href="http://ncbr.muni.cz/ChannelsDB/">http://ncbr.muni.cz/ChannelsDB/</a>) by Annotation button in the upper left corner of the visualization window. Annotation can be easily written to the boxes in the Annotation window and channels selected from those calculated within the window (Figure 5). 
 	</p>
 
 	<figure>
 		<img src="\images/method_other_annotate_form.png" alt="Annotation window for ChannelsDB database">
-		<figcaption>Figure 5. Annotation window for ChannelsDB database.</figcaption>
+		<figcaption>Figure 5. MOLEonline Annotation window for contribution to ChannelsDB database.</figcaption>
 	</figure>
 
 	</div> <!-- #content -->
-	<hr class="cleaner">
 
+	<hr class="cleaner">
+	<div id="version-block" data-ui-version="1.5.2.1" />
+		
 </div> <!-- #page -->
 
 <div id="ajaxspinner"></div>
 
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-4336835-7"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'UA-4336835-7');
-</script>
+<script src="\MoleOnlineWebUI-Core-Init.js?version=1.5.2.1"></script>
 </body>
 </html>
 

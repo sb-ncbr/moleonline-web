@@ -1,0 +1,209 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>MoleOnline | Features</title>
+	<meta name="description" content="MOLEonline 2.0 features">
+	<meta name="author" content="Ing. Ondřej Hanák; http://ondrejhanak.cz">
+	<link rel="shortcut icon" href="\images/favicon.ico" type="image/icon">
+	<script type="text/javascript" src="\js/old-web/jsloader.js"></script>
+	<link rel="stylesheet" type="text/css" media="screen" href="\css/old-web/cssloader.css">
+	<link rel="stylesheet" href="\css/old-web/print.front.css" type="text/css" media="print">
+	<link rel="stylesheet" href="\css/old-web/LiteMol-plugin.css" type="text/css">
+	<link rel="stylesheet" href="\css/init-styles.css?version=1.5.2.1" type="text/css">
+	<script src="\js/provided.js?version=1.5.2.1"></script>
+	<script src="\js/scripts.js?version=1.5.2.1"></script>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-4336835-7"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+
+		gtag('config', 'UA-4336835-7');
+	</script>
+</head>
+
+<body>
+
+<div id="page">
+
+	<div id="header">
+		<h1><a href="/">MOLE<em>online</em></a></h1>
+
+		<div id="topmenu">
+			<ul>
+				<li><a href="/">Home</a></li>
+				<li><a href="/online">Online</a></li>
+				<li class="active"><a href="/documentation">Documentation</a></li>
+				<li><a href="/about">About</a></li>
+			</ul>
+		</div> <!-- #topmenu -->
+	</div> <!-- #header -->
+
+	<div id="content">
+		
+
+		<div id="submenu">
+			<a href="/method">Method</a> | 
+			<a href="/examples">Examples</a> | 
+			<a href="/tour">Tour</a> | 
+            <a href="/faq">FAQ</a> |
+            <a class="active" href="/updates">Updates</a>
+		</div>
+
+<h2>MOLEonline Updates</h2>
+
+<h3>MOLEonline version 2018 - <a href="https://mole.upol.cz">https://mole.upol.cz</a> - 1.4.2018</h3>
+
+<ul>
+	<li>
+		Input
+		<ul>
+			<li>
+				<a target="_blank" href="http://mmcif.wwpdb.org/">mmCIF</a> parsing 
+			</li>
+			<li>
+				Added <a target="_blank" href="https://webchem.ncbr.muni.cz/Platform/PatternQuery">PatternQuery</a> language support (ignore residues, start points).
+			</li>
+			<li>
+				Automatic starting points from cavities in 3D structure - Origin points 
+			</li>
+			<li>
+				Transmembrane Pore mode
+			</li>
+		</ul>
+	</li>
+	<li>
+		Parameters of calculation
+		<ul>
+			<li>
+				Selection of end points (It is possible to compute tunnels to only 1 user specified exit)
+			</li>
+			<li>
+				New weight functions for computing tunnels (added Length, Voronoi scale weight functions)
+			</li>
+			<li>
+				Computation of "User Pores" now works for any cavity, not just the "surface".
+			</li>
+			<li>
+				Selection of end points with Ctrl+left click
+			</li>
+		</ul>
+	</li>
+	<li>
+		Pore mode
+		<ul>
+			<li>
+				Enhancement of transmembrane pore calculations with use of OPM database or MEMEMBED program
+            </li>
+            <li>
+                Vizualization of membrane region
+			</li>
+		</ul>
+	</li>
+	<li>
+		Visualization
+		<ul>
+			<li>
+				<a target="_blank" href="http://www.litemol.org/">LiteMol</a> instead of Jmol
+			</li>
+			<li>
+				Layered Channel profile with physicochemical properties
+            </li>
+            <li>
+                Multiple layers can be selected/deselected to show average properties and list of residues only around important area of the channel.
+            </li>
+			<li>
+				Connectivity to <a target="_blank" href="https://webchemdev.ncbr.muni.cz/ChannelsDB/">ChannelsDB</a>
+			</li>
+		</ul>
+	</li>
+	<li>
+		New properties
+		<ul>
+			<li>
+				Free Radius for channels (Free Radius is the distance to the closest backbone or HET atom)
+			</li>
+			<li>
+				BRadius for channels (BRadius is the Radius + RMSF (from Bfactors) to estimate local flexibility)
+			</li>
+			<li>
+				Lipophilicity (logP and logD@pH 7.4 scales of channel-lining residues)
+			</li>
+			<li>
+				Water solubility (logS-like scale of channel-lining residues)
+			</li>
+		</ul>
+	</li>
+	<li>
+		Export of results
+		<ul>
+			<li>
+				Ability to export residues surrounding a cavity or channel
+			</li>
+			<li>
+				CSV output of properties along the individual channels
+			</li>
+			<li>
+				Export current computation settings in XML
+			</li>
+			<li>
+				Rich JSON output for programmatic analysis
+			</li>
+			<li>
+				Export of channel profile in PNG or SVG format
+			</li>
+			<li>
+				Output to PyMOL, VMD, and Chimera.
+			</li>
+			<li>
+				Export of results for individual channels to PDF report or within ZIP archive
+			</li>
+			<li>
+				User contributions to ChannelsDB annotations
+			</li>
+		</ul>
+	</li>
+</ul>
+<br/>
+
+<h3>MOLEonline 2.0 - <a href="http://old.mole.upol.cz">http://old.mole.upol.cz</a> - 1.4.2013</h3>
+
+<ul>
+	<li>
+		better macromolecular surface representation (probe radius in MOLE 2 vs. convex hull in MOLE 1.4)
+	</li>
+	<li>
+		no need to determine the number of channels prior calculation
+	</li>
+	<li>
+		quicker calculation due to the division of the internal space within the macromolecule to separate sub-cavities
+	</li>
+	<li>	
+		better removal of duplicate channels (surface cover radius parameter, similar channels with RMSD &lt; 0.5 A are reported only once in shorter variant)
+	</li>
+	<li>
+		automatic selection of the starting points based on detected cavities
+	</li>
+	<li>
+		better visualization of the starting points and their optimized position
+	</li>
+	<li>
+		experimental feature - calculation of physicochemical properties of the residues lining the channel
+	</li>
+</ul>
+<br/>
+
+</div> <!-- #content -->
+
+<hr class="cleaner">
+<div id="version-block" data-ui-version="1.5.2.1" />
+
+</div> <!-- #page -->
+
+<div id="ajaxspinner"></div>
+</body>
+</html>
+

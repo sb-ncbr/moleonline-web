@@ -103,7 +103,7 @@ var Config;
 })(Config || (Config = {}));
 var Config;
 (function (Config) {
-    Config.Routing.ROUTING_MODE = "prod";
+    Config.Routing.ROUTING_MODE = "local";
     Config.DataSources.MODE = "upol";
     Config.DataSources.PATTERN_QUERY_MODE = "webchem";
     Config.DataSources.ANNOTATION_API_MODE = "webchem";
@@ -126,22 +126,7 @@ var DataInterface;
     function convertLayersToLayerData(layersObject) {
         var layersData = [];
         var layerCount = layersObject.LayersInfo.length;
-        /*
-        export interface LayerData{
-        StartDistance: number,
-        EndDistance: number,
-        MinRadius: number,
-        MinFreeRadius: number,
-        Properties: any,
-        Residues: any
-        */
         for (var i = 0; i < layerCount; i++) {
-            /*
-            Hydrophobicity: number,
-            Hydropathy: number,
-            Polarity: number,
-            Mutability: number
-            */
             var properties = {
                 Charge: layersObject.LayersInfo[i].Properties.Charge,
                 NumPositives: layersObject.LayersInfo[i].Properties.NumPositives,
@@ -179,7 +164,7 @@ var CommonUtils;
         }
         Tunnels.getLength = function (tunnel) {
             var len = tunnel.Layers.LayersInfo[tunnel.Layers.LayersInfo.length - 1].LayerGeometry.EndDistance;
-            len = CommonUtils.Numbers.roundToDecimal(len, 1); //Math.round(len*10)/10;
+            len = Common.Util.Numbers.roundToDecimal(len, 1);
             return len;
         };
         Tunnels.getBottleneck = function (tunnel) {
@@ -210,22 +195,23 @@ var CommonUtils;
     }());
     CommonUtils.Tunnels = Tunnels;
 })(CommonUtils || (CommonUtils = {}));
-var CommonUtils;
-(function (CommonUtils) {
-    var Numbers = (function () {
-        function Numbers() {
-        }
-        Numbers.roundToDecimal = function (number, numOfDecimals) {
-            if (number.toString().indexOf(".") <= 0 && number.toString().indexOf(",") <= 0) {
-                return number;
+var Common;
+(function (Common) {
+    var Util;
+    (function (Util) {
+        var Numbers;
+        (function (Numbers) {
+            function roundToDecimal(number, numOfDecimals) {
+                if (number.toString().indexOf(".") <= 0 && number.toString().indexOf(",") <= 0) {
+                    return number;
+                }
+                var dec = Math.pow(10, numOfDecimals);
+                return Math.round(number * dec) / dec;
             }
-            var dec = Math.pow(10, numOfDecimals);
-            return Math.round(number * dec) / dec;
-        };
-        return Numbers;
-    }());
-    CommonUtils.Numbers = Numbers;
-})(CommonUtils || (CommonUtils = {}));
+            Numbers.roundToDecimal = roundToDecimal;
+        })(Numbers = Util.Numbers || (Util.Numbers = {}));
+    })(Util = Common.Util || (Common.Util = {}));
+})(Common || (Common = {}));
 var CommonUtils;
 (function (CommonUtils) {
     ;
@@ -643,6 +629,7 @@ var CommonUtils;
             };
             SelectionHelper.clearSelection = function (plugin) {
                 this.clearSelectionPrivate(plugin);
+                this.invokeOnClearSelectionHandlers();
                 //this.resetScene(plugin);
             };
             SelectionHelper.clearSelectionPrivate = function (plugin) {
@@ -658,7 +645,7 @@ var CommonUtils;
                 LiteMol.Bootstrap.Event.Visual.VisualSelectElement.dispatch(plugin.context, LiteMol.Bootstrap.Interactivity.Info.empty);
                 this.clearAltSelection(plugin);
                 this.selectedBulkResidues = void 0;
-                this.invokeOnClearSelectionHandlers();
+                //this.invokeOnClearSelectionHandlers();
             };
             SelectionHelper.clearAltSelection = function (plugin) {
                 LiteMol.Bootstrap.Command.Tree.RemoveNode.dispatch(plugin.context, this.SELECTION_ALT_VISUAL_REF);
@@ -1120,6 +1107,10 @@ var CommonUtils;
                     if (this.selectedChannelRef !== void 0 && this.selectedChannelRef !== i.source.ref) {
                         deselectTunnelByRef(plugin, this.selectedChannelRef);
                     }
+                    else {
+                        //Trigger Sequence Viewer to deselect selected residues
+                        this.clearSelection(plugin);
+                    }
                     this.selectedChannelRef = i.source.ref;
                     this.selectedChannelData = i.source.props.tag.element.Layers;
                     this.selectedChannelId = i.source.props.tag.element.Id;
@@ -1161,57 +1152,160 @@ var CommonUtils;
         }
     })(Selection = CommonUtils.Selection || (CommonUtils.Selection = {}));
 })(CommonUtils || (CommonUtils = {}));
-var CommonUtils;
-(function (CommonUtils) {
-    var Router;
-    (function (Router) {
-        ;
-        function getParameters() {
-            /*let suppressDefaultSubmitId_ = (suppressDefaultSubmitId===void 0)?false:suppressDefaultSubmitId;*/
-            var parametersChannelsDBTest = SimpleRouter.GlobalRouter.getParametersByRegex(/\/online\/([a-zA-Z0-9]+)\/ChannelsDB/g);
-            var parameters = SimpleRouter.GlobalRouter.getParametersByRegex(/\/online\/([a-zA-Z0-9]+)\/*([0-9]*)/g);
-            var computationId = null;
-            var submitId = 0; //(suppressDefaultSubmitId_)?0:1;
-            if ((parameters === null) || (parameters.length === 0) || (parameters.length > 3)) {
-                console.log(parameters);
-                console.log("Corrupted url found - cannot parse parameters.");
-                return null;
+var Common;
+(function (Common) {
+    var Util;
+    (function (Util) {
+        var Router;
+        (function (Router) {
+            ;
+            function getParameters() {
+                var parametersChannelsDBTest = SimpleRouter.GlobalRouter.getParametersByRegex(/\/online\/([a-zA-Z0-9]+)\/ChannelsDB/g);
+                var parameters = SimpleRouter.GlobalRouter.getParametersByRegex(/\/online\/([a-zA-Z0-9]+)\/*([0-9]*)/g);
+                var computationId = null;
+                var submitId = 0;
+                if ((parameters === null) || (parameters.length === 0) || (parameters.length > 3)) {
+                    console.log(parameters);
+                    console.log("Corrupted url found - cannot parse parameters.");
+                    return null;
+                }
+                computationId = parameters[1];
+                if (parameters[2] !== '') {
+                    submitId = Number(parameters[2]);
+                }
+                return {
+                    submitId: submitId,
+                    computationId: computationId,
+                    isChannelsDB: parametersChannelsDBTest !== null && parametersChannelsDBTest.length > 0
+                };
             }
-            computationId = parameters[1];
-            if (parameters[2] !== '') {
-                submitId = Number(parameters[2]);
+            Router.getParameters = getParameters;
+            function redirect(computationId, submitId) {
+                SimpleRouter.GlobalRouter.redirect("/" + computationId + "/" + submitId, true);
             }
-            return {
-                submitId: submitId,
-                computationId: computationId,
-                isChannelsDB: parametersChannelsDBTest !== null && parametersChannelsDBTest.length > 0
-            };
-        }
-        Router.getParameters = getParameters;
-        function redirect(computationId, submitId) {
-            SimpleRouter.GlobalRouter.redirect("/" + computationId + "/" + submitId, true);
-        }
-        Router.redirect = redirect;
-        function fakeRedirect(computationId, submitId) {
-            if (submitId !== void 0) {
-                SimpleRouter.GlobalRouter.fakeRedirect("/" + computationId + "/" + submitId, true);
+            Router.redirect = redirect;
+            function fakeRedirect(computationId, submitId) {
+                if (submitId !== void 0) {
+                    SimpleRouter.GlobalRouter.fakeRedirect("/" + computationId + "/" + submitId, true);
+                }
+                else {
+                    SimpleRouter.GlobalRouter.fakeRedirect("/" + computationId + "/", true);
+                }
+                Common.Util.LastNSessions.updateWithCurrentSession();
             }
-            else {
-                SimpleRouter.GlobalRouter.fakeRedirect("/" + computationId + "/", true);
+            Router.fakeRedirect = fakeRedirect;
+            function isInChannelsDBMode() {
+                var params = getParameters();
+                return params !== null && params.isChannelsDB;
             }
-        }
-        Router.fakeRedirect = fakeRedirect;
-        function isInChannelsDBMode() {
-            var params = CommonUtils.Router.getParameters();
-            return params !== null && params.isChannelsDB;
-        }
-        Router.isInChannelsDBMode = isInChannelsDBMode;
-        function getCurrentUrl() {
-            return window.location.href;
-        }
-        Router.getCurrentUrl = getCurrentUrl;
-    })(Router = CommonUtils.Router || (CommonUtils.Router = {}));
-})(CommonUtils || (CommonUtils = {}));
+            Router.isInChannelsDBMode = isInChannelsDBMode;
+            function getCurrentUrl() {
+                return window.location.href;
+            }
+            Router.getCurrentUrl = getCurrentUrl;
+        })(Router = Util.Router || (Util.Router = {}));
+    })(Util = Common.Util || (Common.Util = {}));
+})(Common || (Common = {}));
+var Common;
+(function (Common) {
+    var Util;
+    (function (Util) {
+        var Cookies;
+        (function (Cookies) {
+            function setCookie(c_name, value, exdays) {
+                var exdate = new Date();
+                if (exdays !== void 0) {
+                    exdate.setDate(exdate.getDate() + exdays);
+                }
+                var c_value = encodeURI(value) + ((exdays === void 0) ? "" : "; expires=" + exdate.toUTCString()) + "; path=/";
+                document.cookie = c_name + "=" + c_value;
+            }
+            Cookies.setCookie = setCookie;
+            function getCookie(c_name) {
+                var i, x, y, ARRcookies = document.cookie.split(";");
+                for (i = 0; i < ARRcookies.length; i++) {
+                    x = ARRcookies[i].substr(0, ARRcookies[i].indexOf("="));
+                    y = ARRcookies[i].substr(ARRcookies[i].indexOf("=") + 1);
+                    x = x.replace(/^\s+|\s+$/g, "");
+                    if (x == c_name) {
+                        return decodeURI(y);
+                    }
+                }
+            }
+            Cookies.getCookie = getCookie;
+        })(Cookies = Util.Cookies || (Util.Cookies = {}));
+    })(Util = Common.Util || (Common.Util = {}));
+})(Common || (Common = {}));
+var Common;
+(function (Common) {
+    var Util;
+    (function (Util) {
+        var LastNSessions;
+        (function (LastNSessions) {
+            var Cookies = Common.Util.Cookies;
+            var Router = Common.Util.Router;
+            LastNSessions.LAST_N_SESSIONS_N = 5;
+            var cookieNamePrefix = "LastNSessionsWithDate";
+            var version = 4;
+            function getNthSession(n) {
+                var val = Cookies.getCookie(cookieNamePrefix + "_" + version + "_" + n);
+                if (val === void 0 || val === null || val === "") {
+                    return "";
+                }
+                return val;
+            }
+            LastNSessions.getNthSession = getNthSession;
+            function formatDate(date) {
+                var day = "" + date.getDate();
+                if (day.length == 1) {
+                    day = "0" + day;
+                }
+                var month = "" + (date.getMonth() + 1);
+                if (month.length === 1) {
+                    month = "0" + month;
+                }
+                var hours = "" + date.getHours();
+                if (hours.length === 1) {
+                    hours = "0" + hours;
+                }
+                var minutes = "" + date.getMinutes();
+                if (minutes.length === 1) {
+                    minutes = "0" + minutes;
+                }
+                return day + "." + month + "." + date.getFullYear() + " " + hours + ":" + minutes;
+            }
+            function setNthSession(n, value) {
+                Cookies.setCookie(cookieNamePrefix + "_" + version + "_" + n, formatDate(new Date()) + "|" + value);
+            }
+            LastNSessions.setNthSession = setNthSession;
+            function updateWithCurrentSession() {
+                var params = Router.getParameters();
+                if (params === null) {
+                    return;
+                }
+                var computationId = params.computationId;
+                var submitIdPart = (params.isChannelsDB) ? "/ChannelsDB" : (params.submitId === 0) ? "" : "/" + params.submitId;
+                for (var i = 0; i < LastNSessions.LAST_N_SESSIONS_N; i++) {
+                    var session = getNthSession(i);
+                    if (session === "") {
+                        setNthSession(i, "" + computationId + submitIdPart);
+                        return;
+                    }
+                    var compId = session.split("|")[1].split("/")[0];
+                    if (compId === params.computationId) {
+                        setNthSession(i, "" + computationId + submitIdPart);
+                        return;
+                    }
+                }
+                for (var i = 1; i < LastNSessions.LAST_N_SESSIONS_N; i++) {
+                    setNthSession(i - 1, getNthSession(i).split("|")[1]);
+                }
+                setNthSession(LastNSessions.LAST_N_SESSIONS_N - 1, "" + computationId + submitIdPart);
+            }
+            LastNSessions.updateWithCurrentSession = updateWithCurrentSession;
+        })(LastNSessions = Util.LastNSessions || (Util.LastNSessions = {}));
+    })(Util = Common.Util || (Common.Util = {}));
+})(Common || (Common = {}));
 var CommonUtils;
 (function (CommonUtils) {
     var Tabs;
@@ -1593,7 +1687,7 @@ var CommonUtils;
                 var valid = CommonUtils.Misc.parseResidues(value).length === expectedCount;
                 res({
                     valid: valid,
-                    message: (!valid) ? "List of chains is not in readable format!" : ""
+                    message: (!valid) ? "List of resiudes is not in readable format!" : ""
                 });
             });
         }
@@ -1824,11 +1918,21 @@ var MoleOnlineWebUI;
             "tooltip-Hydrophobicity": "Normalized hydrophobicity scale by Cid et al. J. Protein Engineering (1992) 5, 373-375. Range from the most hydrophilic (Glu = -1.140) to the most hydrophobic (Ile = 1.810)",
             "tooltip-Polarity": "Lining amino acid polarity by Zimmermann et al. J. Theor. Biol. (1968) 21, 170-201. Polarity ranges from nonpolar (Ala, Gly = 0) tthrough polar (e.g. Ser = 1.67) to charged (Glu = 49.90, Arg = 52.00)",
             "tooltip-Mutability": "Relative mutability index by Jones, D.T. et al. Compur. Appl. Biosci. (1992) 8(3): 275-282. Realtive mutability based on empirical substitution matrices between similar protein sequences. High for easily substitutable amino acids, e.g. polars (Ser = 117, Thr = 107, Asn = 104) or aliphatics (Ala = 100, Val = 98, Ile = 103). Low for important structural amino acids, e.g. aromatics (Trp = 25, Phe = 51, Tyr = 50) or specials (Cys = 44, Pro = 58, Gly = 50).",
+            "tooltip-LogP": "Lipophilicity - octanol/water partition coefficient (logP) of channel-surrounding fragments",
+            "tooltip-LogD": "Lipophilicity - octanol/water distribution coefficient (logD) of channel-surrounding fragments",
+            "tooltip-LogS": "Solubility - water solubility (logS) of channel-surrounding fragments",
+            "tooltip-Ionizable": "Ionizable residues",
+            "tooltip-BRadius": "Flexible radius taking into account local flexibility (RMSF) from B factors",
             "tooltip-agl-Hydropathy": "Average of hydropathy index per each amino acid according to Kyte and Doolittle J.Mol.Biol.(1982) 157, 105-132. Range from the most hydrophilic (Arg = -4.5) to the most hydrophobic (Ile = 4.5)",
             "tooltip-agl-Hydrophobicity": "Average of normalized hydrophobicity scales by Cid et al. J. Protein Engineering (1992) 5, 373-375. Range from the most hydrophilic (Glu = -1.140) to the most hydrophobic (Ile = 1.810)",
             "tooltip-agl-Polarity": "Average of lining amino acid polarities by Zimmermann et al. J. Theor. Biol. (1968) 21, 170-201. Polarity ranges from nonpolar (Ala, Gly = 0) tthrough polar (e.g. Ser = 1.67) to charged (Glu = 49.90, Arg = 52.00)",
             "tooltip-agl-Mutability": "Average of relative mutability index by Jones, D.T. et al. Compur. Appl. Biosci. (1992) 8(3): 275-282. Realtive mutability based on empirical substitution matrices between similar protein sequences. High for easily substitutable amino acids, e.g. polars (Ser = 117, Thr = 107, Asn = 104) or aliphatics (Ala = 100, Val = 98, Ile = 103). Low for important structural amino acids, e.g. aromatics (Trp = 25, Phe = 51, Tyr = 50) or specials (Cys = 44, Pro = 58, Gly = 50).",
             "tooltip-agl-Charge": "Charge",
+            "tooltip-agl-LogP": "Lipophilicity - octanol/water partition coefficient (logP) of channel-surrounding fragments",
+            "tooltip-agl-LogD": "Lipophilicity - octanol/water distribution coefficient (logD) of channel-surrounding fragments",
+            "tooltip-agl-LogS": "Solubility - water solubility (logS) of channel-surrounding fragments",
+            "tooltip-agl-Ionizable": "Ionizable residues",
+            "tooltip-agl-BRadius": "Flexible radius taking into account local flexibility (RMSF) from B factors",
             "tooltip-NumPositives": "",
             "tooltip-NumNegatives": "",
             "tooltip-Charge": "",
@@ -1907,16 +2011,13 @@ var MoleOnlineWebUI;
                         case Enum.CSAOrigin: return LiteMol.Visualization.Color.fromRgb(128, 255, 128);
                         case Enum.ComputedOrigin: return LiteMol.Visualization.Color.fromRgb(128, 128, 255);
                         case Enum.OtherOrigin: return LiteMol.Visualization.Color.fromRgb(255, 128, 128);
-                        case Enum.CavityBoundary: return LiteMol.Visualization.Color.fromHex(0x90ee90); /*LiteMol.Visualization.Color.fromRgb(171,0,0);*/
-                        case Enum.CavityInner: return LiteMol.Visualization.Color.fromHex(0x999999); /*LiteMol.Visualization.Color.fromRgb(89,255,105);*/
-                        case Enum.CavitySelectable: return LiteMol.Visualization.Color.fromHex(0x90ee90); /*LiteMol.Visualization.Color.fromRgb(171,0,0);*/
-                        /*
-                        case Enum.Cavity: return LiteMol.Visualization.Molecule.Colors.DefaultPallete[99];
-                        case Enum.Surface: return LiteMol.Visualization.Molecule.Colors.DefaultPallete[25];
-                        case Enum.Void: return LiteMol.Visualization.Molecule.Colors.DefaultPallete[76];
-                        */
+                        case Enum.CavityBoundary: return LiteMol.Visualization.Color.fromHex(0x90ee90);
+                        case Enum.CavityInner: return LiteMol.Visualization.Color.fromHex(0x999999);
+                        case Enum.CavitySelectable: return LiteMol.Visualization.Color.fromHex(0x90ee90);
                         case Enum.SyntethicSelect: return LiteMol.Visualization.Color.fromRgb(191, 82, 204);
                         case Enum.TPoint: return LiteMol.Visualization.Color.fromRgb(255, 0, 105);
+                        case Enum.MembraneBlue: return LiteMol.Visualization.Color.fromRgb(0, 0, 255);
+                        case Enum.MembraneRed: return LiteMol.Visualization.Color.fromRgb(255, 0, 0);
                         case Enum.DefaultColor: return LiteMol.Visualization.Color.fromRgb(0, 0, 0);
                         default: return this.get(Enum.DefaultColor);
                     }
@@ -1946,6 +2047,8 @@ var MoleOnlineWebUI;
                 Enum[Enum["TPoint"] = 6] = "TPoint";
                 Enum[Enum["SyntethicSelect"] = 7] = "SyntethicSelect";
                 Enum[Enum["DefaultColor"] = 8] = "DefaultColor";
+                Enum[Enum["MembraneBlue"] = 9] = "MembraneBlue";
+                Enum[Enum["MembraneRed"] = 10] = "MembraneRed";
             })(Enum = LiteMolObjectsColorScheme.Enum || (LiteMolObjectsColorScheme.Enum = {}));
         })(LiteMolObjectsColorScheme = StaticData.LiteMolObjectsColorScheme || (StaticData.LiteMolObjectsColorScheme = {}));
     })(StaticData = MoleOnlineWebUI.StaticData || (MoleOnlineWebUI.StaticData = {}));
@@ -2058,7 +2161,6 @@ var SimpleRouter;
         };
         URL.prototype.removeParameters = function () {
             var path = this.url.split("?")[0];
-            console.log("path: " + path);
             return new URL(path);
         };
         URL.prototype.getProtocol = function () {
@@ -2077,11 +2179,6 @@ var SimpleRouter;
         function Router(contextPath) {
             this.contextPath = contextPath;
         }
-        /* Buggy !!
-        getRelativePath(){
-            return new SrURL(document.URL).substractPathFromStart(this.contextPath);
-        }
-        */
         Router.prototype.getAbsoluePath = function () {
             return new URL(document.URL);
         };
@@ -2112,16 +2209,6 @@ var SimpleRouter;
                 pid = lastPathPartAsParam === "" ? null : lastPathPartAsParam;
             }
             this.currentPid = (pid !== null) ? pid : this.defaultPid;
-            /*
-            if(pid !== this.currentPid){
-                if(this.useParameterAsPid === true){
-                    this.router.changeUrl("detail",document.title,`${url}/?pid=${this.currentPid}`);
-                }
-                else if(this.useLastPathPartAsPid === true){
-                    this.router.changeUrl("detail",document.title,`${url}/${this.currentPid}`);
-                }
-            }
-            */
             this.isInitialized = true;
         };
         GlobalRouter.getCurrentPid = function () {
@@ -2180,6 +2267,9 @@ var MoleOnlineWebUI;
         var MoleAPI;
         (function (MoleAPI) {
             var Fetching = MoleOnlineWebUI.Service.Fetching;
+            ;
+            ;
+            ;
             ;
             ;
             ;
@@ -2320,11 +2410,18 @@ var MoleOnlineWebUI;
                     return this.sendPOSTjson(url, data);
                 };
                 ApiService.submitPoresJob = function (computationId, data) {
-                    var url = this.baseUrl + "/Submit/Pores/" + computationId + "?isBetaStructure=" + data.IsBetaBarel + "&inMembrane=" + data.InMembrane + "&chains=" + ((data.Chains === null) ? "" : data.Chains);
+                    var url = this.baseUrl + "/Submit/Pores/" + computationId;
                     if (this.DEBUG_MODE) {
                         console.log(url);
                     }
-                    return this.sendGET(url);
+                    var jsonRequestData = {
+                        IsBetaStructure: data.IsBetaBarel,
+                        InMembrane: data.InMembrane,
+                        Chains: (data.Chains === null) ? "" : data.Chains,
+                        InteriorThreshold: (data.InteriorThreshold === void 0 || data.InteriorThreshold === null) ? null : data.InteriorThreshold,
+                        ProbeRadius: (data.ProbeRadius === void 0 || data.ProbeRadius === null) ? null : data.ProbeRadius
+                    };
+                    return this.sendPOSTjson(url, jsonRequestData);
                 };
                 ApiService.getFilenameFromResponseHeader = function (r) {
                     var contentDisposition = r.headers.get("Content-Disposition");
@@ -2348,8 +2445,6 @@ var MoleOnlineWebUI;
                     if (this.DEBUG_MODE) {
                         console.log(url);
                     }
-                    if (this.DEBUG_MODE)
-                        console.time("getProteinStructure");
                     return new Promise(function (res, rej) {
                         if (_this.DEBUG_MODE)
                             console.time('protein-raw');
@@ -2369,17 +2464,46 @@ var MoleOnlineWebUI;
                                 rej("GET: " + url + " " + rawResponse.status + ": " + rawResponse.statusText);
                                 return;
                             }
-                            rawResponse.text().then(function (value) {
-                                res({
-                                    data: value,
-                                    filename: filename
+                            // Decompression from gz needed
+                            if (rawResponse.body !== null && filename !== null && filename.toLowerCase().indexOf(".gz") >= 0) {
+                                var reader_1 = rawResponse.body.getReader();
+                                var binData_1 = [];
+                                reader_1.read().then(function handleStreamResponse(value) {
+                                    binData_1.push(value.value);
+                                    if (value.done) {
+                                        var bytes = binData_1.reduce(function (p, cv, ci, a) {
+                                            if (cv === void 0) {
+                                                cv = new Uint8Array(0);
+                                            }
+                                            var newVal = new Uint8Array(p.length + cv.length);
+                                            newVal.set(p);
+                                            newVal.set(cv, p.length);
+                                            return newVal;
+                                        }, new Uint8Array(0));
+                                        var stringData = pako.inflate(bytes, { to: 'string' });
+                                        res({
+                                            data: stringData,
+                                            filename: filename
+                                        });
+                                        return;
+                                    }
+                                    reader_1.read().then(handleStreamResponse)
+                                        .catch(function (error) {
+                                        rej(error);
+                                    });
                                 });
-                                if (_this.DEBUG_MODE)
-                                    console.timeEnd("getProteinStructure");
-                            })
-                                .catch(function (error) {
-                                rej(error);
-                            });
+                            }
+                            else {
+                                rawResponse.text().then(function (value) {
+                                    res({
+                                        data: value,
+                                        filename: filename
+                                    });
+                                })
+                                    .catch(function (error) {
+                                    rej(error);
+                                });
+                            }
                         })
                             .catch(function (error) { return rej(error); });
                     });
@@ -2395,6 +2519,20 @@ var MoleOnlineWebUI;
                     return this.handleJsonToStringResponse(this.sendGET(url)).then(function (s) {
                         if (_this.DEBUG_MODE)
                             console.timeEnd("getChannelsData");
+                        return s;
+                    });
+                };
+                ApiService.getMembraneData = function (computationId) {
+                    var _this = this;
+                    var url = this.baseUrl + "/Data/" + computationId + "?format=membrane";
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
+                    if (this.DEBUG_MODE)
+                        console.time("getMembraneData");
+                    return this.sendGET(url).then(function (s) {
+                        if (_this.DEBUG_MODE)
+                            console.timeEnd("getMembraneData");
                         return s;
                     });
                 };
@@ -2421,8 +2559,8 @@ var MoleOnlineWebUI;
                 };
                 ApiService.getCofactors = function () {
                     var _this = this;
-                    var url = this.baseUrl + "/inputs/cofactors.json";
-                    //let url = `/online/cofactors.json`;
+                    //let url = `${this.baseUrl}/inputs/cofactors.json`;
+                    var url = "/online/cofactors.json";
                     if (this.DEBUG_MODE) {
                         console.log(url);
                     }
@@ -2439,6 +2577,29 @@ var MoleOnlineWebUI;
                         if (_this.DEBUG_MODE)
                             console.timeEnd("getCofactors");
                         return rv;
+                    });
+                };
+                ApiService.submitFeedback = function (params) {
+                    var url = this.baseUrl + "/__Mail";
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
+                    return this.sendPOSTjson(url, params).then(function (val) {
+                        return val;
+                    });
+                };
+                ApiService.getVersions = function () {
+                    var _this = this;
+                    var url = this.baseUrl + "/Version";
+                    if (this.DEBUG_MODE) {
+                        console.log(url);
+                    }
+                    if (this.DEBUG_MODE)
+                        console.time("getVersions");
+                    return this.sendGET(url).then(function (s) {
+                        if (_this.DEBUG_MODE)
+                            console.timeEnd("getVersions");
+                        return s;
                     });
                 };
                 return ApiService;
@@ -2868,7 +3029,7 @@ var MoleOnlineWebUI;
             }());
             Service.DEBUG_MODE = Config.CommonOptions.DEBUG_MODE;
             Service.baseUrl = "/online/templates";
-            Service.version = 5;
+            Service.version = 6;
             Service.noCacheMode = false;
             Templates.Service = Service;
         })(Templates = Service_1.Templates || (Service_1.Templates = {}));
@@ -2910,7 +3071,6 @@ var MoleOnlineWebUI;
                         return;
                     }
                     var hndlrs = [];
-                    //this.handlers = [];
                     for (var _i = 0, _a = this.handlers; _i < _a.length; _i++) {
                         var h = _a[_i];
                         if (h.compId === compId) {
@@ -3105,7 +3265,6 @@ var MoleOnlineWebUI;
                         return;
                     }
                     var hndlrs = [];
-                    //this.handlers = [];
                     for (var _i = 0, _a = this.handlers; _i < _a.length; _i++) {
                         var h = _a[_i];
                         if (h.compId === compId) {
@@ -3192,7 +3351,6 @@ var MoleOnlineWebUI;
                     if (this.handlers === void 0) {
                         return;
                     }
-                    //this.handlers = [];
                     for (var _i = 0, _a = this.handlers; _i < _a.length; _i++) {
                         var h = _a[_i];
                         h.handler(info);
@@ -3267,17 +3425,9 @@ var MoleOnlineWebUI;
                 if (data.Channels.Tunnels.length > 0) {
                     channels = channels.concat(data.Channels.Tunnels);
                 }
-                //let nameIdxMap = new Map<String,number>();
                 var cache = new Map();
                 for (var _i = 0, channels_2 = channels; _i < channels_2.length; _i++) {
                     var channel = channels_2[_i];
-                    /*
-                    if(!nameIdxMap.has(channel.Type)){
-                        nameIdxMap.set(channel.Type,1);
-                    }*/
-                    //let nameIdx = nameIdxMap.get(channel.Type) as number;
-                    //cache.set(channel.GUID,`${channel.Type[0]}${nameIdx++}`);
-                    //nameIdxMap.set(channel.Type,nameIdx);               
                     cache.set(channel.GUID, "" + channel.Type[0] + channel.Id + "C" + channel.Cavity);
                 }
                 this.cache = cache;
@@ -3471,320 +3621,624 @@ var MoleOnlineWebUI;
         Cache.ChannelsDBData = ChannelsDBData;
     })(Cache = MoleOnlineWebUI.Cache || (MoleOnlineWebUI.Cache = {}));
 })(MoleOnlineWebUI || (MoleOnlineWebUI = {}));
+var WebChemistry;
+(function (WebChemistry) {
+    var Tunnels;
+    (function (Tunnels) {
+        var Core;
+        (function (Core) {
+            ;
+            ;
+            var TunnelPhysicoChemicalProperties = (function () {
+                function TunnelPhysicoChemicalProperties(params) {
+                    this.Charge = params.Charge;
+                    this.Ionizable = params.Ionizable;
+                    this.Hydropathy = params.Hydropathy;
+                    this.Hydrophobicity = params.Hydrophobicity;
+                    this.Polarity = params.Polarity;
+                    this.LogP = params.LogP;
+                    this.LogD = params.LogD;
+                    this.LogS = params.LogS;
+                    this.Mutability = params.Mutability;
+                    this.NumNegatives = (params.NumNegatives === void 0) ? 0 : params.NumNegatives;
+                    this.NumPositives = (params.NumPositives === void 0) ? 0 : params.NumPositives;
+                }
+                TunnelPhysicoChemicalProperties.prototype.ToJson = function () {
+                    return {
+                        Charge: this.Charge,
+                        Ionizable: this.Ionizable,
+                        NumPositives: this.NumPositives,
+                        NumNegatives: this.NumNegatives,
+                        Hydrophobicity: Common.Util.Numbers.roundToDecimal(this.Hydrophobicity, 2),
+                        Hydropathy: Common.Util.Numbers.roundToDecimal(this.Hydropathy, 2),
+                        Polarity: Common.Util.Numbers.roundToDecimal(this.Polarity, 2),
+                        LogP: Common.Util.Numbers.roundToDecimal(this.LogP, 2),
+                        LogD: Common.Util.Numbers.roundToDecimal(this.LogD, 2),
+                        LogS: Common.Util.Numbers.roundToDecimal(this.LogS, 2),
+                        Mutability: this.Mutability
+                    };
+                };
+                return TunnelPhysicoChemicalProperties;
+            }());
+            TunnelPhysicoChemicalProperties.NumLayerProperties = 4;
+            Core.TunnelPhysicoChemicalProperties = TunnelPhysicoChemicalProperties;
+            var PdbResidueImpl = (function () {
+                function PdbResidueImpl(chain, name, seqNumber) {
+                    this.Chain = chain;
+                    this.Name = name;
+                    this.SeqNumber = seqNumber;
+                }
+                PdbResidueImpl.prototype.equals = function (o) {
+                    return this.toString() == o.toString();
+                };
+                PdbResidueImpl.prototype.toString = function () {
+                    return this.Name + " " + this.SeqNumber + " " + this.Chain;
+                };
+                return PdbResidueImpl;
+            }());
+            var PhysicoChemicalPropertyCalculation = (function () {
+                function PhysicoChemicalPropertyCalculation() {
+                }
+                PhysicoChemicalPropertyCalculation.makeUnique = function (residues) {
+                    var map = new Map();
+                    for (var _i = 0, residues_7 = residues; _i < residues_7.length; _i++) {
+                        var r = residues_7[_i];
+                        var res = new PdbResidueImpl(r.Chain, r.Name, r.SeqNumber);
+                        map.set(res.toString(), res);
+                    }
+                    return Array.from(map.values());
+                };
+                PhysicoChemicalPropertyCalculation.CalculateResidueProperties = function (residues) {
+                    var count = 0;
+                    var charge = 0;
+                    var ionizable = 0;
+                    var hydropathy = 0.0;
+                    var hydrophobicity = 0.0;
+                    var polarity = 0.0;
+                    var logP = 0.0;
+                    var logD = 0.0;
+                    var logS = 0.0;
+                    var mutability = 0.0;
+                    var positives = 0;
+                    var negatives = 0;
+                    // count only side-chain residues
+                    for (var _i = 0, residues_8 = residues; _i < residues_8.length; _i++) {
+                        var residue = residues_8[_i];
+                        var info = TunnelPhysicoChemicalPropertyTable.GetResidueProperties(residue);
+                        if (info == null)
+                            continue;
+                        count++;
+                        var pc = info.Charge;
+                        ionizable += info.Ionizable;
+                        charge += pc;
+                        if (pc > 0) {
+                            positives++;
+                        }
+                        else if (pc < 0) {
+                            negatives++;
+                        }
+                        mutability += info.Mutability;
+                    }
+                    if (count == 0) {
+                        mutability = 0;
+                    }
+                    else {
+                        mutability /= count;
+                    }
+                    var props = PhysicoChemicalPropertyCalculation.CalculateHydrophibilicyPolarityHydropathy(residues);
+                    if (props === null) {
+                        return null;
+                    }
+                    return new TunnelPhysicoChemicalProperties({
+                        Charge: charge,
+                        Ionizable: ionizable,
+                        Polarity: props.polarity,
+                        Hydrophobicity: props.hydrophobicity,
+                        Hydropathy: props.hydropathy,
+                        LogP: props.logP,
+                        LogS: props.logS,
+                        LogD: props.logD,
+                        Mutability: mutability,
+                        NumNegatives: negatives,
+                        NumPositives: positives
+                    });
+                };
+                PhysicoChemicalPropertyCalculation.CalculateAgregatedLayersProperties = function (layers) {
+                    var count = 0;
+                    var charge = 0;
+                    var ionizable = 0;
+                    var hydropathy = 0.0;
+                    var hydrophobicity = 0.0;
+                    var polarity = 0.0;
+                    var logP = 0.0;
+                    var logD = 0.0;
+                    var logS = 0.0;
+                    var mutability = 0.0;
+                    var positives = 0;
+                    var negatives = 0;
+                    var residues = this.getNonBackboneLining(layers);
+                    var unique = this.makeUnique(residues);
+                    for (var _i = 0, unique_1 = unique; _i < unique_1.length; _i++) {
+                        var residue = unique_1[_i];
+                        var info = TunnelPhysicoChemicalPropertyTable.GetResidueProperties(residue);
+                        if (info == null)
+                            continue;
+                        count++;
+                        var pc = info.Charge;
+                        ionizable += info.Ionizable;
+                        charge += pc;
+                        if (pc > 0) {
+                            positives++;
+                        }
+                        else if (pc < 0) {
+                            negatives++;
+                        }
+                        mutability += info.Mutability;
+                    }
+                    if (count == 0) {
+                        mutability = 0;
+                    }
+                    else {
+                        mutability /= count;
+                    }
+                    var props = PhysicoChemicalPropertyCalculation.CalculateHydrophibilicyPolarityHydropathyByLayers(layers);
+                    if (props === null) {
+                        return null;
+                    }
+                    return new TunnelPhysicoChemicalProperties({
+                        Charge: charge,
+                        Ionizable: ionizable,
+                        Polarity: props.polarity,
+                        Hydrophobicity: props.hydrophobicity,
+                        Hydropathy: props.hydropathy,
+                        LogP: props.logP,
+                        LogS: props.logS,
+                        LogD: props.logD,
+                        Mutability: Math.trunc(mutability),
+                        NumNegatives: negatives,
+                        NumPositives: positives
+                    });
+                };
+                PhysicoChemicalPropertyCalculation.CalculateHydrophibilicyPolarityHydropathy = function (residues) {
+                    var hydrophobicity = 0;
+                    var polarity = 0;
+                    var hydropathy = 0;
+                    var logP = 0;
+                    var logD = 0;
+                    var logS = 0;
+                    var count = 0;
+                    for (var _i = 0, residues_9 = residues; _i < residues_9.length; _i++) {
+                        var residue = residues_9[_i];
+                        var info = TunnelPhysicoChemicalPropertyTable.GetResidueProperties(residue);
+                        if (info == null)
+                            continue;
+                        count++;
+                        hydropathy += info.Hydropathy;
+                        hydrophobicity += info.Hydrophobicity;
+                        polarity += info.Polarity;
+                        logP += info.LogP;
+                        logD += info.LogD;
+                        logS += info.LogS;
+                    }
+                    var infoGLY = TunnelPhysicoChemicalPropertyTable.GetResiduePropertiesByName("GLY");
+                    var infoASN = TunnelPhysicoChemicalPropertyTable.GetResiduePropertiesByName("ASN");
+                    var infoBB = TunnelPhysicoChemicalPropertyTable.GetResiduePropertiesByName("BACKBONE");
+                    if (infoASN === null || infoBB === null || infoGLY === null) {
+                        return null;
+                    }
+                    for (var _a = 0, residues_10 = residues; _a < residues_10.length; _a++) {
+                        var residue = residues_10[_a];
+                        count++;
+                        polarity += infoASN.Polarity;
+                        hydrophobicity += infoGLY.Hydrophobicity;
+                        hydropathy += infoGLY.Hydropathy;
+                        logP += infoBB.LogP;
+                        logD += infoBB.LogD;
+                        logS += infoBB.LogS;
+                    }
+                    if (count == 0) {
+                        hydropathy = hydrophobicity = polarity = 0;
+                    }
+                    else {
+                        hydropathy /= count;
+                        hydrophobicity /= count;
+                        polarity /= count;
+                        logP /= count;
+                        logD /= count;
+                        logS /= count;
+                    }
+                    return {
+                        hydropathy: hydropathy,
+                        hydrophobicity: hydrophobicity,
+                        logD: logD,
+                        logP: logP,
+                        logS: logS,
+                        polarity: polarity
+                    };
+                };
+                PhysicoChemicalPropertyCalculation.getNonBackboneLining = function (layers) {
+                    var rv = [];
+                    for (var _i = 0, layers_1 = layers; _i < layers_1.length; _i++) {
+                        var layer = layers_1[_i];
+                        rv = rv.concat(layer.NonBackboneLining);
+                    }
+                    return rv;
+                };
+                PhysicoChemicalPropertyCalculation.getBackboneLining = function (layers) {
+                    var rv = [];
+                    for (var _i = 0, layers_2 = layers; _i < layers_2.length; _i++) {
+                        var layer = layers_2[_i];
+                        rv = rv.concat(layer.BackboneLining);
+                    }
+                    return rv;
+                };
+                PhysicoChemicalPropertyCalculation.CalculateHydrophibilicyPolarityHydropathyByLayers = function (layers) {
+                    var hydrophobicity = 0;
+                    var polarity = 0;
+                    var hydropathy = 0;
+                    var logP = 0;
+                    var logD = 0;
+                    var logS = 0;
+                    var count = 0;
+                    for (var _i = 0, _a = this.getNonBackboneLining(layers); _i < _a.length; _i++) {
+                        var residue = _a[_i];
+                        var info = TunnelPhysicoChemicalPropertyTable.GetResidueProperties(residue);
+                        if (info == null)
+                            continue;
+                        count++;
+                        hydropathy += info.Hydropathy;
+                        hydrophobicity += info.Hydrophobicity;
+                        polarity += info.Polarity;
+                        logP += info.LogP;
+                        logD += info.LogD;
+                        logS += info.LogS;
+                    }
+                    var infoGLY = TunnelPhysicoChemicalPropertyTable.GetResiduePropertiesByName("GLY");
+                    var infoASN = TunnelPhysicoChemicalPropertyTable.GetResiduePropertiesByName("ASN");
+                    var infoBB = TunnelPhysicoChemicalPropertyTable.GetResiduePropertiesByName("BACKBONE");
+                    if (infoASN === null || infoBB === null || infoGLY === null) {
+                        return null;
+                    }
+                    for (var _b = 0, _c = this.getBackboneLining(layers); _b < _c.length; _b++) {
+                        var residue = _c[_b];
+                        count++;
+                        polarity += infoASN.Polarity;
+                        hydrophobicity += infoGLY.Hydrophobicity;
+                        hydropathy += infoGLY.Hydropathy;
+                        logP += infoBB.LogP;
+                        logD += infoBB.LogD;
+                        logS += infoBB.LogS;
+                    }
+                    if (count == 0) {
+                        hydropathy = hydrophobicity = polarity = logP = logD = logS = 0;
+                    }
+                    else {
+                        hydropathy /= count;
+                        hydrophobicity /= count;
+                        polarity /= count;
+                        logP /= count;
+                        logD /= count;
+                        logS /= count;
+                    }
+                    return {
+                        polarity: polarity,
+                        logS: logS,
+                        logP: logP,
+                        logD: logD,
+                        hydrophobicity: hydrophobicity,
+                        hydropathy: hydropathy
+                    };
+                };
+                return PhysicoChemicalPropertyCalculation;
+            }());
+            Core.PhysicoChemicalPropertyCalculation = PhysicoChemicalPropertyCalculation;
+            /*
+             * Information about physico chemical properties of a tunnel
+             */
+            var TunnelPhysicoChemicalPropertyTable = (function () {
+                function TunnelPhysicoChemicalPropertyTable() {
+                }
+                TunnelPhysicoChemicalPropertyTable.GetResidueProperties = function (residue) {
+                    var ret = this.info.get(residue.Name);
+                    if (ret === void 0) {
+                        return null;
+                    }
+                    return ret;
+                };
+                TunnelPhysicoChemicalPropertyTable.GetResiduePropertiesByName = function (name) {
+                    var ret = this.info.get(name);
+                    if (ret === void 0) {
+                        return null;
+                    }
+                    return ret;
+                };
+                return TunnelPhysicoChemicalPropertyTable;
+            }());
+            TunnelPhysicoChemicalPropertyTable.info = new Map([
+                ["ALA", new TunnelPhysicoChemicalProperties({
+                        Charge: 0,
+                        Ionizable: 0,
+                        Hydropathy: 1.8,
+                        Hydrophobicity: 0.02,
+                        Polarity: 0,
+                        LogP: 1.08,
+                        LogD: 1.08,
+                        LogS: 0.59,
+                        Mutability: 100
+                    })
+                ],
+                ["ARG", new TunnelPhysicoChemicalProperties({
+                        Charge: 1,
+                        Ionizable: 1,
+                        Hydropathy: -4.5,
+                        Hydrophobicity: -0.42,
+                        Polarity: 52,
+                        LogP: -0.08,
+                        LogD: -2.49,
+                        LogS: 1.63,
+                        //Hydratation: 2.3,
+                        Mutability: 83
+                    })
+                ],
+                ["ASN", new TunnelPhysicoChemicalProperties({
+                        Charge: 0,
+                        Ionizable: 0,
+                        Hydropathy: -3.5,
+                        Hydrophobicity: -0.77,
+                        Polarity: 3.38,
+                        LogP: -1.03,
+                        LogD: -1.03,
+                        LogS: 0.54,
+                        //Hydratation: 2.2,
+                        Mutability: 104
+                    })
+                ],
+                ["ASP", new TunnelPhysicoChemicalProperties({
+                        Charge: -1,
+                        Ionizable: 1,
+                        Hydropathy: -3.5,
+                        Hydrophobicity: -1.04,
+                        Polarity: 49.7,
+                        LogP: -0.22,
+                        LogD: -3,
+                        LogS: 2.63,
+                        //Hydratation: 6.5,
+                        Mutability: 86
+                    })
+                ],
+                ["CYS", new TunnelPhysicoChemicalProperties({
+                        Charge: 0,
+                        Ionizable: 0,
+                        Hydropathy: 2.5,
+                        Hydrophobicity: 0.77,
+                        Polarity: 1.48,
+                        LogP: 0.84,
+                        LogD: 0.84,
+                        LogS: 0.16,
+                        //Hydratation: 0.1,
+                        Mutability: 44
+                    })
+                ],
+                ["GLU", new TunnelPhysicoChemicalProperties({
+                        Charge: -1,
+                        Ionizable: 1,
+                        Hydropathy: -3.5,
+                        Hydrophobicity: -1.14,
+                        Polarity: 49.9,
+                        LogP: 0.48,
+                        LogD: -2.12,
+                        LogS: 2.23,
+                        //Hydratation: 6.2,
+                        Mutability: 77
+                    })
+                ],
+                ["GLN", new TunnelPhysicoChemicalProperties({
+                        Charge: 0,
+                        Ionizable: 0,
+                        Hydropathy: -3.5,
+                        Hydrophobicity: -1.1,
+                        Polarity: 3.53,
+                        LogP: -0.33,
+                        LogD: -0.33,
+                        LogS: 0.13,
+                        //Hydratation: 2.1,
+                        Mutability: 84
+                    })
+                ],
+                ["GLY", new TunnelPhysicoChemicalProperties({
+                        Charge: 0,
+                        Ionizable: 0,
+                        Hydropathy: -0.4,
+                        Hydrophobicity: -0.8,
+                        Polarity: 0,
+                        LogP: 0,
+                        LogD: 0,
+                        LogS: 0,
+                        //Hydratation: 1.1,
+                        Mutability: 50
+                    })
+                ],
+                ["HIS", new TunnelPhysicoChemicalProperties({
+                        Charge: 0,
+                        Ionizable: 0,
+                        Hydropathy: -3.2,
+                        Hydrophobicity: 0.26,
+                        Polarity: 51.6,
+                        LogP: -0.01,
+                        LogD: -0.11,
+                        LogS: -0.2,
+                        //Hydratation: 2.8,
+                        Mutability: 91
+                    })
+                ],
+                ["ILE", new TunnelPhysicoChemicalProperties({
+                        Charge: 0,
+                        Ionizable: 0,
+                        Hydropathy: 4.5,
+                        Hydrophobicity: 1.81,
+                        Polarity: 0.13,
+                        LogP: 2.24,
+                        LogD: 2.24,
+                        LogS: -1.85,
+                        //Hydratation: 0.8,
+                        Mutability: 103
+                    })
+                ],
+                ["LEU", new TunnelPhysicoChemicalProperties({
+                        Charge: 0,
+                        Ionizable: 0,
+                        Hydropathy: 3.8,
+                        Hydrophobicity: 1.14,
+                        Polarity: 0.13,
+                        LogP: 2.08,
+                        LogD: 2.08,
+                        LogS: -1.79,
+                        //Hydratation: 0.8,
+                        Mutability: 54
+                    })
+                ],
+                ["LYS", new TunnelPhysicoChemicalProperties({
+                        Charge: 1,
+                        Ionizable: 1,
+                        Hydropathy: -3.9,
+                        Hydrophobicity: -0.41,
+                        Polarity: 49.5,
+                        LogP: 0.7,
+                        LogD: -1.91,
+                        LogS: 1.46,
+                        //Hydratation: 5.3,
+                        Mutability: 72
+                    })
+                ],
+                ["MET", new TunnelPhysicoChemicalProperties({
+                        Charge: 0,
+                        Ionizable: 0,
+                        Hydropathy: 1.9,
+                        Hydrophobicity: 1,
+                        Polarity: 1.43,
+                        LogP: 1.48,
+                        LogD: 1.48,
+                        LogS: -0.72,
+                        //Hydratation: 0.7,
+                        Mutability: 93
+                    })
+                ],
+                ["PHE", new TunnelPhysicoChemicalProperties({
+                        Charge: 0,
+                        Ionizable: 0,
+                        Hydropathy: 2.8,
+                        Hydrophobicity: 1.35,
+                        Polarity: 0.35,
+                        LogP: 2.49,
+                        LogD: 2.49,
+                        LogS: -1.81,
+                        //Hydratation: 1.4,
+                        Mutability: 51
+                    })
+                ],
+                ["PRO", new TunnelPhysicoChemicalProperties({
+                        Charge: 0,
+                        Ionizable: 0,
+                        Hydropathy: -1.6,
+                        Hydrophobicity: -0.09,
+                        Polarity: 1.58,
+                        LogP: 1.8,
+                        LogD: 1.8,
+                        LogS: -1.3,
+                        //Hydratation: 0.9,
+                        Mutability: 58
+                    })
+                ],
+                ["SER", new TunnelPhysicoChemicalProperties({
+                        Charge: 0,
+                        Ionizable: 0,
+                        Hydropathy: -0.8,
+                        Hydrophobicity: -0.97,
+                        Polarity: 1.67,
+                        LogP: -0.52,
+                        LogD: -0.52,
+                        LogS: 1.11,
+                        //Hydratation: 1.7,
+                        Mutability: 117
+                    })
+                ],
+                ["THR", new TunnelPhysicoChemicalProperties({
+                        Charge: 0,
+                        Ionizable: 0,
+                        Hydropathy: -0.7,
+                        Hydrophobicity: -0.77,
+                        Polarity: 1.66,
+                        LogP: -0.16,
+                        LogD: -0.16,
+                        LogS: 0.77,
+                        //Hydratation: 1.5,
+                        Mutability: 107
+                    })
+                ],
+                ["TRP", new TunnelPhysicoChemicalProperties({
+                        Charge: 0,
+                        Ionizable: 0,
+                        Hydropathy: -0.9,
+                        Hydrophobicity: 1.71,
+                        Polarity: 2.1,
+                        LogP: 2.59,
+                        LogD: 2.59,
+                        LogS: -2.48,
+                        //Hydratation: 1.9,
+                        Mutability: 25
+                    })
+                ],
+                ["TYR", new TunnelPhysicoChemicalProperties({
+                        Charge: 0,
+                        Ionizable: 0,
+                        Hydropathy: -1.3,
+                        Hydrophobicity: 1.11,
+                        Polarity: 1.61,
+                        LogP: 2.18,
+                        LogD: 2.18,
+                        LogS: -1.44,
+                        //Hydratation: 2.1,
+                        Mutability: 50
+                    })
+                ],
+                ["VAL", new TunnelPhysicoChemicalProperties({
+                        Charge: 0,
+                        Ionizable: 0,
+                        Hydropathy: 4.2,
+                        Hydrophobicity: 1.13,
+                        Polarity: 0.13,
+                        LogP: 1.8,
+                        LogD: 1.8,
+                        LogS: -1.3,
+                        //Hydratation: 0.9,
+                        Mutability: 98
+                    })
+                ],
+                ["BACKBONE", new TunnelPhysicoChemicalProperties({
+                        Charge: 0,
+                        Ionizable: 0,
+                        Hydropathy: -0.4,
+                        Hydrophobicity: 0.0,
+                        Polarity: 3.5,
+                        Mutability: 0,
+                        LogP: -0.86,
+                        LogD: -0.86,
+                        LogS: 0.81
+                    })
+                ]
+            ]);
+            Core.TunnelPhysicoChemicalPropertyTable = TunnelPhysicoChemicalPropertyTable;
+        })(Core = Tunnels.Core || (Tunnels.Core = {}));
+    })(Tunnels = WebChemistry.Tunnels || (WebChemistry.Tunnels = {}));
+})(WebChemistry || (WebChemistry = {}));
 var LayersVizualizer;
 (function (LayersVizualizer) {
     var UI;
     (function (UI) {
         var React = LiteMol.Plugin.React;
         var Transformer = LiteMol.Bootstrap.Entity.Transformer;
-        var Tree = LiteMol.Bootstrap.Tree;
-        var Transform = Tree.Transform;
         var Visualization = LiteMol.Bootstrap.Visualization;
         var Tabs = CommonUtils.Tabs;
-        ;
-        function createProfileToLayerByCenterDistanceMapping(channel) {
-            var map = new Map();
-            var layers = channel.Layers.LayersInfo;
-            var profile = channel.Profile;
-            var maxProfileDistance = profile[profile.length - 1].Distance;
-            var maxLayerDistance = layers[layers.length - 1].LayerGeometry.EndDistance;
-            var lUnit = maxLayerDistance / 100;
-            var pUnit = maxProfileDistance / 100;
-            var layerSpaceToProfileSpace = function (layerVal) {
-                return (layerVal / lUnit) * pUnit;
-            };
-            var inRange = function (profileVal, layerStartDistance, layerEndDistance) {
-                return profileVal >= layerSpaceToProfileSpace(layerStartDistance)
-                    && profileVal < layerSpaceToProfileSpace(layerEndDistance);
-            };
-            for (var pIdx = 0, lIdx = 0; pIdx < profile.length;) {
-                if (inRange(profile[pIdx].Distance, layers[lIdx].LayerGeometry.StartDistance, layers[lIdx].LayerGeometry.EndDistance)) {
-                    map.set(pIdx, lIdx);
-                    pIdx++;
-                }
-                else {
-                    if (lIdx + 1 == layers.length) {
-                        map.set(pIdx, lIdx);
-                        pIdx++;
-                    }
-                    else {
-                        lIdx++;
-                    }
-                }
-            }
-            return map;
-        }
-        ;
-        function sphereSpaceToPercent(profileVal, sphereRadius) {
-            var sUnit = sphereRadius * 2 / 100;
-            return profileVal / sUnit;
-        }
-        ;
-        function layerSpaceToPercent(val, layerLength) {
-            var unit = layerLength / 100;
-            return val / unit;
-        }
-        ;
-        function layerSpaceToProfileSpace(layerVal, lUnit, pUnit) {
-            return (layerVal / lUnit) * pUnit;
-        }
-        ;
-        function percentCover(profileCenter, profileRadius, layerStartDistance, layerEndDistance, lUnit, pUnit) {
-            var sD_p = layerSpaceToProfileSpace(layerStartDistance, lUnit, pUnit);
-            var eD_p = layerSpaceToProfileSpace(layerEndDistance, lUnit, pUnit);
-            var sk = profileCenter; //-profileRadius;
-            var ek = profileCenter; //+profileRadius*2;
-            var sv = sD_p;
-            var ev = eD_p;
-            var S = Math.max(sk, sv);
-            var E = Math.min(ek, ev);
-            if (E - S !== 0) {
-                return 0;
-            }
-            else {
-                return 100;
-            }
-            //return sphereSpaceToPercent(E-S,profileRadius);
-            //return layerSpaceToPercent(E-S,layerEndDistance-layerStartDistance);
-            /*
-            //stred koule vlevo od vrstvy
-            let case1 = () => {
-                //koule mimo vrstvu celym profilem
-                if((profileCenter + profileRadius)-sD_p < 0){
-                    return 0;
-                }
-                //koule zasahuje svou casti do vrstvy zleva
-                if((profileCenter + profileRadius)-sD_p > 0
-                    && (profileCenter + profileRadius)-eD_p < 0){
-                    return sphereSpaceToPercent((profileCenter+profileRadius)-sD_p,profileRadius);
-                }
-                //koule obsahuje celou vrstvu a vrstva je umistena vpravo od stredu koule
-                if((profileCenter+profileRadius)-sD_p > 0
-                    && (profileCenter+profileRadius)-eD_p > 0){
-                    return sphereSpaceToPercent(eD_p-sD_p,profileRadius);
-                }
-    
-                throw new Error("InvalidState - unrecognized state");
-            };
-    
-            //stred koule uvnitr vrstvy
-            let case2 = () => {
-                //koule je cela ve vrstve
-                if((profileCenter-profileRadius)-sD_p >= 0
-                    && eD_p-(profileCenter+profileRadius) >= 0){
-                    return 100;
-                }
-                //koule presahuje vrstvu vlevo
-                if((profileCenter-profileRadius)-sD_p <= 0
-                    && eD_p-(profileCenter+profileRadius) >= 0){
-                    return sphereSpaceToPercent((profileCenter+profileRadius)-sD_p,profileRadius);
-                }
-                //koule presahuje vrstvu zprava
-                if((profileCenter-profileRadius)-sD_p >= 0
-                    && eD_p-(profileCenter+profileRadius) <= 0){
-                    return sphereSpaceToPercent(eD_p-(profileCenter-profileRadius),profileRadius);
-                }
-                //koule presahuje vlevo i vpravo a obsahuje celou vrstvu
-                if((profileCenter-profileRadius)-sD_p <= 0
-                    && eD_p-(profileCenter+profileRadius) <= 0){
-                    return sphereSpaceToPercent(eD_p-sD_p,profileRadius);
-                }
-    
-                throw new Error("InvalidState - unrecognized state");
-            };
-    
-            //stred koule vpravo od vrstvy
-            let case3 = () => {
-                //koule nezasahuje do vrstvy
-                if((profileCenter-profileRadius)-eD_p > 0){
-                    return 0;
-                }
-                //koule zasahuje levou pulkou do vrstvy, ale nepresahuje
-                if((profileCenter-profileRadius)-sD_p > 0
-                    && (profileCenter-profileRadius)-eD_p < 0){
-                    return sphereSpaceToPercent(eD_p-(profileCenter-profileRadius),profileRadius);
-                }
-                //koule obsahuje celou vrstvu v prave polovine
-                if((profileCenter-profileRadius)-sD_p < 0
-                    && (profileCenter+profileRadius)-eD_p > 0){
-                    return sphereSpaceToPercent(eD_p-sD_p,profileRadius);
-                }
-    
-                throw new Error("InvalidState - unrecognized state");
-            };
-    
-            if(profileCenter < sD_p){
-                return case1();
-            }
-            
-            if(profileCenter >= sD_p && profileCenter <= eD_p){
-                return case2();
-            }
-    
-            if(profileCenter > eD_p){
-                return case3();
-            }
-    
-            throw new Error("InvalidState - unrecognized state");
-            */
-        }
-        ;
-        function createProfileColorMapByRadiusAndCenterDistance(channel, layerIdx) {
-            console.log("mappingbyradiusandcenter");
-            /*let layerColors:LiteMol.Visualization.Color[] = [];*/
-            var layers = channel.Layers.LayersInfo;
-            var profile = channel.Profile;
-            var maxProfileDistance = profile[profile.length - 1].Distance;
-            var maxLayerDistance = layers[layers.length - 1].LayerGeometry.EndDistance;
-            var activeColor = LiteMol.Visualization.Color.fromRgb(255, 0, 0);
-            var inactiveColor = LiteMol.Visualization.Color.fromRgb(255, 255, 255);
-            /*
-            for(let i=0;i<layers.length;i++){
-                if(i===layerIdx){
-                    layerColors.push(activeColor);
-                }
-                else{
-                    layerColors.push(inactiveColor);
-                }
-            }
-            */
-            var lUnit = maxLayerDistance / 100;
-            var pUnit = lUnit; //maxProfileDistance/100;
-            var colorMap = new Map();
-            //let profileToColorMap = new Map<number,number>();
-            //let colors:LiteMol.Visualization.Color[] = [];
-            for (var pIdx = 0; pIdx < profile.length; pIdx++) {
-                var layerCover = [];
-                for (var lIdx = 0; lIdx < layers.length; lIdx++) {
-                    var sphere = profile[pIdx];
-                    var layerGeometry = layers[lIdx].LayerGeometry;
-                    var percent = percentCover(sphere.Distance, sphere.Radius, layerGeometry.StartDistance, layerGeometry.EndDistance, lUnit, pUnit);
-                    if (percent > 0) {
-                        layerCover.push({ layerIdx: lIdx, percent: percent });
-                    }
-                }
-                /*
-                layerCover.sort((a:{layerIdx:number,percent:number},b:{layerIdx:number,percent:number})=>{
-                    return a.percent-b.percent;
-                });
-                */
-                /*
-                if(layerCover.length<2){
-                    colorMap.set(pIdx,layerColors[layerCover[0].layerIdx]);
-                    //profileToColorMap.set(pIdx,pIdx);
-                    //colors.push(layerColors[layerCover[0].layerIdx]);
-                    continue;
-                }*/
-                /*
-                let color = layerColors[layerCover[0].layerIdx];
-                let lc = layerCover[0];
-                let currentPercent = lc.percent;
-                for(let lcIdx=1;lcIdx<layerCover.length;lcIdx++){
-                    let lc2 = layerCover[lcIdx];
-                    let color2 = layerColors[lc2.layerIdx];
-    
-                    let totalPercent = currentPercent+lc2.percent;
-                    let p = (currentPercent/totalPercent)*100;
-    
-                    color = {
-                        r:(1-(p/100)) * color.r + (p/100) * color2.r,
-                        g:(1-(p/100)) * color.g + (p/100) * color2.g,
-                        b:(1-(p/100)) * color.b + (p/100) * color2.b
-                    };
-                    currentPercent = totalPercent;
-                }
-                */
-                var color = inactiveColor;
-                var semiactiveColor = LiteMol.Visualization.Color.fromRgb(0, 0, 122);
-                for (var lcIdx = 0; lcIdx < layerCover.length; lcIdx++) {
-                    var p = layerCover[lcIdx].percent;
-                    if (layerCover[lcIdx].layerIdx === layerIdx) {
-                        console.log("Profile[" + pIdx + "] -> Layer[" + layerIdx + "] => cover: " + p);
-                        /*
-                        color = {
-                            r:(1-(p/100)) * semiactiveColor.r + (p/100) * activeColor.r,
-                            g:(1-(p/100)) * semiactiveColor.g + (p/100) * activeColor.g,
-                            b:(1-(p/100)) * semiactiveColor.b + (p/100) * activeColor.b
-                        };*/
-                        //LiteMol.Visualization.Color.interpolate(semiactiveColor,activeColor,p,color);
-                        color = activeColor;
-                        break;
-                    }
-                }
-                /*
-                let lc1 = layerCover[layerCover.length-1];
-                let lc2 = layerCover[layerCover.length-2];
-    
-                let color1 = layerColors[lc1.layerIdx];
-                let color2 = layerColors[lc2.layerIdx];
-    
-                let color = {
-                    r:(1-(lc1.percent/100)) * color1.r + (lc1.percent/100) * color2.r,
-                    g:(1-(lc1.percent/100)) * color1.g + (lc1.percent/100) * color2.g,
-                    b:(1-(lc1.percent/100)) * color1.b + (lc1.percent/100) * color2.b
-                };
-                
-                console.log(color1);
-                console.log(color2);
-                console.log(color);
-                console.log("-");
-                console.log(lc1);
-                console.log(lc2);
-                console.log("---!---");
-                */
-                colorMap.set(pIdx, color);
-                //profileToColorMap.set(pIdx,pIdx);
-                //colors.push(color);
-            }
-            return colorMap;
-        }
-        ;
-        function applyTheme(theme /*(e: any, props?: LiteMol.Visualization.Theme.Props | undefined) => LiteMol.Visualization.Theme*/, plugin, ref) {
-            var visual = plugin.context.select(ref)[0];
-            console.log(visual);
-            var query = LiteMol.Core.Structure.Query.everything(); /*.sequence('1', 'A', { seqNumber: 10 }, { seqNumber: 25 });*/
-            var action = Transform.build().add(visual, Transformer.Molecule.CreateSelectionFromQuery, { query: query, name: 'My name' }, { ref: 'sequence-selection' })
-                .then(Transformer.Molecule.CreateVisual, { style: LiteMol.Bootstrap.Visualization.Molecule.Default.ForType.get('BallsAndSticks') });
-            visual = plugin.context.select(ref)[0];
-            console.log(visual);
-            console.log(LiteMol.Bootstrap.Utils.Molecule.findModel(visual));
-            /*let themestatic = theme(visual);*/
-            plugin.applyTransform(action).then(function () {
-                LiteMol.Bootstrap.Command.Visual.UpdateBasicTheme.dispatch(plugin.context, { visual: visual, theme: theme /*: themestatic*/ });
-                LiteMol.Bootstrap.Command.Entity.Focus.dispatch(plugin.context, plugin.context.select('sequence-selection'));
-                // alternatively, you can do this
-                //Command.Molecule.FocusQuery.dispatch(plugin.context, { model: selectNodes('model')[0] as any, query })
-            });
-        }
-        function generateLayerSelectColorTheme(activeLayerIdx, app) {
-            /*
-            let colors = new Map<number, LiteMol.Visualization.Color>();
-            let coloringPropertyKey = app.vizualizer.getColoringPropertyKey();
-            for(let layerIdx=0; layerIdx<app.state.data.length; layerIdx++){
-                if(layerIdx === activeLayerIdx){
-                    colors.set(layerIdx, LiteMol.Visualization.Color.fromRgb(255,0,0));
-                }
-                else{
-                    colors.set(layerIdx, LiteMol.Visualization.Color.fromRgb(255,255,255));
-                }
-            }
-            */
-            var channel = app.props.controller.context.select(app.state.currentTunnelRef)[0].props.model.entity.element;
-            var profilePartsCount = channel.Profile.length;
-            //let profileToLayerMapping = createProfileColorMapByRadiusAndCenterDistance(channel,activeLayerIdx);
-            var max = 0;
-            var colors = createProfileColorMapByRadiusAndCenterDistance(channel, activeLayerIdx);
-            var theme = LiteMol.Visualization.Theme.createMapping(LiteMol.Visualization.Theme.createColorMapMapping(function (idx) {
-                return idx;
-                /*
-                let lIdx = profileToLayerMapping.get(idx);
-                if(lIdx === void 0)
-                    return void 0;
-                return lIdx;
-                */
-            }, colors, LiteMol.Visualization.Color.fromRgb(0, 0, 0)));
-            return theme;
-        }
         function render(vizualizer, target, plugin) {
             LiteMol.Plugin.ReactDOM.render(React.createElement(App, { vizualizer: vizualizer, controller: plugin }), target);
         }
@@ -3793,12 +4247,11 @@ var LayersVizualizer;
             __extends(App, _super);
             function App() {
                 var _this = _super !== null && _super.apply(this, arguments) || this;
-                _this.interactionEventStream = void 0;
                 _this.state = {
                     instanceId: -1,
                     hasData: false,
                     data: [],
-                    layerId: 0,
+                    layerIds: [0],
                     coloringPropertyKey: "",
                     customColoringPropertyKey: "",
                     radiusPropertyKey: "MinRadius",
@@ -3883,88 +4336,7 @@ var LayersVizualizer;
                     _this.forceUpdate();
                 }).bind(this));
             };
-            /*
-            generateLayerSelectColorTheme(activeLayerIdx: number){
-                let colors = new Map<number, LiteMol.Visualization.Color>();
-                let coloringPropertyKey = this.vizualizer.getColoringPropertyKey();
-                for(let layerIdx=0; layerIdx<this.state.data.length; layerIdx++){
-                    if(layerIdx === activeLayerIdx){
-                        colors.set(layerIdx, LiteMol.Visualization.Color.fromRgb(255,0,0));
-                    }
-                    else{
-                        colors.set(layerIdx, LiteMol.Visualization.Color.fromRgb(255,255,255));
-                    }
-                }
-    
-                let channel = (this.props.controller.context.select(this.state.currentTunnelRef)[0] as any).props.model.entity.element as DataInterface.Tunnel;
-                let profilePartsCount = channel.Profile.length;
-                let profileToLayerMapping = this.createProfileToLayerMapping(channel);
-                let max = 0;
-                let theme = LiteMol.Visualization.Theme.createMapping(LiteMol.Visualization.Theme.createColorMapMapping(
-                        (idx:number)=>{
-                            let lIdx = profileToLayerMapping.get(idx);
-                            if(lIdx === void 0)
-                                return void 0;
-                            return lIdx;
-                        },
-                        colors,
-                        LiteMol.Visualization.Color.fromRgb(0,0,0)
-                    ));
-                return theme;
-            }*/
-            //TODO:... vizualizace vrstev ve 3D
-            App.prototype.generateColorTheme = function () {
-                var colorSettings = this.props.vizualizer.getCurrentColoringSettings("default");
-                if (colorSettings === void 0 || colorSettings === null) {
-                    throw Error("No color info available!");
-                }
-                var colors = new Map();
-                var coloringPropertyKey = this.vizualizer.getColoringPropertyKey();
-                for (var layerIdx = 0; layerIdx < this.state.data.length; layerIdx++) {
-                    var layer = this.state.data[layerIdx];
-                    console.log(this.vizualizer.getColor(Number(layer.Properties[coloringPropertyKey]).valueOf(), colorSettings));
-                    var color = LayersVizualizer.Colors.parseRGBString(this.vizualizer.getColor(Number(layer.Properties[coloringPropertyKey]).valueOf(), colorSettings));
-                    colors.set(layerIdx, LiteMol.Visualization.Color.fromRgb(color.r, color.g, color.b));
-                }
-                var channel = this.props.controller.context.select(this.state.currentTunnelRef)[0].props.model.entity.element;
-                var profilePartsCount = channel.Profile.length;
-                var profileToLayerMapping = createProfileToLayerByCenterDistanceMapping(channel);
-                var max = 0;
-                var theme = LiteMol.Visualization.Theme.createMapping(LiteMol.Visualization.Theme.createColorMapMapping(function (idx) {
-                    var lIdx = profileToLayerMapping.get(idx);
-                    if (lIdx === void 0 || lIdx === 0)
-                        return void 0;
-                    return lIdx;
-                }, colors, LiteMol.Visualization.Color.fromRgb(0, 0, 0)));
-                /*
-            theme.setElementColor = (index:number, target:LiteMol.Visualization.Color)=>{
-                console.log(`index: ${index}`);
-            };*/
-                return theme;
-                /*
-            return LiteMol.Visualization.Theme.createMapping(LiteMol.Visualization.Theme.createPalleteMapping(
-                    (idx:number)=>{console.log(`Color Idx: ${idx}`);return idx%3;},
-                    color_arr
-                ));
-                */
-                /*.createColorMapThemeProvider(
-                    // here you can also use m.atoms.residueIndex, m.residues.name/.... etc.
-                    // you can also get more creative and use "composite properties"
-                    // for this check Bootstrap/Visualization/Theme.ts and Visualization/Base/Theme.ts and it should be clear hwo to do that.
-                    //
-                    // You can create "validation based" coloring using this approach as it is not implemented in the plugin for now.
-                    m => ({ index: m.data.atoms.chainIndex, property: m.data.chains.asymId }),
-                    colors,
-                    // this a fallback color used for elements not in the set
-                    LiteMol.Visualization.Color.fromRgb(0, 0, 123))
-                    // apply it to the model, you can also specify props, check Bootstrap/Visualization/Theme.ts
-                    //(model);*/
-            };
-            //applyTheme
             App.prototype.componentWillUnmount = function () {
-                if (this.interactionEventStream !== void 0) {
-                    this.interactionEventStream.dispose();
-                }
             };
             App.prototype.render = function () {
                 if (this.state.hasData) {
@@ -4002,70 +4374,6 @@ var LayersVizualizer;
                 return (React.createElement("div", { id: "layer-vizualizer-hint-div" + this.props.instanceId, className: "layer-vizualizer-hint-div" }, "Click on one of available channels to see more information..."));
             };
             return Hint;
-        }(React.Component));
-        var DetailsContainer = (function (_super) {
-            __extends(DetailsContainer, _super);
-            function DetailsContainer() {
-                return _super !== null && _super.apply(this, arguments) || this;
-            }
-            DetailsContainer.prototype.render = function () {
-                var layerId = this.props.layerId;
-                return (React.createElement("div", { className: "layer-vizualizer-detail-div", id: "layer-vizualizer-detail-div" + this.props.instanceId },
-                    React.createElement("h3", null, "Properties"),
-                    React.createElement(LayerProperties, { layerProperties: this.props.data[layerId].Properties }),
-                    React.createElement("h3", null, "Lining residues"),
-                    React.createElement(LayerResidues, { layerResidues: this.props.data[layerId].Residues })));
-            };
-            return DetailsContainer;
-        }(React.Component));
-        var LayerProperties = (function (_super) {
-            __extends(LayerProperties, _super);
-            function LayerProperties() {
-                return _super !== null && _super.apply(this, arguments) || this;
-            }
-            LayerProperties.prototype.render = function () {
-                var rv = [];
-                for (var key in this.props.layerProperties) {
-                    rv.push(React.createElement(LayerProperty, { propertyKey: key, propertyValue: this.props.layerProperties[key] }));
-                }
-                return (React.createElement("div", { className: "properties" }, rv));
-            };
-            return LayerProperties;
-        }(React.Component));
-        var LayerProperty = (function (_super) {
-            __extends(LayerProperty, _super);
-            function LayerProperty() {
-                return _super !== null && _super.apply(this, arguments) || this;
-            }
-            LayerProperty.prototype.render = function () {
-                return (React.createElement("span", { className: "propertyItem" }, this.props.propertyKey + ": " + this.props.propertyValue));
-            };
-            return LayerProperty;
-        }(React.Component));
-        var LayerResidues = (function (_super) {
-            __extends(LayerResidues, _super);
-            function LayerResidues() {
-                return _super !== null && _super.apply(this, arguments) || this;
-            }
-            LayerResidues.prototype.render = function () {
-                var rv = [];
-                for (var _i = 0, _a = this.props.layerResidues; _i < _a.length; _i++) {
-                    var key = _a[_i];
-                    rv.push(React.createElement(LayerResidue, { name: key }));
-                }
-                return (React.createElement("div", null, rv));
-            };
-            return LayerResidues;
-        }(React.Component));
-        var LayerResidue = (function (_super) {
-            __extends(LayerResidue, _super);
-            function LayerResidue() {
-                return _super !== null && _super.apply(this, arguments) || this;
-            }
-            LayerResidue.prototype.render = function () {
-                return (React.createElement("span", { className: "residueItem" }, "" + this.props.name));
-            };
-            return LayerResidue;
         }(React.Component));
         var ColorMenuItem = (function (_super) {
             __extends(ColorMenuItem, _super);
@@ -4218,6 +4526,7 @@ var LayersVizualizer;
                 for (var prop in this.props.state.data[0].Properties) {
                     rv.push(React.createElement(ColorMenuItem, __assign({ propertyName: prop, isCustom: this.props.isCustom }, this.props.state)));
                 }
+                rv.push(React.createElement(ColorMenuItem, __assign({ propertyName: 'BRadius', isCustom: this.props.isCustom }, this.props.state)));
                 return React.createElement(BootstrapDropUpMenuButton, { items: rv, label: this.props.coloringProperty });
             };
             ColorBySwitch.prototype.render = function () {
@@ -4379,11 +4688,24 @@ var LayersVizualizer;
         }(React.Component));
         ;
         ;
+        ;
         var InteractionMap = (function (_super) {
             __extends(InteractionMap, _super);
             function InteractionMap() {
-                return _super !== null && _super.apply(this, arguments) || this;
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.state = {
+                    mouseControlStartLayerId: -1,
+                    selectionMode: false,
+                    touchMode: false
+                };
+                return _this;
             }
+            InteractionMap.prototype.componentDidMount = function () {
+                var _this = this;
+                document.ontouchstart = function (e) {
+                    _this.enableTouchMode();
+                };
+            };
             InteractionMap.prototype.getLayerResidues = function (layerIdx) {
                 var res = [];
                 for (var _i = 0, _a = this.props.data[layerIdx].Residues; _i < _a.length; _i++) {
@@ -4394,29 +4716,19 @@ var LayersVizualizer;
                         authSeqNumber: Number(parts[1]).valueOf()
                     });
                 }
-                /*
-                console.log(`Layer ${layerIdx}:`);
-                console.log(res);
-                */
                 return res;
             };
-            /*
-            private removeResidue3DView(){
-                LiteMol.Bootstrap.Command.Tree.RemoveNode.dispatch(this.props.app.props.controller.context, "res_visual");
-            }*/
             InteractionMap.prototype.resetFocusToTunnel = function () {
                 LiteMol.Bootstrap.Command.Entity.Focus.dispatch(this.props.app.props.controller.context, this.props.app.props.controller.context.select(this.props.app.state.currentTunnelRef));
             };
-            InteractionMap.prototype.showLayerResidues3DAndFocus = function (layerIdx) {
+            InteractionMap.prototype.showLayerResidues3DAndFocus = function (layerIds) {
                 var _this = this;
-                /*
-                let theme = generateLayerSelectColorTheme(layerIdx,this.props.app);
-                applyTheme(theme,this.props.app.props.controller,this.props.app.state.currentTunnelRef);
-                */
-                var residues = this.getLayerResidues(layerIdx);
+                var residues = [];
+                for (var _i = 0, layerIds_1 = layerIds; _i < layerIds_1.length; _i++) {
+                    var l = layerIds_1[_i];
+                    residues = residues.concat(this.getLayerResidues(l));
+                }
                 var query = (_a = LiteMol.Core.Structure.Query).residues.apply(_a, residues);
-                /*this.removeResidue3DView();*/
-                //CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
                 CommonUtils.Selection.SelectionHelper.clearAltSelection(this.props.app.props.controller);
                 var t = this.props.app.props.controller.createTransform();
                 t.add('polymer-visual', Transformer.Molecule.CreateSelectionFromQuery, { query: query, name: 'Residues' }, { ref: CommonUtils.Selection.SelectionHelper.getAltSelectionVisualRef() })
@@ -4429,6 +4741,9 @@ var LayersVizualizer;
                 var _a;
             };
             InteractionMap.prototype.displayDetailsEventHandler = function (e) {
+                if (this.state.touchMode) {
+                    return;
+                }
                 var targetElement = e.target;
                 var layerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
                 var instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
@@ -4436,37 +4751,30 @@ var LayersVizualizer;
                 instance.highlightHitbox(layerIdx);
                 if (!this.props.app.state.isLayerSelected) {
                     var state = this.props.app.state;
-                    state.layerId = layerIdx;
+                    state.layerIds = [layerIdx];
                     this.props.app.setState(state);
                     $(window).trigger('layerTriggered', layerIdx);
-                    /*$( window ).trigger('resize');
-                    $( window ).trigger('contentResize');*/
                 }
             };
-            InteractionMap.prototype.displayLayerResidues3DEventHandler = function (e) {
-                var targetElement = e.target;
-                var layerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
-                var instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
-                var instance = LayersVizualizer.Vizualizer.ACTIVE_INSTANCES[instanceIdx];
-                if (instance.getSelectedLayer() === layerIdx) {
-                    this.props.app.state.isLayerSelected = false;
-                    //CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
+            InteractionMap.prototype.displayLayerResidues3DEventHandler = function (layerIdxs, instance) {
+                var state = this.props.app.state;
+                state.layerIds = layerIdxs;
+                state.isLayerSelected = state.layerIds.length > 0;
+                this.props.app.setState(state);
+                if (state.layerIds.length === 0) {
                     CommonUtils.Selection.SelectionHelper.clearAltSelection(this.props.app.props.controller);
                     this.resetFocusToTunnel();
-                    instance.deselectLayer();
-                    instance.highlightHitbox(layerIdx);
                 }
-                else {
-                    var state = this.props.app.state;
-                    state.layerId = layerIdx;
-                    state.isLayerSelected = true;
-                    this.props.app.setState(state);
-                    this.showLayerResidues3DAndFocus(layerIdx);
-                    instance.deselectLayer();
-                    instance.selectLayer(layerIdx);
+                instance.selectLayers(state.layerIds);
+                for (var _i = 0, _a = state.layerIds; _i < _a.length; _i++) {
+                    var layerIdx = _a[_i];
                     $(window).trigger('layerTriggered', layerIdx);
-                    $(window).trigger('resize');
                 }
+                if (state.layerIds.length > 0) {
+                    this.showLayerResidues3DAndFocus(state.layerIds);
+                }
+                $(window).trigger('layerSelected', { layerIds: state.layerIds.slice() });
+                $(window).trigger('resize');
             };
             InteractionMap.prototype.getTunnelScale = function (tunnel) {
                 var xScale = 0;
@@ -4557,15 +4865,186 @@ var LayersVizualizer;
                 }
                 return rv;
             };
+            InteractionMap.prototype.handleMouseDown = function (e) {
+                if (this.state.touchMode) {
+                    e.preventDefault();
+                    return false;
+                }
+                var targetElement = e.target;
+                var layerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
+                var instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
+                var instance = LayersVizualizer.Vizualizer.ACTIVE_INSTANCES[instanceIdx];
+                var s = this.state;
+                if (this.props.app.state.layerIds.length === 1
+                    && this.props.app.state.layerIds[0] === layerIdx
+                    && this.props.app.state.isLayerSelected) {
+                    s.mouseControlStartLayerId = -1;
+                    this.displayLayerResidues3DEventHandler([], instance);
+                }
+                else {
+                    s.mouseControlStartLayerId = layerIdx;
+                    s.selectionMode = true;
+                    this.displayLayerResidues3DEventHandler([s.mouseControlStartLayerId], instance);
+                }
+                this.setState(s);
+                // Disable drag and drop
+                e.preventDefault();
+                return false;
+            };
+            InteractionMap.prototype.enableTouchMode = function () {
+                var s = this.state;
+                s.touchMode = true;
+                this.setState(s);
+            };
+            InteractionMap.prototype.handleTouchStart = function (e) {
+                /*
+                let targetElement = (e.target as HTMLElement);
+                if(!targetElement.hasAttribute("data-layeridx")){
+                    return;
+                }
+    
+                let layerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
+                let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
+                let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
+    
+                let selectedLayers = instance.getSelectedLayer();
+                if(selectedLayers.length > 0){
+                    this.displayLayerResidues3DEventHandler([], instance);
+                }
+                */
+            };
+            InteractionMap.prototype.handleMove = function (startLayerIdx, endLayerIdx, instance) {
+                if (startLayerIdx > endLayerIdx) {
+                    var v = startLayerIdx;
+                    startLayerIdx = endLayerIdx;
+                    endLayerIdx = v;
+                }
+                var selectedLayers = instance.getSelectedLayer().slice();
+                selectedLayers = selectedLayers.sort();
+                if (selectedLayers[0] !== startLayerIdx || selectedLayers[selectedLayers.length - 1] !== endLayerIdx) {
+                    var layerIds = [];
+                    for (var lidx = startLayerIdx; lidx <= endLayerIdx; lidx++) {
+                        layerIds.push(lidx);
+                    }
+                    instance.selectLayers(layerIds);
+                }
+            };
+            InteractionMap.prototype.handleTouchMove = function (e) {
+                var startElement = e.target;
+                if (!startElement.hasAttribute("data-layeridx")) {
+                    return;
+                }
+                var endElement = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+                if (!endElement.hasAttribute("data-layeridx")) {
+                    return;
+                }
+                var startLayerIdx = Number(startElement.getAttribute("data-layeridx")).valueOf();
+                var endLayerIdx = Number(endElement.getAttribute("data-layeridx")).valueOf();
+                var instanceIdx = Number(startElement.getAttribute("data-instanceidx")).valueOf();
+                var instance = LayersVizualizer.Vizualizer.ACTIVE_INSTANCES[instanceIdx];
+                this.handleMove(startLayerIdx, endLayerIdx, instance);
+            };
+            InteractionMap.prototype.handleMouseMove = function (e) {
+                if (this.state.mouseControlStartLayerId === -1 || !this.state.selectionMode) {
+                    return;
+                }
+                var startLayerIdx = this.state.mouseControlStartLayerId;
+                var targetElement = e.currentTarget;
+                if (!targetElement.hasAttribute("data-layeridx")) {
+                    return;
+                }
+                var endLayerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
+                var instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
+                var instance = LayersVizualizer.Vizualizer.ACTIVE_INSTANCES[instanceIdx];
+                this.handleMove(startLayerIdx, endLayerIdx, instance);
+            };
+            InteractionMap.prototype.handleEnd = function (startLayerIdx, endLayerIdx, instance) {
+                if (startLayerIdx > endLayerIdx) {
+                    var v = startLayerIdx;
+                    startLayerIdx = endLayerIdx;
+                    endLayerIdx = v;
+                }
+                var selectedLayers = instance.getSelectedLayer().slice();
+                selectedLayers = selectedLayers.sort();
+                if (selectedLayers[0] !== startLayerIdx || selectedLayers[selectedLayers.length - 1] !== endLayerIdx) {
+                    for (var lidx = startLayerIdx; lidx <= endLayerIdx; lidx++) {
+                        if (lidx in selectedLayers) {
+                            continue;
+                        }
+                        selectedLayers.push(lidx);
+                    }
+                    this.displayLayerResidues3DEventHandler(selectedLayers, instance);
+                }
+            };
+            InteractionMap.prototype.handleTouchEnd = function (e) {
+                var startElement = e.target;
+                var endElement = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+                var startLayerIdx = Number(startElement.getAttribute("data-layeridx")).valueOf();
+                var endLayerIdx = Number(endElement.getAttribute("data-layeridx")).valueOf();
+                var instanceIdx = Number(startElement.getAttribute("data-instanceidx")).valueOf();
+                var instance = LayersVizualizer.Vizualizer.ACTIVE_INSTANCES[instanceIdx];
+                var selectedLayers = instance.getSelectedLayer().slice();
+                if (startLayerIdx === endLayerIdx && selectedLayers.length === 1 && selectedLayers[0] === startLayerIdx) {
+                    this.displayLayerResidues3DEventHandler([], instance);
+                    return;
+                }
+                if (startLayerIdx === endLayerIdx) {
+                    this.displayLayerResidues3DEventHandler([startLayerIdx], instance);
+                    return;
+                }
+                this.handleEnd(startLayerIdx, endLayerIdx, instance);
+            };
+            InteractionMap.prototype.handleMouseUp = function (e) {
+                var endElement = e.currentTarget;
+                if (this.state.mouseControlStartLayerId === -1 || !this.state.selectionMode) {
+                    return;
+                }
+                var startLayerIdx = this.state.mouseControlStartLayerId;
+                var endLayerIdx = Number(endElement.getAttribute("data-layeridx")).valueOf();
+                var instanceIdx = Number(endElement.getAttribute("data-instanceidx")).valueOf();
+                var instance = LayersVizualizer.Vizualizer.ACTIVE_INSTANCES[instanceIdx];
+                this.handleEnd(startLayerIdx, endLayerIdx, instance);
+                var s = this.state;
+                s.mouseControlStartLayerId = -1;
+                s.selectionMode = false;
+                this.setState(s);
+            };
+            InteractionMap.prototype.isAboveArea = function (x, y) {
+                var elementFromPoint = document.elementFromPoint(x, y);
+                if (elementFromPoint === null) {
+                    return false;
+                }
+                if (elementFromPoint.tagName === null) {
+                    return false;
+                }
+                return elementFromPoint.tagName.toLowerCase() === "area"
+                    || elementFromPoint.tagName.toLowerCase() === "map";
+            };
+            InteractionMap.prototype.handleMouseOut = function (e) {
+                var s = this.state;
+                if (!s.selectionMode
+                    || e.currentTarget.hasAttribute("data-layeridx")
+                    || e.relatedTarget.tagName === null
+                    || e.relatedTarget.tagName.toLowerCase() === "area"
+                    || this.isAboveArea(e.clientX, e.clientY)) {
+                    return;
+                }
+                s.mouseControlStartLayerId = -1;
+                s.selectionMode = false;
+                this.setState(s);
+                //There is always one instance at most in this application
+                var instance = LayersVizualizer.Vizualizer.ACTIVE_INSTANCES[LayersVizualizer.Vizualizer.ACTIVE_INSTANCES.length - 1];
+                this.displayLayerResidues3DEventHandler([], instance);
+            };
             InteractionMap.prototype.render = function () {
                 var areas = [];
                 if (this.props.isDOMReady) {
                     var hitboxesCoords = this.generatePhysicalHitboxesCoords();
                     for (var i = 0; i < hitboxesCoords.length; i++) {
-                        areas.push(React.createElement("area", { shape: "rect", coords: hitboxesCoords[i].coords.valueOf(), "data-layeridx": String(hitboxesCoords[i].layerIdx.valueOf()), "data-instanceidx": String(this.props.instanceId), onMouseOver: this.displayDetailsEventHandler.bind(this), onMouseDown: this.displayLayerResidues3DEventHandler.bind(this) }));
+                        areas.push(React.createElement("area", { shape: "rect", coords: hitboxesCoords[i].coords.valueOf(), "data-layeridx": String(hitboxesCoords[i].layerIdx.valueOf()), "data-instanceidx": String(this.props.instanceId), onMouseOver: this.displayDetailsEventHandler.bind(this), onMouseDown: this.handleMouseDown.bind(this), onMouseMove: this.handleMouseMove.bind(this), onMouseUp: this.handleMouseUp.bind(this) }));
                     }
                 }
-                return (React.createElement("map", { name: "layersInteractiveMap" + this.props.instanceId, id: "layer-vizualizer-hitbox-map" + this.props.instanceId }, areas));
+                return (React.createElement("map", { name: "layersInteractiveMap" + this.props.instanceId, id: "layer-vizualizer-hitbox-map" + this.props.instanceId, onTouchStart: this.handleTouchStart.bind(this), onTouchMove: this.handleTouchMove.bind(this), onTouchEnd: this.handleTouchEnd.bind(this), onMouseOut: this.handleMouseOut.bind(this) }, areas));
             };
             return InteractionMap;
         }(React.Component));
@@ -4595,17 +5074,6 @@ var LayersVizualizer;
             this.context.rect(bounds.x, bounds.y, bounds.width, bounds.height);
             this.context.clip();
         };
-        /*
-                public setContext(context:CanvasRenderingContext2D){
-                    this.context = context;
-                }
-        */
-        /* Context must be known before hitbox generation
-                public draw(x: number, y:number, width:number, height:number, context?:CanvasRenderingContext2D):void{
-                    this.setContext(context);
-                    this.draw(x,y,width,height);
-                }
-        */
         ContextAwareObject.prototype.drawFromBounds = function (bounds) {
             this.draw(bounds.x, bounds.y, bounds.width, bounds.height);
         };
@@ -4682,10 +5150,10 @@ var LayersVizualizer;
     LayersVizualizer.Axis = Axis;
     var CurlyBrackets = (function (_super) {
         __extends(CurlyBrackets, _super);
-        function CurlyBrackets(context /*, isLeftToRight:boolean=true*/) {
+        function CurlyBrackets(context) {
             var _this = _super.call(this, context) || this;
             _this.lineColor = "#8c8c8c";
-            _this.isLeftToRight = true; /*isLeftToRight;*/
+            _this.isLeftToRight = true;
             return _this;
         }
         CurlyBrackets.prototype.draw = function (x, y, width, height) {
@@ -4949,6 +5417,11 @@ var LayersVizualizer;
             _this.lineColor = "#8c8c8c";
             _this.hitboxLineColor = "#173133";
             _this.highlightLineColor = '#000';
+            _this.highlightedLayerIdx = -1;
+            _this.selectedLayers = [];
+            _this.layersData = null;
+            _this.renderSelectedLock = 0;
+            _this.renderSelectedQueue = [];
             _this.minVal = minVal;
             _this.maxVal = maxVal;
             _this.layers = layers;
@@ -4956,6 +5429,8 @@ var LayersVizualizer;
             _this.isInverted_ = isInverted;
             _this.paletteFunctionSettings = paletteFunctionSettings;
             _this.hasBounds = false;
+            _this.selectedLayers = [];
+            _this.layersData = null;
             return _this;
         }
         Tunnel.prototype.setBounds = function (x, y, width, height) {
@@ -4967,12 +5442,7 @@ var LayersVizualizer;
             this.hasBounds = true;
         };
         Tunnel.prototype.clear = function (bounds) {
-            var lineCorrection = this.getCorrectionWidth();
-            this.context.clearRect(bounds.x - lineCorrection, bounds.y - lineCorrection, bounds.width + lineCorrection * 2, bounds.height + lineCorrection * 2);
-        };
-        Tunnel.prototype.getCorrectionWidth = function () {
-            var width = Math.max(this.lineWidth, this.hitboxLineWidth);
-            return Math.max(width, this.highlightLineWidth);
+            this.context.clearRect(bounds.x, bounds.y, bounds.width, bounds.height);
         };
         Tunnel.prototype.draw = function (x, y, width, height) {
             this.setBounds(x, y, width, height);
@@ -4981,7 +5451,7 @@ var LayersVizualizer;
             //Render hitboxes to canvas - dotted lines between layers
             this.renderHitboxes();
             this.paintBox();
-            this.currentVisualPlain = this.context.getImageData(this.bounds.x, this.bounds.y, this.bounds.width + 1, this.bounds.height + 1);
+            this.currentVisualPlain = this.context.getImageData(this.bounds.x, this.bounds.y, this.bounds.width, this.bounds.height);
             this.currentVisual = this.currentVisualPlain;
             //this.highlightHitbox(0);
         };
@@ -4998,31 +5468,40 @@ var LayersVizualizer;
             return rv;
         };
         Tunnel.prototype.highlightHitbox = function (layerIdx) {
-            this.clear(this.bounds);
-            this.context.putImageData(this.currentVisual, this.bounds.x, this.bounds.y);
-            var hitbox = this.getHitbox(layerIdx);
-            var bottom = this.getBottom();
-            this.drawSolidLine(hitbox.x, hitbox.y, hitbox.x + hitbox.width, hitbox.y, this.highlightLineWidth, this.highlightLineColor);
-            this.drawSolidLine(hitbox.x + hitbox.width, hitbox.y, hitbox.x + hitbox.width, hitbox.y + hitbox.height, this.highlightLineWidth, this.highlightLineColor);
-            this.drawSolidLine(hitbox.x + hitbox.width, hitbox.y + hitbox.height, hitbox.x, hitbox.y + hitbox.height, this.highlightLineWidth, this.highlightLineColor);
-            this.drawSolidLine(hitbox.x, hitbox.y + hitbox.height, hitbox.x, hitbox.y, this.highlightLineWidth, this.highlightLineColor);
-            //this.paintBox();
+            var touchMode = window.TOUCH_MODE;
+            var layersData = this.layersData;
+            var scale = this.getScale();
+            if (layersData === null || scale === null) {
+                return;
+            }
+            var graphLine = layersData.path.slice().sort(function (a, b) { return a.x - b.x; });
+            if (this.highlightedLayerIdx >= 0) {
+                this.renderSelectedDeselectedLayer(graphLine, this.highlightedLayerIdx, scale, this.bounds, this.selectedLayers.indexOf(this.highlightedLayerIdx) >= 0);
+            }
+            if (touchMode) {
+                this.highlightedLayerIdx = -1;
+                return;
+            }
+            var path = [graphLine[layerIdx], graphLine[layerIdx + 1]];
+            var restOfBody = [
+                {
+                    x: this.bounds.x + this.layers[layerIdx].end * scale.x,
+                    y: this.getTop() + (this.isInverted() ? -1 : 1) * this.lineWidth
+                },
+                {
+                    x: this.bounds.x + this.layers[layerIdx].start * scale.x,
+                    y: this.getTop() + (this.isInverted() ? -1 : 1) * this.lineWidth
+                },
+                {
+                    x: path[0].x,
+                    y: path[0].y
+                }
+            ];
+            this.colorBackground("#cccccc", path, restOfBody);
+            this.highlightedLayerIdx = layerIdx;
         };
-        Tunnel.prototype.deselectLayer = function () {
-            this.clear(this.bounds);
-            this.currentVisual = this.currentVisualPlain;
-            this.context.putImageData(this.currentVisual, this.bounds.x, this.bounds.y);
-        };
-        Tunnel.prototype.selectLayer = function (layerIdx) {
-            this.clear(this.bounds);
-            this.context.putImageData(this.currentVisual, this.bounds.x, this.bounds.y);
-            var hitbox = this.getHitbox(layerIdx);
-            var bottom = this.getBottom();
-            this.drawSolidLine(hitbox.x, hitbox.y, hitbox.x + hitbox.width, hitbox.y, this.highlightLineWidth, "#ff0000");
-            this.drawSolidLine(hitbox.x + hitbox.width, hitbox.y, hitbox.x + hitbox.width, hitbox.y + hitbox.height, this.highlightLineWidth, "#ff0000");
-            this.drawSolidLine(hitbox.x + hitbox.width, hitbox.y + hitbox.height, hitbox.x, hitbox.y + hitbox.height, this.highlightLineWidth, "#ff0000");
-            this.drawSolidLine(hitbox.x, hitbox.y + hitbox.height, hitbox.x, hitbox.y, this.highlightLineWidth, "#ff0000");
-            this.currentVisual = this.context.getImageData(this.bounds.x, this.bounds.y, this.bounds.width + 1, this.bounds.height + 1);
+        Tunnel.prototype.selectLayers = function (layerIds) {
+            this.renderSelectedLayers(layerIds.slice());
         };
         Tunnel.prototype.paintBox = function () {
             var firstHitbox = this.getHitbox(0);
@@ -5044,8 +5523,7 @@ var LayersVizualizer;
             }
             return this.scale;
         };
-        Tunnel.prototype.renderAllLayers = function () {
-            this.context.save();
+        Tunnel.prototype.prepareLayersData = function () {
             //Mozilla odmita v urcitych pripadech v 1. polovine tunelu zobrazit barevny prechod kdyz je zapnuty clip()
             //this.clipToBounds(this.bounds);
             var gLine = {
@@ -5060,9 +5538,6 @@ var LayersVizualizer;
             for (var i = 0; i < this.layers.length; i++) {
                 lastColorStop = this.prepareLayer(i, gradient, path, lastColorStop);
             }
-            this.context.fillStyle = gradient;
-            this.context.beginPath();
-            this.drawPath(path);
             var scale = this.getScale();
             if (scale === null) {
                 throw new Error("Value of scale not computed");
@@ -5078,7 +5553,23 @@ var LayersVizualizer;
                 },
                 path[0]
             ];
-            this.drawPath(restOfBody);
+            this.layersData = {
+                gradient: gradient,
+                restOfBody: restOfBody.slice(),
+                path: path.slice()
+            };
+            return this.layersData;
+        };
+        Tunnel.prototype.renderAllLayers = function () {
+            var layersData = this.layersData;
+            if (layersData === null) {
+                layersData = this.prepareLayersData();
+            }
+            this.context.save();
+            this.context.fillStyle = layersData.gradient;
+            this.context.beginPath();
+            this.drawPath(layersData.path);
+            this.drawPath(layersData.restOfBody);
             this.context.closePath();
             this.context.fill();
             this.context.restore();
@@ -5087,12 +5578,154 @@ var LayersVizualizer;
             this.context.strokeStyle = this.lineColor;
             this.context.lineWidth = this.lineWidth;
             this.context.beginPath();
+            this.context.moveTo(layersData.path[0].x, layersData.path[0].y);
+            this.drawPath(layersData.path);
+            this.drawPath(layersData.path.reverse());
+            this.context.closePath();
+            this.context.stroke();
+            this.context.restore();
+        };
+        Tunnel.prototype.renderSelectedDeselectedLayer = function (graphLine, layerIdx, scale, bounds, selected) {
+            var path = [
+                {
+                    x: graphLine[layerIdx].x,
+                    y: graphLine[layerIdx].y
+                },
+                {
+                    x: graphLine[layerIdx + 1].x,
+                    y: graphLine[layerIdx + 1].y
+                }
+            ];
+            var selectedLayers = this.selectedLayers.slice().sort(function (a, b) { return a - b; });
+            var restOfBody = [
+                {
+                    x: path[1].x + this.lineWidth,
+                    y: path[1].y
+                },
+                {
+                    //x: bounds.x - ((selectedLayers[selectedLayers.length-1]===layerIdx)?this.lineWidth:-this.lineWidth) + this.layers[layerIdx].end*scale.x,
+                    x: bounds.x + this.lineWidth + this.layers[layerIdx].end * scale.x,
+                    y: this.getTop() + (this.isInverted() ? -1 : 1) * this.lineWidth
+                },
+                {
+                    //x: bounds.x + ((selectedLayers[0]===layerIdx)?this.lineWidth:-this.lineWidth) + this.layers[layerIdx].start*scale.x,
+                    x: bounds.x - this.lineWidth + this.layers[layerIdx].start * scale.x,
+                    y: this.getTop() + (this.isInverted() ? -1 : 1) * this.lineWidth
+                },
+                {
+                    x: path[0].x - this.lineWidth,
+                    y: path[0].y
+                }
+            ];
+            this.colorBackground((selected) ? "#efefef" : "#ffffff", path, restOfBody);
+        };
+        Tunnel.prototype.colorBackground = function (color, path, restOfBody) {
+            this.context.save();
+            this.clipToBounds(this.bounds);
+            this.context.lineWidth = this.lineWidth;
+            this.context.fillStyle = color;
+            this.context.beginPath();
+            this.context.moveTo(path[0].x, path[0].y);
+            this.drawPath(path.concat(restOfBody));
+            this.context.closePath();
+            this.context.fill();
+            this.context.strokeStyle = this.lineColor;
+            this.context.beginPath();
             this.context.moveTo(path[0].x, path[0].y);
             this.drawPath(path);
             this.drawPath(path.reverse());
             this.context.closePath();
             this.context.stroke();
             this.context.restore();
+        };
+        Tunnel.prototype.renderSelectedLayers = function (layerIds, internalCall) {
+            var layersData = this.layersData;
+            if (layersData === null) {
+                throw new Error("Data not prepared");
+            }
+            var bounds = this.bounds;
+            if (internalCall === void 0) {
+                internalCall = false;
+            }
+            if (this.renderSelectedLock++ > 0 && !internalCall) {
+                this.renderSelectedQueue.unshift(layerIds);
+                return;
+            }
+            var selectedOld = this.selectedLayers.slice().sort(function (a, b) { return a - b; });
+            var selected = layerIds.slice().sort(function (a, b) { return a - b; });
+            var graphLine = layersData.path.slice().sort(function (a, b) { return a.x - b.x; });
+            if (graphLine.length - 1 < selected.length) {
+                throw new Error("Data are not synchronized correctly!");
+            }
+            var scale = this.getScale();
+            if (scale === null) {
+                throw new Error("Value of scale not computed");
+            }
+            var toSelect = selected.filter(function (v, i, a) { return !(selectedOld.indexOf(v) >= 0); });
+            var toUnSelect = selectedOld.filter(function (v, i, a) { return !(selected.indexOf(v) >= 0); });
+            if (toSelect.length === 0 && toUnSelect.length === 0) {
+                this.handleQueue(internalCall);
+                return;
+            }
+            for (var _i = 0, toSelect_1 = toSelect; _i < toSelect_1.length; _i++) {
+                var layerIdx = toSelect_1[_i];
+                this.renderSelectedDeselectedLayer(graphLine, layerIdx, scale, bounds, true);
+            }
+            for (var _a = 0, toUnSelect_1 = toUnSelect; _a < toUnSelect_1.length; _a++) {
+                var layerIdx = toUnSelect_1[_a];
+                this.renderSelectedDeselectedLayer(graphLine, layerIdx, scale, bounds, false);
+            }
+            this.context.save();
+            var endBorderline = [
+                {
+                    x: bounds.x + this.layers[this.layers.length - 1].end * scale.x,
+                    y: this.getBottom()
+                },
+                {
+                    x: bounds.x + this.layers[this.layers.length - 1].end * scale.x,
+                    y: this.getTop()
+                }
+            ];
+            this.context.strokeStyle = "#d1d1d1";
+            this.context.lineWidth = this.lineWidth;
+            this.context.beginPath();
+            this.context.moveTo(endBorderline[0].x, endBorderline[0].y);
+            this.drawPath(endBorderline);
+            this.drawPath(endBorderline.reverse());
+            this.context.closePath();
+            this.context.stroke();
+            if (toSelect.indexOf(0) >= 0) {
+                var line = [
+                    {
+                        x: bounds.x,
+                        y: this.getBottom()
+                    },
+                    {
+                        x: bounds.x,
+                        y: this.getTop()
+                    }
+                ];
+                this.context.beginPath();
+                this.context.moveTo(line[0].x, line[0].y);
+                this.drawPath(line);
+                this.drawPath(line.reverse());
+                this.context.closePath();
+                this.context.stroke();
+            }
+            this.context.restore();
+            this.selectedLayers = selected;
+            this.handleQueue(internalCall);
+        };
+        Tunnel.prototype.handleQueue = function (internalCall) {
+            if (this.renderSelectedQueue.length > 0) {
+                var layerIdsNext = this.renderSelectedQueue.pop();
+                if (layerIdsNext !== void 0) {
+                    this.renderSelectedLayers(layerIdsNext, true);
+                }
+            }
+            if (!internalCall) {
+                this.renderSelectedLock = 0;
+            }
         };
         Tunnel.prototype.drawPath = function (path) {
             for (var i = 0; i < path.length; i++) {
@@ -5140,7 +5773,9 @@ var LayersVizualizer;
                 color = this.paletteFunction(Number(curColorValue), this.paletteFunctionSettings);
                 currentColorStop = (currLength / totalLenght);
             }
-            gradient.addColorStop(currentColorStop, color);
+            if (gradient !== null) {
+                gradient.addColorStop(currentColorStop, color);
+            }
             return currentColorStop;
         };
         Tunnel.prototype.getHitbox = function (layerIdx) {
@@ -5264,7 +5899,7 @@ var LayersVizualizer;
             this.isDOMBound = false;
             this.currentLayerIdx = 0;
             this.tmpCanvasId = "tmpCanvas_" + this.publicInstanceIdx;
-            this.selectedLayerIdx = -1;
+            this.selectedLayerIds = [];
             this.__colorFunctionSetings = new Map();
             //Dynamic canvas resizing
             this.resizePercentPrecision = 1; //5% difference between real and given => cause resizing of canvas
@@ -5374,6 +6009,11 @@ var LayersVizualizer;
             this.absCenterPositions.set("Charge", 0);
             this.absCenterPositions.set("NumPositives", 0);
             this.absCenterPositions.set("NumNegatives", 0);
+            this.absCenterPositions.set("LogP", 0.78);
+            this.absCenterPositions.set("LogD", -0.205);
+            this.absCenterPositions.set("LogS", 0.075);
+            this.absCenterPositions.set("Ionizable", 0);
+            this.absCenterPositions.set("BRadius", 3);
             this.absColorValueMax = new Map();
             this.absColorValueMax.set("Polarity", 52);
             if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.Polarity !== void 0) {
@@ -5402,6 +6042,26 @@ var LayersVizualizer;
             this.absColorValueMax.set("NumNegatives", 5);
             if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.NumNegatives !== void 0) {
                 this.absColorValueMax.set("NumNegatives", settings.colorMaxValue.NumNegatives.valueOf());
+            }
+            this.absColorValueMax.set("LogP", 2.59);
+            if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.LogP !== void 0) {
+                this.absColorValueMax.set("LogP", settings.colorMaxValue.LogP.valueOf());
+            }
+            this.absColorValueMax.set("LogD", 2.59);
+            if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.LogD !== void 0) {
+                this.absColorValueMax.set("LogD", settings.colorMaxValue.LogD.valueOf());
+            }
+            this.absColorValueMax.set("LogS", 2.63);
+            if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.LogS !== void 0) {
+                this.absColorValueMax.set("LogS", settings.colorMaxValue.LogS.valueOf());
+            }
+            this.absColorValueMax.set("Ionizable", 5);
+            if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.Ionizable !== void 0) {
+                this.absColorValueMax.set("Ionizable", settings.colorMaxValue.Ionizable.valueOf());
+            }
+            this.absColorValueMax.set("BRadius", 6);
+            if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.BRadius !== void 0) {
+                this.absColorValueMax.set("BRadius", settings.colorMaxValue.BRadius.valueOf());
             }
             this.absColorValueMin = new Map();
             this.absColorValueMin.set("Polarity", 0);
@@ -5432,6 +6092,26 @@ var LayersVizualizer;
             if (settings.colorMinValue !== void 0 && settings.colorMinValue.NumNegatives !== void 0) {
                 this.absColorValueMin.set("NumNegatives", settings.colorMinValue.NumNegatives.valueOf());
             }
+            this.absColorValueMin.set("LogP", -1.03);
+            if (settings.colorMinValue !== void 0 && settings.colorMinValue.LogP !== void 0) {
+                this.absColorValueMin.set("LogP", settings.colorMinValue.LogP.valueOf());
+            }
+            this.absColorValueMin.set("LogD", -3);
+            if (settings.colorMinValue !== void 0 && settings.colorMinValue.LogD !== void 0) {
+                this.absColorValueMin.set("LogD", settings.colorMinValue.LogD.valueOf());
+            }
+            this.absColorValueMin.set("LogS", -2.48);
+            if (settings.colorMinValue !== void 0 && settings.colorMinValue.LogS !== void 0) {
+                this.absColorValueMin.set("LogS", settings.colorMinValue.LogS.valueOf());
+            }
+            this.absColorValueMin.set("Ionizable", 0);
+            if (settings.colorMinValue !== void 0 && settings.colorMinValue.Ionizable !== void 0) {
+                this.absColorValueMin.set("LogS", settings.colorMinValue.Ionizable.valueOf());
+            }
+            this.absColorValueMin.set("BRadius", 0);
+            if (settings.colorMinValue !== void 0 && settings.colorMinValue.BRadius !== void 0) {
+                this.absColorValueMin.set("BRadius", settings.colorMinValue.BRadius.valueOf());
+            }
             this.radiusPropertyKey = "MinRadius";
             if (settings.radiusProperty != null) {
                 this.radiusPropertyKey = settings.radiusProperty;
@@ -5458,6 +6138,10 @@ var LayersVizualizer;
             var middleRed = { r: 253, g: 253, b: 225 };
             var maxWhite = { r: 255, g: 255, b: 255 };
             var middleWhite = { r: 240, g: 240, b: 240 };
+            var maxPurple = { r: 107, g: 9, b: 107 };
+            var middlePurple = { r: 220, g: 188, b: 220 };
+            var middleBlack = { r: 183, g: 183, b: 183 };
+            var maxBlack = { r: 0, g: 0, b: 0 };
             this.minColor = {
                 Hydropathy: maxBlue,
                 Hydrophobicity: maxBlue,
@@ -5465,7 +6149,12 @@ var LayersVizualizer;
                 Polarity: maxYellow,
                 Charge: maxRed,
                 NumPositives: maxWhite,
-                NumNegatives: maxWhite
+                NumNegatives: maxWhite,
+                LogP: maxBlue,
+                LogD: maxBlue,
+                LogS: maxYellow,
+                Ionizable: maxWhite,
+                BRadius: maxWhite
             };
             this.minColorMiddle = {
                 Hydropathy: middleBlue,
@@ -5474,7 +6163,12 @@ var LayersVizualizer;
                 Polarity: middleYellow,
                 Charge: middleRed,
                 NumPositives: middleWhite,
-                NumNegatives: middleWhite
+                NumNegatives: middleWhite,
+                LogP: middleBlue,
+                LogD: middleBlue,
+                LogS: middleYellow,
+                Ionizable: middleWhite,
+                BRadius: middleWhite
             };
             this.maxColorMiddle = {
                 Hydropathy: middleYellow,
@@ -5483,7 +6177,12 @@ var LayersVizualizer;
                 Polarity: middleBlue,
                 Charge: middleBlue,
                 NumPositives: middleBlue,
-                NumNegatives: middleRed
+                NumNegatives: middleRed,
+                LogP: middleYellow,
+                LogD: middleYellow,
+                LogS: middleBlue,
+                Ionizable: middlePurple,
+                BRadius: middleBlack
             };
             this.maxColor = {
                 Hydropathy: maxYellow,
@@ -5492,40 +6191,42 @@ var LayersVizualizer;
                 Polarity: maxBlue,
                 Charge: maxBlue,
                 NumPositives: maxBlue,
-                NumNegatives: maxRed
+                NumNegatives: maxRed,
+                LogP: maxYellow,
+                LogD: maxYellow,
+                LogS: maxBlue,
+                Ionizable: maxPurple,
+                BRadius: maxBlack
             };
         };
-        Vizualizer.prototype.deselectLayer = function () {
-            this.selectedLayerIdx = -1;
+        Vizualizer.prototype.deselectLayers = function () {
+            this.selectedLayerIds = [];
             var tunnels = this.getTunnels();
             if (tunnels === null) {
                 return;
             }
             if (tunnels.default !== null) {
-                tunnels.default.tunnel.deselectLayer();
+                tunnels.default.tunnel.selectLayers([]);
             }
             if (tunnels.customizable !== null) {
-                tunnels.customizable.tunnel.deselectLayer();
+                tunnels.customizable.tunnel.selectLayers([]);
             }
         };
-        Vizualizer.prototype.selectLayer = function (layerIdx) {
-            if (layerIdx < 0) {
-                return;
-            }
-            this.selectedLayerIdx = layerIdx;
+        Vizualizer.prototype.selectLayers = function (layerIds) {
+            this.selectedLayerIds = layerIds;
             var tunnels = this.getTunnels();
             if (tunnels === null) {
                 return;
             }
             if (tunnels.default !== null) {
-                tunnels.default.tunnel.selectLayer(layerIdx);
+                tunnels.default.tunnel.selectLayers(this.selectedLayerIds);
             }
             if (tunnels.customizable !== null) {
-                tunnels.customizable.tunnel.selectLayer(layerIdx);
+                tunnels.customizable.tunnel.selectLayers(this.selectedLayerIds);
             }
         };
         Vizualizer.prototype.getSelectedLayer = function () {
-            return this.selectedLayerIdx;
+            return this.selectedLayerIds;
         };
         Vizualizer.prototype.setResizePercentPrecision = function (percentPrecision) {
             this.resizePercentPrecision = percentPrecision;
@@ -5554,7 +6255,7 @@ var LayersVizualizer;
         /** Datasource change **/
         Vizualizer.prototype.setData = function (layersData) {
             this.currentLayerIdx = -1;
-            this.selectedLayerIdx = -1;
+            this.selectedLayerIds = [];
             this.data = layersData;
             this.dataDirty = true;
         };
@@ -5566,22 +6267,28 @@ var LayersVizualizer;
             this.maxX = this.data[this.data.length - 1].EndDistance;
             this.maxY = this.data[0][this.radiusPropertyKey];
             this.customMaxY = this.data[0][this.customRadiusPropertyKey];
-            var val = this.data[0].Properties[this.coloringPropertyKey];
+            var val = this.getLayerPropertyValue(this.coloringPropertyKey, 0);
             if (val == null) {
                 throw new Error("Cannot init LayerVizualizer due to invalid settings - coloringProperty: "
                     + String(this.coloringPropertyKey));
             }
             this.minColoringValue = new Map();
             this.maxColoringValue = new Map();
+            var keys = [];
+            keys.push("BRadius");
             for (var key in this.data[0].Properties) {
+                keys.push(key);
                 this.minColoringValue.set(key, this.data[0].Properties[key]);
                 this.maxColoringValue.set(key, this.data[0].Properties[key]);
             }
+            this.minColoringValue.set('BRadius', this.data[0].MinBRadius);
+            this.maxColoringValue.set('BRadius', this.data[0].MinBRadius);
             for (var i = 0; i < this.data.length; i++) {
                 this.maxY = Math.max(this.maxY, this.data[i][this.radiusPropertyKey]);
                 this.customMaxY = Math.max(this.customMaxY, this.data[i][this.customRadiusPropertyKey]);
-                for (var key in this.data[i].Properties) {
-                    var curVal = Number(this.data[i].Properties[key]);
+                for (var _i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
+                    var key = keys_1[_i];
+                    var curVal = this.getLayerPropertyValue(key, i);
                     if (curVal === void 0) {
                         throw new Error("Corrupted data!");
                     }
@@ -5701,7 +6408,7 @@ var LayersVizualizer;
                 positioning.defaultColorMixerHorizontal.top =
                     positioning.defaultTunnel.top
                         + positioning.defaultTunnel.marginTop
-                        - (cmhHeight + 1 /*1=margin-bottom*/);
+                        - (cmhHeight + 1 /*(1=>margin-bottom)*/);
                 positioning.defaultColorMixerHorizontal.height = cmhHeight;
             }
             //Customizable Color Mixer
@@ -5981,7 +6688,7 @@ var LayersVizualizer;
                 positioning.customizableArrowheadLineLabel.left = positioning.customizableArrowheadLine.left
                     + ahLineWidth / 2 - ahLineLabelWidth / 2;
                 positioning.customizableArrowheadLineLabel.top = positioning.customizableArrowheadLine.top
-                    + positioning.customizableArrowheadLine.marginTop;
+                    + positioning.customizableArrowheadLine.marginTop + 1;
                 positioning.customizableArrowheadLineLabel.width = ahLineLabelWidth;
                 positioning.customizableArrowheadLineLabel.height = ahLineHeight;
             }
@@ -6034,6 +6741,12 @@ var LayersVizualizer;
             }
             return positioning;
         };
+        Vizualizer.prototype.getLayerPropertyValue = function (key, layerIdx) {
+            if (key === "BRadius") {
+                return Number(this.data[layerIdx].MinBRadius).valueOf();
+            }
+            return Number(this.data[layerIdx].Properties[key]).valueOf();
+        };
         Vizualizer.prototype.prepareLayersForVizualization = function () {
             var defaultTunnelLayers = [];
             var customizableTunnelLayers = [];
@@ -6042,14 +6755,14 @@ var LayersVizualizer;
                     id: i,
                     start: this.data[i].StartDistance,
                     end: this.data[i].EndDistance,
-                    value: Number(this.data[i].Properties[this.coloringPropertyKey]).valueOf(),
+                    value: this.getLayerPropertyValue(this.coloringPropertyKey, i),
                     radius: this.data[i][this.radiusPropertyKey]
                 };
                 var customizableTunnelLayer = {
                     id: i,
                     start: this.data[i].StartDistance,
                     end: this.data[i].EndDistance,
-                    value: Number(this.data[i].Properties[this.customColoringPropertyKey]).valueOf(),
+                    value: this.getLayerPropertyValue(this.customColoringPropertyKey, i),
                     radius: this.data[i][this.customRadiusPropertyKey]
                 };
                 defaultTunnelLayers.push(defaultTunnelLayer);
@@ -6077,11 +6790,11 @@ var LayersVizualizer;
                 maxColor: this.maxColor[coloringProperty],
                 minColorMiddle: this.minColorMiddle[coloringProperty],
                 maxColorMiddle: this.maxColorMiddle[coloringProperty],
-                skipMiddle: (coloringProperty == "NumPositives" || coloringProperty == "NumNegatives")
+                skipMiddle: (coloringProperty == "NumPositives" || coloringProperty == "NumNegatives" || coloringProperty == "Ionizable")
                     ? true
                     : this.skipMiddle,
                 centerPosition: center,
-                centerAbsolute: (coloringProperty == "NumPositives" || coloringProperty == "NumNegatives")
+                centerAbsolute: (coloringProperty == "NumPositives" || coloringProperty == "NumNegatives" || coloringProperty == "Ionizable")
                     ? false
                     : !this.useColorMinMax
             };
@@ -6119,7 +6832,7 @@ var LayersVizualizer;
             //Prepare layers data
             var layers = this.prepareLayersForVizualization();
             var maxDistance = layers.defaultTunnelLayers[layers.defaultTunnelLayers.length - 1].end;
-            maxDistance = CommonUtils.Numbers.roundToDecimal(maxDistance, 1); // round to 1 decimal
+            maxDistance = Common.Util.Numbers.roundToDecimal(maxDistance, 1); // round to 1 decimal
             var positioning = this.getComponentsPositioning();
             //Prepare default tunnel object
             var dTminVal = (this.useColorMinMax) ? this.minColoringValue.get(this.coloringPropertyKey) : this.absColorValueMin.get(this.coloringPropertyKey);
@@ -6167,7 +6880,6 @@ var LayersVizualizer;
                 tunnel: customizableTunnelData.tunnel,
                 bounds: customizableTunnelBounds
             };
-            //console.log(this.__tunnels);
             //Prepare color mixer objects
             //Color mixer for default tunnel
             /* //Vertical
@@ -6242,12 +6954,12 @@ var LayersVizualizer;
             */
             // Label on top left side of color mixer for default tunnel
             toRender.push({
-                drawable: new LayersVizualizer.TextBox("" + CommonUtils.Numbers.roundToDecimal(dTminVal, 2), context, "small", "left"),
+                drawable: new LayersVizualizer.TextBox("" + Common.Util.Numbers.roundToDecimal(dTminVal, 2), context, "small", "left"),
                 bounds: positioning.dColorMixerLeftLabel.toBounds(canvasWidth, canvasHeight)
             });
             // Label on top right side of color mixer for default tunnel
             toRender.push({
-                drawable: new LayersVizualizer.TextBox("" + CommonUtils.Numbers.roundToDecimal(dTmaxVal, 2), context, "small", "right"),
+                drawable: new LayersVizualizer.TextBox("" + Common.Util.Numbers.roundToDecimal(dTmaxVal, 2), context, "small", "right"),
                 bounds: positioning.dColorMixerRightLabel.toBounds(canvasWidth, canvasHeight)
             });
             /*
@@ -6264,17 +6976,17 @@ var LayersVizualizer;
             */
             // Label on bottom left side of color mixer for customizable tunnel
             toRender.push({
-                drawable: new LayersVizualizer.TextBox("" + CommonUtils.Numbers.roundToDecimal(cTminVal, 2), context, "small", "left"),
+                drawable: new LayersVizualizer.TextBox("" + Common.Util.Numbers.roundToDecimal(cTminVal, 2), context, "small", "left"),
                 bounds: positioning.cColorMixerLeftLabel.toBounds(canvasWidth, canvasHeight)
             });
             // Label on bottom right side of color mixer for customizable tunnel
             toRender.push({
-                drawable: new LayersVizualizer.TextBox("" + CommonUtils.Numbers.roundToDecimal(cTmaxVal, 2), context, "small", "right"),
+                drawable: new LayersVizualizer.TextBox("" + Common.Util.Numbers.roundToDecimal(cTmaxVal, 2), context, "small", "right"),
                 bounds: positioning.cColorMixerRightLabel.toBounds(canvasWidth, canvasHeight)
             });
             // Curly brackets for default tunnel
             toRender.push({
-                drawable: new LayersVizualizer.CurlyBrackets(context /*,true*/),
+                drawable: new LayersVizualizer.CurlyBrackets(context),
                 bounds: positioning.defaultCurlyBrackets.toBounds(canvasWidth, canvasHeight)
             });
             // Curly brackets Label for default tunnel
@@ -6284,7 +6996,7 @@ var LayersVizualizer;
             });
             // Curly brackets for customizable tunnel
             toRender.push({
-                drawable: new LayersVizualizer.CurlyBrackets(context /*,true*/),
+                drawable: new LayersVizualizer.CurlyBrackets(context),
                 bounds: positioning.customizableCurlyBrackets.toBounds(canvasWidth, canvasHeight)
             });
             // Curly brackets Label for customizable tunnel
@@ -6323,8 +7035,8 @@ var LayersVizualizer;
                 bounds: positioning.customizableColorMixerLabel.toBounds(canvasWidth, canvasHeight)
             });
             this.renderObjects(toRender);
-            if (this.selectedLayerIdx !== -1) {
-                this.selectLayer(this.selectedLayerIdx);
+            if (this.selectedLayerIds.length > 0) {
+                this.selectLayers(this.selectedLayerIds);
             }
             this.setCurrentColorFunctionSettings("default", defaultTunnelData.colorFunctionSettings);
             this.setCurrentColorFunctionSettings("customizable", customizableTunnelData.colorFunctionSettings);
@@ -6378,17 +7090,17 @@ var LayersVizualizer;
                 throw new Error("Data not prepared!");
             }
             //Deselekce vrstvy
-            var selectedLayer = -1;
-            if (this.selectedLayerIdx !== -1) {
-                selectedLayer = this.selectedLayerIdx;
-                this.deselectLayer();
+            var selectedLayers = [];
+            if (this.selectedLayerIds.length > 0) {
+                selectedLayers = this.selectedLayerIds;
+                this.selectLayers([]);
             }
             this.switchToTmpCanvas();
             this.vizualize();
             var dataURL = this.getCanvas().toDataURL("image/png");
             this.switchToMainCanvas();
             //Opetovne oznaceni vrstvy(stav pred exportem)
-            this.selectLayer(selectedLayer);
+            this.selectLayers(selectedLayers);
             return dataURL;
         };
         Vizualizer.prototype.getSVGDataURL = function () {
@@ -6410,10 +7122,10 @@ var LayersVizualizer;
                 throw new Error("Data not prepared!");
             }
             //Deselekce vrstvy
-            var selectedLayer = -1;
-            if (this.selectedLayerIdx !== -1) {
-                selectedLayer = this.selectedLayerIdx;
-                this.deselectLayer();
+            var selectedLayers = [];
+            if (this.selectedLayerIds.length > 0) {
+                selectedLayers = this.selectedLayerIds;
+                this.deselectLayers();
             }
             this.switchToTmpCanvas();
             this.wrapSVG();
@@ -6422,18 +7134,19 @@ var LayersVizualizer;
             this.unwrapSVG();
             this.switchToMainCanvas();
             //Opetovne oznaceni vrstvy(stav pred exportem)
-            this.selectLayer(selectedLayer);
+            this.selectLayers(selectedLayers);
             return svg;
         };
+        //TODO: Not working properly - image is not the same in PDF output as on screen => seems like a bug in jsPDF library
         Vizualizer.prototype.exportPDF = function () {
             if (!this.isDOMBound || this.isDataDirty()) {
                 throw new Error("Data not prepared!");
             }
             //Deselekce vrstvy
-            var selectedLayer = -1;
-            if (this.selectedLayerIdx !== -1) {
-                selectedLayer = this.selectedLayerIdx;
-                this.deselectLayer();
+            var selectedLayers = [];
+            if (this.selectedLayerIds.length > 0) {
+                selectedLayers = this.selectedLayerIds;
+                this.deselectLayers();
             }
             this.switchToTmpCanvas();
             this.wrapSVG();
@@ -6463,7 +7176,7 @@ var LayersVizualizer;
             });
             //pdf.addSVG(svg, 0, 0, width, height);
             //Opetovne oznaceni vrstvy(stav pred exportem)
-            this.selectLayer(selectedLayer);
+            this.selectLayers(selectedLayers);
             return pdf.output('datauristring');
         };
         Vizualizer.prototype.setCustomColoringPropertyKey = function (coloringPropertyKey) {
@@ -6898,6 +7611,7 @@ var MoleOnlineWebUI;
             HandlerTypes.CopyParametersType = "COPY-PARAMETERS";
             HandlerTypes.OnReSubmitType = "ON-RESUBMIT";
             HandlerTypes.OnSequneceViewerToggleType = "ON-SEQ-VIEWER-TOGGLE";
+            HandlerTypes.OnMembraneDataReadyType = "ON-MEMBRANE-DATA-READY";
         })(HandlerTypes || (HandlerTypes = {}));
         ;
         var Events = (function () {
@@ -7105,6 +7819,23 @@ var MoleOnlineWebUI;
                     for (var _i = 0, hndlrs_12 = hndlrs; _i < hndlrs_12.length; _i++) {
                         var h = hndlrs_12[_i];
                         h(params);
+                    }
+                }
+            };
+            Events.subscribeOnMembraneDataReady = function (h) {
+                var list = this.handlers.get(HandlerTypes.OnMembraneDataReadyType);
+                if (list === void 0) {
+                    list = [];
+                }
+                list.push(h);
+                this.handlers.set(HandlerTypes.OnMembraneDataReadyType, list);
+            };
+            Events.invokeOnMembraneDataReady = function () {
+                var hndlrs = this.handlers.get(HandlerTypes.OnMembraneDataReadyType);
+                if (hndlrs !== void 0) {
+                    for (var _i = 0, hndlrs_13 = hndlrs; _i < hndlrs_13.length; _i++) {
+                        var h = hndlrs_13[_i];
+                        h();
                     }
                 }
             };
@@ -8111,20 +8842,28 @@ var Common;
                     var _this = this;
                     MoleOnlineWebUI.DataProxy.Cofactors.DataProvider.get(function (cofactors) {
                         var selected = null;
-                        if (cofactors.size > 0) {
-                            selected = cofactors.keys().next().value;
+                        var validCofactors = _this.getValidCofactors(cofactors);
+                        if (validCofactors.size > 0) {
+                            selected = validCofactors.keys().next().value;
                         }
-                        _this.setState({ isLoading: false, cofactors: cofactors, selected: selected });
+                        _this.setState({ isLoading: false, cofactors: validCofactors, selected: selected });
                     });
                 };
-                StartingPointCofactorBox.prototype.generateItems = function (cofactors) {
+                StartingPointCofactorBox.prototype.getValidCofactors = function (cofactors) {
                     var _this = this;
-                    var items = [];
+                    var items = new Map();
                     cofactors.forEach(function (value, key, map) {
                         if (!CommonUtils.Residues.currentContextHasResidue(key) || _this.state.selected === value) {
                             return;
                         }
-                        items.push(new ComboBoxItem(value, key));
+                        items.set(key, value);
+                    });
+                    return items;
+                };
+                StartingPointCofactorBox.prototype.generateItems = function (cofactors) {
+                    var items = [];
+                    cofactors.forEach(function (value, key, map) {
+                        items.push(new ComboBoxItem(key, key));
                     });
                     return items;
                 };
@@ -8308,7 +9047,7 @@ var Common;
                 }
                 StartingPointCSABox.prototype.componentDidMount = function () {
                     var _this = this;
-                    var params = CommonUtils.Router.getParameters();
+                    var params = Common.Util.Router.getParameters();
                     if (params === null) {
                         console.error("URL parameters not readable!");
                         return;
@@ -8530,7 +9269,7 @@ var AglomeredParameters;
         var LiteMoleEvent = LiteMol.Bootstrap.Event;
         var DGComponents = Datagrid.Components;
         var Tooltips = MoleOnlineWebUI.StaticData.TooltipText;
-        var DGTABLE_COLS_COUNT = 7;
+        var DGTABLE_COLS_COUNT = 11;
         ;
         function render(target, plugin) {
             LiteMol.Plugin.ReactDOM.render(React.createElement(App, { controller: plugin }), target);
@@ -8540,11 +9279,9 @@ var AglomeredParameters;
             __extends(App, _super);
             function App() {
                 var _this = _super !== null && _super.apply(this, arguments) || this;
-                _this.interactionEventStream = void 0;
                 _this.state = {
                     data: null,
                     app: _this,
-                    isWaitingForData: false
                 };
                 return _this;
             }
@@ -8552,7 +9289,6 @@ var AglomeredParameters;
                 var _this = this;
                 MoleOnlineWebUI.Bridge.Events.subscribeChannelDataLoaded(function (data) {
                     var toShow = [];
-                    /*let data = e.data.props.data as DataInterface.MoleOnlineData;*/
                     var channelsDbTunnels = data.Channels;
                     var moleTunnels = data.Channels;
                     toShow = CommonUtils.Tunnels.concatTunnelsSafe(toShow, moleTunnels.Tunnels);
@@ -8568,21 +9304,6 @@ var AglomeredParameters;
                     _this.setState(state);
                     $(window).trigger("contentResize");
                 });
-                /*
-                LiteMoleEvent.Tree.NodeAdded.getStream(this.props.controller.context).subscribe(e => {
-                    if(e.data.tree !== void 0 && e.data.ref === "mole-data"){
-                        let toShow:DataInterface.Tunnel[] = [];
-                        let data = e.data.props.data as DataInterface.MoleOnlineData;
-                        toShow = toShow.concat(data.Channels.Tunnels);
-                        toShow = toShow.concat(data.Channels.Paths);
-                        toShow = toShow.concat(data.Channels.Pores);
-                        toShow = toShow.concat(data.Channels.MergedPores);
-                        let state = this.state;
-                        state.data = toShow;
-                        this.setState(state);
-                        $( window ).trigger("contentResize");
-                    }
-                });*/
                 LiteMoleEvent.Tree.NodeRemoved.getStream(this.props.controller.context).subscribe(function (e) {
                     if (e.data.tree !== void 0 && e.data.ref === "mole-data") {
                         var state = _this.state;
@@ -8592,20 +9313,6 @@ var AglomeredParameters;
                 });
                 this.forceUpdate();
             };
-            /*
-                    private dataWaitHandler(){
-                        this.setState({isWaitingForData:false});
-                    }
-            
-                    public invokeDataWait(){
-                        if(this.state.isWaitingForData){
-                            return;
-                        }
-            
-                        this.setState({isWaitingForData: true});
-                        Annotation.AnnotationDataProvider.subscribeForData(this.dataWaitHandler.bind(this));
-                    }
-            */
             App.prototype.componentWillUnmount = function () {
             };
             App.prototype.componentDidUpdate = function (prevProps, prevState) {
@@ -8664,7 +9371,23 @@ var AglomeredParameters;
                         React.createElement("th", { title: Tooltips.get("agl-Mutability"), className: "col col-7 ATable-header-mutability init-agp-tooltip", "data-toggle": "tooltip", "data-placement": "bottom" },
                             React.createElement("span", { className: "glyphicon glyphicon-scissors" }),
                             " ",
-                            React.createElement("span", { className: "ATable-label" }, "Mutability")))));
+                            React.createElement("span", { className: "ATable-label" }, "Mutability")),
+                        React.createElement("th", { title: Tooltips.get("agl-LogP"), className: "col col-8 ATable-header-logp init-agp-tooltip", "data-toggle": "tooltip", "data-placement": "bottom" },
+                            React.createElement("span", { className: "icon logp" }),
+                            " ",
+                            React.createElement("span", { className: "ATable-label" }, "LogP")),
+                        React.createElement("th", { title: Tooltips.get("agl-LogD"), className: "col col-9 ATable-header-logd init-agp-tooltip", "data-toggle": "tooltip", "data-placement": "bottom" },
+                            React.createElement("span", { className: "icon logd" }),
+                            " ",
+                            React.createElement("span", { className: "ATable-label" }, "LogD")),
+                        React.createElement("th", { title: Tooltips.get("agl-LogS"), className: "col col-10 ATable-header-logs init-agp-tooltip", "data-toggle": "tooltip", "data-placement": "bottom" },
+                            React.createElement("span", { className: "icon logs" }),
+                            " ",
+                            React.createElement("span", { className: "ATable-label" }, "LogS")),
+                        React.createElement("th", { title: Tooltips.get("agl-Ionizable"), className: "col col-11 ATable-header-ionizable init-agp-tooltip", "data-toggle": "tooltip", "data-placement": "bottom" },
+                            React.createElement("span", { className: "icon ionizable" }),
+                            " ",
+                            React.createElement("span", { className: "ATable-label" }, "Ionizable")))));
             };
             ;
             return DGHead;
@@ -8676,7 +9399,7 @@ var AglomeredParameters;
             }
             DGBody.prototype.generateRows = function () {
                 var rows = [];
-                if (this.props.data === null) {
+                if (this.props.data === null || this.props.data.length === 0) {
                     rows.push(React.createElement("tr", null,
                         React.createElement("td", { colSpan: DGTABLE_COLS_COUNT }, "There are no data to be displayed...")));
                 }
@@ -8705,7 +9428,7 @@ var AglomeredParameters;
                 var name = MoleOnlineWebUI.Cache.TunnelName.get(this.props.tunnel.GUID);
                 var namePart = (name === void 0) ? 'X' : " (" + name + ")";
                 var tunnelID = this.props.tunnel.Type + namePart;
-                if (CommonUtils.Router.isInChannelsDBMode()) {
+                if (Common.Util.Router.isInChannelsDBMode()) {
                     var annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getChannelAnnotationsImmediate(this.props.tunnel.Id);
                     if (annotations !== null && annotations.length > 0) {
                         tunnelID = annotations[0].name;
@@ -8722,10 +9445,14 @@ var AglomeredParameters;
                     React.createElement("td", { className: "col col-3" },
                         CommonUtils.Tunnels.getBottleneck(this.props.tunnel),
                         " \u00C5"),
-                    React.createElement("td", { className: "col col-4" }, CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.Hydropathy, 2)),
-                    React.createElement("td", { className: "col col-5" }, CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.Charge, 2)),
-                    React.createElement("td", { className: "col col-6" }, CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.Polarity, 2)),
-                    React.createElement("td", { className: "col col-7" }, CommonUtils.Numbers.roundToDecimal(this.props.tunnel.Properties.Mutability, 2))));
+                    React.createElement("td", { className: "col col-4" }, Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.Hydropathy, 2)),
+                    React.createElement("td", { className: "col col-5" }, Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.Charge, 2)),
+                    React.createElement("td", { className: "col col-6" }, Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.Polarity, 2)),
+                    React.createElement("td", { className: "col col-7" }, Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.Mutability, 2)),
+                    React.createElement("td", { className: "col col-8" }, (this.props.tunnel.Properties.LogP) ? Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.LogP, 2) : 'N/A'),
+                    React.createElement("td", { className: "col col-9" }, (this.props.tunnel.Properties.LogD) ? Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.LogD, 2) : 'N/A'),
+                    React.createElement("td", { className: "col col-10" }, (this.props.tunnel.Properties.LogS) ? Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.LogS, 2) : 'N/A'),
+                    React.createElement("td", { className: "col col-11" }, (this.props.tunnel.Properties.Ionizable) ? Common.Util.Numbers.roundToDecimal(this.props.tunnel.Properties.Ionizable, 2) : 'N/A')));
             };
             return DGRow;
         }(React.Component));
@@ -8737,9 +9464,9 @@ var LayerProperties;
     (function (UI) {
         var React = LiteMol.Plugin.React;
         var DGComponents = Datagrid.Components;
+        var WebChemistryCore = WebChemistry.Tunnels.Core;
         var DGTABLE_COLS_COUNT = 2;
         var NO_DATA_MESSAGE = "Hover over channel(2D) for details...";
-        ;
         ;
         function render(target, plugin) {
             LiteMol.Plugin.ReactDOM.render(React.createElement(App, { controller: plugin }), target);
@@ -8749,61 +9476,55 @@ var LayerProperties;
             __extends(App, _super);
             function App() {
                 var _this = _super !== null && _super.apply(this, arguments) || this;
-                _this.interactionEventStream = void 0;
                 _this.state = {
                     data: null,
                     app: _this,
-                    layerIdx: -1
+                    layerIds: [],
+                    selectionOn: false
                 };
-                _this.layerIdx = -1;
                 return _this;
             }
             App.prototype.componentDidMount = function () {
                 var _this = this;
-                /*
-                var interactionHandler = function showInteraction(type: string, i: ChannelEventInfo | undefined, app: App) {
-                    if (!i || i.source == null || i.source.props.tag === void 0 || i.source.props.tag.type === void 0) {
-                        return;
-                    }
-    
-                    if(i.source.props.tag.type == "Tunnel"
-                        || i.source.props.tag.type == "Path"
-                        || i.source.props.tag.type == "Pore"
-                        || i.source.props.tag.type == "MergedPore"){
-                        
-                        let layers = i.source.props.tag.element.Layers;
-                        app.setState({data:layers.LayersInfo});
-                    }
-                    
-                }*/
-                /*
-                this.interactionEventStream = LiteMoleEvent.Visual.VisualSelectElement.getStream(this.props.controller.context)
-                    .subscribe(e => interactionHandler('select', e.data as ChannelEventInfo, this));
-                */
                 CommonUtils.Selection.SelectionHelper.attachOnChannelDeselectHandler(function () {
                     var state = _this.state;
-                    state.layerIdx = -1;
+                    state.layerIds = [];
                     state.data = null;
+                    state.selectionOn = false;
                     _this.setState(state);
                 });
                 CommonUtils.Selection.SelectionHelper.attachOnChannelSelectHandler(function (data) {
                     var state = _this.state;
-                    state.layerIdx = -1;
+                    state.layerIds = [];
                     state.data = data.LayersInfo;
+                    state.selectionOn = false;
                     _this.setState(state);
                 });
                 MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId(function () {
                     var state = _this.state;
-                    state.layerIdx = -1;
+                    state.layerIds = [];
                     state.data = null;
+                    state.selectionOn = false;
                     _this.setState(state);
                 });
                 $(window).on('layerTriggered', this.layerTriggerHandler.bind(this));
+                $(window).on('layerSelected', this.layerSelectedHandler.bind(this));
             };
             App.prototype.layerTriggerHandler = function (event, layerIdx) {
-                this.layerIdx = layerIdx;
                 var state = this.state;
-                state.layerIdx = layerIdx;
+                if (state.selectionOn) {
+                    return;
+                }
+                state.layerIds = [layerIdx];
+                this.setState(state);
+                setTimeout(function () {
+                    $(window).trigger('contentResize');
+                }, 1);
+            };
+            App.prototype.layerSelectedHandler = function (event, data) {
+                var state = this.state;
+                state.layerIds = data.layerIds;
+                state.selectionOn = state.layerIds.length > 0;
                 this.setState(state);
                 setTimeout(function () {
                     $(window).trigger('contentResize');
@@ -8812,7 +9533,7 @@ var LayerProperties;
             App.prototype.componentWillUnmount = function () {
             };
             App.prototype.render = function () {
-                if (this.state.data !== null && this.state.layerIdx >= 0) {
+                if (this.state.data !== null && this.state.layerIds.length > 0) {
                     return (React.createElement("div", null,
                         React.createElement(DGTable, __assign({}, this.state))));
                 }
@@ -8871,32 +9592,123 @@ var LayerProperties;
             function DGBody() {
                 return _super !== null && _super.apply(this, arguments) || this;
             }
+            DGBody.prototype.getPropertiesData = function (layerIds) {
+                var layersData = this.props.data;
+                if (layersData === null) {
+                    return null;
+                }
+                var layers = [];
+                for (var _i = 0, layerIds_2 = layerIds; _i < layerIds_2.length; _i++) {
+                    var layerIdx = layerIds_2[_i];
+                    var layer = layersData[layerIdx];
+                    var residues = CommonUtils.Residues.parseResidues(layer.Residues, true);
+                    var backboneLining = residues.filter(function (r) { return r.backbone === true; }).map(function (v, i, arr) {
+                        return {
+                            Name: v.name,
+                            SeqNumber: v.authSeqNumber,
+                            Chain: v.chain.authAsymId
+                        };
+                    });
+                    var nonBackboneLining = residues.filter(function (r) { return r.backbone === false; }).map(function (v, i, arr) {
+                        return {
+                            Name: v.name,
+                            SeqNumber: v.authSeqNumber,
+                            Chain: v.chain.authAsymId
+                        };
+                    });
+                    layers.push({
+                        NonBackboneLining: nonBackboneLining,
+                        BackboneLining: backboneLining,
+                        Length: Math.abs(layer.LayerGeometry.EndDistance - layer.LayerGeometry.StartDistance)
+                    });
+                }
+                var data = WebChemistryCore.PhysicoChemicalPropertyCalculation.CalculateAgregatedLayersProperties(layers);
+                if (data === null) {
+                    return null;
+                }
+                return {
+                    Charge: data.Charge,
+                    Hydropathy: data.Hydropathy,
+                    Hydrophobicity: data.Hydrophobicity,
+                    Ionizable: data.Ionizable,
+                    LogD: data.LogD,
+                    LogP: data.LogP,
+                    LogS: data.LogS,
+                    Mutability: data.Mutability,
+                    NumNegatives: data.NumNegatives,
+                    NumPositives: data.NumPositives,
+                    Polarity: data.Polarity
+                };
+            };
+            DGBody.prototype.getBottleneck = function (layerdIds) {
+                if (this.props.data === null) {
+                    return 0;
+                }
+                var minRadiusArr = [];
+                for (var _i = 0, layerdIds_1 = layerdIds; _i < layerdIds_1.length; _i++) {
+                    var layerIdx = layerdIds_1[_i];
+                    minRadiusArr.push(this.props.data[layerIdx].LayerGeometry.MinRadius);
+                }
+                return Math.min.apply(Math, minRadiusArr);
+            };
+            DGBody.prototype.getLength = function (layerdIds) {
+                var length = 0;
+                if (this.props.data === null) {
+                    return 0;
+                }
+                for (var _i = 0, layerdIds_2 = layerdIds; _i < layerdIds_2.length; _i++) {
+                    var layerIdx = layerdIds_2[_i];
+                    var geometry = this.props.data[layerIdx].LayerGeometry;
+                    length += Math.abs(geometry.EndDistance - geometry.StartDistance);
+                }
+                return length;
+            };
             DGBody.prototype.generateRows = function () {
                 if (this.props.data === null) {
                     return React.createElement(DGComponents.DGNoDataInfoRow, { columnsCount: DGTABLE_COLS_COUNT, infoText: NO_DATA_MESSAGE });
                 }
-                var layerData = this.props.data[this.props.layerIdx].Properties;
+                var layerData = this.getPropertiesData(this.props.layerIds);
                 var rows = [];
-                var charge = CommonUtils.Numbers.roundToDecimal(layerData.Charge, 2).toString() + " (+" + CommonUtils.Numbers.roundToDecimal(layerData.NumPositives, 2).toString() + "/-" + CommonUtils.Numbers.roundToDecimal(layerData.NumNegatives, 2).toString() + ")";
-                var minRadius = this.props.data[this.props.layerIdx].LayerGeometry.MinRadius;
+                var charge = (layerData === null) ? 'N/A' : Common.Util.Numbers.roundToDecimal(layerData.Charge, 2).toString() + " (+" + Common.Util.Numbers.roundToDecimal(layerData.NumPositives, 2).toString() + "/-" + Common.Util.Numbers.roundToDecimal(layerData.NumNegatives, 2).toString() + ")";
+                var bottleneck = this.getBottleneck(this.props.layerIds);
+                var hydropathy = (layerData === null) ? 'N/A' : Common.Util.Numbers.roundToDecimal(layerData.Hydropathy, 2).toString();
+                var polarity = (layerData === null) ? 'N/A' : Common.Util.Numbers.roundToDecimal(layerData.Polarity, 2).toString();
+                var hydrophobicity = (layerData === null) ? 'N/A' : Common.Util.Numbers.roundToDecimal(layerData.Hydrophobicity, 2).toString();
+                var mutability = (layerData === null) ? 'N/A' : Common.Util.Numbers.roundToDecimal(layerData.Mutability, 2).toString();
+                var length = this.getLength(this.props.layerIds);
                 rows.push(React.createElement(DGComponents.DGElementRow, { columns: [React.createElement("span", null,
                             React.createElement("span", { className: "glyphicon glyphicon-tint properties-icon" }),
-                            "Hydropathy"), React.createElement("span", null, CommonUtils.Numbers.roundToDecimal(layerData.Hydropathy, 2).toString())] }));
+                            "Hydropathy"), React.createElement("span", null, hydropathy)] }));
                 rows.push(React.createElement(DGComponents.DGElementRow, { columns: [React.createElement("span", null,
                             React.createElement("span", { className: "glyphicon glyphicon-plus properties-icon" }),
-                            "Polarity"), React.createElement("span", null, CommonUtils.Numbers.roundToDecimal(layerData.Polarity, 2).toString())] }));
+                            "Polarity"), React.createElement("span", null, polarity)] }));
                 rows.push(React.createElement(DGComponents.DGElementRow, { columns: [React.createElement("span", null,
                             React.createElement("span", { className: "glyphicon glyphicon-tint properties-icon upside-down" }),
-                            "Hydrophobicity"), React.createElement("span", null, CommonUtils.Numbers.roundToDecimal(layerData.Hydrophobicity, 2).toString())] }));
+                            "Hydrophobicity"), React.createElement("span", null, hydrophobicity)] }));
                 rows.push(React.createElement(DGComponents.DGElementRow, { columns: [React.createElement("span", null,
                             React.createElement("span", { className: "glyphicon glyphicon-scissors properties-icon" }),
-                            "Mutability"), React.createElement("span", null, CommonUtils.Numbers.roundToDecimal(layerData.Mutability, 2).toString())] }));
+                            "Mutability"), React.createElement("span", null, mutability)] }));
                 rows.push(React.createElement(DGComponents.DGElementRow, { columns: [React.createElement("span", null,
                             React.createElement("span", { className: "glyphicon glyphicon-flash properties-icon" }),
                             "Charge"), React.createElement("span", null, charge)] }));
                 rows.push(React.createElement(DGComponents.DGElementRow, { columns: [React.createElement("span", null,
                             React.createElement("span", { className: "icon bottleneck black properties-icon" }),
-                            "Radius"), React.createElement("span", null, CommonUtils.Numbers.roundToDecimal(minRadius, 1))] }));
+                            (this.props.layerIds.length > 1) ? "Bottleneck" : "Radius"), React.createElement("span", null, Common.Util.Numbers.roundToDecimal(bottleneck, 1))] }));
+                rows.push(React.createElement(DGComponents.DGElementRow, { columns: [React.createElement("span", null,
+                            React.createElement("span", { className: "icon logp black properties-icon" }),
+                            "LogP"), React.createElement("span", null, (layerData !== null && layerData.LogP !== null && layerData.LogP !== void 0) ? Common.Util.Numbers.roundToDecimal(layerData.LogP, 2) : 'N/A')] }));
+                rows.push(React.createElement(DGComponents.DGElementRow, { columns: [React.createElement("span", null,
+                            React.createElement("span", { className: "icon logd black properties-icon" }),
+                            "LogD"), React.createElement("span", null, (layerData !== null && layerData.LogD !== null && layerData.LogD !== void 0) ? Common.Util.Numbers.roundToDecimal(layerData.LogD, 2) : 'N/A')] }));
+                rows.push(React.createElement(DGComponents.DGElementRow, { columns: [React.createElement("span", null,
+                            React.createElement("span", { className: "icon logs black properties-icon" }),
+                            "LogS"), React.createElement("span", null, (layerData !== null && layerData.LogS !== null && layerData.LogS !== void 0) ? Common.Util.Numbers.roundToDecimal(layerData.LogS, 2) : 'N/A')] }));
+                rows.push(React.createElement(DGComponents.DGElementRow, { columns: [React.createElement("span", null,
+                            React.createElement("span", { className: "icon ionizable black properties-icon" }),
+                            "Ionizable"), React.createElement("span", null, (layerData !== null && layerData.Ionizable !== null && layerData.Ionizable !== void 0) ? Common.Util.Numbers.roundToDecimal(layerData.Ionizable, 2) : 'N/A')] }));
+                rows.push(React.createElement(DGComponents.DGElementRow, { columns: [React.createElement("span", null,
+                            React.createElement("span", { className: "glyphicon glyphicon-resize-horizontal properties-icon" }),
+                            "Length"), React.createElement("span", null, Common.Util.Numbers.roundToDecimal(length, 1).toString())] }));
                 rows.push(React.createElement(DGComponents.DGRowEmpty, { columnsCount: DGTABLE_COLS_COUNT }));
                 return rows;
             };
@@ -8935,7 +9747,6 @@ var LayerResidues;
         var DGTABLE_COLS_COUNT = 2;
         var NO_DATA_MESSAGE = "Hover over channel(2D) for details...";
         ;
-        ;
         function render(target, plugin) {
             LiteMol.Plugin.ReactDOM.render(React.createElement(App, { controller: plugin }), target);
         }
@@ -8944,41 +9755,52 @@ var LayerResidues;
             __extends(App, _super);
             function App() {
                 var _this = _super !== null && _super.apply(this, arguments) || this;
-                _this.interactionEventStream = void 0;
                 _this.state = {
                     data: null,
                     app: _this,
-                    layerIdx: -1,
+                    layerIds: [],
+                    selectionOn: false
                 };
-                _this.layerIdx = -1;
                 return _this;
             }
             App.prototype.componentDidMount = function () {
                 var _this = this;
                 CommonUtils.Selection.SelectionHelper.attachOnChannelDeselectHandler(function () {
                     var state = _this.state;
-                    state.layerIdx = -1;
+                    state.layerIds = [];
                     state.data = null;
                     _this.setState(state);
                 });
                 CommonUtils.Selection.SelectionHelper.attachOnChannelSelectHandler(function (data) {
                     var state = _this.state;
-                    state.layerIdx = -1;
+                    state.layerIds = [];
                     state.data = data.LayersInfo;
                     _this.setState(state);
                 });
                 MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId(function () {
                     var state = _this.state;
-                    state.layerIdx = -1;
+                    state.layerIds = [];
                     state.data = null;
                     _this.setState(state);
                 });
                 $(window).on('layerTriggered', this.layerTriggerHandler.bind(this));
+                $(window).on('layerSelected', this.layerSelectedHandler.bind(this));
             };
             App.prototype.layerTriggerHandler = function (event, layerIdx) {
-                this.layerIdx = layerIdx;
                 var state = this.state;
-                state.layerIdx = layerIdx;
+                if (state.selectionOn) {
+                    return;
+                }
+                state.layerIds = [layerIdx];
+                this.setState(state);
+                setTimeout(function () {
+                    $(window).trigger('contentResize');
+                }, 1);
+            };
+            App.prototype.layerSelectedHandler = function (event, data) {
+                var state = this.state;
+                state.layerIds = data.layerIds;
+                state.selectionOn = state.layerIds.length > 0;
                 this.setState(state);
                 setTimeout(function () {
                     $(window).trigger('contentResize');
@@ -8987,7 +9809,7 @@ var LayerResidues;
             App.prototype.componentWillUnmount = function () {
             };
             App.prototype.render = function () {
-                if (this.state.data !== null && this.state.layerIdx >= 0) {
+                if (this.state.data !== null && this.state.layerIds.length > 0) {
                     return (React.createElement("div", null,
                         React.createElement(DGTable, __assign({}, this.state))));
                 }
@@ -9059,7 +9881,7 @@ var LayerResidues;
             };
             DGBody.prototype.generateSpannedRows = function (residue, annotations) {
                 var trs = [];
-                var residueNameEl = residue; //(this.isBackbone(residue))?<i><strong>{this.shortenBackbone(residue)}</strong></i>:<span>{residue}</span>;
+                var residueNameEl = residue;
                 var first = true;
                 for (var _i = 0, annotations_1 = annotations; _i < annotations_1.length; _i++) {
                     var annotation = annotations_1[_i];
@@ -9076,13 +9898,26 @@ var LayerResidues;
                 }
                 return trs;
             };
+            DGBody.prototype.getResidues = function (layerIds) {
+                if (this.props.data === null) {
+                    return [];
+                }
+                var residuesSet = new Set();
+                for (var _i = 0, layerIds_3 = layerIds; _i < layerIds_3.length; _i++) {
+                    var idx = layerIds_3[_i];
+                    for (var _a = 0, _b = this.props.data[idx].Residues; _a < _b.length; _a++) {
+                        var r = _b[_a];
+                        residuesSet.add(r);
+                    }
+                }
+                return Array.from(residuesSet.values());
+            };
             DGBody.prototype.generateRows = function () {
-                /*let channelsDBMode = CommonUtils.Router.isInChannelsDBMode();*/
-                var columnCount = DGTABLE_COLS_COUNT; /*+((channelsDBMode)?1:0);*/
+                var columnCount = DGTABLE_COLS_COUNT;
                 if (this.props.data === null) {
                     return React.createElement(DGComponents.DGNoDataInfoRow, { columnsCount: columnCount, infoText: NO_DATA_MESSAGE });
                 }
-                var layerData = CommonUtils.Residues.sort(this.props.data[this.props.layerIdx].Residues, void 0, true, true);
+                var layerData = CommonUtils.Residues.sort(this.getResidues(this.props.layerIds), void 0, true, true);
                 var rows = [];
                 for (var _i = 0, layerData_1 = layerData; _i < layerData_1.length; _i++) {
                     var residue = layerData_1[_i];
@@ -9126,7 +9961,6 @@ var LiningResidues;
         var DGTABLE_COLS_COUNT = 2;
         var NO_DATA_MESSAGE = "Select channel in 3D view for details...";
         ;
-        ;
         function render(target, plugin) {
             LiteMol.Plugin.ReactDOM.render(React.createElement(App, { controller: plugin }), target);
         }
@@ -9135,11 +9969,9 @@ var LiningResidues;
             __extends(App, _super);
             function App() {
                 var _this = _super !== null && _super.apply(this, arguments) || this;
-                _this.interactionEventStream = void 0;
                 _this.state = {
                     data: null,
                     app: _this,
-                    isWaitingForData: false
                 };
                 _this.layerIdx = -1;
                 return _this;
@@ -9165,19 +9997,6 @@ var LiningResidues;
                     _this.setState(state);
                 });
             };
-            /*
-            private dataWaitHandler(){
-                this.setState({isWaitingForData:false});
-            }
-    
-            public invokeDataWait(){
-                if(this.state.isWaitingForData){
-                    return;
-                }
-    
-                this.setState({isWaitingForData: true});
-                Annotation.AnnotationDataProvider.subscribeForData(this.dataWaitHandler.bind(this));
-            }*/
             App.prototype.componentWillUnmount = function () {
             };
             App.prototype.render = function () {
@@ -9223,7 +10042,6 @@ var LiningResidues;
                     var residue = _a[_i];
                     residues.push(residueStringToResidueLight(residue));
                 }
-                //CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
                 CommonUtils.Selection.SelectionHelper.addResiduesToSelection(residues, false);
             };
             Controls.prototype.selectIonizable = function () {
@@ -9245,14 +10063,12 @@ var LiningResidues;
                         ionizableResidues.push(residue);
                     }
                 }
-                //CommonUtils.Selection.SelectionHelper.clearSelection(this.props.app.props.controller);
                 CommonUtils.Selection.SelectionHelper.addResiduesToSelection(ionizableResidues, false);
             };
             Controls.prototype.render = function () {
                 return React.createElement("div", { className: "lining-residues select-controls" },
                     React.createElement("span", { className: "btn-xs btn-default bt-ionizable hand", onClick: this.selectIonizable.bind(this) }, "Select ionizable"),
                     React.createElement("span", { className: "btn-xs btn-default bt-all hand", onClick: this.selectAll.bind(this) }, "Select all"));
-                //<span className="btn-xs btn-default bt-none hand" onClick={this.clearSelection.bind(this)}>Clear selection</span>
             };
             return Controls;
         }(React.Component));
@@ -9328,7 +10144,7 @@ var LiningResidues;
             };
             DGBody.prototype.generateSpannedRows = function (residue, annotations) {
                 var trs = [];
-                var residueNameEl = this.getSelect3DLink(residue); //(this.isBackbone(residue))?<i><strong>{this.shortenBackbone(residue)}</strong></i>:<span>{residue}</span>;
+                var residueNameEl = this.getSelect3DLink(residue);
                 var first = true;
                 for (var _i = 0, annotations_2 = annotations; _i < annotations_2.length; _i++) {
                     var annotation = annotations_2[_i];
@@ -9346,8 +10162,7 @@ var LiningResidues;
                 return trs;
             };
             DGBody.prototype.generateRows = function () {
-                /*let channelsDBMode = CommonUtils.Router.isInChannelsDBMode();*/
-                var columnsCount = DGTABLE_COLS_COUNT; /* + ((channelsDBMode)?1:0);*/
+                var columnsCount = DGTABLE_COLS_COUNT;
                 if (this.props.data === null) {
                     return React.createElement(DGComponents.DGNoDataInfoRow, { columnsCount: DGTABLE_COLS_COUNT, infoText: NO_DATA_MESSAGE });
                 }
@@ -9396,7 +10211,6 @@ var ChannelParameters;
         var DGTABLE_COLS_COUNT = 2;
         var NO_DATA_MESSAGE = "Select channel in 3D view for details...";
         ;
-        ;
         function render(target, plugin) {
             LiteMol.Plugin.ReactDOM.render(React.createElement(App, { controller: plugin }), target);
         }
@@ -9405,7 +10219,6 @@ var ChannelParameters;
             __extends(App, _super);
             function App() {
                 var _this = _super !== null && _super.apply(this, arguments) || this;
-                _this.interactionEventStream = void 0;
                 _this.state = {
                     data: null,
                     currentTunnel: null,
@@ -9531,7 +10344,7 @@ var ChannelParameters;
                             React.createElement("span", null,
                                 React.createElement("span", { className: "glyphicon glyphicon-resize-horizontal properties-icon" }),
                                 "Length"),
-                            React.createElement("span", null, CommonUtils.Numbers.roundToDecimal(CommonUtils.Tunnels.getLength(t), 2).toString())
+                            React.createElement("span", null, Common.Util.Numbers.roundToDecimal(CommonUtils.Tunnels.getLength(t), 2).toString())
                         ];
                         var bottleneck = [
                             React.createElement("span", null,
@@ -9543,25 +10356,49 @@ var ChannelParameters;
                             React.createElement("span", null,
                                 React.createElement("span", { className: "glyphicon glyphicon-tint properties-icon" }),
                                 "Hydropathy"),
-                            React.createElement("span", null, CommonUtils.Numbers.roundToDecimal(t.Properties.Hydropathy, 2).toString())
+                            React.createElement("span", null, Common.Util.Numbers.roundToDecimal(t.Properties.Hydropathy, 2).toString())
                         ];
                         var charge = [
                             React.createElement("span", null,
                                 React.createElement("span", { className: "glyphicon glyphicon-flash properties-icon" }),
                                 "Charge"),
-                            React.createElement("span", null, CommonUtils.Numbers.roundToDecimal(t.Properties.Charge, 2).toString())
+                            React.createElement("span", null, Common.Util.Numbers.roundToDecimal(t.Properties.Charge, 2).toString())
                         ];
                         var polarity = [
                             React.createElement("span", null,
                                 React.createElement("span", { className: "glyphicon glyphicon-plus properties-icon" }),
                                 "Polarity"),
-                            React.createElement("span", null, CommonUtils.Numbers.roundToDecimal(t.Properties.Polarity, 2).toString())
+                            React.createElement("span", null, Common.Util.Numbers.roundToDecimal(t.Properties.Polarity, 2).toString())
                         ];
                         var mutability = [
                             React.createElement("span", null,
                                 React.createElement("span", { className: "glyphicon glyphicon-scissors properties-icon" }),
                                 "Mutability"),
-                            React.createElement("span", null, CommonUtils.Numbers.roundToDecimal(t.Properties.Mutability, 2).toString())
+                            React.createElement("span", null, Common.Util.Numbers.roundToDecimal(t.Properties.Mutability, 2).toString())
+                        ];
+                        var logP = [
+                            React.createElement("span", null,
+                                React.createElement("span", { className: "icon logp black properties-icon" }),
+                                "LogP"),
+                            React.createElement("span", null, (t.Properties.LogP) ? Common.Util.Numbers.roundToDecimal(t.Properties.LogP, 2) : 'N/A')
+                        ];
+                        var logD = [
+                            React.createElement("span", null,
+                                React.createElement("span", { className: "icon logd black properties-icon" }),
+                                "LogD"),
+                            React.createElement("span", null, (t.Properties.LogD) ? Common.Util.Numbers.roundToDecimal(t.Properties.LogD, 2) : 'N/A')
+                        ];
+                        var logS = [
+                            React.createElement("span", null,
+                                React.createElement("span", { className: "icon logs black properties-icon" }),
+                                "LogS"),
+                            React.createElement("span", null, (t.Properties.LogS) ? Common.Util.Numbers.roundToDecimal(t.Properties.LogS, 2) : 'N/A')
+                        ];
+                        var ionizable = [
+                            React.createElement("span", null,
+                                React.createElement("span", { className: "icon ionizable black properties-icon" }),
+                                "Ionizable"),
+                            React.createElement("span", null, (t.Properties.Ionizable) ? Common.Util.Numbers.roundToDecimal(t.Properties.Ionizable, 2) : 'N/A')
                         ];
                         //Length
                         rows.push(React.createElement(DGComponents.DGElementRow, { columnsCount: columnsCount, columns: length_1 }));
@@ -9575,6 +10412,14 @@ var ChannelParameters;
                         rows.push(React.createElement(DGComponents.DGElementRow, { columnsCount: columnsCount, columns: polarity }));
                         //Mutability
                         rows.push(React.createElement(DGComponents.DGElementRow, { columnsCount: columnsCount, columns: mutability }));
+                        //LogP
+                        rows.push(React.createElement(DGComponents.DGElementRow, { columnsCount: columnsCount, columns: logP }));
+                        //LogD
+                        rows.push(React.createElement(DGComponents.DGElementRow, { columnsCount: columnsCount, columns: logD }));
+                        //LogS
+                        rows.push(React.createElement(DGComponents.DGElementRow, { columnsCount: columnsCount, columns: logS }));
+                        //Ionizable
+                        rows.push(React.createElement(DGComponents.DGElementRow, { columnsCount: columnsCount, columns: ionizable }));
                     }
                 }
                 rows.push(React.createElement(DGComponents.DGRowEmpty, { columnsCount: columnsCount }));
@@ -9642,18 +10487,26 @@ var PDFReportGenerator;
                 return template.replace("[[TUNNEL-NAME]]", text);
             };
             App.prototype.addPhysChemProps = function (template, tunnel) {
-                var length = CommonUtils.Numbers.roundToDecimal(CommonUtils.Tunnels.getLength(tunnel), 2).toString();
+                var length = Common.Util.Numbers.roundToDecimal(CommonUtils.Tunnels.getLength(tunnel), 2).toString();
                 var bottleneck = CommonUtils.Tunnels.getBottleneck(tunnel);
-                var hydropathy = CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Hydropathy, 2).toString();
-                var charge = CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Charge, 2).toString();
-                var polarity = CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Polarity, 2).toString();
-                var mutability = CommonUtils.Numbers.roundToDecimal(tunnel.Properties.Mutability, 2).toString();
+                var hydropathy = Common.Util.Numbers.roundToDecimal(tunnel.Properties.Hydropathy, 2).toString();
+                var charge = Common.Util.Numbers.roundToDecimal(tunnel.Properties.Charge, 2).toString();
+                var polarity = Common.Util.Numbers.roundToDecimal(tunnel.Properties.Polarity, 2).toString();
+                var mutability = Common.Util.Numbers.roundToDecimal(tunnel.Properties.Mutability, 2).toString();
+                var logP = (tunnel.Properties.LogP !== null && tunnel.Properties.LogP !== void 0) ? Common.Util.Numbers.roundToDecimal(tunnel.Properties.LogP, 2).toString() : 'N/A';
+                var logD = (tunnel.Properties.LogD !== null && tunnel.Properties.LogD !== void 0) ? Common.Util.Numbers.roundToDecimal(tunnel.Properties.LogD, 2).toString() : 'N/A';
+                var logS = (tunnel.Properties.LogS !== null && tunnel.Properties.LogS !== void 0) ? Common.Util.Numbers.roundToDecimal(tunnel.Properties.LogS, 2).toString() : 'N/A';
+                var ionizable = (tunnel.Properties.Ionizable !== null && tunnel.Properties.Ionizable !== void 0) ? Common.Util.Numbers.roundToDecimal(tunnel.Properties.Ionizable, 2).toString() : 'N/A';
                 template = this.replacePlaceholder(template, "TUNNEL-PROPS-LENGTH", length);
                 template = this.replacePlaceholder(template, "TUNNEL-PROPS-BOTTLENECK", bottleneck);
                 template = this.replacePlaceholder(template, "TUNNEL-PROPS-HYDROPATHY", hydropathy);
                 template = this.replacePlaceholder(template, "TUNNEL-PROPS-CHARGE", charge);
                 template = this.replacePlaceholder(template, "TUNNEL-PROPS-POLARITY", polarity);
                 template = this.replacePlaceholder(template, "TUNNEL-PROPS-MUTABILITY", mutability);
+                template = this.replacePlaceholder(template, "TUNNEL-PROPS-LOGP", logP);
+                template = this.replacePlaceholder(template, "TUNNEL-PROPS-LOGD", logD);
+                template = this.replacePlaceholder(template, "TUNNEL-PROPS-LOGS", logS);
+                template = this.replacePlaceholder(template, "TUNNEL-PROPS-IONIZABLE", ionizable);
                 return template;
             };
             App.prototype.addLiningResidues = function (template, residueLines) {
@@ -9699,8 +10552,8 @@ var PDFReportGenerator;
             };
             App.prototype.zipResiduesWithAnnotations = function (residues, annotations) {
                 var result = [];
-                for (var _i = 0, residues_7 = residues; _i < residues_7.length; _i++) {
-                    var r = residues_7[_i];
+                for (var _i = 0, residues_11 = residues; _i < residues_11.length; _i++) {
+                    var r = residues_11[_i];
                     if (annotations === null) {
                         result.push({ residue: r, annotation: null });
                         continue;
@@ -9826,8 +10679,8 @@ var PDFReportGenerator;
                     emptyPlaceholders.push("COMP-ID");
                     emptyPlaceholders.push("SUBMIT-ID");
                 }
-                template = this.replacePlaceholder(template, "URL", CommonUtils.Router.getCurrentUrl());
-                var isUserStructure = compInfo.PdbId === null;
+                template = this.replacePlaceholder(template, "URL", Common.Util.Router.getCurrentUrl());
+                var isUserStructure = compInfo.PdbId === void 0 || compInfo.PdbId === null || compInfo.PdbId === "";
                 template = this.replacePlaceholder(template, "PDBID", (isUserStructure) ? "User structure" : compInfo.PdbId);
                 template = this.replacePlaceholder(template, "ASSEMBLY-ID", (isUserStructure) ? "User structure" : ((compInfo.AssemblyId !== null) ? compInfo.AssemblyId : "Asymmetric unit"));
                 template = this.replaceEmptyPlaceholders(template, emptyPlaceholders);
@@ -9970,16 +10823,15 @@ var PDFReportGenerator;
             };
             App.prototype.generateReport = function () {
                 var _this = this;
-                var urlParams = CommonUtils.Router.getParameters();
+                var urlParams = Common.Util.Router.getParameters();
                 if (urlParams === null) {
                     console.log("URL parameters cannot be parsed!");
                     return;
                 }
-                //$("#download-report .dropdown").addClass("open-programaticaly");
                 var state = this.state;
                 state.inProgress = true;
                 this.setState(state);
-                var channelsDBMode = CommonUtils.Router.isInChannelsDBMode();
+                var channelsDBMode = Common.Util.Router.isInChannelsDBMode();
                 var configParamsPromise;
                 if (channelsDBMode) {
                     configParamsPromise = Promise.resolve(null);
@@ -10178,66 +11030,6 @@ var PDFReportGenerator;
             return App;
         }(React.Component));
         App.templateCache = null;
-        /*
-        interface DownloadResultsMenuState{
-            computationId:string,
-            submitId:number
-        }
-        class DownloadResultsMenu extends React.Component<{},DownloadResultsMenuState>{
-            state = {computationId:"",submitId:0}
-    
-            componentDidMount(){
-                let params = CommonUtils.Router.getParameters();
-                if(params!==null){
-                    let computationId = params.computationId;
-                    let submitId = params.submitId;
-                    this.setState({computationId,submitId});
-                }
-    
-                MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId((submitId)=>{
-                    let state = this.state;
-                    state.submitId = submitId;
-                    this.setState(state);
-                });
-            }
-            
-            render(){
-                let computationId = this.state.computationId;
-                let submitId = `?submitId=${this.state.submitId}`;
-                
-                let linkBase = `${Config.DataSources.API_URL[Config.DataSources.MODE]}/Data/${computationId}${submitId}`;
-                
-                let items:JSX.Element[] = [];
-            
-                if(computationId!==void 0){
-                    items.push(
-                        <BootstrapDropDownMenuItem linkText="Molecule" link={`${linkBase}&format=molecule`} targetBlank={true} />
-                    );
-                    items.push(
-                        <BootstrapDropDownMenuItem linkText="PyMol" link={`${linkBase}&format=pymol`} targetBlank={true} />
-                    );
-                    items.push(
-                        <BootstrapDropDownMenuItem linkText="VMD" link={`${linkBase}&format=vmd`} targetBlank={true} />
-                    );
-                    items.push(
-                        <BootstrapDropDownMenuItem linkText="PDB" link={`${linkBase}&format=pdb`} targetBlank={true} />
-                    );
-                    items.push(
-                        <BootstrapDropDownMenuItem linkText="Chimera" link={`${linkBase}&format=chimera`} targetBlank={true} />
-                    );
-                    items.push(
-                        <BootstrapDropDownMenuItem linkText="JSON" link={`${linkBase}`} targetBlank={true} />
-                    );
-                    items.push(
-                        <BootstrapDropDownMenuItem linkText="Results" link={`${linkBase}&format=report`} targetBlank={true} />
-                    );
-                    items.push(
-                        <DownloadPDFReportDropdownMenuItem linkText="PDF report" />
-                    );
-                }
-                return <BootstrapDropDownMenuButton label="Download report" items={items} />
-            }
-        }*/
     })(UI = PDFReportGenerator.UI || (PDFReportGenerator.UI = {}));
 })(PDFReportGenerator || (PDFReportGenerator = {}));
 var Controls;
@@ -10317,7 +11109,1339 @@ var Controls;
             }, 5000);
             $(el).focus();
         }
-        //--
+        ;
+        var Settings = (function (_super) {
+            __extends(Settings, _super);
+            function Settings() {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.state = {
+                    moleFormData: _this.getMoleDefaultValues(),
+                    poresFormData: _this.getPoresDefaultValues(),
+                    pdbid: _this.props.initialData.PdbId,
+                    computationId: _this.props.initialData.ComputationId,
+                    mode: "Channels",
+                    expandedPanels: {
+                        activeAtomsResidues: true,
+                        activeAtomsResiduesAdvanced: false,
+                        cavityParameters: false,
+                        channelParameters: false,
+                        channelParametersAdvanced: false,
+                        selection: true
+                    }
+                };
+                return _this;
+            }
+            Settings.prototype.getMoleDefaultValues = function () {
+                var data = new UI.MoleFormData();
+                data.setIgnoreHETATMs(true);
+                data.setIgnoreHydrogens(false);
+                //data.setQueryFilter("");
+                data.setReadAllModels(false);
+                //data.setIgnoredResidues([]);
+                //data.setSpecificChains("");
+                data.setProbeRadius(5);
+                data.setInteriorThreshold(1.1);
+                data.setOriginRadius(5);
+                data.setSurfaceCoverRadius(10);
+                data.setWeightFunction("VoronoiScale");
+                data.setMergePores(false);
+                data.setAutomaticPores(false);
+                data.setBottleneckRadius(1.2);
+                data.setBottleneckTolerance(3);
+                data.setMaxTunnelSimilarity(0.7);
+                return data;
+            };
+            Settings.prototype.getPoresDefaultValues = function () {
+                var data = new UI.PoresFormData();
+                data.setBetaStructure(false);
+                data.setMembraneRegion(false);
+                //data.setSpecificChains("");
+                data.setProbeRadius(13);
+                data.setInteriorThreshold(0.8);
+                return data;
+            };
+            Settings.prototype.handleSubmitPromise = function (promise) {
+                var _this = this;
+                promise
+                    .then(function (result) {
+                    if (result.Status === "Error") {
+                        var state = _this.props.parent.state;
+                        state.canSubmit = true;
+                        _this.props.parent.setState(state);
+                        MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                            messageType: "Danger",
+                            message: result.ErrorMsg
+                        });
+                    }
+                    else {
+                        Common.Util.Router.fakeRedirect(result.ComputationId, String(result.SubmitId));
+                        LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
+                        Provider.get(result.ComputationId, (function (compId, info) {
+                            MoleOnlineWebUI.DataProxy.JobStatus.Watcher.registerOnChangeHandler(result.ComputationId, result.SubmitId, function (status) {
+                                if (checkCanSubmit(status.Status)) {
+                                    MoleOnlineWebUI.Bridge.Events.invokeToggleLoadingScreen({
+                                        message: "",
+                                        visible: false
+                                    });
+                                    var state_1 = _this.props.parent.state;
+                                    state_1.canSubmit = true;
+                                    _this.props.parent.setState(state_1);
+                                }
+                            }, function (err) {
+                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                    messageType: "Danger",
+                                    message: "Job status cannot be tracked. Please try to refresh the page."
+                                });
+                            });
+                            var state = _this.props.parent.state;
+                            state.data = info;
+                            _this.props.parent.setState(state);
+                            MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
+                            MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
+                        }).bind(_this), true);
+                        MoleOnlineWebUI.Bridge.Events.invokeToggleLoadingScreen({
+                            message: "Submited job in progress...",
+                            visible: true
+                        });
+                    }
+                })
+                    .catch(function (err) {
+                    var state = _this.props.parent.state;
+                    state.canSubmit = true;
+                    _this.props.parent.setState(state);
+                    if (Config.CommonOptions.DEBUG_MODE)
+                        console.log(err);
+                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                        messageType: "Danger",
+                        message: "Job submit was not completed succesfully! Please try again later."
+                    });
+                });
+            };
+            Settings.prototype.componentDidMount = function () {
+                var _this = this;
+                CommonUtils.FormEvents.Events.attachOnSubmitEventHandler(function (formGroup) {
+                    if (formGroup !== validationGroup) {
+                        return;
+                    }
+                    var promise;
+                    if (_this.state.mode === "Channels") {
+                        gtag('event', 'Submit', { 'event_category': 'MOLE' });
+                        promise = Service.ApiService.submitMoleJob(_this.state.computationId, _this.state.moleFormData.getPackage());
+                    }
+                    else {
+                        gtag('event', 'Submit', { 'event_category': 'Pores' });
+                        promise = Service.ApiService.submitPoresJob(_this.state.computationId, _this.state.poresFormData.getPackage());
+                    }
+                    _this.handleSubmitPromise(promise);
+                });
+                MoleOnlineWebUI.Bridge.Events.subscribeOnReSubmit(function (promise) {
+                    _this.handleSubmitPromise(promise);
+                });
+                CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                    if (formGroup !== validationGroup + "_form") {
+                        return;
+                    }
+                    Common.Controls.FromLiteMol.ValidationState.reset(validationGroup);
+                    var s = _this.state;
+                    var mode = s.mode;
+                    s.mode = (_this.state.mode === "Channels") ? "Pores" : "Channels"; //setting mode to oposite to trigger update
+                    s.moleFormData = _this.getMoleDefaultValues();
+                    s.poresFormData = _this.getPoresDefaultValues();
+                    _this.setState(s, function () {
+                        CommonUtils.FormEvents.Events.invokeOnClear(validationGroup);
+                        var s2 = _this.state;
+                        s2.mode = mode; //setting back correct mode
+                        _this.setState(s2);
+                    });
+                });
+                MoleOnlineWebUI.Bridge.Events.subscribeCopyParameters(function (params) {
+                    var s1 = _this.props.parent.state;
+                    _this.props.parent.setState({
+                        activeTabIdx: 0,
+                        submitId: s1.submitId,
+                        canSubmit: s1.canSubmit,
+                        data: s1.data,
+                        err: s1.err
+                    }, function () {
+                        _this.setState({
+                            computationId: _this.state.computationId,
+                            pdbid: _this.state.pdbid,
+                            moleFormData: _this.state.moleFormData,
+                            poresFormData: _this.state.poresFormData,
+                            mode: (params.mode === "mole") ? "Pores" : "Channels",
+                            expandedPanels: _this.state.expandedPanels
+                        }, function () {
+                            _this.setState({
+                                computationId: _this.state.computationId,
+                                pdbid: _this.state.pdbid,
+                                moleFormData: (params.mode === "mole" && params.moleConfig !== null) ? new UI.MoleFormData(params.moleConfig) : _this.getMoleDefaultValues(),
+                                poresFormData: (params.mode === "pores" && params.poresConfig !== null) ? new UI.PoresFormData(params.poresConfig) : _this.getPoresDefaultValues(),
+                                mode: (params.mode === "mole") ? "Channels" : "Pores",
+                                expandedPanels: _this.state.expandedPanels
+                            });
+                        });
+                    });
+                });
+            };
+            Settings.prototype.render = function () {
+                var _this = this;
+                var form = React.createElement("div", null);
+                if (this.state.mode === "Channels") {
+                    form = this.getMoleForm();
+                }
+                else if (this.state.mode === "Pores") {
+                    form = this.getPoresForm();
+                }
+                return (React.createElement("div", null,
+                    React.createElement("div", { className: "mode-switch-button-container" },
+                        React.createElement("span", { className: "btn-sm btn-primary mode-switch", onClick: function (e) {
+                                var state = _this.state;
+                                state.mode = (_this.state.mode === "Channels") ? "Pores" : "Channels";
+                                _this.setState(state);
+                            } },
+                            "Switch to ",
+                            (this.state.mode === "Channels") ? "Pore" : "Channels",
+                            " mode")),
+                    form));
+            };
+            Settings.prototype.getPatternQueryHint = function () {
+                return { link: "https://webchem.ncbr.muni.cz/Wiki/PatternQuery:UserManual", title: "See PatternQuery manual for help." };
+            };
+            Settings.prototype.getMoleForm = function () {
+                var _this = this;
+                if (this.state.moleFormData === null) {
+                    return React.createElement("div", null);
+                }
+                var pdbid = this.state.pdbid;
+                var data = this.state.moleFormData;
+                return React.createElement("div", { className: "settings-form basic-settings" },
+                    React.createElement("h3", null, "Channels"),
+                    React.createElement(Common.Controls.FromLiteMol.LMControlWrapper, { controls: [
+                            React.createElement(Common.Controls.FromLiteMol.ControlGroup, { label: "Active Atoms/Residues", tooltip: "", controls: [
+                                    React.createElement(Common.Controls.FromLiteMol.CheckBox, { label: "Ignore HETATMs", defaultValue: valueOrDefault(data.getIgnoreHETATMs(), true), tooltip: TooltipText.get("ignoreAllHetatm"), onChange: function (v) {
+                                            var s = _this.state;
+                                            if (s.moleFormData !== null) {
+                                                s.moleFormData.setIgnoreHETATMs(v);
+                                            }
+                                        }, onMount: function (control) {
+                                            (function () {
+                                                CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                                                    if (formGroup !== validationGroup) {
+                                                        return;
+                                                    }
+                                                    control.reset();
+                                                });
+                                            }).bind(control)();
+                                        } }),
+                                    React.createElement(Common.Controls.FromLiteMol.ControlGroup, { label: "Advanced options", tooltip: "", controls: [
+                                            React.createElement(Common.Controls.FromLiteMol.CheckBox, { label: "Ignore Hydrogens", defaultValue: valueOrDefault(data.getIgnoreHydrogens(), false), tooltip: TooltipText.get("ignoreHydrogens"), onChange: function (v) {
+                                                    var s = _this.state;
+                                                    if (s.moleFormData !== null) {
+                                                        s.moleFormData.setIgnoreHydrogens(v);
+                                                    }
+                                                }, onMount: function (control) {
+                                                    (function () {
+                                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                                                            if (formGroup !== validationGroup) {
+                                                                return;
+                                                            }
+                                                            control.reset();
+                                                        });
+                                                    }).bind(control)();
+                                                } }),
+                                            React.createElement(Common.Controls.FromLiteMol.TextBoxWithHelp, { label: "Query Filter", tooltip: TooltipText.get("queryFilter"), placeholder: "Residues('GOL')", hint: this.getPatternQueryHint(), defaultValue: valueOrDefault(data.getQueryFilter(), ""), onChange: function (v) {
+                                                    var s = _this.state;
+                                                    if (s.moleFormData !== null) {
+                                                        s.moleFormData.setQueryFilter(v);
+                                                    }
+                                                }, onMount: function (control) {
+                                                    (function () {
+                                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                                                            if (formGroup !== validationGroup) {
+                                                                return;
+                                                            }
+                                                            control.reset();
+                                                        });
+                                                    }).bind(control)();
+                                                }, validate: CommonUtils.Validators.validatePatternQuery, validationGroup: validationGroup }),
+                                            React.createElement(Common.Controls.FromLiteMol.CheckBox, { label: "Read All Models", defaultValue: valueOrDefault(data.getReadAllModels(), false), tooltip: TooltipText.get("readAllModels"), onChange: function (v) {
+                                                    var s = _this.state;
+                                                    if (s.moleFormData !== null) {
+                                                        s.moleFormData.setReadAllModels(v);
+                                                    }
+                                                }, onMount: function (control) {
+                                                    (function () {
+                                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                                                            if (formGroup !== validationGroup) {
+                                                                return;
+                                                            }
+                                                            control.reset();
+                                                        });
+                                                    }).bind(control)();
+                                                } }),
+                                            React.createElement(Common.Controls.FromLiteMol.TextBox, { label: "Ignored Residues", tooltip: TooltipText.get("nonActiveResidues"), placeholder: "A 69, A 386, ...", defaultValue: CommonUtils.Misc.flattenResidues(valueOrDefault(data.getIgnoredResidues(), "")), onChange: function (v) {
+                                                    var s = _this.state;
+                                                    if (s.moleFormData !== null) {
+                                                        s.moleFormData.setIgnoredResidues(CommonUtils.Misc.parseResidues(v));
+                                                    }
+                                                }, onMount: function (control) {
+                                                    (function () {
+                                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                                                            if (formGroup !== validationGroup) {
+                                                                return;
+                                                            }
+                                                            control.reset();
+                                                        });
+                                                    }).bind(control)();
+                                                }, validate: CommonUtils.Validators.validateResidueSimpleArray, validationGroup: validationGroup }),
+                                            React.createElement(Common.Controls.FromLiteMol.TextBox, { label: "Specific Chains", tooltip: TooltipText.get("specificChains"), placeholder: "A, B, ...", defaultValue: valueOrDefault(data.getSpecificChains(), ""), onChange: function (v) {
+                                                    var s = _this.state;
+                                                    if (s.moleFormData !== null) {
+                                                        s.moleFormData.setSpecificChains(v);
+                                                    }
+                                                }, onMount: function (control) {
+                                                    (function () {
+                                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                                                            if (formGroup !== validationGroup) {
+                                                                return;
+                                                            }
+                                                            control.reset();
+                                                        });
+                                                    }).bind(control)();
+                                                }, validate: CommonUtils.Validators.validateChainsArray, validationGroup: validationGroup })
+                                        ], expanded: this.state.expandedPanels.activeAtomsResiduesAdvanced, onChange: function (e) {
+                                            var s = _this.state;
+                                            s.expandedPanels.activeAtomsResiduesAdvanced = e;
+                                            _this.setState(s);
+                                        } }),
+                                ], expanded: this.state.expandedPanels.activeAtomsResidues, onChange: function (e) {
+                                    var s = _this.state;
+                                    s.expandedPanels.activeAtomsResidues = e;
+                                    if (e === false) {
+                                        s.expandedPanels.activeAtomsResiduesAdvanced = false;
+                                    }
+                                    _this.setState(s);
+                                } }),
+                            React.createElement(Common.Controls.FromLiteMol.ControlGroup, { label: "Cavity Parameters", tooltip: "", controls: [
+                                    React.createElement(Common.Controls.FromLiteMol.NumberBox, { label: "Probe Radius", tooltip: TooltipText.get("probeRadius"), min: 1.4, max: 45, defaultValue: valueOrDefault(data.getProbeRadius(), 5), step: 0.01, onChange: function (v) {
+                                            var s = _this.state;
+                                            if (s.moleFormData !== null) {
+                                                s.moleFormData.setProbeRadius(Number(v).valueOf());
+                                            }
+                                        }, onMount: function (control) {
+                                            (function () {
+                                                CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                                                    if (formGroup !== validationGroup) {
+                                                        return;
+                                                    }
+                                                    control.reset();
+                                                });
+                                            }).bind(control)();
+                                        } }),
+                                    React.createElement(Common.Controls.FromLiteMol.NumberBox, { label: "Interior Treshold", tooltip: TooltipText.get("interiorTreshold"), min: 0.3, max: 3, defaultValue: valueOrDefault(data.getInteriorThreshold(), 1.1), step: 0.01, onChange: function (v) {
+                                            var s = _this.state;
+                                            if (s.moleFormData !== null) {
+                                                s.moleFormData.setInteriorThreshold(Number(v).valueOf());
+                                            }
+                                        }, onMount: function (control) {
+                                            (function () {
+                                                CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                                                    if (formGroup !== validationGroup) {
+                                                        return;
+                                                    }
+                                                    control.reset();
+                                                });
+                                            }).bind(control)();
+                                        } })
+                                ], expanded: this.state.expandedPanels.cavityParameters, onChange: function (e) {
+                                    var s = _this.state;
+                                    s.expandedPanels.cavityParameters = e;
+                                    _this.setState(s);
+                                } }),
+                            React.createElement(Common.Controls.FromLiteMol.ControlGroup, { label: "Channel Parameters", tooltip: "", controls: [
+                                    React.createElement(Common.Controls.FromLiteMol.NumberBox, { label: "Origin Radius", tooltip: TooltipText.get("originRadius"), min: 0.1, max: 10, defaultValue: valueOrDefault(data.getOriginRadius(), 5), step: 0.05, onChange: function (v) {
+                                            var s = _this.state;
+                                            if (s.moleFormData !== null) {
+                                                s.moleFormData.setOriginRadius(Number(v).valueOf());
+                                            }
+                                        }, onMount: function (control) {
+                                            (function () {
+                                                CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                                                    if (formGroup !== validationGroup) {
+                                                        return;
+                                                    }
+                                                    control.reset();
+                                                });
+                                            }).bind(control)();
+                                        } }),
+                                    React.createElement(Common.Controls.FromLiteMol.NumberBox, { label: "Surface Cover Radius", tooltip: TooltipText.get("surfaceCoverRadius"), min: 5, max: 20, defaultValue: valueOrDefault(data.getSurfaceCoverRadius(), 10), step: 0.5, onChange: function (v) {
+                                            var s = _this.state;
+                                            if (s.moleFormData !== null) {
+                                                s.moleFormData.setSurfaceCoverRadius(Number(v).valueOf());
+                                            }
+                                        }, onMount: function (control) {
+                                            (function () {
+                                                CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                                                    if (formGroup !== validationGroup) {
+                                                        return;
+                                                    }
+                                                    control.reset();
+                                                });
+                                            }).bind(control)();
+                                        } }),
+                                    React.createElement(Common.Controls.FromLiteMol.ComboBox, { label: "Weight Function", tooltip: TooltipText.get("tunnelWeightFunction"), items: MoleOnlineWebUI.StaticData.WeightFunctions.get().map(function (val, idx, arr) { return new Common.Controls.FromLiteMol.ComboBoxItem(val.value, val.label); }), selectedValue: valueOrDefault(data.getWeightFunction(), "VoronoiScale"), onChange: function (v) {
+                                            var s = _this.state;
+                                            if (s.moleFormData !== null) {
+                                                s.moleFormData.setWeightFunction(v);
+                                            }
+                                        }, onMount: function (control) {
+                                            (function () {
+                                                CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                                                    if (formGroup !== validationGroup) {
+                                                        return;
+                                                    }
+                                                    control.reset();
+                                                });
+                                            }).bind(control)();
+                                        } }),
+                                    React.createElement(Common.Controls.FromLiteMol.CheckBox, { label: "Merge Pores", defaultValue: valueOrDefault(data.getMergePores(), false), tooltip: TooltipText.get("mergePores"), onChange: function (v) {
+                                            var s = _this.state;
+                                            if (s.moleFormData !== null) {
+                                                s.moleFormData.setMergePores(v);
+                                            }
+                                        }, onMount: function (control) {
+                                            (function () {
+                                                CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                                                    if (formGroup !== validationGroup) {
+                                                        return;
+                                                    }
+                                                    control.reset();
+                                                });
+                                            }).bind(control)();
+                                        } }),
+                                    React.createElement(Common.Controls.FromLiteMol.CheckBox, { label: "Automatic Pores", defaultValue: valueOrDefault(data.getAutomaticPores(), false), tooltip: TooltipText.get("automaticPores"), onChange: function (v) {
+                                            var s = _this.state;
+                                            if (s.moleFormData !== null) {
+                                                s.moleFormData.setAutomaticPores(v);
+                                            }
+                                        }, onMount: function (control) {
+                                            (function () {
+                                                CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                                                    if (formGroup !== validationGroup) {
+                                                        return;
+                                                    }
+                                                    control.reset();
+                                                });
+                                            }).bind(control)();
+                                        } }),
+                                    React.createElement(Common.Controls.FromLiteMol.ControlGroup, { label: "Advanced options", tooltip: "", controls: [
+                                            React.createElement(Common.Controls.FromLiteMol.NumberBox, { label: "Bottleneck Radius", tooltip: TooltipText.get("bottleneckRadius"), min: 0, max: 5, defaultValue: valueOrDefault(data.getBottleneckRadius(), 1.2), step: 0.01, onChange: function (v) {
+                                                    var s = _this.state;
+                                                    if (s.moleFormData !== null) {
+                                                        s.moleFormData.setBottleneckRadius(Number(v).valueOf());
+                                                    }
+                                                }, onMount: function (control) {
+                                                    (function () {
+                                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                                                            if (formGroup !== validationGroup) {
+                                                                return;
+                                                            }
+                                                            control.reset();
+                                                        });
+                                                    }).bind(control)();
+                                                } }),
+                                            React.createElement(Common.Controls.FromLiteMol.NumberBox, { label: "Bottleneck Tolerance", tooltip: TooltipText.get("bottleneckTolerance"), min: 0, max: 5, defaultValue: valueOrDefault(data.getBottleneckTollerance(), 3.0), step: 0.1, onChange: function (v) {
+                                                    var s = _this.state;
+                                                    if (s.moleFormData !== null) {
+                                                        s.moleFormData.setBottleneckTolerance(Number(v).valueOf());
+                                                    }
+                                                }, onMount: function (control) {
+                                                    (function () {
+                                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                                                            if (formGroup !== validationGroup) {
+                                                                return;
+                                                            }
+                                                            control.reset();
+                                                        });
+                                                    }).bind(control)();
+                                                } }),
+                                            React.createElement(Common.Controls.FromLiteMol.NumberBox, { label: "Max Tunnel Similarity", tooltip: TooltipText.get("maxTunnelSimilarity"), min: 0, max: 1, defaultValue: valueOrDefault(data.getMaxTunnelSimilarity(), 0.7), step: 0.05, onChange: function (v) {
+                                                    var s = _this.state;
+                                                    if (s.moleFormData !== null) {
+                                                        s.moleFormData.setMaxTunnelSimilarity(Number(v));
+                                                    }
+                                                }, onMount: function (control) {
+                                                    (function () {
+                                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                                                            if (formGroup !== validationGroup) {
+                                                                return;
+                                                            }
+                                                            control.reset();
+                                                        });
+                                                    }).bind(control)();
+                                                } })
+                                        ], expanded: this.state.expandedPanels.channelParametersAdvanced, onChange: function (e) {
+                                            var s = _this.state;
+                                            s.expandedPanels.channelParametersAdvanced = e;
+                                            _this.setState(s);
+                                        } })
+                                ], expanded: this.state.expandedPanels.channelParameters, onChange: function (e) {
+                                    var s = _this.state;
+                                    s.expandedPanels.channelParameters = e;
+                                    if (e === false) {
+                                        s.expandedPanels.channelParametersAdvanced = false;
+                                    }
+                                    _this.setState(s);
+                                } }),
+                            React.createElement(Common.Controls.FromLiteMol.ControlGroup, { label: "Selection", tooltip: "", controls: [
+                                    React.createElement(Common.Controls.FromLiteMol.StartingPointBox, { label: "Starting Point", tooltip: TooltipText.get("startingPoint"), defaultItems: this.state.moleFormData.getStartingPoints(), noDataText: "No starting points selected...", onChange: function (v) {
+                                            var s = _this.state;
+                                            if (s.moleFormData !== null) {
+                                                s.moleFormData.setStartingPoints(v);
+                                            }
+                                        }, formGroup: validationGroup, extraClearGroup: validationGroup + "/selection", allowPatternQuery: true }),
+                                    React.createElement(Common.Controls.FromLiteMol.StartingPointBox, { label: "End Point", tooltip: TooltipText.get("endPoint"), defaultItems: this.state.moleFormData.getEndingPoints(), noDataText: "No end points selected...", onChange: function (v) {
+                                            var s = _this.state;
+                                            if (s.moleFormData !== null) {
+                                                s.moleFormData.setEndPoints(v);
+                                            }
+                                        }, formGroup: validationGroup, extraClearGroup: validationGroup + "/selection", allowPatternQuery: false }),
+                                ], expanded: this.state.expandedPanels.selection, onChange: function (e) {
+                                    var s = _this.state;
+                                    s.expandedPanels.selection = e;
+                                    _this.setState(s);
+                                } })
+                        ] }));
+            };
+            Settings.prototype.getPoresForm = function () {
+                var _this = this;
+                if (this.state.poresFormData === null) {
+                    return React.createElement("div", null);
+                }
+                var data = this.state.poresFormData;
+                var chains = data.getSpecificChains();
+                if (chains === null) {
+                    chains = "";
+                }
+                var pdbid = this.state.pdbid;
+                return React.createElement("div", { className: "settings-form basic-settings pores" },
+                    React.createElement("h3", null, "Pores"),
+                    React.createElement(Common.Controls.FromLiteMol.LMControlWrapper, { controls: [
+                            React.createElement(Common.Controls.FromLiteMol.CheckBox, { label: "Beta Structure", defaultValue: data.getBetaStructure(), tooltip: TooltipText.get("poresIsBetaStructure"), onChange: function (val) {
+                                    if (_this.state.poresFormData !== null) {
+                                        _this.state.poresFormData.setBetaStructure(val);
+                                    }
+                                } }),
+                            React.createElement(Common.Controls.FromLiteMol.CheckBox, { label: "Membrane Region", defaultValue: data.getMembraneRegion(), tooltip: TooltipText.get("poresInMembrane"), onChange: function (val) {
+                                    if (_this.state.poresFormData !== null) {
+                                        _this.state.poresFormData.setMembraneRegion(val);
+                                    }
+                                } }),
+                            React.createElement(Common.Controls.FromLiteMol.TextBox, { label: "Specific Chains", defaultValue: chains, tooltip: TooltipText.get("chains"), placeholder: "A, B, ...", validate: CommonUtils.Validators.validateChainsArray, validationGroup: validationGroup, onChange: function (val) {
+                                    if (_this.state.poresFormData !== null) {
+                                        _this.state.poresFormData.setSpecificChains(val);
+                                    }
+                                } }),
+                            React.createElement(Common.Controls.FromLiteMol.NumberBox, { label: "Probe Radius", tooltip: TooltipText.get("probeRadius"), min: 1.4, max: 45, defaultValue: valueOrDefault(data.getProbeRadius(), 13), step: 0.01, onChange: function (v) {
+                                    var s = _this.state;
+                                    if (s.poresFormData !== null) {
+                                        s.poresFormData.setProbeRadius(Number(v).valueOf());
+                                    }
+                                }, onMount: function (control) {
+                                    (function () {
+                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                                            if (formGroup !== validationGroup) {
+                                                return;
+                                            }
+                                            control.reset();
+                                        });
+                                    }).bind(control)();
+                                } }),
+                            React.createElement(Common.Controls.FromLiteMol.NumberBox, { label: "Interior Treshold", tooltip: TooltipText.get("poresInteriorTreshold"), min: 0.3, max: 3, defaultValue: valueOrDefault(data.getInteriorThreshold(), 0.8), step: 0.01, onChange: function (v) {
+                                    var s = _this.state;
+                                    if (s.poresFormData !== null) {
+                                        s.poresFormData.setInteriorThreshold(Number(v).valueOf());
+                                    }
+                                }, onMount: function (control) {
+                                    (function () {
+                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
+                                            if (formGroup !== validationGroup) {
+                                                return;
+                                            }
+                                            control.reset();
+                                        });
+                                    }).bind(control)();
+                                } })
+                        ] }));
+            };
+            return Settings;
+        }(React.Component));
+        UI.Settings = Settings;
+        function valueOrDefault(value, def) {
+            return (value === null) ? def : value;
+        }
+        function getSubmissionIdx(compInfo, submitId) {
+            for (var idx = 0; idx < compInfo.Submissions.length; idx++) {
+                if (String(compInfo.Submissions[idx].SubmitId) === String(submitId)) {
+                    return idx;
+                }
+            }
+            return null;
+        }
+        ;
+        ;
+        var Submissions = (function (_super) {
+            __extends(Submissions, _super);
+            function Submissions() {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.state = { computationInfo: null, loading: true, channelsDBData: null };
+                _this.hasKillable = false;
+                return _this;
+            }
+            Submissions.prototype.componentWillReceiveProps = function (nextProps) {
+                this.prepareSubmissionData(nextProps.computationInfo);
+            };
+            Submissions.prototype.changePoresSubmissionChainsFormat = function (computationInfo) {
+                var submissions = computationInfo.Submissions.map(function (v, i, a) {
+                    if (v.PoresConfig !== void 0
+                        && v.PoresConfig.Chains !== void 0
+                        && v.PoresConfig.Chains !== void 0
+                        && v.PoresConfig.Chains !== null
+                        && Array.isArray(v.PoresConfig.Chains)) {
+                        v.PoresConfig.Chains = v.PoresConfig.Chains.join(",");
+                    }
+                    return v;
+                });
+                computationInfo.Submissions = submissions;
+                return computationInfo;
+            };
+            Submissions.prototype.prepareSubmissionData = function (computationInfo) {
+                var _this = this;
+                var state_ = this.state;
+                state_.computationInfo = this.changePoresSubmissionChainsFormat(computationInfo);
+                this.setState(state_);
+                var hasKillable = false;
+                if (computationInfo.PdbId !== void 0 && computationInfo.PdbId !== null && computationInfo.PdbId !== "") {
+                    MoleOnlineWebUI.Cache.ChannelsDBData.doWhenCached(computationInfo.PdbId)
+                        .then(function () {
+                        MoleOnlineWebUI.Cache.ChannelsDBData.getChannelsData(computationInfo.PdbId)
+                            .then(function (val) {
+                            var s = _this.state;
+                            s.channelsDBData = val;
+                            _this.setState(s);
+                        })
+                            .catch(function (err) {
+                            console.log(err);
+                        });
+                    })
+                        .catch(function (err) {
+                        console.log(err);
+                    });
+                }
+                var _loop_3 = function (submission) {
+                    if (submission.Status !== "Initializing" && submission.Status !== "Running") {
+                        return "continue";
+                    }
+                    hasKillable = true;
+                    MoleOnlineWebUI.DataProxy.JobStatus.Watcher.registerOnChangeHandler(this_3.props.computationInfo.ComputationId, submission.SubmitId, function (state) {
+                        var oldStatus = submission.Status;
+                        if (oldStatus === void 0 || oldStatus !== state.Status) {
+                            var s = _this.state;
+                            var currentCompInfo = s.computationInfo;
+                            if (currentCompInfo === null) {
+                                console.log("Computation info was not initialized corectly.");
+                                return;
+                            }
+                            var subIdx = getSubmissionIdx(currentCompInfo, submission.SubmitId);
+                            if (subIdx === null) {
+                                console.log("Submission with id'" + submission.SubmitId + "' not found.");
+                                return;
+                            }
+                            currentCompInfo.Submissions[subIdx].Status = state.Status;
+                            s.computationInfo = currentCompInfo;
+                            _this.setState(s);
+                            if (oldStatus !== void 0) {
+                                var hasKillable_ = _this.checkHasKillable(currentCompInfo);
+                                if (_this.hasKillable !== hasKillable_) {
+                                    _this.hasKillable = hasKillable_;
+                                    MoleOnlineWebUI.Bridge.Events.invokeChangeHasKillable(hasKillable_);
+                                }
+                            }
+                        }
+                    }, function (err) {
+                        if (Config.CommonOptions.DEBUG_MODE)
+                            console.log(err);
+                    });
+                };
+                var this_3 = this;
+                for (var _i = 0, _a = computationInfo.Submissions; _i < _a.length; _i++) {
+                    var submission = _a[_i];
+                    _loop_3(submission);
+                }
+                this.hasKillable = hasKillable;
+                var state = this.state;
+                state.loading = false;
+                this.setState(state);
+                if (hasKillable) {
+                    MoleOnlineWebUI.Bridge.Events.invokeChangeHasKillable(hasKillable);
+                }
+            };
+            Submissions.prototype.checkHasKillable = function (compInfo) {
+                var hasKillable = false;
+                for (var _i = 0, _a = compInfo.Submissions; _i < _a.length; _i++) {
+                    var submission = _a[_i];
+                    if (submission.Status === "Running") {
+                        hasKillable = true;
+                        return hasKillable;
+                    }
+                }
+                return hasKillable;
+            };
+            Submissions.prototype.componentDidMount = function () {
+                this.prepareSubmissionData(this.props.computationInfo);
+            };
+            Submissions.prototype.render = function () {
+                var _this = this;
+                if (this.state.computationInfo !== null && !this.state.loading) {
+                    var submissions = [];
+                    var submissionsData = this.state.computationInfo.Submissions;
+                    var submitId = 1;
+                    var isChannelsDBSelected = false;
+                    var params = Common.Util.Router.getParameters();
+                    if (params !== null) {
+                        submitId = (params.isChannelsDB) ? -1 : params.submitId;
+                        isChannelsDBSelected = params.isChannelsDB;
+                    }
+                    if (this.state.channelsDBData !== null) {
+                        submissions.push(React.createElement(ChannelsDBSubmission, { pdbid: this.state.computationInfo.PdbId, isSelected: isChannelsDBSelected, computationId: this.props.computationInfo.ComputationId }));
+                    }
+                    for (var _i = 0, _a = submissionsData.sort(function (a, b) {
+                        return a.SubmitId - b.SubmitId;
+                    }); _i < _a.length; _i++) {
+                        var s = _a[_i];
+                        var stat = s.Status;
+                        submissions.push(React.createElement(Submission, { data: s, currentSubmitId: submitId, computationId: this.props.computationInfo.ComputationId, status: (stat === void 0) ? "Unknown" : stat, onResubmit: this.props.onResubmit, onCopy: function (submitId) {
+                                for (var _i = 0, _a = _this.props.computationInfo.Submissions; _i < _a.length; _i++) {
+                                    var submission = _a[_i];
+                                    if (submission.SubmitId.toString() === submitId.toString()) {
+                                        MoleOnlineWebUI.Bridge.Events.invokeCopyParameters({
+                                            mode: (CommonUtils.Misc.isMoleJob(submission)) ? "mole" : "pores",
+                                            moleConfig: submission.MoleConfig,
+                                            poresConfig: submission.PoresConfig
+                                        });
+                                        return;
+                                    }
+                                }
+                            } }));
+                    }
+                    if (submissions.length === 0) {
+                        return (React.createElement("div", { className: "panel panel-default" },
+                            React.createElement("div", { className: "panel-heading" },
+                                React.createElement("h4", { className: "panel-title" }, "No submissions found."))));
+                    }
+                    return (React.createElement("div", { className: "panel-group submissions" }, submissions));
+                }
+                else if (this.state.loading) {
+                    return (React.createElement("div", { className: "panel panel-default" },
+                        React.createElement("div", { className: "panel-heading" },
+                            React.createElement("h4", { className: "panel-title" }, "No submissions data available."))));
+                }
+                else {
+                    return (React.createElement("div", { className: "panel panel-default" },
+                        React.createElement("div", { className: "panel-heading" },
+                            React.createElement("h4", { className: "panel-title" }, "Submissions data loading..."))));
+                }
+            };
+            return Submissions;
+        }(React.Component));
+        UI.Submissions = Submissions;
+        function checkCanKill(status) {
+            var result = false;
+            switch (status) {
+                case "Running":
+                    result = true;
+                    break;
+            }
+            return result;
+        }
+        function checkCanSubmit(status) {
+            return !checkCanKill(status);
+        }
+        function checkCanDelete(status) {
+            var result = false;
+            switch (status) {
+                case "Aborted":
+                case "Error":
+                case "FailedInitialization":
+                case "Finished":
+                case "Initialized":
+                    result = true;
+                    break;
+                case "Running":
+                case "Initializing":
+                    result = false;
+                    break;
+            }
+            return result;
+        }
+        function checkCanResubmit(status) {
+            var result = false;
+            switch (status) {
+                case "Aborted":
+                case "Error":
+                case "FailedInitialization":
+                case "Finished":
+                case "Initialized":
+                    result = true;
+                    break;
+                case "Running":
+                case "Initializing":
+                case "Deleted":
+                    result = false;
+                    break;
+            }
+            return result;
+        }
+        var Submission = (function (_super) {
+            __extends(Submission, _super);
+            function Submission() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            Submission.prototype.componentDidMount = function () {
+            };
+            Submission.prototype.getMoleJob = function (data) {
+                return React.createElement("div", { className: "panel-body" },
+                    React.createElement("h4", null, "Active Atoms/Residues"),
+                    "Ignore Hydrogens: ",
+                    (data.MoleConfig.Cavity === void 0) ? "False" : (data.MoleConfig.Cavity.IgnoreHydrogens) ? "True" : "False",
+                    React.createElement("br", null),
+                    "Ignore HETATMs: ",
+                    (data.MoleConfig.Cavity === void 0) ? "False" : (data.MoleConfig.Cavity.IgnoreHETAtoms) ? "True" : "False",
+                    React.createElement("br", null),
+                    "Query Filter: ",
+                    (data.MoleConfig.QueryFilter === void 0) ? "" : data.MoleConfig.QueryFilter,
+                    React.createElement("br", null),
+                    "Read All Models: ",
+                    (data.MoleConfig.Input === void 0) ? "False" : (data.MoleConfig.Input.ReadAllModels) ? "True" : "False",
+                    React.createElement("br", null),
+                    "Ignored Residues: ",
+                    (data.MoleConfig.NonActiveResidues === void 0 || data.MoleConfig.NonActiveResidues === null) ? "" : CommonUtils.Misc.flattenResidues(data.MoleConfig.NonActiveResidues),
+                    React.createElement("br", null),
+                    "Specific Chains: ",
+                    (data.MoleConfig.Input === void 0) ? "" : data.MoleConfig.Input.SpecificChains,
+                    React.createElement("br", null),
+                    React.createElement("h4", null, "Cavity Parameters"),
+                    "Probe Radius: ",
+                    (data.MoleConfig.Cavity === void 0) ? "" : data.MoleConfig.Cavity.ProbeRadius,
+                    React.createElement("br", null),
+                    "Interior Threshold: ",
+                    (data.MoleConfig.Cavity === void 0) ? "" : data.MoleConfig.Cavity.InteriorThreshold,
+                    React.createElement("br", null),
+                    React.createElement("h4", null, "Channel Parameters"),
+                    "Origin Radius: ",
+                    (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.OriginRadius,
+                    React.createElement("br", null),
+                    "Surface Cover Radius: ",
+                    (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.SurfaceCoverRadius,
+                    React.createElement("br", null),
+                    "Weight Function: ",
+                    (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.WeightFunction,
+                    React.createElement("br", null),
+                    "Bottleneck Radius: ",
+                    (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.BottleneckRadius,
+                    React.createElement("br", null),
+                    "Bottleneck Tolerance: ",
+                    (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.BottleneckTolerance,
+                    React.createElement("br", null),
+                    "Max Tunnel Similarity: ",
+                    (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.MaxTunnelSimilarity,
+                    React.createElement("br", null),
+                    "Merge Pores: ",
+                    (data.MoleConfig.PoresMerged === void 0 || data.MoleConfig.PoresMerged === null) ? "False" : (data.MoleConfig.PoresMerged) ? "True" : "False",
+                    React.createElement("br", null),
+                    "Automatic Pores: ",
+                    (data.MoleConfig.PoresAuto === void 0 || data.MoleConfig.PoresAuto === null) ? "False" : (data.MoleConfig.PoresAuto) ? "True" : "False",
+                    React.createElement("br", null),
+                    React.createElement("h4", null, "Selection"),
+                    "Starting Point: ",
+                    (data.MoleConfig.Origin === void 0 || data.MoleConfig.Origin === null) ? "" : (data.MoleConfig.Origin.Residues === void 0 || data.MoleConfig.Origin.Residues === null || data.MoleConfig.Origin.Residues.length === 0) ? "" : CommonUtils.Misc.flattenResiduesArray(data.MoleConfig.Origin.Residues),
+                    React.createElement("br", null),
+                    "Starting Point[x,y,z]: ",
+                    (data.MoleConfig.Origin === void 0 || data.MoleConfig.Origin === null) ? "" : (data.MoleConfig.Origin.Points === void 0 || data.MoleConfig.Origin.Points === null) ? "" : CommonUtils.Misc.pointsToString(data.MoleConfig.Origin.Points),
+                    React.createElement("br", null),
+                    "End Point: ",
+                    (data.MoleConfig.CustomExits === void 0 || data.MoleConfig.CustomExits === null) ? "" : (data.MoleConfig.CustomExits.Residues === void 0 || data.MoleConfig.CustomExits.Residues === null || data.MoleConfig.CustomExits.Residues.length === 0) ? "" : CommonUtils.Misc.flattenResiduesArray(data.MoleConfig.CustomExits.Residues),
+                    React.createElement("br", null),
+                    "End Point[x,y,z]: ",
+                    (data.MoleConfig.CustomExits === void 0 || data.MoleConfig.CustomExits === null) ? "" : (data.MoleConfig.CustomExits.Points === void 0 || data.MoleConfig.CustomExits.Points === null) ? "" : CommonUtils.Misc.pointsToString(data.MoleConfig.CustomExits.Points),
+                    React.createElement("br", null),
+                    "Query: ",
+                    (data.MoleConfig.Origin === void 0 || data.MoleConfig.Origin === null) ? "" : (data.MoleConfig.Origin.QueryExpression === void 0 || data.MoleConfig.Origin.QueryExpression === null) ? "" : data.MoleConfig.Origin.QueryExpression,
+                    React.createElement("br", null));
+            };
+            Submission.prototype.getPoresJob = function (data) {
+                return React.createElement("div", { className: "panel-body" },
+                    "Beta Structure: ",
+                    (data.PoresConfig.IsBetaBarel === void 0) ? "False" : (data.PoresConfig.IsBetaBarel) ? "True" : "False",
+                    React.createElement("br", null),
+                    "Membrane Region: ",
+                    (data.PoresConfig.InMembrane === void 0) ? "False" : (data.PoresConfig.InMembrane) ? "True" : "False",
+                    React.createElement("br", null),
+                    "Specific Chains: ",
+                    (data.PoresConfig.Chains === void 0) ? "" : data.PoresConfig.Chains,
+                    React.createElement("br", null),
+                    "Probe Radius: ",
+                    (data.PoresConfig === void 0) ? "" : data.PoresConfig.ProbeRadius,
+                    React.createElement("br", null),
+                    "Interior Threshold: ",
+                    (data.PoresConfig === void 0) ? "" : data.PoresConfig.InteriorThreshold,
+                    React.createElement("br", null));
+            };
+            Submission.prototype.render = function () {
+                var _this = this;
+                var currentSubmitId = this.props.currentSubmitId;
+                var data = this.props.data;
+                var canResubmit = checkCanResubmit(this.props.status);
+                var contents;
+                if (CommonUtils.Misc.isMoleJob(data)) {
+                    contents = this.getMoleJob(data);
+                }
+                else {
+                    contents = this.getPoresJob(data);
+                }
+                return (React.createElement("div", { className: "panel panel-default" },
+                    React.createElement("div", { className: "panel-heading" },
+                        React.createElement("a", { "data-toggle": "collapse", href: "#submit-data-" + data.SubmitId, onClick: function (e) {
+                                if (e.currentTarget.attributes.getNamedItem('aria-expanded').value === 'true') {
+                                    if (String(data.SubmitId) !== String(_this.props.currentSubmitId)) {
+                                        changeSubmitId(_this.props.computationId, data.SubmitId);
+                                    }
+                                }
+                            } },
+                            React.createElement("h4", { className: "panel-title" },
+                                "#",
+                                data.SubmitId),
+                            React.createElement("div", { className: "submission-state" },
+                                "Status: ",
+                                React.createElement("span", { className: "state-" + this.props.status }, this.props.status)))),
+                    React.createElement("div", { id: "submit-data-" + data.SubmitId, className: "panel-collapse collapse" + ((currentSubmitId.toString() === data.SubmitId.toString()) ? ' in' : '') },
+                        contents,
+                        React.createElement("div", { className: "panel-footer" },
+                            React.createElement("span", { className: "btn btn-xs btn-primary", onClick: (function () { return _this.copyParams(data.SubmitId); }).bind(this) }, "Copy"),
+                            React.createElement("span", { className: "btn btn-xs btn-primary", disabled: !canResubmit, onClick: (function () { return _this.reSubmit(); }).bind(this) }, "Resubmit")))));
+            };
+            Submission.prototype.reSubmit = function () {
+                if (CommonUtils.Misc.isMoleJob(this.props.data)) {
+                    gtag('event', 'Submit', { 'event_category': 'MOLE' });
+                    MoleOnlineWebUI.Bridge.Events.invokeOnReSubmit(Service.ApiService.submitMoleJob(this.props.computationId, this.props.data.MoleConfig));
+                }
+                else {
+                    gtag('event', 'Submit', { 'event_category': 'Pores' });
+                    MoleOnlineWebUI.Bridge.Events.invokeOnReSubmit(Service.ApiService.submitPoresJob(this.props.computationId, this.props.data.PoresConfig));
+                }
+            };
+            Submission.prototype.copyParams = function (submitId) {
+                if (this.props.onCopy !== void 0) {
+                    this.props.onCopy(submitId);
+                }
+            };
+            return Submission;
+        }(React.Component));
+        UI.Submission = Submission;
+        var ChannelsDBSubmission = (function (_super) {
+            __extends(ChannelsDBSubmission, _super);
+            function ChannelsDBSubmission() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            ChannelsDBSubmission.prototype.componentDidMount = function () {
+            };
+            ChannelsDBSubmission.prototype.render = function () {
+                var _this = this;
+                var isSelected = this.props.isSelected;
+                var link = Config.CommonOptions.CHANNELSDB_LINK_DETAIL_URL + "/" + this.props.pdbid;
+                var contents = React.createElement("div", { className: "panel-body" },
+                    "See ",
+                    React.createElement("a", { target: "_blank", href: link }, link),
+                    " for more info.");
+                return (React.createElement("div", { className: "panel panel-default" },
+                    React.createElement("div", { className: "panel-heading" },
+                        React.createElement("a", { "data-toggle": "collapse", href: "#submit-data-ChannelsDB", onClick: function (e) {
+                                if (e.currentTarget.attributes.getNamedItem('aria-expanded').value === 'true') {
+                                    if (!_this.props.isSelected) {
+                                        changeSubmitId(_this.props.computationId, -1);
+                                    }
+                                }
+                            } },
+                            React.createElement("h4", { className: "panel-title" }, "#ChannelsDB"),
+                            React.createElement("div", { className: "submission-state" }))),
+                    React.createElement("div", { id: "submit-data-ChannelsDB", className: "panel-collapse collapse" + ((isSelected) ? ' in' : '') }, contents)));
+            };
+            return ChannelsDBSubmission;
+        }(React.Component));
+        UI.ChannelsDBSubmission = ChannelsDBSubmission;
+        function changeSubmitId(computationId, submitId) {
+            if (submitId === -1) {
+                Common.Util.Router.fakeRedirect(computationId, "ChannelsDB");
+            }
+            else {
+                Common.Util.Router.fakeRedirect(computationId, (submitId > 0) ? String(submitId) : void 0);
+            }
+            LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
+            MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(submitId);
+        }
+        ;
+        var ControlTabs = (function (_super) {
+            __extends(ControlTabs, _super);
+            function ControlTabs() {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.state = {
+                    activeTabIdx: 0,
+                    data: void 0,
+                    err: void 0,
+                    submitId: 1,
+                    canSubmit: true
+                };
+                return _this;
+            }
+            ControlTabs.prototype.componentDidMount = function () {
+                var _this = this;
+                if (this.props.activeTab !== void 0) {
+                    var state = this.state;
+                    state.activeTabIdx = this.props.activeTab;
+                    this.setState(state);
+                }
+                var parameters = Common.Util.Router.getParameters();
+                if (parameters !== null) {
+                    var compId = parameters.computationId;
+                    var submitId_1 = parameters.submitId;
+                    if (parameters.isChannelsDB) {
+                        submitId_1 = -1;
+                    }
+                    Provider.get(parameters.computationId, (function (compId, info) {
+                        //CompInfo => Status==="Error" => Submissions neexistuje! Response ma format /Status na misto /CompInfo
+                        if (info === null) {
+                            return;
+                        }
+                        var state = _this.state;
+                        state.data = info;
+                        state.submitId = submitId_1;
+                        _this.setState(state);
+                    }).bind(this));
+                }
+                else {
+                    var state = this.state;
+                    state.err = "Parameters from url cannot be properly processed.";
+                    this.setState(state);
+                }
+                MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId(function (submitId) {
+                    var state = _this.state;
+                    state.submitId = submitId;
+                    _this.setState(state);
+                });
+                Common.Controls.FromLiteMol.ValidationState.attachOnStateChangeHandler(validationGroup, function (prev, curr) {
+                    var s = _this.state;
+                    if (curr !== "VALID") {
+                        $("#submission-form").find("input[type=submit]").attr("disabled", true);
+                        s.canSubmit = false;
+                    }
+                    else {
+                        s.canSubmit = true;
+                    }
+                    _this.setState(s);
+                });
+            };
+            ControlTabs.prototype.nullIfEmpty = function (data) {
+                if (data.length === 1 && data[0].length === 0) {
+                    return null;
+                }
+                return data;
+            };
+            ControlTabs.prototype.handleSubmit = function (e) {
+                e.preventDefault();
+                $(e.target).find("input[type=submit]").attr("disabled", true);
+                var currentState = this.state;
+                currentState.canSubmit = false;
+                this.setState(currentState);
+                if (this.state.data === void 0) {
+                    return;
+                }
+                CommonUtils.FormEvents.Events.invokeOnSubmit(validationGroup);
+            };
+            ControlTabs.prototype.render = function () {
+                var _this = this;
+                var tabs = [];
+                if (this.state.data !== void 0) {
+                    tabs.push(React.createElement(Settings, { initialData: this.state.data, parent: this, submitId: this.state.submitId }));
+                    tabs.push(React.createElement(Submissions, { computationInfo: this.state.data, onResubmit: function (info) {
+                            var state = _this.state;
+                            state.data = info;
+                            _this.setState(state);
+                        } }));
+                }
+                else {
+                    tabs.push(React.createElement("div", null, "No data"));
+                }
+                if (this.state.canSubmit) {
+                    $('#controls .submit-parent').find("input[type=submit]").removeAttr("disabled");
+                }
+                else {
+                    $('#controls .submit-parent').find("input[type=submit]").attr("disabled", true);
+                }
+                return (React.createElement("div", { className: "submit-form-container" },
+                    React.createElement(Common.Tabs.BootstrapTabs.TabbedContainer, { header: ["Submission settings", "Submissions"], tabContents: tabs, namespace: "right-panel-tabs-", htmlClassName: "tabs", htmlId: "right-panel-tabs", activeTab: this.state.activeTabIdx, onChange: (function (tabIdx) {
+                            var s = _this.state;
+                            s.activeTabIdx = tabIdx;
+                            _this.setState(s);
+                        }).bind(this) }),
+                    React.createElement("form", { className: "form-horizontal", id: "submission-form", onSubmit: this.handleSubmit.bind(this) },
+                        React.createElement(ControlButtons, { submitId: this.state.submitId, computationInfo: this.state.data })),
+                    React.createElement("div", { id: "right-panel-toggler", className: "toggler glyphicon glyphicon-resize-vertical" })));
+            };
+            return ControlTabs;
+        }(React.Component));
+        UI.ControlTabs = ControlTabs;
+        var ControlButtons = (function (_super) {
+            __extends(ControlButtons, _super);
+            function ControlButtons() {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.state = { submitId: -1, hasKillable: false, canSubmit: true };
+                return _this;
+            }
+            ControlButtons.prototype.componentDidMount = function () {
+                var _this = this;
+                this.state.submitId = this.props.submitId;
+                MoleOnlineWebUI.Bridge.Events.subscribeChangeHasKillable(function (hasKillable) {
+                    var state = _this.state;
+                    state.hasKillable = hasKillable;
+                    _this.setState(state);
+                });
+            };
+            ControlButtons.prototype.componentWillReceiveProps = function (nextProps) {
+                var state = this.state;
+                state.submitId = nextProps.submitId;
+                this.setState(state);
+            };
+            ControlButtons.prototype.getSubmissions = function () {
+                var submissions = [];
+                if (this.props.computationInfo !== void 0) {
+                    submissions = this.sortSubmissions(this.props.computationInfo.Submissions);
+                }
+                return submissions;
+            };
+            ControlButtons.prototype.sortSubmissions = function (items) {
+                return items.sort(function (a, b) {
+                    return a.SubmitId - b.SubmitId;
+                });
+            };
+            ControlButtons.prototype.prepareSubmissionItems = function () {
+                var submissions = this.getSubmissions();
+                var rv = [];
+                rv.push({
+                    label: "-",
+                    value: '0'
+                });
+                if (this.props.computationInfo !== void 0) {
+                    if (this.props.computationInfo.PdbId !== null && this.props.computationInfo.PdbId !== "") {
+                        rv.push({
+                            label: 'ChDB',
+                            value: '-1'
+                        });
+                    }
+                }
+                if (submissions.length === 0) {
+                    return rv;
+                }
+                for (var _i = 0, submissions_1 = submissions; _i < submissions_1.length; _i++) {
+                    var item = submissions_1[_i];
+                    rv.push({
+                        label: "" + item.SubmitId,
+                        value: "" + item.SubmitId
+                    });
+                }
+                return rv;
+            };
+            ControlButtons.prototype.getSelectedIndex = function (submitId, items) {
+                for (var idx = 0; idx < items.length; idx++) {
+                    var item = items[idx];
+                    if (item.value === "" + submitId) {
+                        return idx;
+                    }
+                }
+                return void 0;
+            };
+            ControlButtons.prototype.onSubmitIdComboSelectChange = function (e) {
+                if (this.props.computationInfo === void 0) {
+                    return;
+                }
+                var idx = e.currentTarget.selectedIndex;
+                var submitId = e.currentTarget.options[idx].value;
+                var sid = Number(submitId).valueOf();
+                changeSubmitId(this.props.computationInfo.ComputationId, sid);
+                var state = this.state;
+                state.submitId = sid;
+                this.setState(state);
+            };
+            ControlButtons.prototype.changeSubmitIdByStep = function (e) {
+                if (this.props.computationInfo === void 0) {
+                    return;
+                }
+                var submitId = e.currentTarget.dataset["value"];
+                if (submitId !== void 0) {
+                    var sid = Number(submitId).valueOf();
+                    changeSubmitId(this.props.computationInfo.ComputationId, sid);
+                    var state = this.state;
+                    state.submitId = sid;
+                    this.setState(state);
+                }
+            };
+            ControlButtons.prototype.canShift = function (left) {
+                if (this.props.computationInfo === void 0) {
+                    return false;
+                }
+                if (String(this.state.submitId) === String(0)) {
+                    return false;
+                }
+                var submissions = this.getSubmissions();
+                for (var idx = 0; idx < submissions.length; idx++) {
+                    if (String(submissions[idx].SubmitId) === String(this.props.submitId)) {
+                        var nextIdx = idx + ((left) ? -1 : 1);
+                        if (nextIdx < 0 || nextIdx >= submissions.length) {
+                            return false;
+                        }
+                        else {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            };
+            ControlButtons.prototype.canShiftNext = function () {
+                return this.canShift(false);
+            };
+            ControlButtons.prototype.canShiftPrev = function () {
+                return this.canShift(true);
+            };
+            ControlButtons.prototype.getNextIdx = function (idx) {
+                return idx + 1;
+            };
+            ControlButtons.prototype.getPrevIdx = function (idx) {
+                return idx - 1;
+            };
+            ControlButtons.prototype.render = function () {
+                var canKill = (this.props.computationInfo !== void 0 && this.state.hasKillable);
+                var items = this.prepareSubmissionItems();
+                var idx = this.getSelectedIndex(this.state.submitId, items);
+                var canShiftPrev = this.canShiftPrev();
+                var canShiftNext = this.canShiftNext();
+                return React.createElement("div", { className: "submit-parent" },
+                    React.createElement("input", { className: "btn btn-primary submit", type: "submit", value: "Submit" }),
+                    React.createElement("input", { type: "button", className: "btn btn-primary kill-job-button", disabled: !canKill, onClick: (function (e) {
+                            if ($(e.currentTarget).attr("disabled") !== "disabled") {
+                                $('#killJobDialog').modal('show');
+                                $(".chdb-panel.right-panel").addClass("has-modal");
+                            }
+                        }), value: "Kill" }),
+                    React.createElement("input", { type: "button", className: "btn btn-primary delete-project-button", "data-toggle": "modal", "data-target": "#deleteProjectDialog", onClick: (function (e) {
+                            e.preventDefault();
+                            $(".chdb-panel.right-panel").addClass("has-modal");
+                            return false;
+                        }), value: "Delete" }),
+                    React.createElement("input", { className: "btn btn-primary clear-button", type: "button", value: "Clear", onClick: function () {
+                            CommonUtils.FormEvents.Events.invokeOnClear(validationGroup + "_form");
+                        } }),
+                    React.createElement("input", { className: "btn btn-primary submit-arrow", type: "button", value: ">", disabled: (!canShiftNext) ? true : void 0, "data-value": (!canShiftNext || idx === void 0) ? void 0 : items[this.getNextIdx(idx)].value, onClick: this.changeSubmitIdByStep.bind(this) }),
+                    React.createElement(Common.Controls.SimpleComboBox, { id: "submissionComboSwitch", items: items, defaultSelectedIndex: idx, className: "form-control submit-combo", onSelectedChange: this.onSubmitIdComboSelectChange.bind(this) }),
+                    React.createElement("input", { className: "btn btn-primary submit-arrow", type: "button", value: "<", disabled: (!canShiftPrev) ? true : void 0, "data-value": (!canShiftPrev || idx == void 0) ? void 0 : items[this.getPrevIdx(idx)].value, onClick: this.changeSubmitIdByStep.bind(this) }),
+                    React.createElement(ModalDialog, { id: "killJobDialog", header: "Do you really want to kill running job?", body: this.prepareKillJobDialogBody() }),
+                    React.createElement(ModalDialog, { id: "deleteProjectDialog", header: "Do you really want to delete whole computation project?", body: this.prepareDeleteDialogBody() }));
+            };
+            ControlButtons.prototype.prepareKillJobDialogBody = function () {
+                var _this = this;
+                return (React.createElement("div", null,
+                    React.createElement("button", { className: "btn btn-primary left-button", onClick: function (e) {
+                            e.preventDefault();
+                            if (_this.props.computationInfo === void 0) {
+                                return false;
+                            }
+                            Service.ApiService.killRunningJob(_this.props.computationInfo.ComputationId).then(function (result) {
+                                if (result.Status !== "Aborted") {
+                                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                        message: (result.ErrorMsg.length === 0) ? "Attempt to kill job was not successfull." : result.ErrorMsg,
+                                        messageType: "Warning"
+                                    });
+                                    return;
+                                }
+                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                    message: "Job has been successfully killed.",
+                                    messageType: "Success"
+                                });
+                            })
+                                .catch(function (err) {
+                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                    message: "Attempt to kill running job failed! Please try again later.",
+                                    messageType: "Danger"
+                                });
+                            });
+                            return false;
+                        }, "data-dismiss": "modal" }, "Yes"),
+                    React.createElement("button", { className: "btn btn-primary right-button", "data-dismiss": "modal" }, "No")));
+            };
+            ControlButtons.prototype.prepareDeleteDialogBody = function () {
+                var _this = this;
+                return (React.createElement("div", null,
+                    React.createElement("button", { className: "btn btn-primary left-button", onClick: function (e) {
+                            e.preventDefault();
+                            if (_this.props.computationInfo === void 0) {
+                                return false;
+                            }
+                            Service.ApiService.deleteProject(_this.props.computationInfo.ComputationId).then(function () {
+                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                    message: "Current computation was succesfuly deleted. You will be redirected to initial page.",
+                                    messageType: "Success"
+                                });
+                                window.setTimeout(function () {
+                                    SimpleRouter.GlobalRouter.redirect(Config.Routing.ROUTING_OPTIONS[Config.Routing.ROUTING_MODE].defaultContextPath);
+                                }, 5000);
+                            })
+                                .catch(function (err) {
+                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                    message: "Attempt to delete current computation failed! Please try again later.",
+                                    messageType: "Danger"
+                                });
+                            });
+                            return false;
+                        }, "data-dismiss": "modal" }, "Yes"),
+                    React.createElement("button", { className: "btn btn-primary right-button", "data-dismiss": "modal" }, "No")));
+            };
+            return ControlButtons;
+        }(React.Component));
+        UI.ControlButtons = ControlButtons;
+        var ModalDialog = (function (_super) {
+            __extends(ModalDialog, _super);
+            function ModalDialog() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            ModalDialog.prototype.render = function () {
+                return React.createElement("div", { id: this.props.id, className: "modal fade", role: "dialog" },
+                    React.createElement("div", { className: "modal-dialog" },
+                        React.createElement("div", { className: "modal-content" },
+                            React.createElement("div", { className: "modal-header" },
+                                React.createElement("button", { type: "button", className: "close", "data-dismiss": "modal" }, "\u00D7"),
+                                React.createElement("h4", { className: "modal-title" }, this.props.header)),
+                            React.createElement("div", { className: "modal-body" }, this.props.body),
+                            React.createElement("div", { className: "modal-footer" },
+                                React.createElement("button", { type: "button", className: "btn btn-default", "data-dismiss": "modal", onClick: function () {
+                                        $(".chdb-panel.right-panel").removeClass("has-modal");
+                                    } }, "Close")))));
+            };
+            return ModalDialog;
+        }(React.Component));
+    })(UI = Controls.UI || (Controls.UI = {}));
+})(Controls || (Controls = {}));
+var Controls;
+(function (Controls) {
+    var UI;
+    (function (UI) {
         var Cavity = (function () {
             function Cavity() {
                 this.IgnoreHETAtoms = false;
@@ -10327,6 +12451,7 @@ var Controls;
             }
             return Cavity;
         }());
+        UI.Cavity = Cavity;
         var Input = (function () {
             function Input() {
                 this.ReadAllModels = false;
@@ -10334,6 +12459,7 @@ var Controls;
             }
             return Input;
         }());
+        UI.Input = Input;
         var Tunnel = (function () {
             function Tunnel() {
                 this.WeightFunction = "VoronoiScale";
@@ -10346,6 +12472,7 @@ var Controls;
             }
             return Tunnel;
         }());
+        UI.Tunnel = Tunnel;
         var Origin = (function () {
             function Origin() {
                 this.Points = null;
@@ -10354,6 +12481,7 @@ var Controls;
             }
             return Origin;
         }());
+        UI.Origin = Origin;
         var MoleFormData = (function () {
             function MoleFormData(data) {
                 if (data !== void 0 && data.Cavity !== null && data.Cavity !== void 0) {
@@ -10737,6 +12865,7 @@ var Controls;
             };
             return MoleFormData;
         }());
+        UI.MoleFormData = MoleFormData;
         var PoresFormData = (function () {
             function PoresFormData(data) {
                 if (data !== void 0 && data.InMembrane !== null && data.InMembrane !== void 0) {
@@ -10757,6 +12886,18 @@ var Controls;
                 else {
                     this.Chains = null;
                 }
+                if (data !== void 0 && data.InteriorThreshold !== null && data.InteriorThreshold !== void 0) {
+                    this.InteriorThreshold = data.InteriorThreshold;
+                }
+                else {
+                    this.InteriorThreshold = null;
+                }
+                if (data !== void 0 && data.ProbeRadius !== null && data.ProbeRadius !== void 0) {
+                    this.ProbeRadius = data.ProbeRadius;
+                }
+                else {
+                    this.ProbeRadius = null;
+                }
             }
             PoresFormData.prototype.setBetaStructure = function (value) {
                 this.IsBetaBarel = value;
@@ -10776,1317 +12917,31 @@ var Controls;
             PoresFormData.prototype.getSpecificChains = function () {
                 return this.Chains;
             };
+            PoresFormData.prototype.setProbeRadius = function (value) {
+                this.ProbeRadius = value;
+            };
+            PoresFormData.prototype.getProbeRadius = function () {
+                return this.ProbeRadius;
+            };
+            PoresFormData.prototype.setInteriorThreshold = function (value) {
+                this.InteriorThreshold = value;
+            };
+            PoresFormData.prototype.getInteriorThreshold = function () {
+                return this.InteriorThreshold;
+            };
             //--
             PoresFormData.prototype.getPackage = function () {
                 return {
                     Chains: this.Chains,
                     InMembrane: this.InMembrane,
-                    IsBetaBarel: this.IsBetaBarel
+                    IsBetaBarel: this.IsBetaBarel,
+                    InteriorThreshold: this.InteriorThreshold,
+                    ProbeRadius: this.ProbeRadius
                 };
             };
             return PoresFormData;
         }());
-        ;
-        var Settings = (function (_super) {
-            __extends(Settings, _super);
-            function Settings() {
-                var _this = _super !== null && _super.apply(this, arguments) || this;
-                _this.state = {
-                    moleFormData: _this.getMoleDefaultValues(),
-                    poresFormData: _this.getPoresDefaultValues(),
-                    pdbid: _this.props.initialData.PdbId,
-                    computationId: _this.props.initialData.ComputationId,
-                    mode: "Mole",
-                    expandedPanels: {
-                        activeAtomsResidues: true,
-                        activeAtomsResiduesAdvanced: false,
-                        cavityParameters: false,
-                        channelParameters: false,
-                        channelParametersAdvanced: false,
-                        selection: true
-                    }
-                };
-                return _this;
-            }
-            Settings.prototype.getMoleDefaultValues = function () {
-                var data = new MoleFormData();
-                data.setIgnoreHETATMs(true);
-                data.setIgnoreHydrogens(false);
-                //data.setQueryFilter("");
-                data.setReadAllModels(false);
-                //data.setIgnoredResidues([]);
-                //data.setSpecificChains("");
-                data.setProbeRadius(5);
-                data.setInteriorThreshold(1.1);
-                data.setOriginRadius(5);
-                data.setSurfaceCoverRadius(10);
-                data.setWeightFunction("VoronoiScale");
-                data.setMergePores(false);
-                data.setAutomaticPores(false);
-                data.setBottleneckRadius(1.2);
-                data.setBottleneckTolerance(3);
-                data.setMaxTunnelSimilarity(0.7);
-                return data;
-            };
-            Settings.prototype.getPoresDefaultValues = function () {
-                var data = new PoresFormData();
-                data.setBetaStructure(false);
-                data.setMembraneRegion(false);
-                //data.setSpecificChains("");
-                return data;
-            };
-            Settings.prototype.handleSubmitPromise = function (promise) {
-                var _this = this;
-                promise
-                    .then(function (result) {
-                    if (result.Status === "Error") {
-                        var state = _this.props.parent.state;
-                        state.canSubmit = true;
-                        _this.props.parent.setState(state);
-                        MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                            messageType: "Danger",
-                            message: result.ErrorMsg
-                        });
-                    }
-                    else {
-                        CommonUtils.Router.fakeRedirect(result.ComputationId, String(result.SubmitId));
-                        LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
-                        Provider.get(result.ComputationId, (function (compId, info) {
-                            MoleOnlineWebUI.DataProxy.JobStatus.Watcher.registerOnChangeHandler(result.ComputationId, result.SubmitId, function (status) {
-                                if (checkCanSubmit(status.Status)) {
-                                    MoleOnlineWebUI.Bridge.Events.invokeToggleLoadingScreen({
-                                        message: "",
-                                        visible: false
-                                    });
-                                    var state_1 = _this.props.parent.state;
-                                    state_1.canSubmit = true;
-                                    _this.props.parent.setState(state_1);
-                                }
-                            }, function (err) {
-                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                                    messageType: "Danger",
-                                    message: "Job status cannot be tracked. Please try to refresh the page."
-                                });
-                            });
-                            var state = _this.props.parent.state;
-                            state.data = info;
-                            _this.props.parent.setState(state);
-                            MoleOnlineWebUI.Bridge.Events.invokeNewSubmit();
-                            MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(Number(result.SubmitId));
-                            //CommonUtils.FormEvents.Events.invokeOnClear(`${validationGroup}/selection`);
-                        }).bind(_this), true);
-                        /*MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                            messageType: "Success",
-                            message: "Job was successfully submited."
-                        })*/
-                        MoleOnlineWebUI.Bridge.Events.invokeToggleLoadingScreen({
-                            message: "Submited job in progress...",
-                            visible: true
-                        });
-                    }
-                })
-                    .catch(function (err) {
-                    var state = _this.props.parent.state;
-                    state.canSubmit = true;
-                    _this.props.parent.setState(state);
-                    if (Config.CommonOptions.DEBUG_MODE)
-                        console.log(err);
-                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                        messageType: "Danger",
-                        message: "Job submit was not completed succesfully! Please try again later."
-                    });
-                });
-            };
-            Settings.prototype.componentDidMount = function () {
-                var _this = this;
-                CommonUtils.FormEvents.Events.attachOnSubmitEventHandler(function (formGroup) {
-                    if (formGroup !== validationGroup) {
-                        return;
-                    }
-                    var promise;
-                    if (_this.state.mode === "Mole") {
-                        promise = Service.ApiService.submitMoleJob(_this.state.computationId, _this.state.moleFormData.getPackage());
-                    }
-                    else {
-                        promise = Service.ApiService.submitPoresJob(_this.state.computationId, _this.state.poresFormData.getPackage());
-                    }
-                    _this.handleSubmitPromise(promise);
-                });
-                MoleOnlineWebUI.Bridge.Events.subscribeOnReSubmit(function (promise) {
-                    _this.handleSubmitPromise(promise);
-                });
-                CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
-                    if (formGroup !== validationGroup) {
-                        return;
-                    }
-                    Common.Controls.FromLiteMol.ValidationState.reset(validationGroup);
-                    var s = _this.state;
-                    s.moleFormData = _this.getMoleDefaultValues();
-                    s.poresFormData = _this.getPoresDefaultValues();
-                    _this.setState(s);
-                });
-                MoleOnlineWebUI.Bridge.Events.subscribeCopyParameters(function (params) {
-                    var s1 = _this.props.parent.state;
-                    _this.props.parent.setState({
-                        activeTabIdx: 0,
-                        submitId: s1.submitId,
-                        canSubmit: s1.canSubmit,
-                        data: s1.data,
-                        err: s1.err
-                    }, function () {
-                        _this.setState({
-                            computationId: _this.state.computationId,
-                            pdbid: _this.state.pdbid,
-                            moleFormData: _this.state.moleFormData,
-                            poresFormData: _this.state.poresFormData,
-                            mode: (params.mode === "mole") ? "Pores" : "Mole",
-                            expandedPanels: _this.state.expandedPanels
-                        }, function () {
-                            _this.setState({
-                                computationId: _this.state.computationId,
-                                pdbid: _this.state.pdbid,
-                                moleFormData: (params.mode === "mole" && params.moleConfig !== null) ? new MoleFormData(params.moleConfig) : _this.getMoleDefaultValues(),
-                                poresFormData: (params.mode === "pores" && params.poresConfig !== null) ? new PoresFormData(params.poresConfig) : _this.getPoresDefaultValues(),
-                                mode: (params.mode === "mole") ? "Mole" : "Pores",
-                                expandedPanels: _this.state.expandedPanels
-                            });
-                        });
-                    });
-                });
-            };
-            Settings.prototype.render = function () {
-                var _this = this;
-                var form = React.createElement("div", null);
-                if (this.state.mode === "Mole") {
-                    form = this.getMoleForm();
-                }
-                else if (this.state.mode === "Pores") {
-                    form = this.getPoresForm();
-                }
-                return (React.createElement("div", null,
-                    React.createElement("div", { className: "mode-switch-button-container" },
-                        React.createElement("span", { className: "btn-sm btn-primary mode-switch", onClick: function (e) {
-                                var state = _this.state;
-                                state.mode = (_this.state.mode === "Mole") ? "Pores" : "Mole";
-                                _this.setState(state);
-                            } },
-                            "Switch to ",
-                            (this.state.mode === "Mole") ? "Pore" : "Channels",
-                            " mode")),
-                    form));
-            };
-            Settings.prototype.getPatternQueryHint = function () {
-                return { link: "https://webchem.ncbr.muni.cz/Wiki/PatternQuery:UserManual", title: "See PatternQuery manual for help." };
-            };
-            Settings.prototype.getMoleForm = function () {
-                var _this = this;
-                if (this.state.moleFormData === null) {
-                    return React.createElement("div", null);
-                }
-                var pdbid = this.state.pdbid;
-                var data = this.state.moleFormData;
-                return React.createElement("div", { className: "settings-form basic-settings" },
-                    React.createElement("h3", null, "Mole"),
-                    React.createElement(Common.Controls.FromLiteMol.LMControlWrapper, { controls: [
-                            React.createElement(Common.Controls.FromLiteMol.ControlGroup, { label: "Active Atoms/Residues", tooltip: "", controls: [
-                                    React.createElement(Common.Controls.FromLiteMol.CheckBox, { label: "Ignore HETATMs", defaultValue: valueOrDefault(data.getIgnoreHETATMs(), true), tooltip: TooltipText.get("ignoreAllHetatm"), onChange: function (v) {
-                                            var s = _this.state;
-                                            if (s.moleFormData !== null) {
-                                                s.moleFormData.setIgnoreHETATMs(v);
-                                            }
-                                        }, onMount: function (control) {
-                                            (function () {
-                                                CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
-                                                    if (formGroup !== validationGroup) {
-                                                        return;
-                                                    }
-                                                    control.reset();
-                                                });
-                                            }).bind(control)();
-                                        } }),
-                                    React.createElement(Common.Controls.FromLiteMol.ControlGroup, { label: "Advanced options", tooltip: "", controls: [
-                                            React.createElement(Common.Controls.FromLiteMol.CheckBox, { label: "Ignore Hydrogens", defaultValue: valueOrDefault(data.getIgnoreHydrogens(), false), tooltip: TooltipText.get("ignoreHydrogens"), onChange: function (v) {
-                                                    var s = _this.state;
-                                                    if (s.moleFormData !== null) {
-                                                        s.moleFormData.setIgnoreHydrogens(v);
-                                                    }
-                                                }, onMount: function (control) {
-                                                    (function () {
-                                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
-                                                            if (formGroup !== validationGroup) {
-                                                                return;
-                                                            }
-                                                            control.reset();
-                                                        });
-                                                    }).bind(control)();
-                                                } }),
-                                            React.createElement(Common.Controls.FromLiteMol.TextBoxWithHelp, { label: "Query Filter", tooltip: TooltipText.get("queryFilter"), placeholder: "Residues('GOL')", hint: this.getPatternQueryHint(), defaultValue: valueOrDefault(data.getQueryFilter(), ""), onChange: function (v) {
-                                                    var s = _this.state;
-                                                    if (s.moleFormData !== null) {
-                                                        s.moleFormData.setQueryFilter(v);
-                                                    }
-                                                }, onMount: function (control) {
-                                                    (function () {
-                                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
-                                                            if (formGroup !== validationGroup) {
-                                                                return;
-                                                            }
-                                                            control.reset();
-                                                        });
-                                                    }).bind(control)();
-                                                }, validate: CommonUtils.Validators.validatePatternQuery, validationGroup: validationGroup }),
-                                            React.createElement(Common.Controls.FromLiteMol.CheckBox, { label: "Read All Models", defaultValue: valueOrDefault(data.getReadAllModels(), false), tooltip: TooltipText.get("readAllModels"), onChange: function (v) {
-                                                    var s = _this.state;
-                                                    if (s.moleFormData !== null) {
-                                                        s.moleFormData.setReadAllModels(v);
-                                                    }
-                                                }, onMount: function (control) {
-                                                    (function () {
-                                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
-                                                            if (formGroup !== validationGroup) {
-                                                                return;
-                                                            }
-                                                            control.reset();
-                                                        });
-                                                    }).bind(control)();
-                                                } }),
-                                            React.createElement(Common.Controls.FromLiteMol.TextBox, { label: "Ignored Residues", tooltip: TooltipText.get("nonActiveResidues"), placeholder: "A 69, A 386, ...", defaultValue: CommonUtils.Misc.flattenResidues(valueOrDefault(data.getIgnoredResidues(), "")), onChange: function (v) {
-                                                    var s = _this.state;
-                                                    if (s.moleFormData !== null) {
-                                                        s.moleFormData.setIgnoredResidues(CommonUtils.Misc.parseResidues(v));
-                                                    }
-                                                }, onMount: function (control) {
-                                                    (function () {
-                                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
-                                                            if (formGroup !== validationGroup) {
-                                                                return;
-                                                            }
-                                                            control.reset();
-                                                        });
-                                                    }).bind(control)();
-                                                }, validate: CommonUtils.Validators.validateResidueSimpleArray, validationGroup: validationGroup }),
-                                            React.createElement(Common.Controls.FromLiteMol.TextBox, { label: "Specific Chains", tooltip: TooltipText.get("specificChains"), placeholder: "A, B, ...", defaultValue: valueOrDefault(data.getSpecificChains(), ""), onChange: function (v) {
-                                                    var s = _this.state;
-                                                    if (s.moleFormData !== null) {
-                                                        s.moleFormData.setSpecificChains(v);
-                                                    }
-                                                }, onMount: function (control) {
-                                                    (function () {
-                                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
-                                                            if (formGroup !== validationGroup) {
-                                                                return;
-                                                            }
-                                                            control.reset();
-                                                        });
-                                                    }).bind(control)();
-                                                }, validate: CommonUtils.Validators.validateChainsArray, validationGroup: validationGroup })
-                                        ], expanded: this.state.expandedPanels.activeAtomsResiduesAdvanced, onChange: function (e) {
-                                            var s = _this.state;
-                                            s.expandedPanels.activeAtomsResiduesAdvanced = e;
-                                            _this.setState(s);
-                                        } }),
-                                ], expanded: this.state.expandedPanels.activeAtomsResidues, onChange: function (e) {
-                                    var s = _this.state;
-                                    s.expandedPanels.activeAtomsResidues = e;
-                                    if (e === false) {
-                                        s.expandedPanels.activeAtomsResiduesAdvanced = false;
-                                    }
-                                    _this.setState(s);
-                                } }),
-                            React.createElement(Common.Controls.FromLiteMol.ControlGroup, { label: "Cavity Parameters", tooltip: "", controls: [
-                                    React.createElement(Common.Controls.FromLiteMol.NumberBox, { label: "Probe Radius", tooltip: TooltipText.get("probeRadius"), min: 1.4, max: 45, defaultValue: valueOrDefault(data.getProbeRadius(), 5), step: 0.01, onChange: function (v) {
-                                            var s = _this.state;
-                                            if (s.moleFormData !== null) {
-                                                s.moleFormData.setProbeRadius(Number(v).valueOf());
-                                            }
-                                        }, onMount: function (control) {
-                                            (function () {
-                                                CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
-                                                    if (formGroup !== validationGroup) {
-                                                        return;
-                                                    }
-                                                    control.reset();
-                                                });
-                                            }).bind(control)();
-                                        } }),
-                                    React.createElement(Common.Controls.FromLiteMol.NumberBox, { label: "Interior Treshold", tooltip: TooltipText.get("interiorTreshold"), min: 0.3, max: 3, defaultValue: valueOrDefault(data.getInteriorThreshold(), 1.1), step: 0.01, onChange: function (v) {
-                                            var s = _this.state;
-                                            if (s.moleFormData !== null) {
-                                                s.moleFormData.setInteriorThreshold(Number(v).valueOf());
-                                            }
-                                        }, onMount: function (control) {
-                                            (function () {
-                                                CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
-                                                    if (formGroup !== validationGroup) {
-                                                        return;
-                                                    }
-                                                    control.reset();
-                                                });
-                                            }).bind(control)();
-                                        } })
-                                ], expanded: this.state.expandedPanels.cavityParameters, onChange: function (e) {
-                                    var s = _this.state;
-                                    s.expandedPanels.cavityParameters = e;
-                                    _this.setState(s);
-                                } }),
-                            React.createElement(Common.Controls.FromLiteMol.ControlGroup, { label: "Channel Parameters", tooltip: "", controls: [
-                                    React.createElement(Common.Controls.FromLiteMol.NumberBox, { label: "Origin Radius", tooltip: TooltipText.get("originRadius"), min: 0.1, max: 10, defaultValue: valueOrDefault(data.getOriginRadius(), 5), step: 0.05, onChange: function (v) {
-                                            var s = _this.state;
-                                            if (s.moleFormData !== null) {
-                                                s.moleFormData.setOriginRadius(Number(v).valueOf());
-                                            }
-                                        }, onMount: function (control) {
-                                            (function () {
-                                                CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
-                                                    if (formGroup !== validationGroup) {
-                                                        return;
-                                                    }
-                                                    control.reset();
-                                                });
-                                            }).bind(control)();
-                                        } }),
-                                    React.createElement(Common.Controls.FromLiteMol.NumberBox, { label: "Surface Cover Radius", tooltip: TooltipText.get("surfaceCoverRadius"), min: 5, max: 20, defaultValue: valueOrDefault(data.getSurfaceCoverRadius(), 10), step: 0.5, onChange: function (v) {
-                                            var s = _this.state;
-                                            if (s.moleFormData !== null) {
-                                                s.moleFormData.setSurfaceCoverRadius(Number(v).valueOf());
-                                            }
-                                        }, onMount: function (control) {
-                                            (function () {
-                                                CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
-                                                    if (formGroup !== validationGroup) {
-                                                        return;
-                                                    }
-                                                    control.reset();
-                                                });
-                                            }).bind(control)();
-                                        } }),
-                                    React.createElement(Common.Controls.FromLiteMol.ComboBox, { label: "Weight Function", tooltip: TooltipText.get("tunnelWeightFunction"), items: MoleOnlineWebUI.StaticData.WeightFunctions.get().map(function (val, idx, arr) { return new Common.Controls.FromLiteMol.ComboBoxItem(val.value, val.label); }), selectedValue: valueOrDefault(data.getWeightFunction(), "VoronoiScale"), onChange: function (v) {
-                                            var s = _this.state;
-                                            if (s.moleFormData !== null) {
-                                                s.moleFormData.setWeightFunction(v);
-                                            }
-                                        }, onMount: function (control) {
-                                            (function () {
-                                                CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
-                                                    if (formGroup !== validationGroup) {
-                                                        return;
-                                                    }
-                                                    control.reset();
-                                                });
-                                            }).bind(control)();
-                                        } }),
-                                    React.createElement(Common.Controls.FromLiteMol.CheckBox, { label: "Merge Pores", defaultValue: valueOrDefault(data.getMergePores(), false), tooltip: TooltipText.get("mergePores"), onChange: function (v) {
-                                            var s = _this.state;
-                                            if (s.moleFormData !== null) {
-                                                s.moleFormData.setMergePores(v);
-                                            }
-                                        }, onMount: function (control) {
-                                            (function () {
-                                                CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
-                                                    if (formGroup !== validationGroup) {
-                                                        return;
-                                                    }
-                                                    control.reset();
-                                                });
-                                            }).bind(control)();
-                                        } }),
-                                    React.createElement(Common.Controls.FromLiteMol.CheckBox, { label: "Automatic Pores", defaultValue: valueOrDefault(data.getAutomaticPores(), false), tooltip: TooltipText.get("automaticPores"), onChange: function (v) {
-                                            var s = _this.state;
-                                            if (s.moleFormData !== null) {
-                                                s.moleFormData.setAutomaticPores(v);
-                                            }
-                                        }, onMount: function (control) {
-                                            (function () {
-                                                CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
-                                                    if (formGroup !== validationGroup) {
-                                                        return;
-                                                    }
-                                                    control.reset();
-                                                });
-                                            }).bind(control)();
-                                        } }),
-                                    React.createElement(Common.Controls.FromLiteMol.ControlGroup, { label: "Advanced options", tooltip: "", controls: [
-                                            React.createElement(Common.Controls.FromLiteMol.NumberBox, { label: "Bottleneck Radius", tooltip: TooltipText.get("bottleneckRadius"), min: 0, max: 5, defaultValue: valueOrDefault(data.getBottleneckRadius(), 1.2), step: 0.01, onChange: function (v) {
-                                                    var s = _this.state;
-                                                    if (s.moleFormData !== null) {
-                                                        s.moleFormData.setBottleneckRadius(Number(v).valueOf());
-                                                    }
-                                                }, onMount: function (control) {
-                                                    (function () {
-                                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
-                                                            if (formGroup !== validationGroup) {
-                                                                return;
-                                                            }
-                                                            control.reset();
-                                                        });
-                                                    }).bind(control)();
-                                                } }),
-                                            React.createElement(Common.Controls.FromLiteMol.NumberBox, { label: "Bottleneck Tolerance", tooltip: TooltipText.get("bottleneckTolerance"), min: 0, max: 5, defaultValue: valueOrDefault(data.getBottleneckTollerance(), 3.0), step: 0.1, onChange: function (v) {
-                                                    var s = _this.state;
-                                                    if (s.moleFormData !== null) {
-                                                        s.moleFormData.setBottleneckTolerance(Number(v).valueOf());
-                                                    }
-                                                }, onMount: function (control) {
-                                                    (function () {
-                                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
-                                                            if (formGroup !== validationGroup) {
-                                                                return;
-                                                            }
-                                                            control.reset();
-                                                        });
-                                                    }).bind(control)();
-                                                } }),
-                                            React.createElement(Common.Controls.FromLiteMol.NumberBox, { label: "Max Tunnel Similarity", tooltip: TooltipText.get("maxTunnelSimilarity"), min: 0, max: 1, defaultValue: valueOrDefault(data.getMaxTunnelSimilarity(), 0.7), step: 0.05, onChange: function (v) {
-                                                    var s = _this.state;
-                                                    if (s.moleFormData !== null) {
-                                                        s.moleFormData.setMaxTunnelSimilarity(Number(v));
-                                                    }
-                                                }, onMount: function (control) {
-                                                    (function () {
-                                                        CommonUtils.FormEvents.Events.attachOnClearEventHandler(function (formGroup) {
-                                                            if (formGroup !== validationGroup) {
-                                                                return;
-                                                            }
-                                                            control.reset();
-                                                        });
-                                                    }).bind(control)();
-                                                } })
-                                        ], expanded: this.state.expandedPanels.channelParametersAdvanced, onChange: function (e) {
-                                            var s = _this.state;
-                                            s.expandedPanels.channelParametersAdvanced = e;
-                                            _this.setState(s);
-                                        } })
-                                ], expanded: this.state.expandedPanels.channelParameters, onChange: function (e) {
-                                    var s = _this.state;
-                                    s.expandedPanels.channelParameters = e;
-                                    if (e === false) {
-                                        s.expandedPanels.channelParametersAdvanced = false;
-                                    }
-                                    _this.setState(s);
-                                } }),
-                            React.createElement(Common.Controls.FromLiteMol.ControlGroup, { label: "Selection", tooltip: "", controls: [
-                                    React.createElement(Common.Controls.FromLiteMol.StartingPointBox, { label: "Starting Point", tooltip: TooltipText.get("startingPoint"), defaultItems: this.state.moleFormData.getStartingPoints(), noDataText: "No starting points selected...", onChange: function (v) {
-                                            var s = _this.state;
-                                            if (s.moleFormData !== null) {
-                                                s.moleFormData.setStartingPoints(v);
-                                            }
-                                        }, formGroup: validationGroup, extraClearGroup: validationGroup + "/selection", allowPatternQuery: true }),
-                                    React.createElement(Common.Controls.FromLiteMol.StartingPointBox, { label: "End Point", tooltip: TooltipText.get("endPoint"), defaultItems: this.state.moleFormData.getEndingPoints(), noDataText: "No end points selected...", onChange: function (v) {
-                                            var s = _this.state;
-                                            if (s.moleFormData !== null) {
-                                                s.moleFormData.setEndPoints(v);
-                                            }
-                                        }, formGroup: validationGroup, extraClearGroup: validationGroup + "/selection", allowPatternQuery: false }),
-                                ], expanded: this.state.expandedPanels.selection, onChange: function (e) {
-                                    var s = _this.state;
-                                    s.expandedPanels.selection = e;
-                                    _this.setState(s);
-                                } })
-                        ] }));
-            };
-            Settings.prototype.getPoresForm = function () {
-                var _this = this;
-                if (this.state.poresFormData === null) {
-                    return React.createElement("div", null);
-                }
-                var data = this.state.poresFormData;
-                var chains = data.getSpecificChains();
-                if (chains === null) {
-                    chains = "";
-                }
-                var pdbid = this.state.pdbid;
-                return React.createElement("div", { className: "settings-form basic-settings pores" },
-                    React.createElement("h3", null, "Pores"),
-                    React.createElement(Common.Controls.FromLiteMol.LMControlWrapper, { controls: [
-                            React.createElement(Common.Controls.FromLiteMol.CheckBox, { label: "Beta Structure", defaultValue: data.getBetaStructure(), tooltip: TooltipText.get("poresIsBetaStructure"), onChange: function (val) {
-                                    if (_this.state.poresFormData !== null) {
-                                        _this.state.poresFormData.setBetaStructure(val);
-                                    }
-                                } }),
-                            React.createElement(Common.Controls.FromLiteMol.CheckBox, { label: "Membrane Region", defaultValue: data.getMembraneRegion(), tooltip: TooltipText.get("poresInMembrane"), onChange: function (val) {
-                                    if (_this.state.poresFormData !== null) {
-                                        _this.state.poresFormData.setMembraneRegion(val);
-                                    }
-                                } }),
-                            React.createElement(Common.Controls.FromLiteMol.TextBox, { label: "Specific Chains", defaultValue: chains, tooltip: TooltipText.get("poresChains"), placeholder: "A, B, ..." /*onValidate={this.validateChainsArray}*/, onChange: function (val) {
-                                    if (_this.state.poresFormData !== null) {
-                                        _this.state.poresFormData.setSpecificChains(val);
-                                    }
-                                } })
-                        ] }));
-            };
-            return Settings;
-        }(React.Component));
-        UI.Settings = Settings;
-        function valueOrDefault(value, def) {
-            return (value === null) ? def : value;
-        }
-        function getSubmissionIdx(compInfo, submitId) {
-            for (var idx = 0; idx < compInfo.Submissions.length; idx++) {
-                if (String(compInfo.Submissions[idx].SubmitId) === String(submitId)) {
-                    return idx;
-                }
-            }
-            return null;
-        }
-        ;
-        ;
-        var Submissions = (function (_super) {
-            __extends(Submissions, _super);
-            function Submissions() {
-                var _this = _super !== null && _super.apply(this, arguments) || this;
-                _this.state = { computationInfo: null, loading: true, channelsDBData: null };
-                _this.hasKillable = false;
-                return _this;
-            }
-            Submissions.prototype.componentWillReceiveProps = function (nextProps) {
-                this.prepareSubmissionData(nextProps.computationInfo);
-            };
-            Submissions.prototype.prepareSubmissionData = function (computationInfo) {
-                var _this = this;
-                var state_ = this.state;
-                state_.computationInfo = computationInfo;
-                this.setState(state_);
-                var hasKillable = false;
-                if (computationInfo.PdbId !== null && computationInfo.PdbId !== null) {
-                    MoleOnlineWebUI.Cache.ChannelsDBData.doWhenCached(computationInfo.PdbId)
-                        .then(function () {
-                        MoleOnlineWebUI.Cache.ChannelsDBData.getChannelsData(computationInfo.PdbId)
-                            .then(function (val) {
-                            var s = _this.state;
-                            s.channelsDBData = val;
-                            _this.setState(s);
-                        })
-                            .catch(function (err) {
-                            console.log(err);
-                        });
-                    })
-                        .catch(function (err) {
-                        console.log(err);
-                    });
-                }
-                var _loop_3 = function (submission) {
-                    if (submission.Status !== "Initializing" && submission.Status !== "Running") {
-                        return "continue";
-                    }
-                    hasKillable = true;
-                    MoleOnlineWebUI.DataProxy.JobStatus.Watcher.registerOnChangeHandler(this_3.props.computationInfo.ComputationId, submission.SubmitId, function (state) {
-                        var oldStatus = submission.Status;
-                        if (oldStatus === void 0 || oldStatus !== state.Status) {
-                            var s = _this.state;
-                            var currentCompInfo = s.computationInfo;
-                            if (currentCompInfo === null) {
-                                console.log("Computation info was not initialized corectly.");
-                                return;
-                            }
-                            var subIdx = getSubmissionIdx(currentCompInfo, submission.SubmitId);
-                            if (subIdx === null) {
-                                console.log("Submission with id'" + submission.SubmitId + "' not found.");
-                                return;
-                            }
-                            currentCompInfo.Submissions[subIdx].Status = state.Status;
-                            s.computationInfo = currentCompInfo;
-                            _this.setState(s);
-                            if (oldStatus !== void 0) {
-                                var hasKillable_ = _this.checkHasKillable(currentCompInfo);
-                                if (_this.hasKillable !== hasKillable_) {
-                                    _this.hasKillable = hasKillable_;
-                                    MoleOnlineWebUI.Bridge.Events.invokeChangeHasKillable(hasKillable_);
-                                }
-                            }
-                        }
-                    }, function (err) {
-                        if (Config.CommonOptions.DEBUG_MODE)
-                            console.log(err);
-                    });
-                };
-                var this_3 = this;
-                for (var _i = 0, _a = computationInfo.Submissions; _i < _a.length; _i++) {
-                    var submission = _a[_i];
-                    _loop_3(submission);
-                }
-                this.hasKillable = hasKillable;
-                var state = this.state;
-                state.loading = false;
-                this.setState(state);
-                if (hasKillable) {
-                    MoleOnlineWebUI.Bridge.Events.invokeChangeHasKillable(hasKillable);
-                }
-            };
-            Submissions.prototype.checkHasKillable = function (compInfo) {
-                var hasKillable = false;
-                for (var _i = 0, _a = compInfo.Submissions; _i < _a.length; _i++) {
-                    var submission = _a[_i];
-                    if (submission.Status === "Running") {
-                        hasKillable = true;
-                        return hasKillable;
-                    }
-                }
-                return hasKillable;
-            };
-            Submissions.prototype.componentDidMount = function () {
-                this.prepareSubmissionData(this.props.computationInfo);
-            };
-            Submissions.prototype.render = function () {
-                var _this = this;
-                if (this.state.computationInfo !== null && !this.state.loading) {
-                    var submissions = [];
-                    var submissionsData = this.state.computationInfo.Submissions;
-                    var submitId = 1;
-                    var isChannelsDBSelected = false;
-                    var params = CommonUtils.Router.getParameters();
-                    if (params !== null) {
-                        submitId = (params.isChannelsDB) ? -1 : params.submitId;
-                        isChannelsDBSelected = params.isChannelsDB;
-                    }
-                    if (this.state.channelsDBData !== null) {
-                        submissions.push(React.createElement(ChannelsDBSubmission, { pdbid: this.state.computationInfo.PdbId, isSelected: isChannelsDBSelected, computationId: this.props.computationInfo.ComputationId }));
-                    }
-                    for (var _i = 0, _a = submissionsData.sort(function (a, b) {
-                        return a.SubmitId - b.SubmitId;
-                    }); _i < _a.length; _i++) {
-                        var s = _a[_i];
-                        var stat = s.Status;
-                        submissions.push(React.createElement(Submission, { data: s, currentSubmitId: submitId, computationId: this.props.computationInfo.ComputationId, status: (stat === void 0) ? "Unknown" : stat, onResubmit: this.props.onResubmit, onCopy: function (submitId) {
-                                for (var _i = 0, _a = _this.props.computationInfo.Submissions; _i < _a.length; _i++) {
-                                    var submission = _a[_i];
-                                    if (submission.SubmitId.toString() === submitId.toString()) {
-                                        MoleOnlineWebUI.Bridge.Events.invokeCopyParameters({
-                                            mode: (CommonUtils.Misc.isMoleJob(submission)) ? "mole" : "pores",
-                                            moleConfig: submission.MoleConfig,
-                                            poresConfig: submission.PoresConfig
-                                        });
-                                        return;
-                                    }
-                                }
-                            } }));
-                    }
-                    if (submissions.length === 0) {
-                        return (React.createElement("div", { className: "panel panel-default" },
-                            React.createElement("div", { className: "panel-heading" },
-                                React.createElement("h4", { className: "panel-title" }, "No submissions found."))));
-                    }
-                    return (React.createElement("div", { className: "panel-group submissions" }, submissions));
-                }
-                else if (this.state.loading) {
-                    return (React.createElement("div", { className: "panel panel-default" },
-                        React.createElement("div", { className: "panel-heading" },
-                            React.createElement("h4", { className: "panel-title" }, "No submissions data available."))));
-                }
-                else {
-                    return (React.createElement("div", { className: "panel panel-default" },
-                        React.createElement("div", { className: "panel-heading" },
-                            React.createElement("h4", { className: "panel-title" }, "Submissions data loading..."))));
-                }
-            };
-            return Submissions;
-        }(React.Component));
-        UI.Submissions = Submissions;
-        /*
-        function flattenResiduesArray(residuesArray:Service.MoleConfigResidue[][]):string{
-            let rv = "";
-            let idx=0;
-            for(let array of residuesArray){
-                if(idx>0){
-                    rv = `${rv}, `;
-                }
-                rv = `${rv}[${flattenResidues(array)}]`;
-                idx++;
-            }
-            return rv;
-        }
-    
-        function flattenResidues(residues:Service.MoleConfigResidue[]):string{
-            let rv = "";
-            for(let r of residues){
-                if(rv !== ""){
-                    rv+=", ";
-                }
-                rv+=`${r.Chain} ${r.SequenceNumber}`;
-            }
-            return rv;
-        }*/
-        function checkCanKill(status) {
-            var result = false;
-            switch (status) {
-                case "Running":
-                    result = true;
-                    break;
-            }
-            return result;
-        }
-        function checkCanSubmit(status) {
-            return !checkCanKill(status);
-        }
-        function checkCanDelete(status) {
-            var result = false;
-            switch (status) {
-                case "Aborted":
-                case "Error":
-                case "FailedInitialization":
-                case "Finished":
-                case "Initialized":
-                    result = true;
-                    break;
-                case "Running":
-                case "Initializing":
-                    result = false;
-                    break;
-            }
-            return result;
-        }
-        function checkCanResubmit(status) {
-            var result = false;
-            switch (status) {
-                case "Aborted":
-                case "Error":
-                case "FailedInitialization":
-                case "Finished":
-                case "Initialized":
-                    result = true;
-                    break;
-                case "Running":
-                case "Initializing":
-                case "Deleted":
-                    result = false;
-                    break;
-            }
-            return result;
-        }
-        var Submission = (function (_super) {
-            __extends(Submission, _super);
-            function Submission() {
-                return _super !== null && _super.apply(this, arguments) || this;
-            }
-            Submission.prototype.componentDidMount = function () {
-            };
-            Submission.prototype.getMoleJob = function (data) {
-                return React.createElement("div", { className: "panel-body" },
-                    React.createElement("h4", null, "Active Atoms/Residues"),
-                    "Ignore Hydrogens: ",
-                    (data.MoleConfig.Cavity === void 0) ? "False" : (data.MoleConfig.Cavity.IgnoreHydrogens) ? "True" : "False",
-                    React.createElement("br", null),
-                    "Ignore HETATMs: ",
-                    (data.MoleConfig.Cavity === void 0) ? "False" : (data.MoleConfig.Cavity.IgnoreHETAtoms) ? "True" : "False",
-                    React.createElement("br", null),
-                    "Query Filter: ",
-                    (data.MoleConfig.QueryFilter === void 0) ? "" : data.MoleConfig.QueryFilter,
-                    React.createElement("br", null),
-                    "Read All Models: ",
-                    (data.MoleConfig.Input === void 0) ? "False" : (data.MoleConfig.Input.ReadAllModels) ? "True" : "False",
-                    React.createElement("br", null),
-                    "Ignored Residues: ",
-                    (data.MoleConfig.NonActiveResidues === void 0 || data.MoleConfig.NonActiveResidues === null) ? "" : CommonUtils.Misc.flattenResidues(data.MoleConfig.NonActiveResidues),
-                    React.createElement("br", null),
-                    "Specific Chains: ",
-                    (data.MoleConfig.Input === void 0) ? "" : data.MoleConfig.Input.SpecificChains,
-                    React.createElement("br", null),
-                    React.createElement("h4", null, "Cavity Parameters"),
-                    "Probe Radius: ",
-                    (data.MoleConfig.Cavity === void 0) ? "" : data.MoleConfig.Cavity.ProbeRadius,
-                    React.createElement("br", null),
-                    "Interior Threshold: ",
-                    (data.MoleConfig.Cavity === void 0) ? "" : data.MoleConfig.Cavity.InteriorThreshold,
-                    React.createElement("br", null),
-                    React.createElement("h4", null, "Channel Parameters"),
-                    "Origin Radius: ",
-                    (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.OriginRadius,
-                    React.createElement("br", null),
-                    "Surface Cover Radius: ",
-                    (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.SurfaceCoverRadius,
-                    React.createElement("br", null),
-                    "Weight Function: ",
-                    (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.WeightFunction,
-                    React.createElement("br", null),
-                    "Bottleneck Radius: ",
-                    (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.BottleneckRadius,
-                    React.createElement("br", null),
-                    "Bottleneck Tolerance: ",
-                    (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.BottleneckTolerance,
-                    React.createElement("br", null),
-                    "Max Tunnel Similarity: ",
-                    (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.MaxTunnelSimilarity,
-                    React.createElement("br", null),
-                    "Merge Pores: ",
-                    (data.MoleConfig.PoresMerged === void 0 || data.MoleConfig.PoresMerged === null) ? "False" : (data.MoleConfig.PoresMerged) ? "True" : "False",
-                    React.createElement("br", null),
-                    "Automatic Pores: ",
-                    (data.MoleConfig.PoresAuto === void 0 || data.MoleConfig.PoresAuto === null) ? "False" : (data.MoleConfig.PoresAuto) ? "True" : "False",
-                    React.createElement("br", null),
-                    React.createElement("h4", null, "Selection"),
-                    "Starting Point: ",
-                    (data.MoleConfig.Origin === void 0 || data.MoleConfig.Origin === null) ? "" : (data.MoleConfig.Origin.Residues === void 0 || data.MoleConfig.Origin.Residues === null || data.MoleConfig.Origin.Residues.length === 0) ? "" : CommonUtils.Misc.flattenResiduesArray(data.MoleConfig.Origin.Residues),
-                    React.createElement("br", null),
-                    "Starting Point[x,y,z]: ",
-                    (data.MoleConfig.Origin === void 0 || data.MoleConfig.Origin === null) ? "" : (data.MoleConfig.Origin.Points === void 0 || data.MoleConfig.Origin.Points === null) ? "" : CommonUtils.Misc.pointsToString(data.MoleConfig.Origin.Points),
-                    React.createElement("br", null),
-                    "End Point: ",
-                    (data.MoleConfig.CustomExits === void 0 || data.MoleConfig.CustomExits === null) ? "" : (data.MoleConfig.CustomExits.Residues === void 0 || data.MoleConfig.CustomExits.Residues === null || data.MoleConfig.CustomExits.Residues.length === 0) ? "" : CommonUtils.Misc.flattenResiduesArray(data.MoleConfig.CustomExits.Residues),
-                    React.createElement("br", null),
-                    "End Point[x,y,z]: ",
-                    (data.MoleConfig.CustomExits === void 0 || data.MoleConfig.CustomExits === null) ? "" : (data.MoleConfig.CustomExits.Points === void 0 || data.MoleConfig.CustomExits.Points === null) ? "" : CommonUtils.Misc.pointsToString(data.MoleConfig.CustomExits.Points),
-                    React.createElement("br", null),
-                    "Query: ",
-                    (data.MoleConfig.Origin === void 0 || data.MoleConfig.Origin === null) ? "" : (data.MoleConfig.Origin.QueryExpression === void 0 || data.MoleConfig.Origin.QueryExpression === null) ? "" : data.MoleConfig.Origin.QueryExpression,
-                    React.createElement("br", null));
-            };
-            Submission.prototype.getPoresJob = function (data) {
-                return React.createElement("div", { className: "panel-body" },
-                    "Beta Structure: ",
-                    (data.PoresConfig.IsBetaBarel === void 0) ? "False" : (data.PoresConfig.IsBetaBarel) ? "True" : "False",
-                    React.createElement("br", null),
-                    "Membrane Region: ",
-                    (data.PoresConfig.InMembrane === void 0) ? "False" : (data.PoresConfig.InMembrane) ? "True" : "False",
-                    React.createElement("br", null),
-                    "Specific Chains: ",
-                    (data.PoresConfig.Chains === void 0) ? "" : data.PoresConfig.Chains,
-                    React.createElement("br", null));
-            };
-            Submission.prototype.render = function () {
-                var _this = this;
-                var currentSubmitId = this.props.currentSubmitId;
-                var data = this.props.data;
-                //let canKill = checkCanKill(this.props.status as Service.ComputationStatus);
-                //let canDelete = checkCanDelete(this.props.status as Service.ComputationStatus);
-                var canResubmit = checkCanResubmit(this.props.status);
-                var contents;
-                if (CommonUtils.Misc.isMoleJob(data)) {
-                    contents = this.getMoleJob(data);
-                }
-                else {
-                    contents = this.getPoresJob(data);
-                }
-                return (React.createElement("div", { className: "panel panel-default" },
-                    React.createElement("div", { className: "panel-heading" },
-                        React.createElement("a", { "data-toggle": "collapse", href: "#submit-data-" + data.SubmitId, onClick: function (e) {
-                                if (e.currentTarget.attributes.getNamedItem('aria-expanded').value === 'true') {
-                                    if (String(data.SubmitId) !== String(_this.props.currentSubmitId)) {
-                                        changeSubmitId(_this.props.computationId, data.SubmitId);
-                                    }
-                                }
-                            } },
-                            React.createElement("h4", { className: "panel-title" },
-                                "#",
-                                data.SubmitId),
-                            React.createElement("div", { className: "submission-state" },
-                                "Status: ",
-                                React.createElement("span", { className: "state-" + this.props.status }, this.props.status)))),
-                    React.createElement("div", { id: "submit-data-" + data.SubmitId, className: "panel-collapse collapse" + ((currentSubmitId.toString() === data.SubmitId.toString()) ? ' in' : '') },
-                        contents,
-                        React.createElement("div", { className: "panel-footer" },
-                            React.createElement("span", { className: "btn btn-xs btn-primary", onClick: (function () { return _this.copyParams(data.SubmitId); }).bind(this) }, "Copy"),
-                            React.createElement("span", { className: "btn btn-xs btn-primary", disabled: !canResubmit, onClick: (function () { return _this.reSubmit(); }).bind(this) }, "Resubmit")))));
-            };
-            Submission.prototype.reSubmit = function () {
-                if (CommonUtils.Misc.isMoleJob(this.props.data)) {
-                    MoleOnlineWebUI.Bridge.Events.invokeOnReSubmit(Service.ApiService.submitMoleJob(this.props.computationId, this.props.data.MoleConfig));
-                }
-                else {
-                    MoleOnlineWebUI.Bridge.Events.invokeOnReSubmit(Service.ApiService.submitPoresJob(this.props.computationId, this.props.data.PoresConfig));
-                }
-            };
-            Submission.prototype.copyParams = function (submitId) {
-                if (this.props.onCopy !== void 0) {
-                    this.props.onCopy(submitId);
-                }
-            };
-            return Submission;
-        }(React.Component));
-        UI.Submission = Submission;
-        var ChannelsDBSubmission = (function (_super) {
-            __extends(ChannelsDBSubmission, _super);
-            function ChannelsDBSubmission() {
-                return _super !== null && _super.apply(this, arguments) || this;
-            }
-            ChannelsDBSubmission.prototype.componentDidMount = function () {
-            };
-            ChannelsDBSubmission.prototype.render = function () {
-                var _this = this;
-                var isSelected = this.props.isSelected;
-                var link = Config.CommonOptions.CHANNELSDB_LINK_DETAIL_URL + "/" + this.props.pdbid;
-                var contents = React.createElement("div", { className: "panel-body" },
-                    "See ",
-                    React.createElement("a", { target: "_blank", href: link }, link),
-                    " for more info.");
-                return (React.createElement("div", { className: "panel panel-default" },
-                    React.createElement("div", { className: "panel-heading" },
-                        React.createElement("a", { "data-toggle": "collapse", href: "#submit-data-ChannelsDB", onClick: function (e) {
-                                if (e.currentTarget.attributes.getNamedItem('aria-expanded').value === 'true') {
-                                    if (!_this.props.isSelected) {
-                                        changeSubmitId(_this.props.computationId, -1);
-                                    }
-                                }
-                            } },
-                            React.createElement("h4", { className: "panel-title" }, "#ChannelsDB"),
-                            React.createElement("div", { className: "submission-state" }))),
-                    React.createElement("div", { id: "submit-data-ChannelsDB", className: "panel-collapse collapse" + ((isSelected) ? ' in' : '') }, contents)));
-            };
-            return ChannelsDBSubmission;
-        }(React.Component));
-        UI.ChannelsDBSubmission = ChannelsDBSubmission;
-        function changeSubmitId(computationId, submitId) {
-            if (submitId === -1) {
-                CommonUtils.Router.fakeRedirect(computationId, "ChannelsDB");
-            }
-            else {
-                CommonUtils.Router.fakeRedirect(computationId, (submitId > 0) ? String(submitId) : void 0);
-            }
-            LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
-            MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(submitId);
-        }
-        ;
-        var ControlTabs = (function (_super) {
-            __extends(ControlTabs, _super);
-            function ControlTabs() {
-                var _this = _super !== null && _super.apply(this, arguments) || this;
-                _this.state = {
-                    activeTabIdx: 0,
-                    data: void 0,
-                    err: void 0,
-                    submitId: 1,
-                    canSubmit: true
-                };
-                return _this;
-            }
-            ControlTabs.prototype.componentDidMount = function () {
-                var _this = this;
-                if (this.props.activeTab !== void 0) {
-                    var state = this.state;
-                    state.activeTabIdx = this.props.activeTab;
-                    this.setState(state);
-                }
-                var parameters = CommonUtils.Router.getParameters();
-                if (parameters !== null) {
-                    var compId = parameters.computationId;
-                    var submitId_1 = parameters.submitId;
-                    Provider.get(parameters.computationId, (function (compId, info) {
-                        //CompInfo => Status==="Error" => Submissions neexistuje! Response ma format /Status na misto /CompInfo
-                        if (info === null) {
-                            return;
-                        }
-                        var state = _this.state;
-                        state.data = info;
-                        state.submitId = submitId_1;
-                        _this.setState(state);
-                    }).bind(this));
-                }
-                else {
-                    var state = this.state;
-                    state.err = "Parameters from url cannot be properly processed.";
-                    this.setState(state);
-                }
-                MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId(function (submitId) {
-                    var state = _this.state;
-                    state.submitId = submitId;
-                    _this.setState(state);
-                });
-                Common.Controls.FromLiteMol.ValidationState.attachOnStateChangeHandler(validationGroup, function (prev, curr) {
-                    var s = _this.state;
-                    if (curr !== "VALID") {
-                        $("#submission-form").find("input[type=submit]").attr("disabled", true);
-                        s.canSubmit = false;
-                    }
-                    else {
-                        s.canSubmit = true;
-                    }
-                    _this.setState(s);
-                });
-            };
-            ControlTabs.prototype.nullIfEmpty = function (data) {
-                if (data.length === 1 && data[0].length === 0) {
-                    return null;
-                }
-                return data;
-            };
-            ControlTabs.prototype.handleSubmit = function (e) {
-                e.preventDefault();
-                /*
-                if(!this.state.canSubmit){
-                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                        messageType: "Danger",
-                        message: "Only one running submission is alowed. Please wait until completed."
-                    })
-                    return false;
-                }
-                */
-                $(e.target).find("input[type=submit]").attr("disabled", true);
-                var currentState = this.state;
-                currentState.canSubmit = false;
-                this.setState(currentState);
-                if (this.state.data === void 0) {
-                    return;
-                }
-                CommonUtils.FormEvents.Events.invokeOnSubmit(validationGroup);
-            };
-            ControlTabs.prototype.render = function () {
-                var _this = this;
-                var tabs = [];
-                if (this.state.data !== void 0) {
-                    tabs.push(React.createElement(Settings, { initialData: this.state.data, parent: this, submitId: this.state.submitId }));
-                    tabs.push(React.createElement(Submissions, { computationInfo: this.state.data, onResubmit: function (info) {
-                            var state = _this.state;
-                            state.data = info;
-                            _this.setState(state);
-                        } }));
-                }
-                else {
-                    tabs.push(React.createElement("div", null, "No data"));
-                }
-                if (this.state.canSubmit) {
-                    $('#controls .submit-parent').find("input[type=submit]").removeAttr("disabled");
-                }
-                else {
-                    $('#controls .submit-parent').find("input[type=submit]").attr("disabled", true);
-                }
-                return (React.createElement("div", { className: "submit-form-container" },
-                    React.createElement(Common.Tabs.BootstrapTabs.TabbedContainer, { header: ["Submission settings", "Submissions"], tabContents: tabs, namespace: "right-panel-tabs-", htmlClassName: "tabs", htmlId: "right-panel-tabs", activeTab: this.state.activeTabIdx, onChange: (function (tabIdx) {
-                            var s = _this.state;
-                            s.activeTabIdx = tabIdx;
-                            _this.setState(s);
-                        }).bind(this) }),
-                    React.createElement("form", { className: "form-horizontal", id: "submission-form", onSubmit: this.handleSubmit.bind(this) },
-                        React.createElement(ControlButtons, { submitId: this.state.submitId, computationInfo: this.state.data })),
-                    React.createElement("div", { id: "right-panel-toggler", className: "toggler glyphicon glyphicon-resize-vertical" })));
-            };
-            return ControlTabs;
-        }(React.Component));
-        UI.ControlTabs = ControlTabs;
-        var ControlButtons = (function (_super) {
-            __extends(ControlButtons, _super);
-            function ControlButtons() {
-                var _this = _super !== null && _super.apply(this, arguments) || this;
-                _this.state = { submitId: -1, hasKillable: false, canSubmit: true };
-                return _this;
-            }
-            ControlButtons.prototype.componentDidMount = function () {
-                var _this = this;
-                this.state.submitId = this.props.submitId;
-                MoleOnlineWebUI.Bridge.Events.subscribeChangeHasKillable(function (hasKillable) {
-                    var state = _this.state;
-                    state.hasKillable = hasKillable;
-                    _this.setState(state);
-                });
-            };
-            ControlButtons.prototype.componentWillReceiveProps = function (nextProps) {
-                var state = this.state;
-                state.submitId = nextProps.submitId;
-                this.setState(state);
-            };
-            ControlButtons.prototype.getSubmissions = function () {
-                var submissions = [];
-                if (this.props.computationInfo !== void 0) {
-                    submissions = this.sortSubmissions(this.props.computationInfo.Submissions);
-                }
-                return submissions;
-            };
-            ControlButtons.prototype.sortSubmissions = function (items) {
-                return items.sort(function (a, b) {
-                    return a.SubmitId - b.SubmitId;
-                });
-            };
-            ControlButtons.prototype.prepareSubmissionItems = function () {
-                var submissions = this.getSubmissions();
-                var rv = [];
-                rv.push({
-                    label: "-",
-                    value: '0'
-                });
-                if (this.props.computationInfo !== void 0) {
-                    if (this.props.computationInfo.PdbId !== null && this.props.computationInfo.PdbId !== "") {
-                        rv.push({
-                            label: 'ChDB',
-                            value: '-1'
-                        });
-                    }
-                }
-                if (submissions.length === 0) {
-                    return rv;
-                }
-                for (var _i = 0, submissions_1 = submissions; _i < submissions_1.length; _i++) {
-                    var item = submissions_1[_i];
-                    rv.push({
-                        label: "" + item.SubmitId,
-                        value: "" + item.SubmitId
-                    });
-                }
-                return rv;
-            };
-            ControlButtons.prototype.getSelectedIndex = function (submitId, items) {
-                for (var idx = 0; idx < items.length; idx++) {
-                    var item = items[idx];
-                    if (item.value === "" + submitId) {
-                        return idx;
-                    }
-                }
-                return void 0;
-            };
-            ControlButtons.prototype.onSubmitIdComboSelectChange = function (e) {
-                if (this.props.computationInfo === void 0) {
-                    return;
-                }
-                var idx = e.currentTarget.selectedIndex;
-                var submitId = e.currentTarget.options[idx].value;
-                var sid = Number(submitId).valueOf();
-                changeSubmitId(this.props.computationInfo.ComputationId, sid);
-                var state = this.state;
-                state.submitId = sid;
-                this.setState(state);
-            };
-            ControlButtons.prototype.changeSubmitIdByStep = function (e) {
-                if (this.props.computationInfo === void 0) {
-                    return;
-                }
-                var submitId = e.currentTarget.dataset["value"];
-                if (submitId !== void 0) {
-                    var sid = Number(submitId).valueOf();
-                    changeSubmitId(this.props.computationInfo.ComputationId, sid);
-                    var state = this.state;
-                    state.submitId = sid;
-                    this.setState(state);
-                }
-            };
-            ControlButtons.prototype.canShift = function (left) {
-                if (this.props.computationInfo === void 0) {
-                    return false;
-                }
-                if (String(this.state.submitId) === String(0)) {
-                    return false;
-                }
-                var submissions = this.getSubmissions();
-                for (var idx = 0; idx < submissions.length; idx++) {
-                    if (String(submissions[idx].SubmitId) === String(this.props.submitId)) {
-                        var nextIdx = idx + ((left) ? -1 : 1);
-                        if (nextIdx < 0 || nextIdx >= submissions.length) {
-                            return false;
-                        }
-                        else {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            };
-            ControlButtons.prototype.canShiftNext = function () {
-                return this.canShift(false);
-            };
-            ControlButtons.prototype.canShiftPrev = function () {
-                return this.canShift(true);
-            };
-            ControlButtons.prototype.getNextIdx = function (idx) {
-                return idx + 1;
-            };
-            ControlButtons.prototype.getPrevIdx = function (idx) {
-                return idx - 1;
-            };
-            ControlButtons.prototype.render = function () {
-                var canKill = (this.props.computationInfo !== void 0 && this.state.hasKillable);
-                var items = this.prepareSubmissionItems();
-                var idx = this.getSelectedIndex(this.state.submitId, items);
-                var canShiftPrev = this.canShiftPrev();
-                var canShiftNext = this.canShiftNext();
-                return React.createElement("div", { className: "submit-parent" },
-                    React.createElement("input", { className: "btn btn-primary submit", type: "submit", value: "Submit" }),
-                    React.createElement("input", { type: "button", className: "btn btn-primary kill-job-button", disabled: !canKill, onClick: (function (e) {
-                            if ($(e.currentTarget).attr("disabled") !== "disabled") {
-                                $('#killJobDialog').modal('show');
-                                $(".chdb-panel.right-panel").addClass("has-modal");
-                            }
-                        }), value: "Kill" }),
-                    React.createElement("input", { type: "button", className: "btn btn-primary delete-project-button", "data-toggle": "modal", "data-target": "#deleteProjectDialog", onClick: (function (e) {
-                            e.preventDefault();
-                            $(".chdb-panel.right-panel").addClass("has-modal");
-                            return false;
-                        }), value: "Delete" }),
-                    React.createElement("input", { className: "btn btn-primary clear-button", type: "button", value: "Clear", onClick: function () {
-                            CommonUtils.FormEvents.Events.invokeOnClear(validationGroup);
-                        } }),
-                    React.createElement("input", { className: "btn btn-primary submit-arrow", type: "button", value: ">", disabled: (!canShiftNext) ? true : void 0, "data-value": (!canShiftNext || idx === void 0) ? void 0 : items[this.getNextIdx(idx)].value, onClick: this.changeSubmitIdByStep.bind(this) }),
-                    React.createElement(Common.Controls.SimpleComboBox, { id: "submissionComboSwitch", items: items, defaultSelectedIndex: idx, className: "form-control submit-combo", onSelectedChange: this.onSubmitIdComboSelectChange.bind(this) }),
-                    React.createElement("input", { className: "btn btn-primary submit-arrow", type: "button", value: "<", disabled: (!canShiftPrev) ? true : void 0, "data-value": (!canShiftPrev || idx == void 0) ? void 0 : items[this.getPrevIdx(idx)].value, onClick: this.changeSubmitIdByStep.bind(this) }),
-                    React.createElement(ModalDialog, { id: "killJobDialog", header: "Do you really want to kill running job?", body: this.prepareKillJobDialogBody() }),
-                    React.createElement(ModalDialog, { id: "deleteProjectDialog", header: "Do you really want to delete whole computation project?", body: this.prepareDeleteDialogBody() }));
-            };
-            ControlButtons.prototype.prepareKillJobDialogBody = function () {
-                var _this = this;
-                return (React.createElement("div", null,
-                    React.createElement("button", { className: "btn btn-primary left-button", onClick: function (e) {
-                            e.preventDefault();
-                            if (_this.props.computationInfo === void 0) {
-                                return false;
-                            }
-                            Service.ApiService.killRunningJob(_this.props.computationInfo.ComputationId).then(function (result) {
-                                if (result.Status !== "Aborted") {
-                                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                                        message: (result.ErrorMsg.length === 0) ? "Attempt to kill job was not successfull." : result.ErrorMsg,
-                                        messageType: "Warning"
-                                    });
-                                    return;
-                                }
-                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                                    message: "Job has been successfully killed.",
-                                    messageType: "Success"
-                                });
-                            })
-                                .catch(function (err) {
-                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                                    message: "Attempt to kill running job failed! Please try again later.",
-                                    messageType: "Danger"
-                                });
-                            });
-                            return false;
-                        }, "data-dismiss": "modal" }, "Yes"),
-                    React.createElement("button", { className: "btn btn-primary right-button", "data-dismiss": "modal" }, "No")));
-            };
-            ControlButtons.prototype.prepareDeleteDialogBody = function () {
-                var _this = this;
-                return (React.createElement("div", null,
-                    React.createElement("button", { className: "btn btn-primary left-button", onClick: function (e) {
-                            e.preventDefault();
-                            if (_this.props.computationInfo === void 0) {
-                                return false;
-                            }
-                            Service.ApiService.deleteProject(_this.props.computationInfo.ComputationId).then(function () {
-                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                                    message: "Current computation was succesfuly deleted. You will be redirected to initial page.",
-                                    messageType: "Success"
-                                });
-                                window.setTimeout(function () {
-                                    SimpleRouter.GlobalRouter.redirect(Config.Routing.ROUTING_OPTIONS[Config.Routing.ROUTING_MODE].defaultContextPath);
-                                }, 5000);
-                            })
-                                .catch(function (err) {
-                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
-                                    message: "Attempt to delete current computation failed! Please try again later.",
-                                    messageType: "Danger"
-                                });
-                            });
-                            return false;
-                        }, "data-dismiss": "modal" }, "Yes"),
-                    React.createElement("button", { className: "btn btn-primary right-button", "data-dismiss": "modal" }, "No")));
-            };
-            return ControlButtons;
-        }(React.Component));
-        UI.ControlButtons = ControlButtons;
-        var ModalDialog = (function (_super) {
-            __extends(ModalDialog, _super);
-            function ModalDialog() {
-                return _super !== null && _super.apply(this, arguments) || this;
-            }
-            ModalDialog.prototype.render = function () {
-                return React.createElement("div", { id: this.props.id, className: "modal fade", role: "dialog" },
-                    React.createElement("div", { className: "modal-dialog" },
-                        React.createElement("div", { className: "modal-content" },
-                            React.createElement("div", { className: "modal-header" },
-                                React.createElement("button", { type: "button", className: "close", "data-dismiss": "modal" }, "\u00D7"),
-                                React.createElement("h4", { className: "modal-title" }, this.props.header)),
-                            React.createElement("div", { className: "modal-body" }, this.props.body),
-                            React.createElement("div", { className: "modal-footer" },
-                                React.createElement("button", { type: "button", className: "btn btn-default", "data-dismiss": "modal", onClick: function () {
-                                        $(".chdb-panel.right-panel").removeClass("has-modal");
-                                    } }, "Close")))));
-            };
-            return ModalDialog;
-        }(React.Component));
+        UI.PoresFormData = PoresFormData;
     })(UI = Controls.UI || (Controls.UI = {}));
 })(Controls || (Controls = {}));
 var DownloadReport;
@@ -12094,7 +12949,6 @@ var DownloadReport;
     var UI;
     (function (UI) {
         var React = LiteMol.Plugin.React;
-        ;
         function render(target) {
             LiteMol.Plugin.ReactDOM.render(React.createElement(App, null), target);
         }
@@ -12121,14 +12975,8 @@ var DownloadReport;
                 return _super !== null && _super.apply(this, arguments) || this;
             }
             BootstrapDropDownMenuItem.prototype.render = function () {
-                if (this.props.onClick !== void 0) {
-                    return (React.createElement("li", null,
-                        React.createElement("a", { onClick: this.props.onClick }, this.props.linkText)));
-                }
-                else {
-                    return (React.createElement("li", null,
-                        React.createElement("a", { target: (this.props.targetBlank) ? "_blank" : "", href: this.props.link }, this.props.linkText)));
-                }
+                return (React.createElement("li", null,
+                    React.createElement("a", { onClick: this.props.onClick, target: (this.props.targetBlank) ? "_blank" : "", href: this.props.link }, this.props.linkText)));
             };
             return BootstrapDropDownMenuItem;
         }(React.Component));
@@ -12173,10 +13021,13 @@ var DownloadReport;
             }
             DownloadResultsMenu.prototype.componentDidMount = function () {
                 var _this = this;
-                var params = CommonUtils.Router.getParameters();
+                var params = Common.Util.Router.getParameters();
                 if (params !== null) {
                     var computationId = params.computationId;
                     var submitId = params.submitId;
+                    if (params.isChannelsDB) {
+                        submitId = -1;
+                    }
                     this.setState({ computationId: computationId, submitId: submitId });
                 }
                 MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId(function (submitId) {
@@ -12191,16 +13042,37 @@ var DownloadReport;
                 var linkBase = Config.DataSources.API_URL[Config.DataSources.MODE] + "/Data/" + computationId + submitId;
                 var items = [];
                 if (computationId !== void 0) {
-                    items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "Molecule", link: linkBase + "&format=molecule", targetBlank: true }));
-                    items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "PyMol", link: linkBase + "&format=pymol", targetBlank: true }));
-                    items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "VMD", link: linkBase + "&format=vmd", targetBlank: true }));
-                    items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "PDB", link: linkBase + "&format=pdb", targetBlank: true }));
-                    items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "Chimera", link: linkBase + "&format=chimera", targetBlank: true }));
-                    items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "JSON", link: "" + linkBase, targetBlank: true }));
-                    items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "Results", link: linkBase + "&format=report", targetBlank: true }));
-                    items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "PDF report", onClick: function () { MoleOnlineWebUI.Bridge.Events.invokeRunPDFReport(); } }));
+                    items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "Molecule", link: linkBase + "&format=molecule", targetBlank: true, onClick: function () {
+                            gtag('event', 'Download', { 'event_category': 'molecule' });
+                        } }));
+                    if (this.state.submitId > 0) {
+                        items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "PyMol", link: linkBase + "&format=pymol", targetBlank: true, onClick: function () {
+                                gtag('event', 'Download', { 'event_category': 'pymol' });
+                            } }));
+                        items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "VMD", link: linkBase + "&format=vmd", targetBlank: true, onClick: function () {
+                                gtag('event', 'Download', { 'event_category': 'vmd' });
+                            } }));
+                        items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "PDB", link: linkBase + "&format=pdb", targetBlank: true, onClick: function () {
+                                gtag('event', 'Download', { 'event_category': 'pdb' });
+                            } }));
+                        items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "Chimera", link: linkBase + "&format=chimera", targetBlank: true, onClick: function () {
+                                gtag('event', 'Download', { 'event_category': 'chimera' });
+                            } }));
+                        items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "JSON", link: "" + linkBase, targetBlank: true, onClick: function () {
+                                gtag('event', 'Download', { 'event_category': 'json' });
+                            } }));
+                        items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "Results", link: linkBase + "&format=report", targetBlank: true, onClick: function () {
+                                gtag('event', 'Download', { 'event_category': 'zip' });
+                            } }));
+                    }
+                    if (this.state.submitId !== 0) {
+                        items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "PDF report", onClick: function () {
+                                gtag('event', 'Download', { 'event_category': 'pdf' });
+                                MoleOnlineWebUI.Bridge.Events.invokeRunPDFReport();
+                            } }));
+                    }
                 }
-                return React.createElement(BootstrapDropDownMenuButton, { label: "Download report", items: items });
+                return React.createElement(BootstrapDropDownMenuButton, { label: "Download", items: items });
             };
             return DownloadResultsMenu;
         }(React.Component));
@@ -12225,13 +13097,18 @@ var PdbIdSign;
             }
             App.prototype.componentDidMount = function () {
                 var _this = this;
-                var params = CommonUtils.Router.getParameters();
+                var params = Common.Util.Router.getParameters();
                 if (params === null) {
                     this.setState({ err: "!!!" });
                     return;
                 }
                 MoleOnlineWebUI.Service.MoleAPI.ApiService.getComputationInfoList(params.computationId).then(function (res) {
-                    _this.setState({ pdbid: res.PdbId });
+                    if (res.PdbId === "" || res.PdbId === null || res.PdbId === void 0) {
+                        _this.setState({ err: "---" });
+                    }
+                    else {
+                        _this.setState({ pdbid: res.PdbId });
+                    }
                 })
                     .catch(function (err) {
                     _this.setState({ err: "<Error>" });
@@ -12254,6 +13131,305 @@ var PdbIdSign;
         UI.App = App;
     })(UI = PdbIdSign.UI || (PdbIdSign.UI = {}));
 })(PdbIdSign || (PdbIdSign = {}));
+var Help;
+(function (Help) {
+    var UI;
+    (function (UI) {
+        var React = LiteMol.Plugin.React;
+        function render(target) {
+            LiteMol.Plugin.ReactDOM.render(React.createElement(App, null), target);
+        }
+        UI.render = render;
+        ;
+        var App = (function (_super) {
+            __extends(App, _super);
+            function App() {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.state = {
+                    dialogOpen: false,
+                    session: "",
+                    computationId: "",
+                    submitId: 0
+                };
+                return _this;
+            }
+            App.prototype.updateSessionState = function () {
+                var s = this.state;
+                var params = Common.Util.Router.getParameters();
+                if (params === null) {
+                    s.session = "<Unknown>";
+                }
+                else {
+                    s.session = "" + params.computationId;
+                    s.computationId = params.computationId;
+                    if (params.submitId < 0 || params.isChannelsDB) {
+                        s.session += "/ChannelsDB";
+                        s.submitId = -1;
+                    }
+                    else if (params.submitId > 0) {
+                        s.session += "/" + String(params.submitId);
+                        s.submitId = params.submitId;
+                    }
+                    else {
+                        s.submitId = 0;
+                    }
+                }
+                this.setState(s);
+                $("#session").val(s.session);
+            };
+            App.prototype.componentDidMount = function () {
+                var _this = this;
+                this.updateSessionState();
+                MoleOnlineWebUI.Bridge.Events.subscribeChangeSubmitId(function () {
+                    _this.updateSessionState();
+                });
+            };
+            App.prototype.componentWillUnmount = function () {
+            };
+            App.prototype.isMailFormatValid = function (value) {
+                var valid = true;
+                if (value !== "") {
+                    valid = RegExp(/(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/).test(value);
+                }
+                return {
+                    valid: valid,
+                    Msg: (valid) ? void 0 : "Mail address has invalid format!"
+                };
+            };
+            App.prototype.isMailValid = function (value) {
+                var valid = this.isNotEmpty(value, "Please fill in your mail address. So we can contact you with our reply.");
+                if (!valid.valid) {
+                    return valid;
+                }
+                return this.isMailFormatValid(value);
+            };
+            App.prototype.isNotEmpty = function (value, invalidMessage) {
+                var valid = true;
+                valid = value.length > 0;
+                return {
+                    valid: valid,
+                    Msg: (valid) ? void 0 : invalidMessage
+                };
+            };
+            App.prototype.isMessageValid = function (value) {
+                return this.isNotEmpty(value, "Message cannot be empty!");
+            };
+            App.prototype.checkFormValid = function () {
+                var mailValid = this.isMailValid($("#email").val()).valid;
+                var messageValid = this.isMessageValid($("#message").val()).valid;
+                if (!mailValid) {
+                    $("#email").focus();
+                    $("#message").focus();
+                    $("#email").focus();
+                }
+                if (!messageValid) {
+                    $("#message").focus();
+                    $("#email").focus();
+                    $("#message").focus();
+                }
+                return mailValid && messageValid;
+            };
+            App.prototype.render = function () {
+                var _this = this;
+                var session = this.state.session;
+                var dialog = React.createElement("div", { className: "helpDialog form-horizontal " + ((this.state.dialogOpen) ? "visible" : "") },
+                    React.createElement("div", { className: "description" },
+                        "Something went wrong? Calculation results are not as expected?",
+                        React.createElement("br", null),
+                        React.createElement("br", null),
+                        " Please send us a\u00A0message so we can help."),
+                    React.createElement(TextBox, { label: "Session", value: session, id: "session", disabled: true }),
+                    React.createElement(EmailTextBox, { label: "Email", id: "email", value: "@", isValid: this.isMailValid.bind(this) }),
+                    React.createElement(TextAreaBox, { label: "Message", id: "message", isValid: this.isMessageValid.bind(this) }),
+                    React.createElement("div", { className: "btn btn-primary submit", "data-loading-text": "Sending...", onClick: function () {
+                            if ($(".helpDialog .submit").attr("disabled") === "disabled") {
+                                return;
+                            }
+                            if (!_this.checkFormValid()) {
+                                return;
+                            }
+                            $(".helpDialog .submit").button("loading");
+                            var messageObject = {
+                                ComputationId: _this.state.computationId,
+                                SubmitId: _this.state.submitId,
+                                From: $("#email").val(),
+                                Msg: $("#message").val()
+                            };
+                            MoleOnlineWebUI.Service.MoleAPI.ApiService.submitFeedback(messageObject).then(function (val) {
+                                if (val.Success) {
+                                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                        messageType: "Success",
+                                        message: (val.Msg === void 0 || val.Msg === null) ? "The message has been succesfully sent." : val.Msg
+                                    });
+                                    $("#email").val("@");
+                                    $("#message").val("");
+                                    var s = _this.state;
+                                    s.dialogOpen = false;
+                                    _this.setState(s);
+                                }
+                                else {
+                                    var reason = ".";
+                                    if (val.Msg !== void 0 && val.Msg !== null) {
+                                        reason = ". Error message: '" + val.Msg + "'";
+                                    }
+                                    MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                        messageType: "Warning",
+                                        message: "Application was unable to send your message" + reason + " Please try send it again later."
+                                    });
+                                }
+                                $(".helpDialog .submit").button("reset");
+                            }).catch(function (err) {
+                                MoleOnlineWebUI.Bridge.Events.invokeNotifyMessage({
+                                    messageType: "Warning",
+                                    message: "Application was unable to send your message. Please try send it again later..."
+                                });
+                                $(".helpDialog .submit").button("reset");
+                            });
+                        } }, "Send"));
+                return React.createElement("div", null,
+                    React.createElement("div", { className: "button", onClick: function () {
+                            var s = _this.state;
+                            s.dialogOpen = !s.dialogOpen;
+                            _this.setState(s);
+                        } },
+                        "Help ",
+                        React.createElement("span", { className: "glyphicon glyphicon-question-sign help-ico" })),
+                    dialog);
+            };
+            return App;
+        }(React.Component));
+        UI.App = App;
+        var Events = (function () {
+            function Events() {
+            }
+            Events.attachOnClearEventHandler = function (h) {
+                this.handlers.push(h);
+            };
+            Events.invokeOnClear = function () {
+                for (var _i = 0, _a = this.handlers; _i < _a.length; _i++) {
+                    var h = _a[_i];
+                    h();
+                }
+            };
+            return Events;
+        }());
+        Events.handlers = [];
+        var TextBox = (function (_super) {
+            __extends(TextBox, _super);
+            function TextBox() {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.state = {
+                    isValid: true
+                };
+                _this.typeClassName = "TextBox";
+                return _this;
+            }
+            TextBox.prototype.componentDidMount = function () {
+                var _this = this;
+                Events.attachOnClearEventHandler((function () {
+                    $("#" + _this.props.id).val("");
+                    if (_this.props.onValueChange !== void 0) {
+                        _this.props.onValueChange("");
+                    }
+                    _this.setState({
+                        isValid: true,
+                        errMsg: void 0
+                    });
+                }).bind(this));
+            };
+            TextBox.prototype.validate = function (value) {
+                if (this.props.isValid === void 0) {
+                    if (this.props.onValueChange !== void 0) {
+                        this.props.onValueChange((value === null) ? "" : value);
+                    }
+                    return true;
+                }
+                var valid = this.props.isValid((value === null) ? "" : value);
+                if (valid.valid && this.props.onValueChange !== void 0) {
+                    this.props.onValueChange((value === null) ? "" : value);
+                }
+                var s = this.state;
+                s.isValid = valid.valid;
+                s.errMsg = valid.Msg;
+                this.setState(s);
+                return valid.valid;
+            };
+            TextBox.prototype.renderCustom = function () {
+                return React.createElement("input", { disabled: this.props.disabled, type: "text", className: "form-control", id: "" + this.props.id, name: "" + this.props.name, placeholder: this.props.placeholder, defaultValue: this.props.value, onBlur: this.checkValid.bind(this), onSubmit: this.checkValid.bind(this), onChange: this.checkValid.bind(this) });
+            };
+            TextBox.prototype.renderError = function () {
+                var errorPart;
+                if (!this.state.isValid) {
+                    errorPart = React.createElement("div", { className: "error-msg" }, (this.state.errMsg !== void 0) ? this.state.errMsg : MoleOnlineWebUI.StaticData.Bundle.get("validation-error-message-default"));
+                }
+                return errorPart;
+            };
+            TextBox.prototype.checkValid = function (e) {
+                if (!this.validate($(e.currentTarget).val())) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (this.props.onInvalid !== void 0) {
+                        this.props.onInvalid();
+                    }
+                }
+            };
+            TextBox.prototype.render = function () {
+                var htmlPart = this.renderCustom();
+                var errorPart = this.renderError();
+                var label;
+                if (this.props.label !== void 0) {
+                    label = React.createElement("label", { className: "col-sm-1", htmlFor: "" + this.props.id },
+                        this.props.label,
+                        ":");
+                }
+                return React.createElement("div", { className: "custom-box " + this.typeClassName },
+                    React.createElement("div", { className: "form-group" },
+                        label,
+                        React.createElement("div", { className: "col-sm-1" + ((label === void 0) ? 2 : 1) }, htmlPart)),
+                    errorPart);
+            };
+            return TextBox;
+        }(React.Component));
+        var EmailTextBox = (function (_super) {
+            __extends(EmailTextBox, _super);
+            function EmailTextBox() {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.typeClassName = "EmailBox";
+                return _this;
+            }
+            EmailTextBox.prototype.renderError = function () {
+                var errorPart;
+                if (!this.state.isValid) {
+                    errorPart = React.createElement("div", { className: "col-sm-offset-1 col-sm-11" },
+                        React.createElement("div", { className: "error-msg" }, (this.state.errMsg !== void 0) ? this.state.errMsg : MoleOnlineWebUI.StaticData.Bundle.get("validation-error-message-default")));
+                }
+                return errorPart;
+            };
+            EmailTextBox.prototype.renderCustom = function () {
+                var _this = this;
+                return React.createElement("input", { disabled: this.props.disabled, type: "email", className: "form-control", id: "" + this.props.id, name: "" + this.props.name, placeholder: this.props.placeholder, defaultValue: this.props.value, onBlur: this.checkValid.bind(this), onChange: this.checkValid.bind(this), onSubmit: (function (e) {
+                        _this.checkValid(e);
+                    }).bind(this) });
+            };
+            return EmailTextBox;
+        }(TextBox));
+        var TextAreaBox = (function (_super) {
+            __extends(TextAreaBox, _super);
+            function TextAreaBox() {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.typeClassName = "TextAreaBox";
+                return _this;
+            }
+            TextAreaBox.prototype.renderCustom = function () {
+                var _this = this;
+                return React.createElement("textarea", { disabled: this.props.disabled, id: "" + this.props.id, className: "form-control", name: "" + this.props.name, placeholder: this.props.placeholder, defaultValue: this.props.value, onBlur: this.checkValid.bind(this), onChange: this.checkValid.bind(this), onSubmit: (function (e) {
+                        _this.checkValid(e);
+                    }).bind(this) });
+            };
+            return TextAreaBox;
+        }(TextBox));
+    })(UI = Help.UI || (Help.UI = {}));
+})(Help || (Help = {}));
 var SequenceViewer;
 (function (SequenceViewer) {
     var UI;
@@ -12520,7 +13696,7 @@ var Annotate;
                 return _this;
             }
             App.prototype.changeParams = function (submitId) {
-                var params = CommonUtils.Router.getParameters();
+                var params = Common.Util.Router.getParameters();
                 if (params !== null) {
                     this.setState({
                         computationId: params.computationId,
@@ -12545,35 +13721,114 @@ var Annotate;
                     return React.createElement("div", null);
                 }
                 return React.createElement("div", null,
-                    React.createElement(AnnotateButton, { app: this, canAnnotate: this.state.computationId !== void 0 && this.state.submitId !== void 0 }),
+                    React.createElement(DropDownMenu, { app: this, canAnnotate: this.state.computationId !== void 0 && this.state.submitId !== void 0 }),
                     React.createElement(AnnotateForm, { app: this, visible: this.state.annotationFormVisible, computationId: computationId, submitId: submitId }));
             };
             return App;
         }(React.Component));
         UI.App = App;
-        var AnnotateButton = (function (_super) {
-            __extends(AnnotateButton, _super);
-            function AnnotateButton() {
+        var BootstrapDropDownMenuItem = (function (_super) {
+            __extends(BootstrapDropDownMenuItem, _super);
+            function BootstrapDropDownMenuItem() {
                 return _super !== null && _super.apply(this, arguments) || this;
             }
-            AnnotateButton.prototype.componentDidMount = function () {
-            };
-            AnnotateButton.prototype.render = function () {
-                var _this = this;
-                if (this.props.canAnnotate) {
-                    return React.createElement("div", { className: "annotate-button", onClick: function (e) {
-                            var oldState = _this.props.app.state;
-                            oldState.annotationFormVisible = true;
-                            _this.props.app.setState(oldState);
-                        } },
-                        "Annotate ",
-                        React.createElement("span", { className: "glyphicon glyphicon-edit" }));
+            BootstrapDropDownMenuItem.prototype.render = function () {
+                if (this.props.onClick !== void 0) {
+                    return (React.createElement("li", null,
+                        React.createElement("a", { onClick: this.props.onClick }, this.props.linkText)));
                 }
                 else {
-                    return React.createElement("div", null, "...");
+                    return (React.createElement("li", null,
+                        React.createElement("a", { target: (this.props.targetBlank) ? "_blank" : "", href: this.props.link }, this.props.linkText)));
                 }
             };
-            return AnnotateButton;
+            return BootstrapDropDownMenuItem;
+        }(React.Component));
+        var BootstrapDropDownMenuElementItem = (function (_super) {
+            __extends(BootstrapDropDownMenuElementItem, _super);
+            function BootstrapDropDownMenuElementItem() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            BootstrapDropDownMenuElementItem.prototype.render = function () {
+                if (this.props.onClick !== void 0) {
+                    return (React.createElement("li", null,
+                        React.createElement("a", { onClick: this.props.onClick }, this.props.linkElement)));
+                }
+                else {
+                    return (React.createElement("li", null,
+                        React.createElement("a", { target: (this.props.targetBlank) ? "_blank" : "", href: this.props.link }, this.props.linkElement)));
+                }
+            };
+            return BootstrapDropDownMenuElementItem;
+        }(React.Component));
+        var BootstrapDropDownMenuButton = (function (_super) {
+            __extends(BootstrapDropDownMenuButton, _super);
+            function BootstrapDropDownMenuButton() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            BootstrapDropDownMenuButton.prototype.render = function () {
+                return React.createElement("div", { className: "btn-group dropdown" },
+                    React.createElement("button", { type: "button", disabled: this.props.items.length == 0, className: "channelsdb dropdown-toggle", "data-toggle": "dropdown", "aria-haspopup": "true", "aria-expanded": "false" },
+                        React.createElement("img", { src: "/images/ChannelsDBlogo_transparent.png" })),
+                    React.createElement("ul", { className: "dropdown-menu" }, this.props.items));
+            };
+            return BootstrapDropDownMenuButton;
+        }(React.Component));
+        var DropDownMenu = (function (_super) {
+            __extends(DropDownMenu, _super);
+            function DropDownMenu() {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.state = { computationId: "", hasChannelsDBSubmission: false, pdbid: null };
+                return _this;
+            }
+            DropDownMenu.prototype.componentDidMount = function () {
+                var _this = this;
+                var params = Common.Util.Router.getParameters();
+                if (params !== null) {
+                    var computationId = params.computationId;
+                    var s = this.state;
+                    s.computationId = computationId;
+                    this.setState(s);
+                    MoleOnlineWebUI.DataProxy.ComputationInfo.DataProvider.get(computationId, function (compid, info) {
+                        var s1 = _this.state;
+                        if (info.PdbId !== void 0 && info.PdbId !== null && info.PdbId !== "") {
+                            s1.hasChannelsDBSubmission = true;
+                            s1.pdbid = info.PdbId;
+                        }
+                        else {
+                            s1.hasChannelsDBSubmission = false;
+                        }
+                        _this.setState(s1);
+                    });
+                }
+            };
+            DropDownMenu.prototype.render = function () {
+                var _this = this;
+                var computationId = this.state.computationId;
+                var items = [];
+                if (computationId !== void 0) {
+                    if (this.state.hasChannelsDBSubmission) {
+                        if (this.state.pdbid !== null) {
+                            var channelsDBLink = Config.CommonOptions.CHANNELSDB_LINK_DETAIL_URL + "/" + this.state.pdbid;
+                            items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "Open in ChannelsDB", link: channelsDBLink, targetBlank: true }));
+                        }
+                        items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "Vizualize", onClick: function () {
+                                Common.Util.Router.fakeRedirect(computationId, "ChannelsDB");
+                                LiteMol.Example.Channels.State.removeChannelsData(MoleOnlineWebUI.Bridge.Instances.getPlugin());
+                                MoleOnlineWebUI.Bridge.Events.invokeChangeSubmitId(-1);
+                            } }));
+                    }
+                    if (this.props.canAnnotate) {
+                        items.push(React.createElement(BootstrapDropDownMenuItem, { linkText: "Annotate", onClick: function () {
+                                var s = _this.props.app.state;
+                                s.annotationFormVisible = !s.annotationFormVisible;
+                                _this.props.app.setState(s);
+                            } }));
+                    }
+                }
+                return React.createElement(BootstrapDropDownMenuButton, { items: items });
+            };
+            return DropDownMenu;
         }(React.Component));
         var Events = (function () {
             function Events() {
@@ -12743,6 +13998,9 @@ var Annotate;
                         infoMsg,
                         errorMsg,
                         React.createElement("div", { className: "scroll-container" },
+                            React.createElement("div", { className: "annotate-form-header" },
+                                React.createElement("img", { src: "/images/ChannelsDBlogo.png" }),
+                                React.createElement("p", null, "Submit annotation of your published channels and residues important for channel's functionality to make your results interactively available to everyone at any time. Additionally, results of your research will be visible along the structure at Protein Data Bank in Europe webpages.")),
                             React.createElement("form", { className: "form-horizontal", onSubmit: function (e) {
                                     e.preventDefault();
                                     e.stopPropagation();
@@ -13489,7 +14747,7 @@ var QuickHelp;
                     state.channelSelected = true;
                     _this.setState(state);
                 });
-                var params = CommonUtils.Router.getParameters();
+                var params = Common.Util.Router.getParameters();
                 if (params !== null) {
                     MoleOnlineWebUI.DataProxy.ComputationInfo.DataProvider.subscribe(params.computationId, function (compid, info) {
                         var s1 = _this.state;
@@ -13530,12 +14788,6 @@ var QuickHelp;
             };
             App.prototype.render = function () {
                 var hints = [];
-                /*
-                if(this.state.fromPDBID){
-                    hints.push(<li>
-                        To visualize data from <a href="https://webchemdev.ncbr.muni.cz/ChannelsDB/">ChannelsDB</a>, click on <b>#ChannelsDB</b> submission located on <b>Submission tab</b> in the right side of the screen.
-                        </li>);
-                }*/
                 if (!this.state.hasSubmissions) {
                     hints.push(React.createElement("div", null,
                         React.createElement("b", null, "How to start? Try this:"),
@@ -13615,7 +14867,7 @@ var QuickHelp;
                                 React.createElement("li", null,
                                     "Try to compare your data with channels from ",
                                     React.createElement("a", { target: "_blank", href: "http://ncbr.muni.cz/ChannelsDB/" }, "ChannelsDB"),
-                                    "- click on ",
+                                    "\u00A0- click on ",
                                     React.createElement("b", null, "#ChDB"),
                                     " submission located on ",
                                     React.createElement("b", null, "Submission tab"),
@@ -13688,15 +14940,15 @@ var LiteMol;
                 var ColorScheme = MoleOnlineWebUI.StaticData.LiteMolObjectsColorScheme;
                 Behaviour.CavityTheme = {
                     inner: LiteMol.Visualization.Theme.createUniform({
-                        colors: LiteMol.Core.Utils.FastMap.ofArray([['Uniform', ColorScheme.Colors.get(ColorScheme.Enum.CavityInner) /*Visualization.Color.fromHex(0x999999)*/]]),
+                        colors: LiteMol.Core.Utils.FastMap.ofArray([['Uniform', ColorScheme.Colors.get(ColorScheme.Enum.CavityInner)]]),
                         transparency: { alpha: 0.33 }
                     }),
                     boundary: LiteMol.Visualization.Theme.createUniform({
-                        colors: LiteMol.Core.Utils.FastMap.ofArray([['Uniform', ColorScheme.Colors.get(ColorScheme.Enum.CavityBoundary) /*Visualization.Color.fromHex(0x90ee90)*/]]),
+                        colors: LiteMol.Core.Utils.FastMap.ofArray([['Uniform', ColorScheme.Colors.get(ColorScheme.Enum.CavityBoundary)]]),
                         transparency: { alpha: 0.66 }
                     }),
                     selectableBoundary: LiteMol.Visualization.Theme.createUniform({
-                        colors: LiteMol.Core.Utils.FastMap.ofArray([['Uniform', ColorScheme.Colors.get(ColorScheme.Enum.CavitySelectable) /*Visualization.Color.fromHex(0xee3010)*/]]),
+                        colors: LiteMol.Core.Utils.FastMap.ofArray([['Uniform', ColorScheme.Colors.get(ColorScheme.Enum.CavitySelectable)]]),
                         transparency: { alpha: 1.0 }
                     })
                 };
@@ -13836,6 +15088,10 @@ var LiteMol;
                     removeNodeFromTree(plugin, 'mole-data-object');
                 }
                 State.removeChannelsData = removeChannelsData;
+                function removeMembraneData(plugin) {
+                    removeNodeFromTree(plugin, 'membrane-object');
+                }
+                State.removeMembraneData = removeMembraneData;
                 function removeNodeFromTree(plugin, nodeRef) {
                     var obj = getNodeFromTree(plugin.root, nodeRef);
                     if (obj !== null) {
@@ -13897,6 +15153,30 @@ var LiteMol;
                     moleData.Channels.ReviewedChannels = generateGuid(moleData.Channels.ReviewedChannels);
                     moleData.Channels.TransmembranePores = generateGuid(moleData.Channels.TransmembranePores);
                     return moleData;
+                }
+                function downloadMembraneData(plugin, computationId) {
+                    removeMembraneData(plugin);
+                    return new LiteMol.Promise(function (res, rej) {
+                        ApiService.getMembraneData(computationId).then(function (data) {
+                            var membrane = plugin.createTransform().add(plugin.root, Transformer.Data.FromData, { data: JSON.stringify(data), id: 'Membrane' }, { isHidden: true, ref: 'membrane-object' })
+                                .then(Transformer.Data.ParseJson, { id: 'MembraneObjects' }, { ref: 'membrane-data', isHidden: true });
+                            plugin.applyTransform(membrane)
+                                .then(function () {
+                                var membraneData = plugin.context.select('membrane-data')[0];
+                                showMembraneVisuals(plugin, membraneData.props.data, true).then(function (val) {
+                                    res();
+                                }).catch(function (err) {
+                                    rej(err);
+                                });
+                            });
+                        }).catch(function (err) {
+                            console.log("Membrane data not available!");
+                            console.log(err);
+                            res();
+                        });
+                    }).then(function () {
+                        MoleOnlineWebUI.Bridge.Events.invokeOnMembraneDataReady();
+                    });
                 }
                 function downloadChannelsData(plugin, computationId, submitId) {
                     removeChannelsData(plugin);
@@ -13961,7 +15241,8 @@ var LiteMol;
                         ApiService.getProteinStructure(computationId, submitId).then(function (data) {
                             var format = LiteMol.Core.Formats.Molecule.SupportedFormats.mmCIF;
                             if (data.filename !== null) {
-                                var f = LiteMol.Core.Formats.FormatInfo.getFormat(data.filename, LiteMol.Core.Formats.Molecule.SupportedFormats.All);
+                                var filename = data.filename.replace(".gz", "");
+                                var f = LiteMol.Core.Formats.FormatInfo.getFormat(filename, LiteMol.Core.Formats.Molecule.SupportedFormats.All);
                                 if (f !== void 0) {
                                     format = f;
                                 }
@@ -13983,9 +15264,15 @@ var LiteMol;
                                     MoleOnlineWebUI.Bridge.Events.invokeProteinDataLoaded(polymerVisual[0].props.model.model);
                                 }
                             })
-                                .catch(function (error) { return rej(error); });
+                                .catch(function (error) {
+                                console.log(error);
+                                rej(error);
+                            });
                         })
-                            .catch(function (error) { return rej(error); });
+                            .catch(function (error) {
+                            console.log(error);
+                            rej(error);
+                        });
                     });
                 }
                 function loadData(plugin, channelsDB) {
@@ -13993,7 +15280,7 @@ var LiteMol;
                     if (Config.CommonOptions.DEBUG_MODE)
                         console.profile("loadData");
                     var modelLoadPromise = new LiteMol.Promise(function (res, rej) {
-                        var parameters = CommonUtils.Router.getParameters();
+                        var parameters = Common.Util.Router.getParameters();
                         if (parameters === null) {
                             rej("Corrupted url found - cannot parse parameters.");
                             return;
@@ -14075,6 +15362,8 @@ var LiteMol;
                         promises.push(proteinAndCSA);
                     }
                     if (channels && !channelsDB) {
+                        //Download and show membrane data if available
+                        promises.push(downloadMembraneData(plugin, computationId));
                         if (Config.CommonOptions.DEBUG_MODE)
                             console.log("reloading channels");
                         promises.push(downloadChannelsData(plugin, computationId, submitId));
@@ -14089,6 +15378,7 @@ var LiteMol;
                             console.profileEnd();
                     })
                         .catch(function (error) {
+                        console.log(error);
                         rej(error);
                     });
                 }
@@ -14153,15 +15443,17 @@ var LiteMol;
                         if ((idxCounter - 1) % idxFilter !== 0) {
                             continue;
                         }
-                        s.add({ type: 'Sphere', id: 0 /*id++*/, radius: sphere.Radius, center: [sphere.X, sphere.Y, sphere.Z], tessalation: 2 });
+                        s.add({ type: 'Sphere', id: 0, radius: sphere.Radius, center: [sphere.X, sphere.Y, sphere.Z], tessalation: 2 });
                     }
                     return s.buildSurface().run();
                 }
                 function getSurfaceColorByType(type) {
                     switch (type) {
-                        /*case 'Cavity': return ColorScheme.Colors.get(ColorScheme.Enum.Cavity);
+                        /*
+                        case 'Cavity': return ColorScheme.Colors.get(ColorScheme.Enum.Cavity);
                         case 'MolecularSurface': return ColorScheme.Colors.get(ColorScheme.Enum.Surface);
-                        case 'Void': return ColorScheme.Colors.get(ColorScheme.Enum.Void);*/
+                        case 'Void': return ColorScheme.Colors.get(ColorScheme.Enum.Void);
+                        */
                         default: return ColorScheme.Colors.get(ColorScheme.Enum.DefaultColor);
                     }
                 }
@@ -14239,12 +15531,10 @@ var LiteMol;
                 ;
                 function showChannelVisuals(plugin, channels, visible, forceRepaint) {
                     var label = function (channel) { return channel.Type + " " + CommonUtils.Tunnels.getName(channel); };
-                    /*let type = "Channel";*/
                     var alpha = 1.0;
                     var promises = [];
                     var visibleChannels = [];
                     var _loop_4 = function (channel) {
-                        // Stejné jako v Examples/Channels
                         if (!channel.__id)
                             channel.__id = LiteMol.Bootstrap.Utils.generateUUID();
                         if (!!channel.__isVisible === visible && !forceRepaint)
@@ -14261,29 +15551,15 @@ var LiteMol;
                         }
                         else {
                             visibleChannels.push(channel);
-                            //Zde se volá mnou vytvořená funkce pro generování povrchu podle koulí z JSONu(u nás zatím Centerline, u Vás Profile)
-                            var sphereSurfacePromise_1 = createTunnelSurface(channel.Profile); //createTunnelSurfaceWithLayers(channel.Profile, channel.Layers);
+                            var sphereSurfacePromise_1 = createTunnelSurface(channel.Profile);
                             promises.push(new LiteMol.Promise(function (res, rej) {
-                                //Zpracování úspěšně vygenerovného povrchu tunelu
                                 sphereSurfacePromise_1.then(function (val) {
                                     var surface = val;
-                                    /*
-                                    if(surface.surface.annotation !== void 0){
-                                        console.log("---");
-                                        console.log(`annotations length: ${surface.surface.annotation.length}`);
-                                        console.log(`profile parts count: ${channel.Profile.length}`);
-                                        console.log("---");
-                                        for(let i=0;i<surface.surface.annotation.length;i++){
-                                            surface.surface.annotation[i] = 0;
-                                            //console.log(`surface.annotation: ${surface.surface.annotation[i]}`);
-                                        }
-                                    }
-                                    */
                                     var t = plugin.createTransform();
                                     t.add('mole-data', State.CreateSurface, {
                                         label: label(channel),
                                         tag: { kind: "Channel", element: channel },
-                                        surface: surface /*.surface*/,
+                                        surface: surface,
                                         color: channel.__color,
                                         isInteractive: true,
                                         transparency: { alpha: alpha },
@@ -14324,6 +15600,99 @@ var LiteMol;
                         default: return ColorScheme.Colors.get(ColorScheme.Enum.OtherOrigin);
                     }
                 }
+                function createMembraneSurface(membranePoints) {
+                    var s = LiteMol.Visualization.Primitive.Builder.create();
+                    for (var _a = 0, _b = membranePoints; _a < _b.length; _a++) {
+                        var p = _b[_a];
+                        s.add({ type: 'Sphere', id: 0, radius: 0.25, center: [p.Position.X, p.Position.Y, p.Position.Z] });
+                    }
+                    return s.buildSurface().run();
+                }
+                function showMembraneVisuals(plugin, membraneData, visible) {
+                    var promises = [];
+                    var blue = [];
+                    var red = [];
+                    var blueId = "";
+                    var redId = "";
+                    for (var _a = 0, membraneData_1 = membraneData; _a < membraneData_1.length; _a++) {
+                        var membrane = membraneData_1[_a];
+                        var membraneDataAny = membrane;
+                        if (!!membraneDataAny.__isVisible === visible)
+                            return LiteMol.Promise.resolve();
+                        membraneDataAny.__isVisible = visible;
+                        if (!visible) {
+                            if (membraneDataAny.__id !== void 0) {
+                                plugin.command(LiteMol.Bootstrap.Command.Tree.RemoveNode, membraneDataAny.__id);
+                                membraneDataAny.__id = void 0;
+                            }
+                            membraneDataAny.__isBusy = false;
+                            continue;
+                        }
+                        if (membrane.Side === "N") {
+                            if (blueId === "") {
+                                if (!membraneDataAny.__id) {
+                                    blueId = LiteMol.Bootstrap.Utils.generateUUID();
+                                }
+                                membraneDataAny.__id = blueId;
+                            }
+                            blue.push(membrane);
+                            blue.__isBusy = true;
+                        }
+                        else {
+                            if (redId === "") {
+                                if (!membraneDataAny.__id) {
+                                    redId = LiteMol.Bootstrap.Utils.generateUUID();
+                                }
+                                membraneDataAny.__id = redId;
+                            }
+                            red.push(membrane);
+                            red.__isBusy = true;
+                        }
+                    }
+                    if (blue.length > 0) {
+                        promises.push(new LiteMol.Promise(function (res, rej) {
+                            createMembraneSurface(blue).then(function (surface) {
+                                var t = plugin.createTransform()
+                                    .add('membrane-data', State.CreateSurface, {
+                                    label: 'Membrane Blue',
+                                    tag: { kind: 'Origins', element: membraneData },
+                                    surface: surface,
+                                    isInteractive: false,
+                                    color: ColorScheme.Colors.get(ColorScheme.Enum.MembraneBlue)
+                                }, { ref: blue[0].__id, isHidden: true });
+                                plugin.applyTransform(t).then(function () {
+                                    blue.__isBusy = false;
+                                    res();
+                                }).catch(function (err) { return rej(err); });
+                            }).catch(function (err) { return rej(err); });
+                        }));
+                    }
+                    if (red.length > 0) {
+                        promises.push(new LiteMol.Promise(function (res, rej) {
+                            createMembraneSurface(red).then(function (surface) {
+                                var t = plugin.createTransform()
+                                    .add('membrane-data', State.CreateSurface, {
+                                    label: 'Membrane Red',
+                                    tag: { kind: 'Origins', element: membraneData },
+                                    surface: surface,
+                                    isInteractive: false,
+                                    color: ColorScheme.Colors.get(ColorScheme.Enum.MembraneRed)
+                                }, { ref: red[0].__id, isHidden: true });
+                                plugin.applyTransform(t).then(function () {
+                                    red.__isBusy = false;
+                                    res();
+                                }).catch(rej);
+                            }).catch(rej);
+                        }));
+                    }
+                    return LiteMol.Promise.all(promises).then(function () {
+                        membraneData.__isBusy = false;
+                        membraneData.__isVisible = visible;
+                    }).catch(function (err) {
+                        membraneData.__isBusy = false;
+                    });
+                }
+                State.showMembraneVisuals = showMembraneVisuals;
                 function showOriginsSurface(plugin, origins, visible) {
                     if (!origins.__id)
                         origins.__id = LiteMol.Bootstrap.Utils.generateUUID();
@@ -14417,7 +15786,7 @@ var LiteMol;
                     }
                     App.prototype.componentDidMount = function () {
                         var _this = this;
-                        var params = CommonUtils.Router.getParameters();
+                        var params = Common.Util.Router.getParameters();
                         var channelsDB = false;
                         if (params !== null) {
                             channelsDB = params.isChannelsDB;
@@ -14451,14 +15820,14 @@ var LiteMol;
                     };
                     App.prototype.load = function (channelsDB) {
                         var _this = this;
-                        this.setState({ isLoading: true, error: void 0 }); //https://webchem.ncbr.muni.cz/API/ChannelsDB/PDB/1tqn
+                        this.setState({ isLoading: true, error: void 0 });
                         Channels_1.State.loadData(this.props.plugin, channelsDB)
                             .then(function (data) {
                             if (Config.CommonOptions.DEBUG_MODE)
                                 console.log("loading done ok");
                             var entities = _this.props.plugin.context.select("mole-data");
                             if (entities.length === 0) {
-                                var params = CommonUtils.Router.getParameters();
+                                var params = Common.Util.Router.getParameters();
                                 if (params === null) {
                                     _this.setState({ isLoading: false, error: "Sorry. Given url is not valid." });
                                     return;
@@ -14486,7 +15855,11 @@ var LiteMol;
                             }
                         })
                             .catch(function (e) {
-                            _this.setState({ isLoading: false, error: 'Application was unable to load data. Please try again later.', data: void 0 });
+                            var errMessage = 'Application was unable to load data. Please try again later.';
+                            if (e !== void 0 && e !== null && String(e).length > 0) {
+                                errMessage = String(e);
+                            }
+                            _this.setState({ isLoading: false, error: errMessage, data: void 0 });
                         });
                     };
                     App.prototype.render = function () {
@@ -14511,7 +15884,7 @@ var LiteMol;
                                             " ",
                                             React.createElement("i", { dangerouslySetInnerHTML: { __html: errorMessage } }))));
                                 }
-                                var params = CommonUtils.Router.getParameters();
+                                var params = Common.Util.Router.getParameters();
                                 var channelsDB_1 = false;
                                 if (params !== null) {
                                     channelsDB_1 = params.isChannelsDB;
@@ -14577,6 +15950,12 @@ var LiteMol;
                         if (this.props.data.Origins.CSAOrigins !== void 0)
                             originsControls.push(React.createElement(Origins, __assign({ origins: this.props.data.Origins.CSAOrigins }, this.props, { label: 'CSA Origins' })));
                         var noOriginsData = React.createElement("div", { className: "no-channels-data" }, "There are no origins available...");
+                        var membrane;
+                        var membraneData = this.props.plugin.context.select('membrane-data')[0];
+                        var noMembraneData = React.createElement("div", { className: "no-channels-data" }, "There are no membrane data available...");
+                        if (membraneData !== void 0 && membraneData !== null && membraneData.props.data.length !== void 0) {
+                            membrane = React.createElement(Membrane, __assign({ membraneData: membraneData.props.data, label: "Membrane" }, this.props));
+                        }
                         return React.createElement("div", null,
                             React.createElement(Selection, __assign({}, this.props)),
                             React.createElement("div", { className: "ui-header" }, "Channels"),
@@ -14584,7 +15963,9 @@ var LiteMol;
                             React.createElement("div", { className: "ui-header origins" }, "Origins"),
                             React.createElement("div", null, (originsControls.length === 0) ? noOriginsData : originsControls),
                             React.createElement("div", { className: "ui-header cavities" }, "Cavities"),
-                            React.createElement("div", null, (cavitiesControls.length === 0) ? noCavitiesData : cavitiesControls));
+                            React.createElement("div", null, (cavitiesControls.length === 0) ? noCavitiesData : cavitiesControls),
+                            React.createElement("div", { className: "ui-header membrane" }, "Membrane"),
+                            React.createElement("div", null, (membrane === void 0) ? noMembraneData : membrane));
                     };
                     return Data;
                 }(React.Component));
@@ -14595,7 +15976,6 @@ var LiteMol;
                     function Selection() {
                         var _this = _super !== null && _super.apply(this, arguments) || this;
                         _this.state = { label: void 0 };
-                        //private observer: Bootstrap.Rx.IDisposable | undefined = void 0;
                         _this.observerChannels = void 0;
                         return _this;
                     }
@@ -14663,7 +16043,7 @@ var LiteMol;
                                     var c = data.source.props.tag.element;
                                     var tunnelName = CommonUtils.Tunnels.getName(c);
                                     var len = CommonUtils.Tunnels.getLength(c);
-                                    if (CommonUtils.Router.isInChannelsDBMode()) {
+                                    if (Common.Util.Router.isInChannelsDBMode()) {
                                         var annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getChannelAnnotationsImmediate(c.Id);
                                         if (annotations !== null && annotations.length > 0) {
                                             tunnelName = annotations[0].name;
@@ -14694,10 +16074,6 @@ var LiteMol;
                         });
                     };
                     Selection.prototype.componentWillUnmount = function () {
-                        /*if (this.observer) {
-                            this.observer.dispose();
-                            this.observer = void 0;
-                        }*/
                         if (this.observerChannels) {
                             this.observerChannels.dispose();
                             this.observerChannels = void 0;
@@ -14710,7 +16086,6 @@ var LiteMol;
                                 React.createElement("div", { className: "btn btn-xs btn-default ui-selection-clear", onClick: function (e) {
                                         var plugin = MoleOnlineWebUI.Bridge.Instances.getPlugin();
                                         CommonUtils.Selection.SelectionHelper.clearSelection(plugin);
-                                        //CommonUtils.Selection.SelectionHelper.clearAltSelection(plugin);
                                     }, title: "Clear selection" },
                                     React.createElement("span", { className: "glyphicon glyphicon-trash" }))),
                             React.createElement("div", { className: "ui-selection" }, !this.state.label
@@ -14747,30 +16122,6 @@ var LiteMol;
                     return Section;
                 }(React.Component));
                 UI.Section = Section;
-                /*
-                export class Renderable extends React.Component<{ label: string | JSX.Element, annotations?:MoleOnlineWebUI.Service.ChannelsDBAPI.ChannelAnnotation[], element: any, toggle: (plugin: Plugin.Controller, elements: any[], visible: boolean) => Promise<any> } & State, { }> {
-                
-                    private toggle() {
-                        this.props.element.__isBusy = true;
-                        this.forceUpdate(() =>
-                            this.props.toggle(this.props.plugin, [this.props.element], !this.props.element.__isVisible)
-                                .then(() => this.forceUpdate()).catch(() => this.forceUpdate()));
-                    }
-            
-                    private highlight(isOn: boolean) {
-                        this.props.plugin.command(Bootstrap.Command.Entity.Highlight, { entities: this.props.plugin.context.select(this.props.element.__id), isOn });
-                    }
-            
-            
-                    render() {
-                        return <div className="ui-label">
-                            <input type='checkbox' checked={!!this.props.element.__isVisible} onChange={() => this.toggle()} disabled={!!this.props.element.__isBusy} />
-                            <label className="ui-label-element" onMouseEnter={() => this.highlight(true)} onMouseLeave={() => this.highlight(false)} >
-                                 {this.props.label}
-                            </label>
-                        </div>
-                    }
-                }*/
                 var Renderable = (function (_super) {
                     __extends(Renderable, _super);
                     function Renderable() {
@@ -14826,7 +16177,7 @@ var LiteMol;
                     Renderable.prototype.render = function () {
                         var _this = this;
                         var emptyToggler;
-                        if (CommonUtils.Router.isInChannelsDBMode()) {
+                        if (Common.Util.Router.isInChannelsDBMode()) {
                             emptyToggler = React.createElement("span", { className: "disabled glyphicon glyphicon-chevron-down", title: "No annotations available for this channel", onClick: this.toggleAnnotations.bind(this) });
                         }
                         return React.createElement("div", { className: "ui-label" },
@@ -14888,20 +16239,6 @@ var LiteMol;
                                 _this.selectChannel(false);
                             }
                         }).bind(this));
-                    };
-                    Channel.prototype.dataWaitHandler = function () {
-                        var state = this.state;
-                        state.isWaitingForData = false;
-                        this.setState(state);
-                    };
-                    Channel.prototype.invokeDataWait = function () {
-                        if (this.state.isWaitingForData) {
-                            return;
-                        }
-                        var state = this.state;
-                        state.isWaitingForData = true;
-                        this.setState(state);
-                        //Annotation.AnnotationDataProvider.subscribeForData(this.dataWaitHandler.bind(this));
                     };
                     Channel.prototype.render = function () {
                         var _this = this;
@@ -15046,6 +16383,42 @@ var LiteMol;
                     return Origins;
                 }(React.Component));
                 UI.Origins = Origins;
+                var Membrane = (function (_super) {
+                    __extends(Membrane, _super);
+                    function Membrane() {
+                        return _super !== null && _super.apply(this, arguments) || this;
+                    }
+                    Membrane.prototype.componentDidMount = function () {
+                        var _this = this;
+                        MoleOnlineWebUI.Bridge.Events.subscribeOnMembraneDataReady(function () {
+                            _this.forceUpdate();
+                        });
+                    };
+                    Membrane.prototype.toggle = function () {
+                        var _this = this;
+                        this.props.membraneData.__isBusy = true;
+                        this.forceUpdate(function () {
+                            return Channels_1.State.showMembraneVisuals(_this.props.plugin, _this.props.membraneData, !_this.props.membraneData.__isVisible)
+                                .then(function () { return _this.forceUpdate(); }).catch(function (err) { _this.forceUpdate(); console.log(err); });
+                        });
+                    };
+                    Membrane.prototype.highlight = function (isOn) {
+                        this.props.plugin.command(LiteMol.Bootstrap.Command.Entity.Highlight, { entities: this.props.plugin.context.select(this.props.membraneData.__id), isOn: isOn });
+                    };
+                    Membrane.prototype.render = function () {
+                        var _this = this;
+                        if (this.props.membraneData === void 0 || !this.props.membraneData.length) {
+                            return React.createElement("div", { style: { display: 'none' } });
+                        }
+                        return React.createElement("div", null,
+                            React.createElement("label", { onMouseEnter: function () { return _this.highlight(true); }, onMouseLeave: function () { return _this.highlight(false); } },
+                                React.createElement("input", { type: 'checkbox', checked: !!this.props.membraneData.__isVisible, onChange: function () { return _this.toggle(); }, disabled: !!this.props.membraneData.__isBusy }),
+                                " ",
+                                this.props.label));
+                    };
+                    return Membrane;
+                }(React.Component));
+                UI.Membrane = Membrane;
                 var __colorPickerIdSeq = 0;
                 function generateColorPickerId() {
                     return "color-picker-" + __colorPickerIdSeq++;
@@ -15129,7 +16502,6 @@ var LiteMol;
                     var tag = info.source.props.tag;
                     var e = tag.element;
                     switch (tag.kind) {
-                        //                case 'Cavity': return `<b>${e.Type} ${e.Id}</b>, Volume: ${e.Volume | 0} Å`;
                         case 'Cavity-inner': return "<b>" + e.Type + " " + e.Id + "</b>, Volume: " + (e.Volume | 0) + " \u00C5";
                         case 'Cavity-boundary': return "<b>" + e.Type + " " + e.Id + "</b>, Volume: " + (e.Volume | 0) + " \u00C5, Center: " + Channels.Behaviour.vec3str(Channels.Behaviour.getTriangleCenter(tag.surface, info.elements[0]));
                         case 'Channel': {
@@ -15137,7 +16509,7 @@ var LiteMol;
                             var len = CommonUtils.Tunnels.getLength(tunnel);
                             var bneck = CommonUtils.Tunnels.getBottleneck(tunnel);
                             var annotations = MoleOnlineWebUI.Cache.ChannelsDBData.getChannelAnnotationsImmediate(tunnel.Id);
-                            if (CommonUtils.Router.isInChannelsDBMode() && annotations !== null && annotations.length > 0) {
+                            if (Common.Util.Router.isInChannelsDBMode() && annotations !== null && annotations.length > 0) {
                                 return "<b>" + annotations[0].name + "</b>, Length: " + len + " \u00C5 | Bottleneck: " + bneck + " \u00C5";
                             }
                             else {
@@ -15235,8 +16607,15 @@ var LiteMol;
             // easy to follow the types and parameters in VSCode.
             var Vizualizer = LayersVizualizer;
             (function () {
+                window.TOUCH_MODE = false;
+                window.addEventListener('touchstart', function onFirstTouch() {
+                    window.TOUCH_MODE = true;
+                    window.removeEventListener('touchstart', onFirstTouch, false);
+                    $(window).trigger('resize');
+                }, false);
                 SimpleRouter.GlobalRouter.init(Config.Routing.ROUTING_OPTIONS[Config.Routing.ROUTING_MODE]);
                 console.log(Config.Routing.ROUTING_MODE);
+                Common.Util.LastNSessions.updateWithCurrentSession();
                 var lvSettings = {
                     coloringProperty: "Hydropathy",
                     useColorMinMax: true,
@@ -15275,6 +16654,7 @@ var LiteMol;
                 DownloadReport.UI.render(document.getElementById("download-report"));
                 PDFReportGenerator.UI.render(document.getElementById("pdf-report-generator"));
                 PdbIdSign.UI.render(document.getElementById("pdbid-sign"));
+                Help.UI.render(document.getElementById("help-button"));
                 Annotate.UI.render(document.getElementById("annotate"));
                 AlertMessages.UI.render(document.getElementById("alert-messages"));
                 SequenceViewer.UI.render(document.getElementById("sequence-viewer"), plugin);
