@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>MoleOnline | Home</title>
+	<meta name="description"
+		content="MOLE 2.5 is an universal toolkit for rapid and fully automated location and characterization of tunnels, channels and pores in (bio)molecular structures.">
+	<meta name="author" content="Ing. Ondřej Hanák; http://ondrejhanak.cz">
+	<link rel="shortcut icon" href="\images/favicon.ico" type="image/icon">
+	<!-- <script type="text/javascript" src="\js/old-web/jsloader.js"></script> -->
+	<link rel="stylesheet" type="text/css" media="screen" href="../css/init/cssloader.css">
+	<link rel="stylesheet" href="../css/init/print.front.css" type="text/css" media="print">
+	<!-- <link rel="stylesheet" href="../css/init/LiteMol-plugin.css" type="text/css"> -->
+	<link rel="stylesheet" href="../css/init-styles.css" type="text/css">
+	<!-- <script src="\js/provided.js?version=<!UI-VERSION!>"></script>
+	<script src="\js/scripts.js?version=<!UI-VERSION!>"></script>      -->
+
+	<!-- <script src="../js/scripts.js?version=R1.1.9.1"></script> -->
+	<script src="../js/init-scripts.js?version=R1.1.9.1"></script>
+
+	<script type="text/javascript">
+		$(function () {
+			// auto-hide flash messages
+			$('.flashmsg.info, .flashmsg.ok').each(function () {
+				var el = $(this);
+				setTimeout(function () {
+					el.animate({ 'opacity': 0 }, 2000).slideUp();
+				}, 10100);
+			});
+
+			// format hint messages
+			$('span.hint, div.hint').before('<img src="/images/help.png" class="hint" alt="">').each(function () {
+				var div = $(this);
+				var img = div.prev('img.hint');
+				div.hide();
+				div.css('position', 'fixed');
+				div.append('<img src="/images/front/hint_toptip.png" alt="" class="toptip">');
+				img.mouseenter(function () { $(this).next('.hint').show(); });
+				img.mouseout(function () { $(this).next('.hint').hide(); });
+			});
+		});
+	</script>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script src="https://www.googletagmanager.com/gtag/js?id=UA-4336835-7"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'UA-4336835-7');
+	</script>
+</head>
+
+<body>
+
+	<div id="page">
+
+		<div class="card shadow-sm mb-4 sticky-top">
+			<div class="card-body d-flex align-items-center" style="position: relative;">
+				<div class="header-gradient-background"></div>
+				<div class="header-gradient-text fs-3 fw-bold px-3" style="margin-right: 28rem;">
+					<img src="\images/favicon.ico" alt="M" class="header-icon">
+					oleOnline
+				</div>
+				<ul class="nav nav-pills nav-fill flex-grow-1">
+					<li class="nav-item">
+						<a class="nav-link" aria-current="page" href="/">Home</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="documentation.html">Documentation</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="about.html">About</a>
+					</li>
+                    <li class="nav-item">
+						<a class="nav-link active" aria-current="page" href="#">News</a>
+					</li>
+				</ul>
+				<!-- <div class="card">
+				<div class="card-body">
+					MoleOnline
+				</div>
+			</div> -->
+			</div>
+		</div>
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1"><b>Attention</b></h5>
+                    <small>8. 6. 2019</small>
+                </div>
+                <p class="mb-1">Update to Chrome 75 disables WebGL functionalities important for
+                    MOLEonline LiteMol visualization. We are working on fix on this issue. Meanwhile
+                    use other browsers for accessing MOLEonline.</p>
+            </li>
+            <li class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1"><b>Server room maintenance</b></h5>
+                    <small>17. 12. 2018</small>
+                </div>
+                <p class="mb-1">We would like to announce that MOLEonline will not be available on
+                    Monday (December 17th) due to web server room maintenance. Sorry for the
+                    inconvenience.</p>
+            </li>
+            <li class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1"><b>MOLEonline update 2018 was published</b></h5>
+                    <small>1. 5. 2018</small>
+                </div>
+                <p class="mb-1">Our paper, which describes the new features
+                    of MOLEonline, is accepted for publication in <a
+                        href="https://dx.doi.org/10.1093/nar/gky309" target="_blank">Web issue of
+                        Nucleic Acids Research</a>.</p>
+            </li>
+            <li class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1"><b>New features and updates</b></h5>
+                    <small>2. 4. 2018</small>
+                </div>
+                <div class="mb-1">
+                    <span>New features in MOLEonline:</span>
+                    <ul style="list-style-type: disc !important;">
+                        <li>new Help button will allow to send us your troubled session so we can help you more thoroughly,</li>
+                        <li>multiple layers can be selected/deselected to show average properties and list of residues only around important area of the channel.</li>
+                    </ul>
+                </div>
+            </li>
+            <li class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1"><b>New features in MOLEonline</b></h5>
+                    <small>22. 1. 2018</small>
+                </div>
+                <div class="mb-1">
+                    <ul style="list-style-type: disc !important;">
+                        <li>
+                            New properties
+                            <ul style="list-style-type: disc !important;">
+                                <li>Lipophilicity (logP and logD-like scales)</li>
+                                <li>Water solubility (logS)</li>
+                            </ul>
+                        </li>
+                        <li>Pore mode improvements</li>
+                        <li>Better CSV export</li>
+                        <li>Residue annotation via API from Uniprot</li>
+                    </ul>
+                    <span>Differences between individual versions of MOLEonline are listed at: <a
+                            href="">TODO FAQ link</a></span>
+                </div>
+            </li>
+            <li class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1"><b>ChannelsDB was published</b></h5>
+                    <small>1. 1. 2018</small>
+                </div>
+                <p class="mb-1">The ChannelsDB database contains information about channel positions, geometry and physicochemical properties of reviewed and annotated channels from PDB database. It was published in <a href="https://doi.org/10.1093/nar/gkx868" target="_blank">Database issue of Nucleic Acids Research</a>. You can reach ChannelsDB data available for queried PDB structure in Submission tab in right lower corner of MOLEonline GUI window.</p>
+            </li>
+            <li class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1"><b>Previous version</b></h5>
+                    <small>19. 12. 2017</small>
+                </div>
+                <p class="mb-1">Old version of MOLEonline 2.0 is still available at address: <a href="http://old.mole.upol.cz/" target="_blank">http://old.mole.upol.cz/</a></p>
+            </li>
+            <hr style="border-color: rgb(110, 110, 110);">
+		<!-- <div class="card p-4" style="border: var(--bs-card-border-width) solid rgba(205, 205, 205, 0.18);"> -->
+			<!-- <div class="card-body" style="scroll-behavior: smooth; overflow-y: auto;">
+                <ul class="list-group">
+                    <li class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1"><b>Attention</b></h5>
+                            <small>8. 6. 2019</small>
+                        </div>
+                        <p class="mb-1">Update to Chrome 75 disables WebGL functionalities important for
+                            MOLEonline LiteMol visualization. We are working on fix on this issue. Meanwhile
+                            use other browsers for accessing MOLEonline.</p>
+                    </li>
+                    <li class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1"><b>Server room maintenance</b></h5>
+                            <small>17. 12. 2018</small>
+                        </div>
+                        <p class="mb-1">We would like to announce that MOLEonline will not be available on
+                            Monday (December 17th) due to web server room maintenance. Sorry for the
+                            inconvenience.</p>
+                    </li>
+                    <li class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1"><b>MOLEonline update 2018 was published</b></h5>
+                            <small>1. 5. 2018</small>
+                        </div>
+                        <p class="mb-1">Our paper, which describes the new features
+                            of MOLEonline, is accepted for publication in <a
+                                href="https://dx.doi.org/10.1093/nar/gky309" target="_blank">Web issue of
+                                Nucleic Acids Research</a>.</p>
+                    </li>
+                    <li class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1"><b>New features and updates</b></h5>
+                            <small>2. 4. 2018</small>
+                        </div>
+                        <div class="mb-1">
+                            <span>New features in MOLEonline:</span>
+                            <ul style="list-style-type: disc !important;">
+                                <li>new Help button will allow to send us your troubled session so we can help you more thoroughly,</li>
+                                <li>multiple layers can be selected/deselected to show average properties and list of residues only around important area of the channel.</li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1"><b>New features in MOLEonline</b></h5>
+                            <small>22. 1. 2018</small>
+                        </div>
+                        <div class="mb-1">
+                            <ul style="list-style-type: disc !important;">
+                                <li>
+                                    New properties
+                                    <ul style="list-style-type: disc !important;">
+                                        <li>Lipophilicity (logP and logD-like scales)</li>
+                                        <li>Water solubility (logS)</li>
+                                    </ul>
+                                </li>
+                                <li>Pore mode improvements</li>
+                                <li>Better CSV export</li>
+                                <li>Residue annotation via API from Uniprot</li>
+                            </ul>
+                            <span>Differences between individual versions of MOLEonline are listed at: <a
+                                    href="">TODO FAQ link</a></span>
+                        </div>
+                    </li>
+                    <li class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1"><b>ChannelsDB was published</b></h5>
+                            <small>1. 1. 2018</small>
+                        </div>
+                        <p class="mb-1">The ChannelsDB database contains information about channel positions, geometry and physicochemical properties of reviewed and annotated channels from PDB database. It was published in <a href="https://doi.org/10.1093/nar/gkx868" target="_blank">Database issue of Nucleic Acids Research</a>. You can reach ChannelsDB data available for queried PDB structure in Submission tab in right lower corner of MOLEonline GUI window.</p>
+                    </li>
+                    <li class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1"><b>Previous version</b></h5>
+                            <small>19. 12. 2017</small>
+                        </div>
+                        <p class="mb-1">Old version of MOLEonline 2.0 is still available at address: <a href="http://old.mole.upol.cz/" target="_blank">http://old.mole.upol.cz/</a></p>
+                    </li>
+            </div> -->
+		<!-- </div> -->
+		<div class="common-elixir-support">MOLEonline is supported by ELIXIR CZ research infrastructure project
+			(MEYS Grant No: LM2015047)</div>
+		<hr style="border-color: rgb(110, 110, 110);">
+		<div>Sponsored by ELIXIR-CZ, UPOL, MUNI</div>
+		<div class="common-sponos-logos">
+			<a href="https://www.elixir-czech.cz/" target="_blank"><img
+					src="\images/elixir_czechrepublic_white_background.png" width="110px" alt="ELIXIR CZ"
+					title="ELIXIR CZ"></a>&nbsp;&nbsp;&nbsp;
+			<a href="http://fch.upol.cz/" target="_blank"><img src="\images/UPlogo.png" width="240px"
+					alt="Palacký University Olomouc" title="Palacký University Olomouc"></a>&nbsp;&nbsp;&nbsp;
+			<a href="http://www.rcptm.com/" target="_blank"><img src="\images/rcptm.png" width="200px"
+					alt="Regional Centre of Advanced Technologies and Materials"
+					title="Regional Centre of Advanced Technologies and Materials"></a>&nbsp;&nbsp;&nbsp;
+			<a href="http://ncbr.muni.cz/" target="_blank"><img src="\images/Logo_Masaryk_University.png" width="90px"
+					alt="Masaryk University" title="Masaryk University"></a>&nbsp;&nbsp;&nbsp;
+			<a href="https://www.ceitec.cz/ceitec-mu/vypocetni-chemie-jaroslav-koca/rg64" target="_blank"><img
+					src="\images/ceitec-clr-logo.png" width="220px" alt="CEITEC" title="CEITEC"></a>
+		</div>
+	</div>
+	</div>
+
+	<!-- <div id="content">
+
+		<hr class="cleaner">
+		<div id="version-block" data-ui-version="<!UI-VERSION!>" />
+
+	</div> -->
+
+	<div id="ajaxspinner"></div>
+
+	<script src="../MOLEOnline_Init-Core.js?version=R1.1.9.1"></script>
+</body>
+
+</html>

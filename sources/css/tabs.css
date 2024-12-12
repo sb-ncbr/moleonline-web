@@ -12,6 +12,10 @@
 
 #left-tabs{
     padding-left:0px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
 }
 
 #right-tabs .datagrid{

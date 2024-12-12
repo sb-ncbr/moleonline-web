@@ -1,0 +1,168 @@
+a {
+  color: rgb(51, 43, 31);
+}
+a:hover {
+  color: rgb(174, 93, 4);
+}
+
+.msp-slider-base {
+  position: relative;
+  height: 14px;
+  padding: 5px 0;
+  width: 100%;
+  border-radius: 6px;
+  align-self: center;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+.msp-slider-base * {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+.msp-slider-base-rail {
+  position: absolute;
+  width: 100%;
+  background-color: rgb(224, 221, 212);
+  height: 4px;
+  border-radius: 2px;
+}
+.msp-slider-base-track {
+  position: absolute;
+  left: 0;
+  height: 4px;
+  border-radius: 6px;
+  background-color: tint(rgb(51, 43, 31), 60%);
+}
+.msp-slider-base-handle {
+  position: absolute;
+  margin-left: -11px;
+  margin-top: -9px;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  border-radius: 50%;
+  background-color: rgb(51, 43, 31);
+  border: 4px solid rgb(224, 221, 212);
+}
+.msp-slider-base-handle:hover {
+  background-color: rgb(174, 93, 4);
+}
+.msp-slider-base-mark {
+  position: absolute;
+  top: 18px;
+  left: 0;
+  width: 100%;
+  font-size: 12px;
+}
+.msp-slider-base-mark-text {
+  position: absolute;
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+  cursor: pointer;
+  color: #999;
+}
+.msp-slider-base-mark-text-active {
+  color: #666;
+}
+.msp-slider-base-step {
+  position: absolute;
+  width: 100%;
+  height: 4px;
+  background: transparent;
+}
+.msp-slider-base-dot {
+  position: absolute;
+  bottom: -2px;
+  margin-left: -4px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid #e9e9e9;
+  background-color: #fff;
+  cursor: pointer;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+.msp-slider-base-dot:first-child {
+  margin-left: -4px;
+}
+.msp-slider-base-dot:last-child {
+  margin-left: -4px;
+}
+.msp-slider-base-dot-active {
+  border-color: tint(rgb(51, 43, 31), 50%);
+}
+.msp-slider-base-disabled {
+  background: rgb(238, 236, 231);
+  opacity: 0.35;
+}
+.msp-slider-base-disabled .msp-slider-base-handle,
+.msp-slider-base-disabled .msp-slider-base-dot {
+  cursor: not-allowed;
+}
+.msp-slider-base-disabled .msp-slider-base-mark-text,
+.msp-slider-base-disabled .msp-slider-base-dot {
+  cursor: not-allowed !important;
+}
+
+.msp-slider > div:first-child {
+  position: absolute;
+  top: 0;
+  left: 18px;
+  bottom: 0;
+  right: 62px;
+  display: flex;
+}
+.msp-slider > div:last-child {
+  position: absolute;
+  height: 32px;
+  line-height: 32px;
+  text-align: center;
+  right: 0;
+  width: 50px;
+  top: 0;
+  bottom: 0;
+}
+.msp-slider input[type=text] {
+  padding-right: 6px;
+  padding-left: 4px;
+  font-size: 80%;
+  text-align: right;
+}
+
+.msp-slider2 > div:first-child {
+  position: absolute;
+  height: 32px;
+  line-height: 32px;
+  text-align: center;
+  left: 0;
+  width: 25px;
+  top: 0;
+  bottom: 0;
+  font-size: 80%;
+}
+.msp-slider2 > div:nth-child(2) {
+  position: absolute;
+  top: 0;
+  left: 35px;
+  bottom: 0;
+  right: 37px;
+  display: flex;
+}
+.msp-slider2 > div:last-child {
+  position: absolute;
+  height: 32px;
+  line-height: 32px;
+  text-align: center;
+  right: 0;
+  width: 25px;
+  top: 0;
+  bottom: 0;
+  font-size: 80%;
+}
+.msp-slider2 input[type=text] {
+  padding-right: 4px;
+  padding-left: 4px;
+  font-size: 80%;
+  text-align: center;
+}

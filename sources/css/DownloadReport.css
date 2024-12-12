@@ -19,13 +19,13 @@
 .download-button{
     width: 125px;
     height: 32px;
-    position: fixed;
+    position: absolute;
     z-index: 950;
     line-height: 30px;
     text-align: center;
     font-size: 13pt;
     background-color: #f8f8f8;
-    left: 245px;
+    right: 245px;
     padding: 0;
     color: #777;
     /*padding-right: 10px;*/

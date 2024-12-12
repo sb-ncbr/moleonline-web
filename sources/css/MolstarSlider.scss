@@ -1,0 +1,245 @@
+@mixin borderBox {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0); //  remove tap highlight color for mobile safari
+
+    * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0); //  remove tap highlight color for mobile safari
+    }
+}
+
+@function compl($color) {
+    @return rgb(255 - red($color), 255 - green($color), 255 - blue($color));
+}
+$default-background:         compl(#111318);
+$font-color:                 compl(#ccd4e0);
+$hover-font-color:           compl(#51A2FB);
+$entity-current-font-color:  compl(#68BEFD);
+$msp-btn-commit-on-font-color:   compl(#68BEFD);
+$entity-badge-font-color:    lighten(#ccd4e0,10%);
+$msp-btn-remove-background:      #DE0A28;
+$msp-btn-remove-hover-font-color:#F2F4F7;
+
+
+@function color-lower-contrast($color, $amount) {
+    @return darken($color, $amount);
+}
+
+@function color-increase-contrast($color, $amount) {
+    @return lighten($color, $amount);
+}
+
+$row-height:            32px;
+
+$slider-border-radius-base: 6px;
+$slider-disabledColor: #ccc;
+
+$control-background: rgb(224.2548780488, 220.637804878, 211.5951219512);
+$border-color: color-increase-contrast($default-background, 15%);
+$msp-form-control-background: color-lower-contrast($default-background, 2.5%);
+
+
+// @import '../../node_modules/molstar/lib/mol-plugin-ui/skin/base/base.scss';
+
+a {
+    color: $font-color;
+    &:hover {
+        color: $hover-font-color;
+    }
+}
+
+
+.msp-slider-base {
+    position: relative;
+    height: 14px;
+    padding: 5px 0;
+    width: 100%;
+    border-radius: $slider-border-radius-base;
+    align-self: center;
+    @include borderBox;
+
+    &-rail {
+        position: absolute;
+        width: 100%;
+        background-color: $control-background;
+        height: 4px;
+        border-radius: 2px;
+    }
+
+    &-track {
+        position: absolute;
+        left: 0;
+        height: 4px;
+        border-radius: $slider-border-radius-base;
+        background-color: tint($font-color, 60%);
+    }
+
+    &-handle {
+        position: absolute;
+        margin-left: -11px;
+        margin-top: -9px;
+        width: 22px;
+        height: 22px;
+        cursor: pointer;
+        border-radius: 50%;
+        background-color: $font-color;
+        border: 4px solid $control-background;
+
+        &:hover {
+            background-color: $hover-font-color;
+        }
+    }
+
+    &-mark {
+        position: absolute;
+        top: 18px;
+        left: 0;
+        width: 100%;
+        font-size: 12px;
+    }
+
+    &-mark-text {
+        position: absolute;
+        display: inline-block;
+        vertical-align: middle;
+        text-align: center;
+        cursor: pointer;
+        color: #999;
+
+        &-active {
+            color: #666;
+        }
+    }
+
+    &-step {
+        position: absolute;
+        width: 100%;
+        height: 4px;
+        background: transparent;
+    }
+
+    &-dot {
+        position: absolute;
+        bottom: -2px;
+        margin-left: -4px;
+        width: 8px;
+        height: 8px;
+        border: 2px solid #e9e9e9;
+        background-color: #fff;
+        cursor: pointer;
+        border-radius: 50%;
+        vertical-align: middle;
+
+        &:first-child {
+            margin-left: -4px;
+        }
+
+        &:last-child {
+            margin-left: -4px;
+        }
+
+        &-active {
+            border-color: tint($font-color, 50%);
+        }
+    }
+
+    &-disabled {
+        background: $default-background;
+        opacity: 0.35;
+
+        // .msp-slider-base-track {
+        //   background-color: $slider-disabledColor;
+        // }
+
+        .msp-slider-base-handle,
+        .msp-slider-base-dot {
+            // border-color: $slider-disabledColor;
+            // background-color: color-lower-contrast($font-color, 10%);
+            cursor: not-allowed;
+        }
+
+        .msp-slider-base-mark-text,
+        .msp-slider-base-dot {
+            cursor: not-allowed !important;
+        }
+    }
+}
+
+.msp-slider {
+    >div:first-child {
+        position: absolute;
+        top: 0;
+        left: 18px;
+        bottom: 0;
+        right: 62px;
+        display: flex;
+    }
+
+    >div:last-child {
+        position: absolute;
+        height: $row-height;
+        line-height: $row-height;
+        text-align: center;
+        right: 0;
+        width: 50px;
+        top: 0;
+        bottom: 0;
+    }
+
+    input[type=text] {
+        padding-right: 6px;
+        padding-left: 4px;
+        font-size: 80%;
+        text-align: right;
+    }
+
+    // input[type=range] {
+    //     width: 100%;
+    // }
+}
+
+.msp-slider2 {
+    >div:first-child {
+        position: absolute;
+        height: $row-height;
+        line-height: $row-height;
+        text-align: center;
+        left: 0;
+        width: 25px;
+        top: 0;
+        bottom: 0;
+        font-size: 80%;
+    }
+
+    >div:nth-child(2) {
+        position: absolute;
+        top: 0;
+        left: 35px;
+        bottom: 0;
+        right: 37px;
+        display: flex;
+    }
+
+    >div:last-child {
+        position: absolute;
+        height: $row-height;
+        line-height: $row-height;
+        text-align: center;
+        right: 0;
+        width: 25px;
+        top: 0;
+        bottom: 0;
+        font-size: 80%;
+    }
+
+    input[type=text] {
+        padding-right: 4px;
+        padding-left: 4px;
+        font-size: 80%;
+        text-align: center;
+    }
+
+    // input[type=range] {
+    //     width: 100%;
+    // }
+}

@@ -1,0 +1,1550 @@
+.my-plugin {
+  font-family: "Helvetica Neue", "Segoe UI", Helvetica, "Source Sans Pro", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.42857143;
+}
+
+/*--------------------------------------*/
+/*! normalize.css v3.0.3 | MIT License | github.com/necolas/normalize.css */
+* {
+  box-sizing: border-box;
+}
+
+[hidden],
+template {
+  display: none;
+}
+
+a {
+  background-color: transparent;
+}
+
+a:active,
+a:hover {
+  outline: 0;
+}
+
+abbr[title] {
+  border-bottom: 1px dotted;
+}
+
+b,
+strong {
+  font-weight: bold;
+}
+
+small {
+  font-size: 80%;
+}
+
+img {
+  border: 0;
+}
+
+svg:not(:root) {
+  overflow: hidden;
+}
+
+button,
+input,
+optgroup,
+select,
+textarea {
+  color: inherit;
+  font: inherit;
+  margin: 0;
+}
+
+button {
+  overflow: visible;
+}
+
+button,
+select {
+  text-transform: none;
+}
+
+button,
+html input[type=button],
+input[type=reset],
+input[type=submit] {
+  -webkit-appearance: button;
+  cursor: pointer;
+}
+
+button[disabled],
+html input[disabled] {
+  cursor: default;
+}
+
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
+input {
+  line-height: normal;
+}
+
+input[type=checkbox],
+input[type=radio] {
+  box-sizing: border-box;
+  padding: 0;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  height: auto;
+}
+
+textarea {
+  overflow: auto;
+}
+
+/*--------------------------------------*/
+.msp-sequence {
+  position: relative;
+  right: 0;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: #f3f2ee;
+  height: 100%;
+  padding-bottom: 22px;
+}
+
+.msp-sequence * {
+  font-family: "Courier New", monospace !important;
+  font-size: 9pt !important;
+}
+
+.msp-sequence-select {
+  position: relative;
+  height: 24px;
+  width: 100%;
+  margin-bottom: 1px;
+  background: #e0ddd4;
+  text-align: left;
+}
+.msp-sequence-select > span {
+  display: inline-block;
+  line-height: 24px;
+  padding: 0 10px;
+  font-size: 85%;
+  font-weight: bold;
+  cursor: default;
+}
+.msp-sequence-select > select {
+  display: inline-block;
+  max-width: 120px;
+  width: auto;
+  text-overflow: ellipsis;
+  font-size: 85%;
+  height: 24px;
+  line-height: 24px;
+  background-size: 6px 8px;
+  background-color: #e0ddd4;
+}
+
+.msp-sequence-wrapper {
+  word-break: break-word;
+  padding: 10px 10px 3px 10px;
+  user-select: none;
+}
+
+.msp-sequence-wrapper-non-empty {
+  font-size: 85%;
+  line-height: 215%;
+  background: #f3f2ee;
+  width: 100%;
+  overflow-y: scroll !important;
+  /* overflow-x: hidden; */
+  position: relative !important;
+  /* top: 0; */
+  /* left: 0; */
+  /* bottom: 0; */
+  /* right: 0; */
+  height: 100% !important;
+}
+
+.msp-sequence-chain-label {
+  margin-left: 10px;
+  margin-top: 10px;
+  user-select: none;
+  color: rgb(174, 93, 4);
+  font-size: 90%;
+  line-height: 90%;
+  padding-left: 0.2em;
+}
+
+.msp-sequence-wrapper span {
+  cursor: pointer;
+}
+.msp-sequence-wrapper .msp-sequence-residue-long {
+  margin: 0em 0.2em 0em 0.2em;
+}
+.msp-sequence-wrapper .msp-sequence-residue-long-begin {
+  margin: 0em 0.2em 0em 0em;
+}
+.msp-sequence-wrapper .msp-sequence-label {
+  color: rgb(174, 93, 4);
+  font-size: 90%;
+  line-height: 90%;
+  padding-bottom: 1em;
+  padding-left: 0.2em;
+}
+.msp-sequence-wrapper .msp-sequence-number {
+  color: rgb(174, 93, 4);
+  word-break: keep-all;
+  cursor: default;
+  position: relative;
+  top: -1.1em;
+  left: 3.1em;
+  padding: 0px;
+  margin-left: -3em;
+  font-size: 80%;
+}
+.msp-sequence-wrapper .msp-sequence-number-long {
+  left: 3.3em;
+}
+.msp-sequence-wrapper .msp-sequence-number-long-negative {
+  left: 2.7em;
+}
+.msp-sequence-wrapper .msp-sequence-number-negative {
+  left: 2.5em;
+}
+.msp-sequence-wrapper .msp-sequence-present {
+  color: rgb(51, 43, 31);
+}
+.msp-sequence-wrapper .msp-sequence-missing {
+  color: #9c835f;
+}
+
+.msp-form-control, .msp-control-row select, .msp-control-row button, .msp-control-row input[type=text], .msp-btn {
+  display: block;
+  width: 100%;
+  background: #f3f2ee;
+  border: none;
+  padding: 0 10px;
+  line-height: 30px;
+  height: 32px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  background-image: none;
+}
+.msp-form-control::-moz-placeholder, .msp-control-row select::-moz-placeholder, .msp-control-row button::-moz-placeholder, .msp-control-row input[type=text]::-moz-placeholder, .msp-btn::-moz-placeholder {
+  color: #9c835f;
+  opacity: 1;
+}
+.msp-form-control:-ms-input-placeholder, .msp-control-row select:-ms-input-placeholder, .msp-control-row button:-ms-input-placeholder, .msp-control-row input[type=text]:-ms-input-placeholder, .msp-btn:-ms-input-placeholder {
+  color: #9c835f;
+}
+.msp-form-control::-webkit-input-placeholder, .msp-control-row select::-webkit-input-placeholder, .msp-control-row button::-webkit-input-placeholder, .msp-control-row input[type=text]::-webkit-input-placeholder, .msp-btn::-webkit-input-placeholder {
+  color: #9c835f;
+}
+.msp-form-control:hover, .msp-control-row select:hover, .msp-control-row button:hover, .msp-control-row input[type=text]:hover, .msp-btn:hover {
+  color: rgb(174, 93, 4);
+  background-color: #e9e6e0;
+  border: none;
+  outline-offset: -1px !important;
+  outline: 1px solid #c9c3b3 !important;
+}
+.msp-form-control:active, .msp-control-row select:active, .msp-control-row button:active, .msp-control-row input[type=text]:active, .msp-btn:active, .msp-form-control:focus, .msp-control-row select:focus, .msp-control-row button:focus, .msp-control-row input[type=text]:focus, .msp-btn:focus {
+  color: rgb(51, 43, 31);
+  background-color: #f3f2ee;
+  border: none;
+  outline-offset: 0;
+  outline: none;
+}
+.msp-form-control[disabled], .msp-control-row select[disabled], .msp-control-row button[disabled], .msp-control-row input[disabled][type=text], [disabled].msp-btn, .msp-form-control[readonly], .msp-control-row select[readonly], .msp-control-row button[readonly], .msp-control-row input[readonly][type=text], [readonly].msp-btn, fieldset[disabled] .msp-form-control, fieldset[disabled] .msp-control-row select, .msp-control-row fieldset[disabled] select, fieldset[disabled] .msp-control-row button, .msp-control-row fieldset[disabled] button, fieldset[disabled] .msp-control-row input[type=text], .msp-control-row fieldset[disabled] input[type=text], fieldset[disabled] .msp-btn {
+  background: rgb(238, 236, 231);
+  opacity: 0.35;
+}
+
+.msp-btn, .msp-control-row button {
+  display: inline-block;
+  margin-bottom: 0;
+  text-align: center;
+  touch-action: manipulation;
+  cursor: pointer;
+  background-image: none;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  padding: 0 10px;
+  line-height: 32px;
+  border: none;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.msp-btn[disabled], .msp-control-row button[disabled] {
+  background: rgb(238, 236, 231);
+  opacity: 0.35;
+}
+
+.msp-btn-block, .msp-control-row button {
+  display: block;
+  width: 100%;
+}
+
+.msp-btn, .msp-control-row button, .msp-btn:active, .msp-btn-link:focus, .msp-btn:hover {
+  outline: none;
+}
+
+.msp-material-icon svg {
+  display: inline-flex;
+  vertical-align: middle;
+  font-size: 1.2em;
+  margin-bottom: 3px;
+  fill: currentColor;
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.msp-btn-block > .msp-material-icon, .msp-control-row button > .msp-material-icon {
+  margin-left: 0;
+  margin-right: 0.4em;
+}
+
+.msp-btn-childless > .msp-material-icon {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.msp-btn-icon {
+  border: none;
+  height: 32px;
+  width: 32px;
+  line-height: 32px;
+  padding: 0;
+  text-align: center;
+}
+.msp-btn-icon:hover {
+  color: rgb(174, 93, 4);
+  background-color: #e9e6e0;
+  border: none;
+  outline-offset: -1px !important;
+  outline: 1px solid #c9c3b3 !important;
+}
+.msp-btn-icon[disabled], .msp-btn-icon[disabled]:hover, .msp-btn-icon[disabled]:active {
+  color: #9c835f;
+}
+
+.msp-btn-icon-small {
+  border: none;
+  height: 32px;
+  width: 20px;
+  line-height: 32px;
+  padding: 0;
+  text-align: center;
+}
+.msp-btn-icon-small:hover {
+  color: rgb(174, 93, 4);
+  background-color: #e9e6e0;
+  border: none;
+  outline-offset: -1px !important;
+  outline: 1px solid #c9c3b3 !important;
+}
+.msp-btn-icon-small[disabled], .msp-btn-icon-small[disabled]:hover, .msp-btn-icon-small[disabled]:active {
+  color: #9c835f;
+}
+
+.msp-btn-link {
+  font-weight: normal;
+  border-radius: 0;
+}
+.msp-btn-link, .msp-btn-link:active, .msp-btn-link.active, .msp-btn-link[disabled], fieldset[disabled] .msp-btn-link {
+  background-color: transparent;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+.msp-btn-link, .msp-btn-link:hover, .msp-btn-link:focus, .msp-btn-link:active {
+  border-color: transparent;
+}
+.msp-btn-link:hover, .msp-btn-link:focus {
+  text-decoration: none;
+  background-color: transparent;
+}
+.msp-btn-link[disabled]:hover, .msp-btn-link[disabled]:focus, fieldset[disabled] .msp-btn-link:hover, fieldset[disabled] .msp-btn-link:focus {
+  text-decoration: none;
+}
+.msp-btn-link .msp-icon {
+  font-size: 100%;
+}
+
+.msp-btn-link, .msp-btn-link:active, .msp-btn-link:focus {
+  color: rgb(51, 43, 31);
+  text-decoration: none;
+}
+
+.msp-btn-link:hover {
+  color: rgb(174, 93, 4);
+  text-decoration: none;
+}
+
+.msp-btn-link-toggle-on {
+  color: rgb(51, 43, 31);
+}
+
+.msp-btn-link-toggle-off, .msp-btn-link-toggle-off:active, .msp-btn-link-toggle-off:focus {
+  color: #9c835f !important;
+}
+
+.msp-btn-link-toggle-off:hover, .msp-btn-link-toggle-on:hover {
+  color: rgb(174, 93, 4) !important;
+}
+
+.msp-btn-action, .msp-btn-action:active, .msp-btn-action:focus {
+  color: rgb(51, 43, 31);
+  background: #f3f2ee;
+}
+
+.msp-btn-action:hover {
+  color: rgb(174, 93, 4);
+  background: #f9f8f6;
+}
+
+.msp-btn-action[disabled], .msp-btn-action[disabled]:hover,
+.msp-btn-action[disabled]:active, .msp-btn-action[disabled]:focus {
+  color: #362e21;
+}
+
+.msp-btn-commit-on, .msp-btn-commit-on:active, .msp-btn-commit-on:focus {
+  color: rgb(151, 65, 2);
+  background: #f2f1ed;
+}
+
+.msp-btn-commit-on:hover {
+  color: rgb(174, 93, 4);
+  background: #f8f7f4;
+}
+
+.msp-btn-commit-on[disabled], .msp-btn-commit-on[disabled]:hover,
+.msp-btn-commit-on[disabled]:active, .msp-btn-commit-on[disabled]:focus {
+  color: #9c4302;
+}
+
+.msp-btn-commit-off, .msp-btn-commit-off:active, .msp-btn-commit-off:focus {
+  color: rgb(51, 43, 31);
+  background: #f6f5f3;
+}
+
+.msp-btn-commit-off:hover {
+  color: rgb(174, 93, 4);
+  background: #fcfbfa;
+}
+
+.msp-btn-commit-off[disabled], .msp-btn-commit-off[disabled]:hover,
+.msp-btn-commit-off[disabled]:active, .msp-btn-commit-off[disabled]:focus {
+  color: #362e21;
+}
+
+.msp-btn-remove:hover {
+  color: #F2F4F7;
+}
+
+.msp-btn-commit-on:hover {
+  color: #fc6c03;
+}
+
+.msp-btn-action {
+  height: 32px;
+  line-height: 32px;
+}
+
+input[type=file] {
+  display: block;
+}
+
+input[type=range] {
+  display: block;
+  width: 100%;
+}
+
+select[multiple],
+select[size] {
+  height: auto;
+}
+
+textarea.msp-form-control, textarea.msp-btn {
+  height: auto;
+}
+
+.msp-control-top-offset {
+  margin-top: 1px;
+}
+
+.msp-btn-commit {
+  text-align: right;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-right: 10px;
+  padding-left: 0;
+  line-height: 32px;
+  border: none;
+  overflow: hidden;
+  font-weight: bold;
+}
+.msp-btn-commit .msp-icon {
+  display: block-inline;
+  line-height: 32px;
+  width: 32px;
+  text-align: center;
+}
+
+select.msp-form-control, .msp-control-row select, select.msp-btn {
+  background: none;
+  background-color: #f3f2ee;
+  background-size: 8px 12px;
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAUCAMAAACzvE1FAAAADFBMVEUzMzMzMzMzMzMzMzMKAG/3AAAAA3RSTlMAf4C/aSLHAAAAPElEQVR42q3NMQ4AIAgEQTn//2cLdRKppSGzBYwzVXvznNWs8C58CiussPJj8h6NwgorrKRdTvuV9v16Afn0AYFOB7aYAAAAAElFTkSuQmCC);
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 24px;
+}
+
+select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, select.msp-btn:-moz-focusring {
+  color: transparent;
+  text-shadow: 0 0 0 rgb(51, 43, 31);
+}
+
+.msp-default-bg {
+  background: rgb(238, 236, 231);
+}
+
+.msp-transparent-bg {
+  background: transparent;
+}
+
+.msp-no-hover-outline:hover {
+  color: rgb(174, 93, 4);
+  background-color: inherit;
+  border: none;
+  outline-offset: 0 !important;
+  outline: none !important;
+}
+
+.msp-icon-inline {
+  margin-right: 8px;
+}
+
+.msp-control-row {
+  position: relative;
+  height: 32px;
+  background: rgb(238, 236, 231);
+  margin-top: 1px;
+}
+.msp-control-row > span.msp-control-row-label, .msp-control-row > button.msp-control-button-label {
+  line-height: 32px;
+  display: block;
+  width: 120px;
+  text-align: right;
+  padding: 0 10px;
+  color: #63533c;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+  -webkit-user-select: none; /* Chrome/Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+ */
+  /* Rules below not implemented in browsers yet */
+  -o-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+.msp-control-row > button.msp-control-button-label {
+  background: rgb(238, 236, 231);
+  cursor: pointer;
+}
+.msp-control-row .msp-control-current {
+  background: rgb(238, 236, 231);
+}
+.msp-control-row > div.msp-control-row-ctrl {
+  position: absolute;
+  left: 120px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+.msp-control-row > div {
+  background: #f3f2ee;
+}
+.msp-control-row > .msp-flex-row, .msp-control-row > .msp-state-image-row {
+  background: rgb(238, 236, 231);
+}
+
+.msp-control-label-short > span {
+  width: 80px !important;
+}
+.msp-control-label-short > div:nth-child(2) {
+  left: 80px !important;
+}
+
+.msp-control-col-2 {
+  float: left;
+  width: 50%;
+}
+
+.msp-control-twoline {
+  height: 64px !important;
+}
+
+.msp-control-group {
+  position: relative;
+}
+
+.msp-toggle-button .msp-icon {
+  display: inline-block;
+  margin-right: 6px;
+}
+.msp-toggle-button > div > button:hover {
+  border-color: #e9e6e0 !important;
+  border: none;
+  outline-offset: -1px !important;
+  outline: 1px solid #c9c3b3 !important;
+}
+
+.msp-toggle-color-picker button {
+  border: 10px solid #f3f2ee !important;
+  margin: 0;
+  text-align: center;
+  padding-right: 10px;
+  padding-left: 10px;
+}
+.msp-toggle-color-picker button:hover {
+  border-color: #e9e6e0 !important;
+  border: none;
+  outline-offset: -1px !important;
+  outline: 1px solid #c9c3b3 !important;
+}
+.msp-toggle-color-picker .msp-color-picker {
+  position: absolute;
+  z-index: 100000;
+  background: rgb(238, 236, 231);
+  border-top: 1px solid rgb(238, 236, 231);
+  padding-bottom: 5px;
+  width: 100%;
+}
+
+.msp-toggle-color-picker-above .msp-color-picker {
+  top: -85px;
+  height: 85px;
+}
+
+.msp-toggle-color-picker-below .msp-color-picker {
+  top: 32px;
+  height: 80px;
+}
+
+.msp-control-offset {
+  padding-left: 10px;
+}
+
+.msp-accent-offset {
+  padding-left: 1px;
+  margin-left: 8px;
+  border-left: 2px solid #e98b39;
+}
+
+.msp-control-group-wrapper {
+  margin-bottom: 0px;
+  margin-top: 1px;
+}
+
+.msp-control-group-header {
+  background: rgb(238, 236, 231);
+}
+.msp-control-group-header > button, .msp-control-group-header div {
+  padding-left: 4px;
+  text-align: left;
+  height: 32px !important;
+  line-height: 32px !important;
+  font-size: 85% !important;
+  background: rgb(238, 236, 231) !important;
+  color: #63533c;
+}
+.msp-control-group-header .msp-icon {
+  height: 24px !important;
+  line-height: 24px !important;
+}
+.msp-control-group-header > span {
+  padding-left: 5px;
+  line-height: 21.3333333333px;
+  font-size: 70%;
+  background: rgb(238, 236, 231);
+  color: #63533c;
+}
+
+.msp-control-current {
+  background: rgb(238, 236, 231);
+}
+
+.msp-control-group-footer {
+  background: #e3e0d8;
+  height: 5px;
+  font-size: 1px;
+  margin-top: 1px;
+}
+
+.msp-control-group-expander {
+  display: block;
+  position: absolute;
+  line-height: 32px;
+  padding: 0;
+  left: 0;
+  top: 0;
+  width: 120px;
+  text-align: left;
+  background: transparent;
+}
+.msp-control-group-expander .msp-icon {
+  line-height: 29px;
+  width: 31px;
+  text-align: center;
+  font-size: 100%;
+}
+
+.msp-plugin-layout_controls {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+}
+
+.msp-plugin-layout_controls > button:first-child {
+  margin-right: 6px;
+}
+
+.msp-empty-control {
+  display: none;
+}
+
+.msp-control .msp-btn-block, .msp-control .msp-control-row button, .msp-control-row .msp-control button {
+  margin-bottom: 0px;
+  margin-top: 0px;
+}
+
+.msp-row-text {
+  height: 32px;
+  position: relative;
+  background: rgb(238, 236, 231);
+  margin-top: 1px;
+}
+.msp-row-text > div {
+  line-height: 32px;
+  text-align: center;
+  color: #63533c;
+}
+
+.msp-help span {
+  display: none;
+}
+
+.msp-help:hover span {
+  display: inline-block;
+  background: linear-gradient(rgb(238, 236, 231), rgba(238, 236, 231, 0.8));
+}
+
+.msp-help-text {
+  position: relative;
+  background: rgb(238, 236, 231);
+  margin-top: 1px;
+}
+.msp-help-text > div {
+  padding: 5px 10px;
+  text-align: left;
+  color: #63533c;
+}
+
+.msp-help-description {
+  font-style: italic;
+}
+
+.msp-help-legend {
+  padding-top: 10px;
+}
+
+.msp-scale-legend > div {
+  width: 100%;
+  height: 30px;
+}
+.msp-scale-legend > div > span {
+  padding: 5px;
+  color: white;
+  font-weight: bold;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.msp-table-legend > div {
+  margin-right: 5px;
+  display: inline-flex;
+}
+.msp-table-legend > div .msp-table-legend-color {
+  width: 30px;
+  height: 20px;
+}
+.msp-table-legend > div .msp-table-legend-text {
+  margin: 0 5px;
+}
+
+.msp-image-preview {
+  position: relative;
+  background: rgb(238, 236, 231);
+  margin-top: 1px;
+  padding: 10px;
+}
+.msp-image-preview canvas {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.msp-image-preview > span {
+  margin-top: 6px;
+  display: block;
+  text-align: center;
+  font-size: 80%;
+  line-height: 15px;
+}
+
+.msp-copy-image-wrapper {
+  position: relative;
+}
+.msp-copy-image-wrapper div {
+  font-weight: bold;
+  padding: 3px;
+  margin: 1px 0;
+  width: 100%;
+  background: #f3f2ee;
+  text-align: center;
+}
+.msp-copy-image-wrapper img {
+  margin-top: 1px;
+}
+
+.msp-control-text-area-wrapper, .msp-text-area-wrapper {
+  position: relative;
+}
+.msp-control-text-area-wrapper textarea, .msp-text-area-wrapper textarea {
+  border: none;
+  width: 100%;
+  height: 100%;
+  background: #f3f2ee;
+  padding: 5px 10px;
+  resize: none;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.msp-control-text-area-wrapper {
+  height: 64px !important;
+}
+
+.msp-text-area-wrapper {
+  height: 96px !important;
+}
+
+.msp-help-row {
+  position: relative;
+  height: 32px;
+  background: rgb(238, 236, 231);
+  margin-top: 1px;
+  display: table;
+  width: 100%;
+}
+.msp-help-row > span {
+  width: 120px;
+  text-align: right;
+  padding: 3px 10px;
+  color: #63533c;
+  display: table-cell;
+  font-weight: bold;
+  -webkit-user-select: none; /* Chrome/Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+ */
+  /* Rules below not implemented in browsers yet */
+  -o-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+.msp-help-row > div {
+  background: #f3f2ee;
+  position: relative;
+  padding: 3px 10px;
+  display: table-cell;
+}
+
+.msp-description {
+  padding: 10px;
+  font-size: 85%;
+  background: rgb(238, 236, 231);
+  text-align: center;
+  -webkit-user-select: none; /* Chrome/Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+ */
+  /* Rules below not implemented in browsers yet */
+  -o-user-select: none;
+  user-select: none;
+  font-weight: light;
+  cursor: default;
+}
+
+.msp-description:not(:first-child) {
+  border-top: 1px solid #e0ddd4;
+}
+
+.msp-color-picker input {
+  color: black !important;
+}
+
+.msp-no-webgl {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  display: table;
+  text-align: center;
+  background: rgb(238, 236, 231);
+}
+.msp-no-webgl > div {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+}
+.msp-no-webgl > div b {
+  font-size: 120%;
+}
+
+.msp-loader-msp-btn-file {
+  position: relative;
+  overflow: hidden;
+}
+
+.msp-loader-msp-btn-file input[type=file] {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 100%;
+  min-height: 100%;
+  font-size: 100px;
+  text-align: right;
+  filter: alpha(opacity=0);
+  opacity: 0;
+  outline: none;
+  background: white;
+  cursor: inherit;
+  display: block;
+}
+
+.msp-controls-section {
+  margin-bottom: 10px;
+}
+
+.msp-combined-color-button {
+  border: 4px solid #f3f2ee !important;
+  margin: 0;
+  text-align: center;
+  padding-right: 10px;
+  padding-left: 10px;
+}
+.msp-combined-color-button:hover {
+  border-color: #e9e6e0 !important;
+  border: none;
+  outline-offset: -1px !important;
+  outline: 1px solid #c9c3b3 !important;
+}
+
+.msp-combined-color-swatch {
+  width: 100%;
+  display: grid;
+  grid-gap: 1px;
+  grid-template-columns: repeat(6, auto);
+}
+.msp-combined-color-swatch .msp-btn:hover, .msp-combined-color-swatch .msp-control-row button:hover, .msp-control-row .msp-combined-color-swatch button:hover {
+  outline-offset: -1px !important;
+  outline: 1px solid #c9c3b3 !important;
+}
+
+.msp-action-select {
+  position: relative;
+}
+.msp-action-select select {
+  padding-left: 42px;
+}
+.msp-action-select option:first-child {
+  color: #63533c;
+}
+.msp-action-select > .msp-icon {
+  display: block;
+  top: 0;
+  left: 10px;
+  position: absolute;
+  line-height: 32px;
+}
+
+.msp-simple-help-section {
+  height: 28px;
+  line-height: 28px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  padding: 0 10px;
+  font-weight: 500;
+  background: rgb(238, 236, 231);
+  color: rgb(51, 43, 31);
+}
+
+.msp-left-panel-controls-buttons {
+  position: absolute;
+  width: 32px;
+  top: 0;
+  bottom: 0;
+  padding-top: 10px;
+  background: rgb(238, 236, 231);
+}
+
+.msp-left-panel-controls-buttons-bottom {
+  position: absolute;
+  bottom: 0;
+}
+
+.msp-left-panel-controls-button-data-dirty {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #e98b39;
+  border-radius: 3px;
+  right: 6px;
+  bottom: 6px;
+}
+
+.msp-left-panel-controls .msp-scrollable-container {
+  left: 33px;
+}
+
+.msp-mapped-parameter-group {
+  position: relative;
+}
+.msp-mapped-parameter-group > .msp-control-row:first-child > div:nth-child(2) {
+  right: 33px;
+}
+.msp-mapped-parameter-group > button:first-child {
+  right: 33px;
+}
+.msp-mapped-parameter-group > .msp-btn-icon {
+  position: absolute;
+  right: 0;
+  width: 32px;
+  top: 0;
+  padding: 0;
+}
+
+.msp-shape-filled {
+  fill: rgb(51, 43, 31);
+  stroke: rgb(51, 43, 31);
+}
+
+.msp-shape-empty {
+  fill: none;
+  stroke: rgb(51, 43, 31);
+}
+
+.msp-no-overflow {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.msp-25-lower-contrast-text {
+  color: #826e4f;
+}
+
+.msp-expandable-group-color-stripe {
+  position: absolute;
+  left: 0;
+  top: 30px;
+  width: 120px;
+  height: 2px;
+}
+
+.msp-section-header {
+  height: 32px;
+  line-height: 32px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  text-align: right;
+  padding: 0 10px;
+  font-weight: bold;
+  background: rgb(238, 236, 231);
+  overflow: hidden;
+  cursor: default;
+}
+.msp-section-header > .msp-icon {
+  display: block;
+  float: left;
+}
+.msp-section-header > small {
+  font-weight: normal;
+}
+
+.msp-current-header {
+  height: 32px;
+  line-height: 32px;
+  margin-bottom: 10px;
+  text-align: center;
+  font-weight: bold;
+  background: rgb(238, 236, 231);
+}
+
+.msp-flex-row, .msp-state-image-row {
+  margin-top: 1px;
+  background: rgb(238, 236, 231);
+  display: flex;
+  flex-direction: row;
+  width: inherit;
+  height: 32px;
+}
+.msp-flex-row > .msp-flex-item, .msp-state-image-row > .msp-flex-item {
+  margin: 0;
+  flex: 1 1 auto;
+  margin-right: 1px;
+  overflow: hidden;
+}
+.msp-flex-row > .msp-flex-item:last-child, .msp-state-image-row > .msp-flex-item:last-child {
+  margin-right: 0;
+}
+.msp-flex-row > select, .msp-state-image-row > select, .msp-flex-row > button, .msp-state-image-row > button {
+  margin: 0;
+  flex: 1 1 auto;
+  margin-right: 1px;
+  height: 32px;
+  overflow: hidden;
+}
+.msp-flex-row .msp-btn-icon, .msp-state-image-row .msp-btn-icon, .msp-flex-row .msp-btn-icon-small, .msp-state-image-row .msp-btn-icon-small {
+  flex: 0 0 32px;
+  max-width: 32px;
+}
+.msp-flex-row > select, .msp-state-image-row > select {
+  background: none;
+}
+.msp-flex-row > select > option[value=_], .msp-state-image-row > select > option[value=_] {
+  display: none;
+}
+.msp-flex-row > select:last-child, .msp-state-image-row > select:last-child, .msp-flex-row > button:last-child, .msp-state-image-row > button:last-child {
+  margin-right: 0;
+}
+.msp-flex-row > button.msp-control-button-label, .msp-state-image-row > button.msp-control-button-label {
+  background: rgb(238, 236, 231);
+}
+
+.msp-state-list {
+  list-style: none;
+}
+.msp-state-list > li {
+  position: relative;
+  overflow: hidden;
+}
+.msp-state-list > li > button:first-child {
+  text-align: left;
+  border-left: 10px solid #d5d0c3 !important;
+}
+.msp-state-list > li > div {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.msp-state-image-row {
+  height: 96px;
+  margin-top: 0px;
+}
+.msp-state-image-row > button {
+  height: 96px;
+  padding: 0px;
+}
+.msp-state-image-row > button > img {
+  min-height: 96px;
+  width: inherit;
+  transform: translateY(-50%);
+  top: 50%;
+  position: relative;
+}
+
+.msp-tree-row {
+  position: relative;
+  margin-top: 0;
+  margin-bottom: 1px;
+  background: transparent;
+}
+.msp-tree-row-current .msp-btn-tree-label {
+  border-radius: 0 !important;
+}
+.msp-tree-row-current .msp-btn-tree-label > span {
+  font-weight: bold;
+}
+.msp-tree-row .msp-btn-tree-label {
+  text-align: left;
+  border-radius: 0 0 0 8px;
+  border-left-width: 4px;
+  border-left-style: solid;
+}
+.msp-tree-row .msp-btn-tree-label > small {
+  color: #726046;
+}
+
+.msp-tree-updates-wrapper .msp-control-group-header:last-child {
+  margin-bottom: 1px;
+}
+
+.msp-viewport-top-left-controls {
+  position: absolute;
+  right: 0 !important;
+  top: 260px !important;
+  left: auto !important;
+}
+.msp-viewport-top-left-controls .msp-traj-controls {
+  line-height: 32px;
+  float: left;
+  margin-right: 10px;
+  background-color: #f3f2ee;
+}
+.msp-viewport-top-left-controls .msp-traj-controls > span {
+  color: rgb(51, 43, 31);
+  margin-left: 10px;
+  margin-right: 10px;
+  font-size: 85%;
+  display: inline-block;
+}
+.msp-viewport-top-left-controls .msp-state-snapshot-viewport-controls {
+  line-height: 32px;
+  float: left;
+  margin-right: 10px;
+}
+.msp-viewport-top-left-controls .msp-state-snapshot-viewport-controls > button {
+  background-color: #f3f2ee;
+}
+.msp-viewport-top-left-controls .msp-state-snapshot-viewport-controls > select {
+  display: inline-block;
+  width: 200px;
+  margin-right: 10px;
+}
+.msp-viewport-top-left-controls .msp-animation-viewport-controls {
+  line-height: 32px;
+  float: left;
+  margin-right: 10px;
+  position: relative;
+}
+.msp-viewport-top-left-controls .msp-animation-viewport-controls > div:first-child {
+  position: relative;
+  display: inline-block;
+}
+.msp-viewport-top-left-controls .msp-animation-viewport-controls > div:first-child > button {
+  position: relative;
+}
+.msp-viewport-top-left-controls .msp-animation-viewport-controls .msp-animation-viewport-controls-select {
+  width: 290px;
+  position: absolute;
+  right: 0 !important;
+  left: auto !important;
+  margin-top: 10px;
+  background: #e0ddd4;
+}
+.msp-viewport-top-left-controls .msp-animation-viewport-controls .msp-animation-viewport-controls-select .msp-control-row:first-child {
+  margin-top: 0;
+}
+
+.msp-selection-viewport-controls {
+  position: relative;
+  margin: 10px auto 0 auto;
+  width: 430px;
+}
+.msp-selection-viewport-controls-actions {
+  position: absolute;
+  width: 100%;
+  top: 32px;
+  background: #e0ddd4;
+}
+.msp-selection-viewport-controls > .msp-flex-row .msp-btn, .msp-selection-viewport-controls > .msp-state-image-row .msp-btn, .msp-selection-viewport-controls > .msp-flex-row .msp-control-row button, .msp-control-row .msp-selection-viewport-controls > .msp-flex-row button, .msp-selection-viewport-controls > .msp-state-image-row .msp-control-row button, .msp-control-row .msp-selection-viewport-controls > .msp-state-image-row button {
+  padding: 0 5px;
+}
+.msp-selection-viewport-controls select.msp-form-control, .msp-selection-viewport-controls select.msp-btn, .msp-selection-viewport-controls .msp-control-row select, .msp-control-row .msp-selection-viewport-controls select {
+  padding: 0 5px;
+  text-align: center;
+  background: #f3f2ee;
+  flex: 0 0 80px;
+  text-overflow: ellipsis;
+}
+
+.msp-param-object-list-item {
+  margin-top: 1px;
+  position: relative;
+}
+.msp-param-object-list-item > button {
+  text-align: left;
+}
+.msp-param-object-list-item > button > span {
+  font-weight: bold;
+}
+.msp-param-object-list-item > div {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.msp-state-actions .msp-transform-wrapper:last-child {
+  margin-bottom: 10px;
+}
+
+.msp-button-row {
+  display: flex;
+  flex-direction: row;
+  height: 32px;
+  width: inherit;
+}
+.msp-button-row > button {
+  margin: 0;
+  flex: 1 1 auto;
+  margin-right: 1px;
+  height: 32px;
+  text-align-last: center;
+  background: none;
+  padding: 0 10px;
+  overflow: hidden;
+}
+
+.msp-action-menu-options-no-header, .msp-action-menu-options .msp-control-group-children {
+  max-height: 300px;
+  overflow: hidden;
+  overflow-y: auto;
+}
+.msp-action-menu-options .msp-control-row, .msp-action-menu-options button, .msp-action-menu-options .msp-icon, .msp-action-menu-options .msp-flex-row, .msp-action-menu-options .msp-state-image-row {
+  height: 24px;
+  line-height: 24px;
+}
+.msp-action-menu-options button {
+  text-align: left;
+}
+.msp-action-menu-options .msp-action-menu-button {
+  margin-top: 1px;
+  display: flex;
+}
+.msp-action-menu-options .msp-action-menu-button .msp-icon {
+  margin-right: 6px;
+}
+
+.msp-representation-entry {
+  position: relative;
+}
+.msp-representation-entry > .msp-control-group-header > .msp-btn, .msp-control-row .msp-representation-entry > .msp-control-group-header > button {
+  font-weight: bold;
+}
+.msp-representation-entry > .msp-control-group-header > .msp-icon, .msp-representation-entry > .msp-control-group-header > .msp-btn-link {
+  line-height: 24px;
+  height: 24px;
+}
+
+.msp-control-group-presets-wrapper {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+.msp-control-group-presets-wrapper .msp-control-group-header {
+  background: transparent;
+}
+.msp-control-group-presets-wrapper button {
+  background: transparent !important;
+}
+
+.msp-parameter-matrix input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.msp-btn-apply-simple {
+  text-align: left;
+}
+.msp-btn-apply-simple .msp-icon {
+  margin-right: 10px;
+}
+
+.msp-type-class-Root {
+  border-left-color: rgb(238, 236, 231);
+}
+
+.msp-type-class-Group {
+  border-left-color: #e98b39;
+}
+
+.msp-type-class-Data {
+  border-left-color: #bfc8c9;
+}
+
+.msp-type-class-Object {
+  border-left-color: #54d98c;
+}
+
+.msp-type-class-Representation3D {
+  border-left-color: #4aa3df;
+}
+
+.msp-type-class-Behavior {
+  border-left-color: #b07cc6;
+}
+
+.msp-accent-color-cyan {
+  color: #bfc8c9;
+}
+
+.msp-accent-bg-cyan {
+  background: #bfc8c9;
+}
+
+.msp-transform-header-brand-cyan {
+  border-bottom: 1px solid #bfc8c9;
+}
+.msp-transform-header-brand-cyan:active, .msp-transform-header-brand-cyan:focus {
+  border-bottom: 1px solid #bfc8c9;
+}
+
+.msp-accent-color-red {
+  color: #ef8b80;
+}
+
+.msp-accent-bg-red {
+  background: #ef8b80;
+}
+
+.msp-transform-header-brand-red {
+  border-bottom: 1px solid #ef8b80;
+}
+.msp-transform-header-brand-red:active, .msp-transform-header-brand-red:focus {
+  border-bottom: 1px solid #ef8b80;
+}
+
+.msp-accent-color-gray {
+  color: #46637f;
+}
+
+.msp-accent-bg-gray {
+  background: #46637f;
+}
+
+.msp-transform-header-brand-gray {
+  border-bottom: 1px solid #46637f;
+}
+.msp-transform-header-brand-gray:active, .msp-transform-header-brand-gray:focus {
+  border-bottom: 1px solid #46637f;
+}
+
+.msp-accent-color-green {
+  color: #54d98c;
+}
+
+.msp-accent-bg-green {
+  background: #54d98c;
+}
+
+.msp-transform-header-brand-green {
+  border-bottom: 1px solid #54d98c;
+}
+.msp-transform-header-brand-green:active, .msp-transform-header-brand-green:focus {
+  border-bottom: 1px solid #54d98c;
+}
+
+.msp-accent-color-purple {
+  color: #b07cc6;
+}
+
+.msp-accent-bg-purple {
+  background: #b07cc6;
+}
+
+.msp-transform-header-brand-purple {
+  border-bottom: 1px solid #b07cc6;
+}
+.msp-transform-header-brand-purple:active, .msp-transform-header-brand-purple:focus {
+  border-bottom: 1px solid #b07cc6;
+}
+
+.msp-accent-color-blue {
+  color: #4aa3df;
+}
+
+.msp-accent-bg-blue {
+  background: #4aa3df;
+}
+
+.msp-transform-header-brand-blue {
+  border-bottom: 1px solid #4aa3df;
+}
+.msp-transform-header-brand-blue:active, .msp-transform-header-brand-blue:focus {
+  border-bottom: 1px solid #4aa3df;
+}
+
+.msp-accent-color-orange {
+  color: #e98b39;
+}
+
+.msp-accent-bg-orange {
+  background: #e98b39;
+}
+
+.msp-transform-header-brand-orange {
+  border-bottom: 1px solid #e98b39;
+}
+.msp-transform-header-brand-orange:active, .msp-transform-header-brand-orange:focus {
+  border-bottom: 1px solid #e98b39;
+}
+
+.msp-volume-channel-inline-controls > :first-child {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 32px;
+  right: 32px;
+}
+.msp-volume-channel-inline-controls .msp-slider > div:first-child {
+  right: 42px;
+}
+.msp-volume-channel-inline-controls .msp-slider > div:last-child {
+  width: 30px;
+}
+.msp-volume-channel-inline-controls > button {
+  position: absolute;
+  right: 0;
+  width: 32px;
+  top: 0;
+  padding: 0;
+}
+.msp-volume-channel-inline-controls > button .msp-material-icon {
+  margin-right: 0;
+}
+
+.msp-list-unstyled {
+  padding-left: 0;
+  list-style: none;
+}
+
+.msp-drag-drop-overlay {
+  border: 12px dashed rgb(51, 43, 31);
+  background: rgba(0, 0, 0, 0.36);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  font-size: 48px;
+  font-weight: bold;
+}

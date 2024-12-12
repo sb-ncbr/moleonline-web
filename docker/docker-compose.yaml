@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  web:
+    container_name: web
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile
+    # volumes:
+      # - ./nginx.devel.conf:/etc/nginx/nginx.conf:ro
+      # - /etc/letsencrypt/live/moleonline.biodata.ceitec.cz/fullchain.pem:/etc/fullchain.pem:ro
+      # - /etc/letsencrypt/live/moleonline.biodata.ceitec.cz/privkey.pem:/etc/privkey.pem:ro
+      # - ./sites-available:/etc/nginx/sites-available:ro
+      # - ./sites-enabled:/etc/nginx/sites-enabled:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    networks:
+      - moleonline-net
+    logging:
+      driver: journald
+      options:
+        tag: moleonline-web
+

@@ -203,9 +203,9 @@
 #dg-aglomered-parameters.datagrid .col.col-8,
 #dg-aglomered-parameters.datagrid .col.col-9,
 #dg-aglomered-parameters.datagrid .col.col-10,
-#dg-aglomered-parameters.datagrid .col.col-11,{
+#dg-aglomered-parameters.datagrid .col.col-11{
     min-width: 30px;
-    width:8%;
+    width:7.5%;
 }
 /*
 @media only screen and (max-width: 830px) {

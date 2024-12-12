@@ -2,18 +2,18 @@
 .help-button{
     width: 100px;
     height: 32px;
-    position: fixed;
+    position: absolute;
     z-index: 950;
     line-height: 30px;
     text-align: center;
     font-size: 13pt;
     background-color: #f8f8f8;
-    left: 360px;
+    right: 360px;
     padding: 0;
     color: #777;
-    padding-right: 10px;
+    padding-left: 10px;
     border: 1px #ccc solid;
-    border-bottom-right-radius: 30px;
+    border-bottom-left-radius: 30px;
     border-top: 0;
 }
 

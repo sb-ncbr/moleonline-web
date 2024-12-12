@@ -1,5 +1,5 @@
 .sequence-viewer{
-    margin-top:-30px;
+    /* margin-top:-30px; */
 }
 
 .sequence-viewer .minimized{
@@ -12,8 +12,7 @@
 }
 
 .sequence-viewer .seq-container{
-    overflow-y: scroll;
-    height: 8vh;
+    height: 100%;
     border-bottom: 1px solid #aaa;
     border-right: 1px solid #aaa;
     border-top: 1px solid #aaa;
@@ -21,7 +20,8 @@
     background-color:white;
 }
 
-.sequence-viewer .sequence-viewer-header{
+.sequence-viewer-header{
+    position: absolute;
     padding-left: 4px;
     border-top-right-radius: 10px;
     border-top: 1px solid #aaa;
@@ -35,6 +35,9 @@
     width: 128px;
     box-sizing: content-box;
     cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .sequence-viewer .sequence-viewer-header .glyphicon{
     vertical-align: middle;
@@ -61,7 +64,7 @@
     padding-right: 5px;
     border-left: 1px solid #aaa;
     padding-left: 4px;
-    padding-top: 3px;
+    padding-top: 7px;
     border-bottom: 1px solid #aaa;
     padding-bottom: 3px;
 }

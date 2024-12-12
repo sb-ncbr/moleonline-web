@@ -1,13 +1,17 @@
 .lining-residues.select-controls{
-    position: absolute;
-    right: 0;
-    margin-right: 3px;
-    padding-top: 7px;
-    padding-right: 7px;
+    position: relative;
+    text-align: right;
+    padding-right: 6px;
 }
 
 .lining-residues.select-controls .bt-ionizable{
-    margin-right:2px;
+    margin-right: 1px;
+}
+
+.lining-residues.select-controls .btn {
+    font-size: small !important;
+    padding-top: 1px !important;
+    padding-bottom: 1px !important;
 }
 
 #right-tabs-2 .datagrid .col.col-1,

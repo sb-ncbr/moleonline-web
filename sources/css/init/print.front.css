@@ -1,0 +1,36 @@
+#seqinspector, #csasuggests, #jmollapplet, #clearorigin, img.hint, #resetdefaults,
+#csatr, .link, .resswitch, .abc, .header, ol, #nette-debug,
+.ui-dialog-titlebar-close, .ui-dialog-title, .noprint,
+#topmenu, #cavtoggler, .clearimg {
+	display: none;
+}
+
+.reslistdlg, .profiledlg {
+	display: block !important;
+}
+
+input {border: 0;}
+input[type=submit] {display: none;}
+
+th {text-align: left;}
+
+.ui-dialog {
+	display: block !important; z-index: 1 !important; position: static !important;
+}
+
+table {border-collapse: collapse; border-spacing: 0; margin: 0 0 0.6em 0;}
+td {vertical-align: top;}
+td, th {border: 1px solid #ccc; padding: 0.1em;}
+
+h1 {}
+h2 {}
+h3 {margin: 0.6em 0 0.2em 0;}
+h4 {margin: 0.6em 0 0.2em 0;}
+
+p {padding: 0; margin: 0 0 0.6em 0;}
+
+xxx h1 a {text-decoration: none;}
+
+.nobr {border: none !important;}
+span.sidechain {font-style: italic;  color: #444;}
+span.backbone {font-weight: bold;}

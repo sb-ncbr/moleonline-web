@@ -6,7 +6,7 @@ div#right-tabs-3 {
 }
 
 .datagrid{
-    position: absolute;
+    position: relative;
     bottom: 0;
     width: 100%;
     padding-top: 4px;
@@ -24,9 +24,26 @@ div#right-tabs-3 {
 	width:100%;
 	overflow: auto;
 	/*background-color:#f8f8f8;*/
-	height:0;
+	/* height:28vh; */
 	overflow-x: hidden;
-	overflow-y: scroll;
+	/* overflow-y: scroll; */
+}
+
+#layer-residues .datagrid .body {
+	height: 9vh;
+}
+
+#left-tabs .datagrid .body {
+	height: 28vh;
+}
+#layer-properties .datagrid .body {
+	height: 15vh;
+}
+#right-tabs-2 .datagrid .body {
+	height: 27vh;
+}
+#right-tabs-3 .datagrid .body {
+	height: 27vh;
 }
 
 .datagrid .body tr.highlight td{

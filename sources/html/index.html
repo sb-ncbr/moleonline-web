@@ -1,4 +1,4 @@
-
+<!-- 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,13 +7,12 @@
 	<meta name="description" content="The web interface provides a direct access to MOLE 2.5 functionality and enables on-line and easy-to-use interactive analysis of tunnels in (bio)molecular structures.">
 	<meta name="author" content="Ing. Ondřej Hanák; http://ondrejhanak.cz">
 	<link rel="shortcut icon" href="\images/favicon.ico" type="image/icon">
-	<script type="text/javascript" src="\js/old-web/jsloader.js"></script>
-	<link rel="stylesheet" type="text/css" media="screen" href="\css/old-web/cssloader.css">
-	<link rel="stylesheet" href="\css/old-web/print.front.css" type="text/css" media="print">
-	<link rel="stylesheet" href="\css/old-web/LiteMol-plugin.css" type="text/css">
-	<link rel="stylesheet" href="css/init-styles.css?version=<!UI-VERSION!>" type="text/css">
-	<script src="js/provided.js?version=<!UI-VERSION!>"></script>
-	<script src="js/scripts.js?version=<!UI-VERSION!>"></script>     
+	<link rel="stylesheet" type="text/css" media="screen" href="../css/init/cssloader.css">
+	<link rel="stylesheet" href="../css/init/print.front.css" type="text/css" media="print">
+	<link rel="stylesheet" href="../css/init-styles.css" type="text/css">
+
+	<script src="../js/scripts.js?version=R1.1.9.1"></script>
+
 	<script type="text/javascript">
 	
 	$(function () {
@@ -37,7 +36,6 @@
 		});
 	});
 	</script>
-	<!-- Global site tag (gtag.js) - Google Analytics -->
 	<script src="https://www.googletagmanager.com/gtag/js?id=UA-4336835-7"></script>
 	<script>
 		window.dataLayer = window.dataLayer || [];
@@ -57,13 +55,13 @@
 
 		<div id="topmenu">
 			<ul>
-				<li><a href="/">Home</a></li>
-				<li class="active"><a href="/online/">Online</a></li>
-				<li><a href="/documentation/">Documentation</a></li>
-				<li><a href="/about/">About</a></li>
+				<li><a href="./html/home.html">Home</a></li>
+				<li class="active"><a href="/">Online</a></li>
+				<li><a href="./html/documentation.html">Documentation</a></li>
+				<li><a href="./html/about.html">About</a></li>
 			</ul>
-		</div> <!-- #topmenu -->
-	</div> <!-- #header -->
+		</div>
+	</div>
 
 	<div id="content">
 		
@@ -77,15 +75,303 @@
 <div id="init-form">
 </div>
 
-</div> <!-- #content -->
+</div>
 
 <hr class="cleaner">
 <div id="version-block" data-ui-version="<!UI-VERSION!>" />
 
-</div> <!-- #page -->
+</div>
 
 <div id="ajaxspinner"></div>
 
-<script src="\MoleOnlineWebUI-Core-Init.js?version=<!UI-VERSION!>"></script>
+<script src="../MOLEOnline_Init-Core.js?version=R1.1.9.1"></script>
 </body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>MoleOnline | Home</title>
+	<meta name="description"
+		content="MOLE 2.5 is an universal toolkit for rapid and fully automated location and characterization of tunnels, channels and pores in (bio)molecular structures.">
+	<meta name="author" content="Ing. Ondřej Hanák; http://ondrejhanak.cz">
+	<link rel="shortcut icon" href="\images/favicon.ico" type="image/icon">
+	<!-- <script type="text/javascript" src="\js/old-web/jsloader.js"></script> -->
+	<link rel="stylesheet" type="text/css" media="screen" href="../css/init/cssloader.css">
+	<link rel="stylesheet" href="./css/init/print.front.css" type="text/css" media="print">
+	<!-- <link rel="stylesheet" href="../css/init/LiteMol-plugin.css" type="text/css"> -->
+	<link rel="stylesheet" href="./css/init-styles.css" type="text/css">
+	<!-- <script src="\js/provided.js?version=<!UI-VERSION!>"></script>
+	<script src="\js/scripts.js?version=<!UI-VERSION!>"></script>      -->
+
+	<!-- <script src="../js/scripts.js?version=R1.1.9.1"></script> -->
+	<script src="./js/init-scripts.js?version=R1.1.9.1"></script>
+
+	<script type="text/javascript">
+		$(function () {
+			// auto-hide flash messages
+			$('.flashmsg.info, .flashmsg.ok').each(function () {
+				var el = $(this);
+				setTimeout(function () {
+					el.animate({ 'opacity': 0 }, 2000).slideUp();
+				}, 10100);
+			});
+
+			// format hint messages
+			$('span.hint, div.hint').before('<img src="/images/help.png" class="hint" alt="">').each(function () {
+				var div = $(this);
+				var img = div.prev('img.hint');
+				div.hide();
+				div.css('position', 'fixed');
+				div.append('<img src="/images/front/hint_toptip.png" alt="" class="toptip">');
+				img.mouseenter(function () { $(this).next('.hint').show(); });
+				img.mouseout(function () { $(this).next('.hint').hide(); });
+			});
+		});
+	</script>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script src="https://www.googletagmanager.com/gtag/js?id=UA-4336835-7"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'UA-4336835-7');
+	</script>
+</head>
+
+<body>
+
+	<div id="page">
+
+		<div class="card shadow-sm mb-4 sticky-top">
+			<div class="card-body d-flex align-items-center" style="position: relative;">
+				<div class="header-gradient-background"></div>
+				<div class="header-gradient-text fs-3 fw-bold px-3" style="margin-right: 28rem;">
+					<img src="\images/favicon.ico" alt="M" class="header-icon">
+					oleOnline
+				</div>
+				<ul class="nav nav-pills nav-fill flex-grow-1">
+					<li class="nav-item">
+						<a class="nav-link active" aria-current="page" href="#">Home</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="./html/documentation.html">Documentation</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="./html/about.html">About</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="./html/news.html">News</a>
+					</li>
+				</ul>
+				<!-- <div class="card">
+				<div class="card-body">
+					MoleOnline
+				</div>
+			</div> -->
+			</div>
+		</div>
+
+		<div class="card p-4" style="border: var(--bs-card-border-width) solid rgba(205, 205, 205, 0.18);">
+			<p><a href="/"><b>MOLE<em>online</em></a></b> web interface provides a direct access to MOLE
+				functionality and enables on-line and easy-to-use interactive channel analysis.</p>
+
+			<p><b>MOLE 2.5</b> is an universal toolkit for <a href="method.html">rapid and fully automated location and
+					characterization of channels, tunnels and pores </a> in (bio)macromolecular structures, e.g.,
+				proteins, RNA, DNA and biomacromolecular assemblies.</p>
+			<hr style="border-color: rgb(110, 110, 110);">
+			<div class="row d-flex flex-row justify-content-center align-items-center w-50">
+				<div class="col mr-5">
+					<div class="card shadow"
+						style="height: 29rem; background: linear-gradient(180deg, #0095ff43, #00e5ff47); border-color: #00dc9a; border-width: 2px;">
+						<div id="init-form"></div>
+					</div>
+				</div>
+				<!-- <div class="col">
+					<div class="card shadow" style="height: 26rem;">
+						<div class="card-header bg-primary text-white">
+							Latest News
+						</div>
+						<div class="card-body" style="scroll-behavior: smooth; overflow-y: auto;">
+							<ul class="list-group">
+								<li class="list-group-item list-group-item-action">
+									<div class="d-flex w-100 justify-content-between">
+										<h5 class="mb-1"><b>Attention</b></h5>
+										<small>8. 6. 2019</small>
+									</div>
+									<p class="mb-1">Update to Chrome 75 disables WebGL functionalities important for
+										MOLEonline LiteMol visualization. We are working on fix on this issue. Meanwhile
+										use other browsers for accessing MOLEonline.</p>
+								</li>
+								<li class="list-group-item list-group-item-action">
+									<div class="d-flex w-100 justify-content-between">
+										<h5 class="mb-1"><b>Server room maintenance</b></h5>
+										<small>17. 12. 2018</small>
+									</div>
+									<p class="mb-1">We would like to announce that MOLEonline will not be available on
+										Monday (December 17th) due to web server room maintenance. Sorry for the
+										inconvenience.</p>
+								</li>
+								<li class="list-group-item list-group-item-action">
+									<div class="d-flex w-100 justify-content-between">
+										<h5 class="mb-1"><b>MOLEonline update 2018 was published</b></h5>
+										<small>1. 5. 2018</small>
+									</div>
+									<p class="mb-1">Our paper, which describes the new features
+										of MOLEonline, is accepted for publication in <a
+											href="https://dx.doi.org/10.1093/nar/gky309" target="_blank">Web issue of
+											Nucleic Acids Research</a>.</p>
+								</li>
+								<li class="list-group-item list-group-item-action">
+									<div class="d-flex w-100 justify-content-between">
+										<h5 class="mb-1"><b>New features and updates</b></h5>
+										<small>2. 4. 2018</small>
+									</div>
+									<div class="mb-1">
+										<span>New features in MOLEonline:</span>
+										<ul style="list-style-type: disc !important;">
+											<li>new Help button will allow to send us your troubled session so we can help you more thoroughly,</li>
+											<li>multiple layers can be selected/deselected to show average properties and list of residues only around important area of the channel.</li>
+										</ul>
+									</div>
+								</li>
+								<li class="list-group-item list-group-item-action">
+									<div class="d-flex w-100 justify-content-between">
+										<h5 class="mb-1"><b>New features in MOLEonline</b></h5>
+										<small>22. 1. 2018</small>
+									</div>
+									<div class="mb-1">
+										<ul style="list-style-type: disc !important;">
+											<li>
+												New properties
+												<ul style="list-style-type: disc !important;">
+													<li>Lipophilicity (logP and logD-like scales)</li>
+													<li>Water solubility (logS)</li>
+												</ul>
+											</li>
+											<li>Pore mode improvements</li>
+											<li>Better CSV export</li>
+											<li>Residue annotation via API from Uniprot</li>
+										</ul>
+										<span>Differences between individual versions of MOLEonline are listed at: <a
+												href="">TODO FAQ link</a></span>
+									</div>
+								</li>
+								<li class="list-group-item list-group-item-action">
+									<div class="d-flex w-100 justify-content-between">
+										<h5 class="mb-1"><b>ChannelsDB was published</b></h5>
+										<small>1. 1. 2018</small>
+									</div>
+									<p class="mb-1">The ChannelsDB database contains information about channel positions, geometry and physicochemical properties of reviewed and annotated channels from PDB database. It was published in <a href="https://doi.org/10.1093/nar/gkx868" target="_blank">Database issue of Nucleic Acids Research</a>. You can reach ChannelsDB data available for queried PDB structure in Submission tab in right lower corner of MOLEonline GUI window.</p>
+								</li>
+								<li class="list-group-item list-group-item-action">
+									<div class="d-flex w-100 justify-content-between">
+										<h5 class="mb-1"><b>Previous version</b></h5>
+										<small>19. 12. 2017</small>
+									</div>
+									<p class="mb-1">Old version of MOLEonline 2.0 is still available at address: <a href="http://old.mole.upol.cz/" target="_blank">http://old.mole.upol.cz/</a></p>
+								</li>
+						</div>
+						<div class="card-footer text-center">
+							<a href="#" class="btn btn-primary btn-sm">View All News</a>
+						</div>
+					</div>
+				</div> -->
+			</div>
+		</div>
+		<hr style="border-color: rgb(110, 110, 110);">
+		<div id="examples"></div>
+		<!-- <div class="container-fluid text-center" style="margin-bottom: 10rem;">
+			<div class="row">
+				<div class="col">
+					<h3>Examples</h3>
+				</div>
+			</div>
+			<div class="row mb-3">
+				<div class="col d-flex flex-column justify-content-center align-items-center">
+					<figure class="figure" style="max-width: 28rem;">
+						<img class="img-fluid figure-img" src="\images/example_5VKQ.png"
+							alt="Mechanotransduction channel NOMPC (PDB ID: 5VKQ)">
+						<figcaption>Mechanotransduction channel NOMPC (PDB ID: <a href="/submiter/5VKQ"
+								title="Open in MOLEonline" target="_blank">5VKQ</a>); DOI: <a target="_blank"
+								href="http://dx.doi.org/10.1038/nature22981">10.1038/nature22981</a></figcaption>
+					</figure>
+					<button type="button" class="btn btn-primary">5VKQ</button>
+				</div>
+				<div class="col d-flex flex-column justify-content-center align-items-center">
+					<figure class="figure" style="max-width: 28rem;">
+						<img class="img-fluid figure-img" src="\images/example_1TQN.png"
+							alt="Solvent channel of cytochrome P450 3A4 (PDB ID: 1TQN)">
+						<figcaption>Solvent channel of cytochrome P450 3A4 (PDB ID: <a href="/submiter/1TQN"
+								title="Open in MOLEonline" target="_blank">1TQN</a>); DOI: <a target="_blank"
+								href="http://dx.doi.org/10.1074/jbc.C400293200">10.1074/jbc.C400293200</a></figcaption>
+					</figure>
+					<button type="button" class="btn btn-primary">1TQN</button>
+				</div>
+				<div class="col d-flex flex-column justify-content-center align-items-center">
+					<figure class="figure" style="max-width: 28rem;">
+						<img class="img-fluid figure-img" style="object-fit: contain;" src="\images/example_1EVE.png"
+							alt="Channels of acetylcholinesterase (PDB ID: 1EVE)">
+						<figcaption>Channels of acetylcholinesterase (PDB ID: <a href="/submiter/1EVE"
+								title="Open in MOLEonline" target="_blank">1EVE</a>); PMID: <a target="_blank"
+								href="https://www.ncbi.nlm.nih.gov/pubmed/?term=10368299">10368299</a></figcaption>
+					</figure>
+					<button type="button" class="btn btn-primary">1EVE</button>
+				</div>
+			</div>
+			<br>
+			<br>
+			<div class="row mb-3">
+				<div class="col d-flex flex-column justify-content-center align-items-center">
+					<figure class="figure" style="max-width: 28em;">
+						<img class="img-fluid figure-img" style="object-fit: contain;" src="\images/example_4CZH.png"
+							alt="Channels of haloalkane dehalogenase (PDB ID: 4CZH)">
+						<figcaption>Channels of haloalkane dehalogenase (PDB ID: <a href="/submiter/4CZH"
+								title="Open in MOLEonline" target="_blank">4CZH</a>); DOI: <a target="_blank"
+								href="http://dx.doi.org/10.1016/j.febslet.2014.02.056">10.1016/j.febslet.2014.02.056</a>
+						</figcaption>
+					</figure>
+					<button type="button" class="btn btn-primary">4CZH</button>
+				</div>
+				<div class="col d-flex flex-column justify-content-center align-items-center">
+					<figure class="figure" style="max-width: 28rem;">
+						<img class="img-fluid figure-img" style="object-fit: contain;" src="\images/example_1K4C.png"
+							alt="Potassium Channel KcsA-Fab (PDB ID: 1K4C)">
+						<figcaption>Potassium Channel KcsA-Fab (PDB ID: <a href="/submiter/1K4C"
+								title="Open in MOLEonline" target="_blank">1K4C</a>); DOI: <a target="_blank"
+								href="http://dx.doi.org/10.1038/35102009">10.1038/35102009</a></figcaption>
+					</figure>
+					<button type="button" class="btn btn-primary" style="color: white !important;">1K4C</button>
+				</div>
+			</div>
+			<br>
+		</div> -->
+		<div class="common-elixir-support">MOLEonline is supported by ELIXIR CZ research infrastructure project
+			(MEYS Grant No: LM2015047)</div>
+		<hr style="border-color: rgb(110, 110, 110);">
+		<div>Sponsored by ELIXIR-CZ, UPOL, MUNI</div>
+		<div class="common-sponos-logos">
+			<a href="https://www.elixir-czech.cz/" target="_blank"><img
+					src="\images/elixir_czechrepublic_white_background.png" width="110px" alt="ELIXIR CZ"
+					title="ELIXIR CZ"></a>&nbsp;&nbsp;&nbsp;
+			<a href="http://fch.upol.cz/" target="_blank"><img src="\images/UPlogo.png" width="240px"
+					alt="Palacký University Olomouc" title="Palacký University Olomouc"></a>&nbsp;&nbsp;&nbsp;
+			<a href="http://www.rcptm.com/" target="_blank"><img src="\images/rcptm.png" width="200px"
+					alt="Regional Centre of Advanced Technologies and Materials"
+					title="Regional Centre of Advanced Technologies and Materials"></a>&nbsp;&nbsp;&nbsp;
+			<a href="http://ncbr.muni.cz/" target="_blank"><img src="\images/Logo_Masaryk_University.png" width="90px"
+					alt="Masaryk University" title="Masaryk University"></a>&nbsp;&nbsp;&nbsp;
+			<a href="https://www.ceitec.cz/ceitec-mu/vypocetni-chemie-jaroslav-koca/rg64" target="_blank"><img
+					src="\images/ceitec-clr-logo.png" width="220px" alt="CEITEC" title="CEITEC"></a>
+		</div>
+	</div>
+
+	<div id="ajaxspinner"></div>
+
+	<script src="./MOLEOnline_Init-Core.js?version=R1.1.9.1"></script>
+</body>
+
 </html>

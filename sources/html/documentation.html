@@ -1,370 +1,436 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta charset="utf-8">
 	<title>MoleOnline | Documentation</title>
-	<meta name="description" content="Description of tunnel detection algorithm, Examples of use and Tour through MOLEonline 2.0 application.  ">
+	<meta name="description"
+		content="Description of tunnel detection algorithm, Examples of use and Tour through MOLEonline 2.0 application.  ">
 	<meta name="author" content="Ing. Ondřej Hanák; http://ondrejhanak.cz">
 	<link rel="shortcut icon" href="\images/favicon.ico" type="image/icon">
-	<script type="text/javascript" src="\js/old-web/jsloader.js"></script>
-	<link rel="stylesheet" type="text/css" media="screen" href="\css/old-web/cssloader.css">
-	<link rel="stylesheet" href="\css/old-web/print.front.css" type="text/css" media="print">
-    <link rel="stylesheet" href="\css/init-styles.css?version=<!UI-VERSION!>" type="text/css">
-	<script src="\js/provided.js?version=<!UI-VERSION!>"></script>
-	<script src="\js/scripts.js?version=<!UI-VERSION!>"></script>     
-    <!-- Global site tag (gtag.js) - Google Analytics -->
+	<!-- <script type="text/javascript" src="\js/old-web/jsloader.js"></script> -->
+	<link rel="stylesheet" type="text/css" media="screen" href="../css/init/cssloader.css">
+	<link rel="stylesheet" href="../css/init/print.front.css" type="text/css" media="print">
+	<link rel="stylesheet" href="../css/init-styles.css" type="text/css">
+	<!-- <script src="\js/provided.js?version=<!UI-VERSION!>"></script>
+	<script src="\js/scripts.js?version=<!UI-VERSION!>"></script> -->
+
+	<!-- <script src="../js/scripts.js?version=R1.1.9.1"></script> -->
+	<script src="../js/init-scripts.js?version=R1.1.9.1"></script>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-4336835-7"></script>
 	<script>
 		window.dataLayer = window.dataLayer || [];
-		function gtag(){dataLayer.push(arguments);}
+		function gtag() { dataLayer.push(arguments); }
 		gtag('js', new Date());
 
 		gtag('config', 'UA-4336835-7');
 	</script>
+	<style>
+		.dropdown:hover .dropdown-menu {
+			display: block;
+		}
+
+		.dropdown-menu {
+			margin-top: 0;	
+		}
+	</style>
 </head>
 
 <body>
 
-<div id="page">
+	<div id="page">
 
-	<div id="header">
-		<h1><a href="/">MOLE<em>online</em></a></h1>
-
-		<div id="topmenu">
-			<ul>
-				<li><a href="/">Home</a></li>
-				<li><a href="/online/">Online</a></li>
-				<li class="active"><a href="/documentation/">Documentation</a></li>
-				<li><a href="/about/">About</a></li>
-			</ul>
-		</div> <!-- #topmenu -->
-	</div> <!-- #header -->
-
-	<div id="content">
-		
-
-		<div id="submenu">
-			<a href="/method">Method</a> | 
-			<a href="/examples">Examples</a> | 
-			<a href="/tour">Tour</a> | 
-			<a href="/faq">FAQ</a> |
-			<a href="/updates">Updates</a>
+		<div class="card shadow-sm mb-4 sticky-top">
+			<div class="card-body d-flex align-items-center" style="position: relative;">
+				<div class="header-gradient-background"></div>
+				<div class="header-gradient-text fs-3 fw-bold px-3" style="margin-right: 28rem;">
+					<img src="\images/favicon.ico" alt="M" class="header-icon">
+					oleOnline
+				</div>
+				<ul class="nav nav-pills nav-fill flex-grow-1">
+					<li class="nav-item">
+						<a class="nav-link" href="/">Home</a>
+					</li>
+					<li class="nav-item dropdown">
+						<a class="nav-link active dropdown-toggle" aria-current="page" href="#" id="navbarDropdown" aria-expanded="false">Documentation</a>
+						<ul class="dropdown-menu w-100" aria-labelledby="navbarDropdown">
+							<li><a class="dropdown-item" href="method.html">Method</a></li>
+							<li><a class="dropdown-item" href="tour.html">Tour</a></li>
+							<li><a class="dropdown-item" href="faq.html">FAQ</a></li>
+							<li><a class="dropdown-item" href="updates.html">Updates</a></li>
+						</ul>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="about.html">About</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="news.html">News</a>
+					</li>
+				</ul>
+			</div>
 		</div>
 
-<h2>MOLE<em>online</em> documentation</h2>
+		<div class="card p-4" style="border: var(--bs-card-border-width) solid rgba(205, 205, 205, 0.18);">
+			<h3>Channels</h3>
+			<p>
+				Channels (tunnels and pores) are highly important structural pathways within proteins and other
+				biomacromolecules.
+				Tunnels connect internal spaces of biomacromolecules with exterior enabling, e.g., substrate/product
+				transport
+				towards enzymes’ active sites, nascent synthesized proteins to leave ribosomal proteosynthetic center
+				via ribosomal
+				exit tunnel, etc. Pores are channels passing through the whole biomacromolecular structure, typically
+				facilitating
+				transport of ions or molecules through cellular biomembranes. (Figure 1)
+			</p>
 
-<p><a href="/method/">Method section</a> describes the channel detection algorithm used in MOLE</p>
-<p><a href="/examples/">Examples section</a> shows possible uses of MOLE<em>online</em> application</p> 
-<p><a href="/tour/">Tour section</a> guide through MOLE<em>online</em> application</p>
-<p><a href="/faq/">FAQ</a> Frequently Asked Questions</p>
-<p><a href="/updates/">Updates</a> - list of new features implemented in individual MOLEonline versions</p>
+			<figure class="figure">
+				<img class="img-fluid figure-img" src="\images/documentation_GUI_with_description.png" alt="Description of GUI">
+				<figcaption>Figure 1 – UX design of MOLEonline result webpage for human aquaporin (PDB ID: <a
+						href="/pdbid/?pdbid=4CSK">4CSK</a>).</figcaption>
+			</figure>
 
+			<h4>MOLEonline Features</h4>
+			<ul style="list-style-type: disc !important;">
+				<li>
+					Channel calculation
+					<ul style="list-style-type: disc !important;">
+						<li>
+							Tunnels from the stating point to surface or any other end point
+						</li>
+						<li>
+							Automatic transmembrane Pores
+						</li>
+						<li>
+							Help form with integrated submission for easier support
+						</li>
+					</ul>
+				</li>
+				<li>
+					Input
+					<ul style="list-style-type: disc !important;">
+						<li>
+							PDB and <a href="http://mmcif.wwpdb.org/" target="_blank">mmCIF</a> parsing
+						</li>
+						<li>
+							PDBe integration
+						</li>
+						<li>
+							<a href="https://webchem.ncbr.muni.cz/Platform/PatternQuery"
+								target="_blank">PatternQuery</a> language support (ignore residues, start points)
+						</li>
+					</ul>
+				</li>
+				<li>
+					Parameters of calculation
+					<ul style="list-style-type: disc !important;">
+						<li>
+							Automatic starting points from cavities in 3D structure - Origin points
+						</li>
+						<li>
+							Selection of starting/end points in sequence, residue selection, or XYZ point
+						</li>
+						<li>
+							Selection of end points (It is possible to compute tunnels to only 1 user specified exit)
+						</li>
+						<li>
+							Several weight functions for computing tunnels (Length, Voronoi scale weight functions)
+						</li>
+						<li>
+							Computation of "User Pores" now works for any cavity, not just the "surface".
+						</li>
+						<li>
+							Selection of end points with Ctrl+left click
+						</li>
+					</ul>
+				</li>
+				<li>
+					Pore mode
+					<ul style="list-style-type: disc !important;">
+						<li>
+							Enhancement of transmembrane pore calculations with use of OPM database or MEMEMBED program
+						</li>
+						<li>
+							Vizualization of membrane region
+						</li>
+					</ul>
+				</li>
+				<li>
+					Visualization
+					<ul style="list-style-type: disc !important;">
+						<li>
+							<a href="https://webchemdev.ncbr.muni.cz/LiteMol/" target="_blank">LiteMol</a> Viewer
+						</li>
+						<li>
+							Layered Channel profile with physicochemical properties and residue lists
+						</li>
+						<li>
+							Multiple layers can be selected/deselected to show average properties and list of residues
+							only around important area of the channel.
+						</li>
+						<li>
+							Connectivity to <a href="http://ncbr.muni.cz/ChannelsDB/" target="_blank">ChannelsDB</a>
+						</li>
+					</ul>
+				</li>
+				<li>
+					Properties of channels
+					<ul style="list-style-type: disc !important;">
+						<li>
+							Geometrical properties
+							<ul>
+								<li>
+									Length, Radius, Free Radius and BRadius
+								</li>
+							</ul>
+						</li>
+						<li>
+							Physicochemical properties
+							<ul>
+								<li>
+									Charge, Mutability, Polarity, Hydropathy, Hydrophobicity, Lipophilicity, Water
+									solubility
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</li>
+				<li>
+					Export of results
+					<ul style="list-style-type: disc !important;">
+						<li>
+							Properties of channels - CSV, XML, JSON
+						</li>
+						<li>
+							Channel profile in PNG or SVG format
+						</li>
+						<li>
+							Output visualization to PyMOL, VMD, and Chimera.
+						</li>
+						<li>
+							PDF report or within ZIP archive
+						</li>
+						<li>
+							User contributions to ChannelsDB annotations
+						</li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+		<p>
+			The calculation setup is realized via an interactive interface consisting of a few components (Figure
+			1).
+			Structure visualization is achieved by <a target="_blank" href="http://www.litemol.org/">LiteMol
+				Viewer</a> JavaScript application
+			which is capable to visualize the uploaded structure and the computed channels.
+		</p>
 
-<h3>Channels</h3>
-<p>
-	Channels (tunnels and pores) are highly important structural pathways within proteins and other biomacromolecules. 
-	Tunnels connect internal spaces of biomacromolecules with exterior enabling, e.g., substrate/product transport 
-	towards enzymes’ active sites, nascent synthesized proteins to leave ribosomal proteosynthetic center via ribosomal 
-	exit tunnel, etc. Pores are channels passing through the whole biomacromolecular structure, typically facilitating 
-	transport of ions or molecules through cellular biomembranes. (Figure 1)
-</p>
-
-<figure>
-	<img src="\images/documentation_GUI_with_description.png" alt="Description of GUI">
-	<figcaption>Figure 1 – UX design of MOLEonline result webpage for human aquaporin (PDB ID: <a href="/pdbid/?pdbid=4CSK">4CSK</a>).</figcaption>
-</figure>
-
-<h4>MOLEonline Features</h4>
-<ul>
-	<li>
-		Channel calculation
-		<ul>
-			<li>
-				Tunnels from the stating point to surface or any other end point
-			</li>
-			<li>
-				Automatic transmembrane Pores
-			</li>
-			<li>
-				Help form with integrated submission for easier support
-			</li>
+		<h4>Initialization</h4>
+		<ul style="list-style-type: disc !important;">
+			<li>Upload from PDBe database via PDBID with Assembly ID (optional) or as a biological unit
+				(recommended).</li>
+			<li>Upload PDB or mmCIF formats. </li>
 		</ul>
-	</li>
-	<li>
-		Input
-		<ul>
+		<h4>Mode selection and Channel calculation parameters</h4>
+		<ul style="list-style-type: disc !important;">
 			<li>
-				PDB and <a href="http://mmcif.wwpdb.org/" target="_blank">mmCIF</a> parsing
-			</li>
-			<li>
-				PDBe integration
-			</li>
-			<li>
-				<a href="https://webchem.ncbr.muni.cz/Platform/PatternQuery" target="_blank">PatternQuery</a> language support (ignore residues, start points)
-			</li>
-		</ul>
-	</li>
-	<li>
-		Parameters of calculation
-		<ul>
-			<li>
-				Automatic starting points from cavities in 3D structure - Origin points
-			</li>
-			<li>
-				Selection of starting/end points in sequence, residue selection, or XYZ point
-			</li>
-			<li>
-				Selection of end points (It is possible to compute tunnels to only 1 user specified exit)
-			</li>
-			<li>
-				Several weight functions for computing tunnels (Length, Voronoi scale weight functions)
-			</li>
-			<li>
-				Computation of "User Pores" now works for any cavity, not just the "surface". 
-			</li>
-			<li>
-				Selection of end points with Ctrl+left click					
-			</li>
-		</ul>
-	</li>
-	<li>
-		Pore mode
-		<ul>
-			<li>
-				Enhancement of transmembrane pore calculations with use of OPM database or MEMEMBED program
-			</li>
-			<li>
-				Vizualization of membrane region
-			</li>
-		</ul>
-	</li>
-	<li>
-		Visualization
-		<ul>
-			<li>
-				<a href="https://webchemdev.ncbr.muni.cz/LiteMol/" target="_blank">LiteMol</a> Viewer
-			</li>
-			<li>
-				Layered Channel profile with physicochemical properties and residue lists
-			</li>
-			<li>
-				Multiple layers can be selected/deselected to show average properties and list of residues only around important area of the channel.
-			</li>
-			<li>
-				Connectivity to <a href="http://ncbr.muni.cz/ChannelsDB/" target="_blank">ChannelsDB</a>
-			</li>
-		</ul>
-	</li>
-	<li>
-		Properties of channels
-		<ul>
-			<li>
-				Geometrical properties
-				<ul>
+				<b><i>Pore mode</i></b> - transmembrane pores<br />
+				<ul style="list-style-type: disc !important;">
 					<li>
-						Length, Radius, Free Radius and BRadius 
+						membrane position from <a target="_blank" href="http://opm.phar.umich.edu/">Orientations of
+							Proteins in Membranes (OPM) database</a>
+						or calculated with <a target="_blank"
+							href="http://bioinfadmin.cs.ucl.ac.uk/downloads/memembed/">MEMEMBED program</a>.
 					</li>
+					<li><i>Membrane region parameter</i> - calculate pore in transmembrane region only</li>
+					<li><i>Beta structure parameter</i> is recommended for transmembrane regions formed by β-barrel
+						structure</li>
 				</ul>
 			</li>
 			<li>
-				Physicochemical properties
-				<ul>
+				<b><i>Channels mode</i></b> - identification of channels and other types of pores<br />
+				<ul style="list-style-type: disc !important;">
 					<li>
-						Charge, Mutability, Polarity, Hydropathy, Hydrophobicity, Lipophilicity, Water solubility
-					</li>
-				</ul>
-			</li>
-		</ul>
-	</li>
-	<li>
-		Export of results
-		<ul>
-			<li>
-				Properties of channels - CSV, XML, JSON
-			</li>
-			<li>
-				Channel profile in PNG or SVG format
-			</li>
-			<li>
-				Output visualization to PyMOL, VMD, and Chimera.
-			</li>
-			<li>
-				PDF report or within ZIP archive
-			</li>
-			<li>
-				User contributions to ChannelsDB annotations
-			</li>
-		</ul>
-	</li>
-</ul>
-
-<p>
-	The calculation setup is realized via an interactive interface consisting of a few components (Figure 1). 
-	Structure visualization is achieved by <a target="_blank" href="http://www.litemol.org/">LiteMol Viewer</a> JavaScript application 
-	which is capable to visualize the uploaded structure and the computed channels.
-</p>
-
-<h4>Initialization</h4>
-<ul>
-	<li>Upload from PDBe database via PDBID with Assembly ID (optional) or as a biological unit (recommended).</li>
-	<li>Upload PDB or mmCIF formats. </li>
-</ul>
-<h4>Mode selection and Channel calculation parameters</h4>
-<ul>
-	<li>
-		<b><i>Pore mode</i></b> - transmembrane pores<br/>
-		<ul>
-			<li>
-				membrane position from <a target="_blank" href="http://opm.phar.umich.edu/">Orientations of Proteins in Membranes (OPM) database</a> 
-				or calculated with <a target="_blank" href="http://bioinfadmin.cs.ucl.ac.uk/downloads/memembed/">MEMEMBED program</a>. 
-			</li>
-			<li><i>Membrane region parameter</i> - calculate pore in transmembrane region only</li>
-			<li><i>Beta structure parameter</i> is recommended for transmembrane regions formed by β-barrel structure</li>
-		</ul>
-	</li>
-	<li>
-		<b><i>Channels mode</i></b> - identification of channels and other types of pores<br/>
-		<ul>
-			<li>
-				Start and end points user definition.
-				<ul>
-					<li>list of residues (selectable from sequence or 3D structure)</li>
-					<li>XYZ coordinates</li>
-					<li>catalytic site residues from <a target="_blank" href="https://www.ebi.ac.uk/thornton-srv/databases/CSA/">Catalytic Site Atlas (CSA)</a></li>
-					<li>from <a target="_blank" href="https://webchemdev.ncbr.muni.cz/ChannelsDB/documentation.html#db-cofactors">cofactors</a></li>
-					<li>using <a target="_blank" href="http://ncbr.muni.cz/PatternQuery/">PatternQuery language</a></li>
-					<li>on surface using Ctrl + left mouse click (Figure 2)</li>
-				</ul>
-				<figure>
-					<img src="\images/documentation_GUI_start_end_point_selection.png" alt="Start/End point selection">
-					<figcaption>Figure 2 – Interactive selection of start and end points via residues or XYZ coordinates. End point can be selected as a facet on the surface with Ctrl + left mouse click.</figcaption>
-				</figure>
-			</li>
-			<li>
-				Automatic Start points definition in the deepest points within cavities - <b>Origins</b>
-			</li>
-			<li>
-				Cavity parameters
-				<ul>
-					<li>
-						<i>Probe Radius</i> (default 5 Å) - define coarseness of the surface (larger values are recommended for the detection of 
-						larger channels, e.g. 20 Å for detection of peptide channel in ribosome) 
+						Start and end points user definition.
+						<ul style="list-style-type: disc !important;">
+							<li>list of residues (selectable from sequence or 3D structure)</li>
+							<li>XYZ coordinates</li>
+							<li>catalytic site residues from <a target="_blank"
+									href="https://www.ebi.ac.uk/thornton-srv/databases/CSA/">Catalytic Site Atlas
+									(CSA)</a></li>
+							<li>from <a target="_blank"
+									href="https://webchemdev.ncbr.muni.cz/ChannelsDB/documentation.html#db-cofactors">cofactors</a>
+							</li>
+							<li>using <a target="_blank" href="http://ncbr.muni.cz/PatternQuery/">PatternQuery
+									language</a></li>
+							<li>on surface using Ctrl + left mouse click (Figure 2)</li>
+						</ul>
+						<figure class="figure">
+							<img class="img-fluid figure-img" src="\images/documentation_GUI_start_end_point_selection.png"
+								alt="Start/End point selection">
+							<figcaption>Figure 2 – Interactive selection of start and end points via residues or XYZ
+								coordinates. End point can be selected as a facet on the surface with Ctrl + left
+								mouse click.</figcaption>
+						</figure>
 					</li>
 					<li>
-						<i>Interior Threshold</i> (default 1.1 Å) - define minimal size of tetrahedrons 
-						(smaller allows detection of channels with smaller bottlenecks)
-					</li>
-				</ul>
-			</li>
-			<li>
-				Channel parameters
-				<ul>
-					<li>
-						<i>Origin Radius</i> (default 5 Å) -  optimization of starting point within sphere 
+						Automatic Start points definition in the deepest points within cavities - <b>Origins</b>
 					</li>
 					<li>
-						<i>Surface Cover Radius</i> (default 10 Å) - only channels with endpoints further than this parameter apart are shown
-					</li>
-					<li>
-						<i>Weight Function</i> selection of priority among channels
-						<ul>
+						Cavity parameters
+						<ul style="list-style-type: disc !important;">
 							<li>
-								<b><i>Voronoi scale</i></b> (default) - adds to original Length and Radius weight function also the differences between the geometrical centers of tetrahedrons and resulting channel spheres. As such Voronoi scale weight function prefers inward facing tetrahedrons. Weight is calculated as W = (L/(D*D+ε))*(S(a)+S(b)), where L is length of edge, D is distance to closest vdW sphere, ε is small number to avoid division by zero and S(a) and S(b) is the distance between center of geometrical centers of two closest tetrahedrons and resulting channel spheres.
+								<i>Probe Radius</i> (default 5 Å) - define coarseness of the surface (larger values
+								are recommended for the detection of
+								larger channels, e.g. 20 Å for detection of peptide channel in ribosome)
 							</li>
 							<li>
-								<b><i>Length+Radius</i></b> (original in previous MOLEonline version) - weight of edges for channels are calculated as W = L/(D*D+ε),
-							</li>
-							<li>
-								<b><i>Length</i></b> - weight is calculated just as W = L. This function does not take into account bottlenecks. 
+								<i>Interior Threshold</i> (default 1.1 Å) - define minimal size of tetrahedrons
+								(smaller allows detection of channels with smaller bottlenecks)
 							</li>
 						</ul>
 					</li>
 					<li>
-						<i>Merge Pores</i> (disabled on default) - merge tunnels starting from the same starting point to form pores 
+						Channel parameters
+						<ul style="list-style-type: disc !important;">
+							<li>
+								<i>Origin Radius</i> (default 5 Å) - optimization of starting point within sphere
+							</li>
+							<li>
+								<i>Surface Cover Radius</i> (default 10 Å) - only channels with endpoints further
+								than this parameter apart are shown
+							</li>
+							<li>
+								<i>Weight Function</i> selection of priority among channels
+								<ul style="list-style-type: disc !important;">
+									<li>
+										<b><i>Voronoi scale</i></b> (default) - adds to original Length and Radius
+										weight function also the differences between the geometrical centers of
+										tetrahedrons and resulting channel spheres. As such Voronoi scale weight
+										function prefers inward facing tetrahedrons. Weight is calculated as W =
+										(L/(D*D+ε))*(S(a)+S(b)), where L is length of edge, D is distance to closest
+										vdW sphere, ε is small number to avoid division by zero and S(a) and S(b) is
+										the distance between center of geometrical centers of two closest
+										tetrahedrons and resulting channel spheres.
+									</li>
+									<li>
+										<b><i>Length+Radius</i></b> (original in previous MOLEonline version) -
+										weight of edges for channels are calculated as W = L/(D*D+ε),
+									</li>
+									<li>
+										<b><i>Length</i></b> - weight is calculated just as W = L. This function
+										does not take into account bottlenecks.
+									</li>
+								</ul>
+							</li>
+							<li>
+								<i>Merge Pores</i> (disabled on default) - merge tunnels starting from the same
+								starting point to form pores
+							</li>
+							<li>
+								<i>Automatic Pores (disabled on default)</i> - compute pores in all cavities
+							</li>
+						</ul>
 					</li>
 					<li>
-						<i>Automatic Pores (disabled on default)</i> - compute pores in all cavities
+						<i>Channel Advanced parameters</i>
+						<ul style="list-style-type: disc !important;">
+							<li>
+								<i>Bottleneck Radius</i> (default 1.2 Å) - minimum radius of the channel
+							</li>
+							<li>
+								<i>Bottleneck Tolerance</i> (default 3 Å) - maximum length of channel segment
+								narrower than bottleneck radius. It can be used for closed channel detection.
+							</li>
+							<li>
+								<b><i>Max Tunnel Similarity</i></b> (default 0.7) - limit of similarity of
+								tetrahedrons between channels. Longer similar channel is discarded.
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</li>
+		</ul>
+		<h4>Results visualization and analysis</h4>
+		<p>Calculated channels are sorted according to their type to</p>
+		<ul style="list-style-type: disc !important;">
+			<li>Tunnels (from starting point to surface end point)</li>
+			<li>Pores (from surface to surface through structure)</li>
+			<li>and Paths (between two defined points)</li>
+		</ul>
+		<p>Channels are further sorted according to their cavities by their lengths.</p>
+		<p>Interactive channels visualization runs in LiteMol Viewer.</p>
+		<p>Channel profile can be seen in the bottom left corner of the webpage. Two profiles can be visualized
+			simultaneously showing physicochemical properties along channel length (on x-axis):</p>
+		<ul style="list-style-type: disc !important;">
+			<li>
+				by color filling
+				<ul style="list-style-type: disc !important;">
+					<li><i>charge</i> - charged amino acid residues (positive ARG, LYS, HIS; negative ASP, GLU).
+					</li>
+					<li><i>hydrophobicity</i> - <a target="_blank"
+							href="https://www.ncbi.nlm.nih.gov/pubmed/7108955">Kyte and Doolittle scale</a> (ARG
+						-4.5 ; LEU +4.5), </li>
+					<li><i>hydropathy</i> - <a target="_blank"
+							href="https://www.ncbi.nlm.nih.gov/pubmed/1518784">Cid scale</a> (GLU -1.14; ILE +1.81),
+					</li>
+					<li><i>polarity</i> - <a target="_blank"
+							href="https://www.ncbi.nlm.nih.gov/pubmed/5700434">Zimmerman scale</a> (ALA, GLY 0; ARG
+						+52)</li>
+					<li><i>lipophilicity - logP-scale</i> - (calculated as octanol/water partition coefficients of
+						Cβ fragments of side-chains (ASN -1.03; TRP 2.59) and mainchain (-0.86) via <a
+							target="_blank" href="www.chemicalize.org">www.chemicalize.org</a></li>
+					<li><i>lipophilicity - logD-scale</i> - (calculated as octanol/water distribution coefficients
+						of Cβ fragments of side-chains at pH 7.4 (ASP -3.00; TRP 2.59) and mainchain (-0.86) via <a
+							target="_blank" href="www.chemicalize.org">www.chemicalize.org</a></li>
+					<li><i>solubility - logS-scale</i> - (calculated as water solubility of Cβ fragments of
+						side-chains at pH 7.4 (TRP -2.48; ASP 2.63) and mainchain (0.81) via <a target="_blank"
+							href="www.chemicalize.org">www.chemicalize.org</a></li>
+					<li><i>mutability</i> - <a target="_blank"
+							href="https://www.ncbi.nlm.nih.gov/pubmed/1633570">Jones scale</a> (TRP 25; SER 117)
 					</li>
 				</ul>
 			</li>
 			<li>
-				<i>Channel Advanced parameters</i>
-				<ul>
+				by y-axis value
+				<ul style="list-style-type: disc !important;">
+					<li><i>Radius</i> - radius of maximum sphere in this layer</li>
 					<li>
-						<i>Bottleneck Radius</i> (default 1.2 Å) - minimum radius of the channel
+						<i>Free Radius</i> - channel radius to only main chains of the lining amino acids. May
+						represent maximal radius given by the position of protein backbone, which can be achieved by
+						reconformation of the amino acid side chain aside of the channel or virtual glycine mutation
 					</li>
-					<li>
-						<i>Bottleneck Tolerance</i> (default 3 Å) - maximum length of channel segment narrower than bottleneck radius. It can be used for closed channel detection.
-					</li>
-					<li>
-						<b><i>Max Tunnel Similarity</i></b> (default 0.7) - limit of similarity of tetrahedrons between channels. Longer similar channel is discarded.
-					</li>
+					<li><i>BRadius</i> - adds to the Radius value RMSF of the residues along the channel (calculated
+						from B-factors stored with the structure) to reflect local flexibility.</li>
 				</ul>
 			</li>
 		</ul>
-	</li>
-</ul>
-<h4>Results visualization and analysis</h4>
-<p>Calculated channels are sorted according to their type to</p>
-<ul>
-	<li>Tunnels (from starting point to surface end point)</li>
-	<li>Pores (from surface to surface through structure)</li>
-	<li>and Paths (between two defined points)</li>
-</ul>
-<p>Channels are further sorted according to their cavities by their lengths.</p>
-<p>Interactive channels visualization runs in LiteMol Viewer.</p>
-<p>Channel profile can be seen in the bottom left corner of the webpage. Two profiles can be visualized simultaneously showing physicochemical properties along channel length (on x-axis):</p>
-<ul>
-	<li>
-		by color filling
-		<ul>
-			<li><i>charge</i> - charged amino acid residues (positive ARG, LYS, HIS; negative ASP, GLU).</li>
-			<li><i>hydrophobicity</i> - <a target="_blank" href="https://www.ncbi.nlm.nih.gov/pubmed/7108955">Kyte and Doolittle scale</a> (ARG -4.5 ; LEU +4.5), </li>
-			<li><i>hydropathy</i> - <a target="_blank" href="https://www.ncbi.nlm.nih.gov/pubmed/1518784">Cid scale</a> (GLU -1.14; ILE +1.81),</li>
-			<li><i>polarity</i> - <a target="_blank" href="https://www.ncbi.nlm.nih.gov/pubmed/5700434">Zimmerman scale</a> (ALA, GLY 0; ARG +52)</li>
-			<li><i>lipophilicity - logP-scale</i> - (calculated as octanol/water partition coefficients of Cβ fragments of side-chains (ASN -1.03; TRP 2.59) and mainchain (-0.86) via <a target="_blank" href="www.chemicalize.org">www.chemicalize.org</a></li>
-			<li><i>lipophilicity - logD-scale</i> - (calculated as octanol/water distribution coefficients of Cβ fragments of side-chains at pH 7.4 (ASP -3.00; TRP 2.59) and mainchain (-0.86) via <a target="_blank" href="www.chemicalize.org">www.chemicalize.org</a></li>
-			<li><i>solubility - logS-scale</i> - (calculated as water solubility of Cβ fragments of side-chains at pH 7.4 (TRP -2.48; ASP 2.63) and mainchain (0.81) via <a target="_blank" href="www.chemicalize.org">www.chemicalize.org</a></li>
-			<li><i>mutability</i> - <a target="_blank" href="https://www.ncbi.nlm.nih.gov/pubmed/1633570">Jones scale</a> (TRP 25; SER 117)</li>
+		<p>Overall results for all considered channels are also summarized in <b>Channels properties</b>.</p>
+		<h4>Submissions</h4>
+		<ul style="list-style-type: disc !important;">
+			<li>Each job has random job ID to ensure private access. </li>
+			<li>History of individual submissions within job ID can be browsed in the bottom right corner.</li>
+			<li>The user can compare own results with the annotated channels deposited in <b>ChannelsDB</b> if
+				available.</li>
+			<li>The user can also send the results as an input of channel <b>annotation</b> to ChannelsDB using a
+				simple form available on top of the page.</li>
 		</ul>
-	</li>
-	<li>
-		by y-axis value
-		<ul>
-			<li><i>Radius</i> - radius of maximum sphere in this layer</li>
-			<li>
-				<i>Free Radius</i> - channel radius to only main chains of the lining amino acids. May represent maximal radius given by the position of protein backbone, which can be achieved by reconformation of the amino acid side chain aside of the channel or virtual glycine mutation
-			</li>
-			<li><i>BRadius</i> - adds to the Radius value RMSF of the residues along the channel (calculated from B-factors stored with the structure) to reflect local flexibility.</li>
+		<h4>Export of results</h4>
+		<p>Results can be downloaded in various formats:</p>
+		<ul style="list-style-type: disc !important;">
+			<li>macromolecule itself in <b>mmCIF</b> format </li>
+			<li>channel coordinates in <b>PDB</b> format</li>
+			<li>PyMol, <b>VMD</b>, and <b>Chimera</b> visualization scripts</li>
+			<li>all information as rich <b>JSON</b> or <b>ZIP</b> (containing CSV, XML) files for further textual
+				analysis</li>
+			<li>Channel profiles in <b>PNG</b> or <b>SVG</b> format</li>
+			<li>Report for individual channels can be downloaded in <b>PDF</b> format.</li>
 		</ul>
-	</li>
-</ul>
-<p>Overall results for all considered channels are also summarized in <b>Channels properties</b>.</p>
-<h4>Submissions</h4>
-<ul>
-	<li>Each job has random job ID to ensure private access. </li>
-	<li>History of individual submissions within job ID can be browsed in the bottom right corner.</li>
-	<li>The user can compare own results with the annotated channels deposited in <b>ChannelsDB</b> if available.</li>
-	<li>The user can also send the results as an input of channel <b>annotation</b> to ChannelsDB using a simple form available on top of the page.</li>
-</ul>
-<h4>Export of results</h4>
-<p>Results can be downloaded in various formats:</p>
-<ul>
-	<li>macromolecule itself in <b>mmCIF</b> format </li>
-	<li>channel coordinates in <b>PDB</b> format</li>
-	<li>PyMol, <b>VMD</b>, and <b>Chimera</b> visualization scripts</li>
-	<li>all information as rich <b>JSON</b> or <b>ZIP</b> (containing CSV, XML) files for further textual analysis</li>
-	<li>Channel profiles in <b>PNG</b> or <b>SVG</b> format</li>
-	<li>Report for individual channels can be downloaded in <b>PDF</b> format.</li>
-</ul>
-	</div> <!-- #content -->
+	</div>
 
-	<hr class="cleaner">
-	<div id="version-block" data-ui-version="<!UI-VERSION!>" />
-
-</div> <!-- #page -->
-
-<div id="ajaxspinner"></div>
-<script src="\MoleOnlineWebUI-Core-Init.js?version=<!UI-VERSION!>"></script>
+	<div id="ajaxspinner"></div>
+	<script src="../MOLEOnline_Init-Core.js?version=R1.1.9.1"></script>
 </body>
+
 </html>

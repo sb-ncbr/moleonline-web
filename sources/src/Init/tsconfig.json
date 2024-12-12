@@ -1,6 +1,31 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    // "noImplicitAny": true,
+    // "noEmitOnError": true,
+    // "removeComments": false,
+    // "sourceMap": false,
+    // "declaration": false,
+    // "strictNullChecks": true,
+    // "noImplicitThis": true,
+    // "lib": [ "es5", "es2015.collection", "dom", "es2015.promise"],
+    // "target": "es5",
+    // "jsx": "react",
+    // "module": "system",
+    // "types": [],
+    // "skipDefaultLibCheck": true
+    "target": "es5",
+    "lib": [ "es6", "dom", "esnext.asynciterable", "es2016" ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    "ignoreDeprecations": "5.0",
     "noImplicitAny": true,
     "noEmitOnError": true,
     "removeComments": false,
@@ -8,12 +33,8 @@
     "declaration": false,
     "strictNullChecks": true,
     "noImplicitThis": true,
-    "lib": [ "es5", "es2015.collection", "dom", "es2015.promise"],
-    "target": "es5",
-    "jsx": "react",
-    "module": "system",
-    "types": [],
-    "skipDefaultLibCheck": true 
+    "types": ["node"],
+    "skipDefaultLibCheck": true
   },
   "files": [
     "../../provided/src/LiteMol-plugin.d.ts",
@@ -21,7 +42,7 @@
     "../../provided/src/react-dom.d.ts",*/
 
     "../../config/common.ts",
-    "../../../tmp/config.ts",
+    // "../../../tmp/config.ts",  //TODO dont know what this should be
 
     "../FetchingIf.ts",
     "../SimpleRouter.ts",
@@ -55,7 +76,9 @@
     //Version strip
     "VersionStrip/UI.tsx",
 
+    "HomePage/Examples.tsx",
+
     //App
-    "App.ts"
+    "App.tsx"
   ]
 }

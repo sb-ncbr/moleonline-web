@@ -1,0 +1,411 @@
+/**
+ * Copyright (c) 2018-2020 mol* contributors, licensed under MIT, See LICENSE file for more info.
+ *
+ * @author Alexander Rose <alexander.rose@weirdbyte.de>
+ * @author David Sehnal <david.sehnal@gmail.com>
+ */
+
+import * as React from 'react';
+import { Subject } from 'rxjs';
+import { throttleTime } from 'rxjs/operators';
+import { OrderedSet } from 'molstar/lib/mol-data/int';
+import { StructureElement, StructureProperties, Unit } from 'molstar/lib/mol-model/structure';
+import { Representation } from 'molstar/lib/mol-repr/representation';
+import { ButtonsType, getButton, getButtons, getModifiers, ModifiersKeys } from 'molstar/lib/mol-util/input/input-observer';
+import { MarkerAction } from 'molstar/lib/mol-util/marker-action';
+import { PluginUIComponent } from 'molstar/lib/mol-plugin-ui/base';
+import { SequenceWrapper } from 'molstar/lib/mol-plugin-ui//sequence/wrapper';
+import { SelectionHelper } from '../../CommonUtils/Selection';
+import { LayerColors } from '../../CommonUtils/LayerColors';
+
+type SequenceProps = {
+    sequenceWrapper: SequenceWrapper.Any,
+    sequenceNumberPeriod?: number,
+    hideSequenceNumbers?: boolean,
+    operatorName: string,
+    chainName: string
+}
+
+/** Note, if this is changed, the CSS for `msp-sequence-number` needs adjustment too */
+const MaxSequenceNumberSize = 5;
+
+// TODO: this is somewhat inefficient and should be done using a canvas.
+export class MoleSequence<P extends SequenceProps> extends PluginUIComponent<P> {
+    protected parentDiv = React.createRef<HTMLDivElement>();
+    protected lastMouseOverSeqIdx = -1;
+    protected highlightQueue = new Subject<{ seqIdx: number, buttons: number, button: number, modifiers: ModifiersKeys }>();
+    protected selectedLocis: Array<number> = new Array(this.props.sequenceWrapper.length).fill(0);
+
+    protected lociHighlightProvider = (loci: Representation.Loci, action: MarkerAction) => {
+        const changed = this.props.sequenceWrapper.markResidue(loci.loci, action);
+        if (changed) this.updateMarker();
+    };
+
+    protected lociSelectionProvider = (loci: Representation.Loci, action: MarkerAction) => {
+        const changed = this.props.sequenceWrapper.markResidue(loci.loci, action);
+        if (changed) this.updateMarker();
+    };
+
+    protected get sequenceNumberPeriod() {
+        if (this.props.sequenceNumberPeriod !== undefined) {
+            return this.props.sequenceNumberPeriod as number;
+        }
+        if (this.props.sequenceWrapper.length > 10) return 10;
+        const lastSeqNum = this.getSequenceNumber(this.props.sequenceWrapper.length - 1);
+        if (lastSeqNum.length > 1) return 5;
+        return 1;
+    }
+
+    componentDidMount() {
+        this.plugin.managers.interactivity.lociHighlights.addProvider(this.lociHighlightProvider);
+        this.plugin.managers.interactivity.lociSelects.addProvider(this.lociSelectionProvider);
+
+        SelectionHelper.attachOnClearSelectionSequence(() => {
+            this.selectedLocis.fill(0);
+            this.updateMarker();
+        });
+
+        SelectionHelper.attachOnResidueSelectHandler(residues => {
+            const selectedLocis = new Array(this.props.sequenceWrapper.length).fill(0);
+            for (let residue of residues) {
+                if (residue.operatorName === this.props.operatorName && residue.chain.authAsymId === this.props.chainName) {
+                    for (let i = 0, il = this.props.sequenceWrapper.length; i < il; ++i) {
+                        const loci = this.props.sequenceWrapper.getLoci(i);
+                        if (loci.elements.length > 0) {
+                            const location = StructureElement.Loci.getFirstLocation(loci, StructureElement.Location.create(void 0));
+                            if (location && StructureProperties.residue.auth_seq_id(location) === residue.authSeqNumber) {
+                                selectedLocis[i] = 1;
+                            }
+                        }
+                    }
+                }
+            }
+            this.selectedLocis = selectedLocis;
+            // this.setState((prevState) => {
+            //     return {
+            //         selectedLocis,
+            //         ...prevState
+            //     }
+            // })
+            this.updateMarker();
+        });
+
+        this.subscribe(this.highlightQueue.pipe(throttleTime(3 * 16.666, void 0, { leading: true, trailing: true })), (e) => {
+            const loci = this.getLoci(e.seqIdx < 0 ? void 0 : e.seqIdx);
+            this.hover(loci, e.buttons, e.button, e.modifiers);
+        });
+    }
+
+    componentWillUnmount() {
+        super.componentWillUnmount();
+
+        this.plugin.managers.interactivity.lociHighlights.removeProvider(this.lociHighlightProvider);
+        this.plugin.managers.interactivity.lociSelects.removeProvider(this.lociSelectionProvider);
+    }
+
+    getLoci(seqIdx: number | undefined) {
+        if (seqIdx !== undefined) {
+            const loci = this.props.sequenceWrapper.getLoci(seqIdx);
+            if (!StructureElement.Loci.isEmpty(loci)) return loci;
+        }
+    }
+
+    getSeqIdx(e: React.MouseEvent) {
+        let seqIdx: number | undefined = undefined;
+        const el = e.target as HTMLElement;
+        if (el && el.getAttribute) {
+            seqIdx = el.hasAttribute('data-seqid') ? +el.getAttribute('data-seqid')! : undefined;
+        }
+        return seqIdx;
+    }
+
+    hover(loci: StructureElement.Loci | undefined, buttons: ButtonsType, button: ButtonsType.Flag, modifiers: ModifiersKeys) {
+        const ev = { current: Representation.Loci.Empty, buttons, button, modifiers };
+        if (loci !== undefined && !StructureElement.Loci.isEmpty(loci)) {
+            ev.current = { loci };
+        }
+        this.plugin.behaviors.interaction.hover.next(ev);
+    }
+
+    click(loci: StructureElement.Loci | undefined, buttons: ButtonsType, button: ButtonsType.Flag, modifiers: ModifiersKeys) {
+        const ev = { current: Representation.Loci.Empty, buttons, button, modifiers };
+        if (loci !== undefined && !StructureElement.Loci.isEmpty(loci)) {
+            ev.current = { loci };
+        }
+        this.plugin.behaviors.interaction.click.next(ev);
+    }
+
+    contextMenu = (e: React.MouseEvent) => {
+        e.preventDefault();
+    };
+
+    protected mouseDownLoci: StructureElement.Loci | undefined = undefined;
+
+    mouseDown = (e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        const seqIdx = this.getSeqIdx(e);
+        const loci = this.getLoci(seqIdx);
+        const buttons = getButtons(e.nativeEvent);
+        const button = getButton(e.nativeEvent);
+        const modifiers = getModifiers(e.nativeEvent);
+        
+        if (seqIdx !== undefined && loci){
+            if (this.selectedLocis[seqIdx] === 0) {
+                this.selectedLocis[seqIdx] = 1;
+                this.props.sequenceWrapper.mark(loci, MarkerAction.Select);
+            } else {
+                this.selectedLocis[seqIdx] = 0;
+                this.props.sequenceWrapper.mark(loci, MarkerAction.Deselect);
+            }
+        };
+        this.click(loci, buttons, button, modifiers);
+        // if (loci) {
+        //     const location = StructureElement.Loci.getFirstLocation(loci, StructureElement.Location.create(void 0));
+        //     if (location) {
+        //         const sequenceNumber = StructureProperties.residue.auth_seq_id(location);
+        //         const chainName = StructureProperties.chain.auth_asym_id(location);
+        //         const operatorName = StructureProperties.unit.operator_name(location);
+        //         const resiudeName = StructureProperties.atom.label_comp_id(location);
+        //         SelectionHelper.addResidueToSelection(sequenceNumber, chainName, operatorName, undefined, resiudeName);
+        //     }
+        // }
+        this.mouseDownLoci = loci;
+    };
+
+    private updateMarkerSelect(seqIx: number, loci: StructureElement.Loci) {
+        if (!this.parentDiv.current) return;
+        const xs = this.parentDiv.current.children;
+        const { markerArray } = this.props.sequenceWrapper;
+        const hasNumbers = !this.props.hideSequenceNumbers, period = this.sequenceNumberPeriod;
+
+        let o = 0;
+        for (let i = 0, il = markerArray.length; i < il; i++) {
+            if (hasNumbers && i % period === 0 && i < il) o++;
+            // o + 1 to account for help icon
+            const span = xs[o] as HTMLSpanElement;
+            if (!span) return;
+            o++;
+
+            if (i === seqIx) {
+                if (this.selectedLocis[i] === 0) {
+                    this.selectedLocis[i] = 1;
+                    this.props.sequenceWrapper.mark(loci, MarkerAction.Select);
+                } else {
+                    this.selectedLocis[i] = 0;
+                    this.props.sequenceWrapper.mark(loci, MarkerAction.Deselect);
+                }
+                return;
+            }
+        }
+    }
+
+    mouseUp = (e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        // ignore mouse-up events without a bound loci
+        if (this.mouseDownLoci === undefined) return;
+
+        const seqIdx = this.getSeqIdx(e);
+        const loci = this.getLoci(seqIdx);
+
+        if (loci && !StructureElement.Loci.areEqual(this.mouseDownLoci, loci)) {
+            const buttons = getButtons(e.nativeEvent);
+            const button = getButton(e.nativeEvent);
+            const modifiers = getModifiers(e.nativeEvent);
+
+            const ref = this.mouseDownLoci.elements[0];
+            const ext = loci.elements[0];
+            const min = Math.min(OrderedSet.min(ref.indices), OrderedSet.min(ext.indices));
+            const max = Math.max(OrderedSet.max(ref.indices), OrderedSet.max(ext.indices));
+
+            const range = StructureElement.Loci(loci.structure, [{
+                unit: ref.unit,
+                indices: OrderedSet.ofRange(min as StructureElement.UnitIndex, max as StructureElement.UnitIndex)
+            }]);
+
+            this.click(StructureElement.Loci.subtract(range, this.mouseDownLoci), buttons, button, modifiers);
+        }
+        this.mouseDownLoci = undefined;
+    };
+
+    protected getBackgroundColor(marker: number) {
+        // TODO: make marker color configurable
+        if (typeof marker === 'undefined') console.error('unexpected marker value');
+        return marker === 0
+            ? ''
+            : marker % 2 === 0
+                ? 'rgb(0, 0, 0)' //'rgb(51, 255, 25)' // selected
+                : 'rgb(255, 102, 153)'; // highlighted
+    }
+
+    protected getResidueClass(seqIdx: number, label: string) {
+        return label.length > 1
+            ? this.props.sequenceWrapper.residueClass(seqIdx) + (seqIdx === 0 ? ' msp-sequence-residue-long-begin' : ' msp-sequence-residue-long')
+            : this.props.sequenceWrapper.residueClass(seqIdx);
+    }
+
+    protected residue(seqIdx: number, label: string, marker: number) {
+        return <span key={seqIdx} data-seqid={seqIdx} style={{ backgroundColor: this.getBackgroundColor(marker) }} className={this.getResidueClass(seqIdx, label)}>{`\u200b${label}\u200b`}</span>;
+    }
+
+    protected getSequenceNumberClass(seqIdx: number, seqNum: string, label: string) {
+        const classList = ['msp-sequence-number'];
+        if (seqNum.startsWith('-')) {
+            if (label.length > 1 && seqIdx > 0) classList.push('msp-sequence-number-long-negative');
+            else classList.push('msp-sequence-number-negative');
+        } else {
+            if (label.length > 1 && seqIdx > 0) classList.push('msp-sequence-number-long');
+        }
+        return classList.join(' ');
+    }
+
+    protected location = StructureElement.Location.create(void 0);
+    protected getSequenceNumber(seqIdx: number) {
+        let seqNum = '';
+        const loci = this.props.sequenceWrapper.getLoci(seqIdx);
+        const l = StructureElement.Loci.getFirstLocation(loci, this.location);
+        if (l) {
+            if (Unit.isAtomic(l.unit)) {
+                const seqId = StructureProperties.residue.auth_seq_id(l);
+                const insCode = StructureProperties.residue.pdbx_PDB_ins_code(l);
+                seqNum = `${seqId}${insCode ? insCode : ''}`;
+            } else if (Unit.isCoarse(l.unit)) {
+                seqNum = `${seqIdx + 1}`;
+            }
+        }
+        return seqNum;
+    }
+
+    protected padSeqNum(n: string) {
+        if (n.length < MaxSequenceNumberSize) return n + new Array(MaxSequenceNumberSize - n.length + 1).join('\u00A0');
+        return n;
+    }
+    protected getSequenceNumberSpan(seqIdx: number, label: string) {
+        const seqNum = this.getSequenceNumber(seqIdx);
+        return <span key={`marker-${seqIdx}`} className={this.getSequenceNumberClass(seqIdx, seqNum, label)}>{this.padSeqNum(seqNum)}</span>;
+    }
+
+    protected updateMarker() {
+        if (!this.parentDiv.current) return;
+        const xs = this.parentDiv.current.children;
+        const { markerArray } = this.props.sequenceWrapper;
+        const hasNumbers = !this.props.hideSequenceNumbers, period = this.sequenceNumberPeriod;
+
+        // let first: HTMLSpanElement | undefined;
+
+        let o = 0;
+        for (let i = 0, il = markerArray.length; i < il; i++) {
+            if (hasNumbers && i % period === 0 && i < il) o++;
+            // o + 1 to account for help icon
+            const span = xs[o] as HTMLSpanElement;
+            if (!span) return;
+            o++;
+
+            // if (!first && markerArray[i] > 0) {
+            //     first = span;
+            // }
+
+            const backgroundColor = this.getBackgroundColor(markerArray[i]);
+            if (LayerColors.getSelectChannelLiningResidues()) continue; // because of repeatedly changing the bg of the sequence letter(remove the flashing)
+            if (span.style.backgroundColor !== backgroundColor) {
+                if (backgroundColor === 'rgb(255, 102, 153)') {
+                    span.style.backgroundColor = backgroundColor;
+                } else if (this.selectedLocis[i] === 1) {
+                    span.style.background = 'rgb(0, 0, 0)'
+                } else {
+                    span.style.backgroundColor = backgroundColor;
+                }
+                if (span.style.backgroundColor === 'rgb(0, 0, 0)') {
+                    if (span.className !== 'msp-sequence-missing') span.style.color = 'rgb(255, 255, 255)';  
+                } else {
+                    if (span.className !== 'msp-sequence-missing') span.style.color = 'rgb(0, 0, 0)'; 
+                }  
+            } else {
+                if (this.selectedLocis[i] === 1) {
+                    span.style.background = 'rgb(0, 0, 0)';
+                    if (span.className !== 'msp-sequence-missing') span.style.color = 'rgb(255, 255, 255)'; 
+                } else {
+                    span.style.backgroundColor = '';
+                    if (span.className !== 'msp-sequence-missing') span.style.color = 'rgb(0, 0, 0)'; 
+                }
+            }
+        }
+
+        // if (first) {
+        //     first.scrollIntoView({ block: 'nearest' });
+        // }
+    }
+
+    mouseMove = (e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        const buttons = getButtons(e.nativeEvent);
+        const button = getButton(e.nativeEvent);
+        const modifiers = getModifiers(e.nativeEvent);
+
+        const el = e.target as HTMLElement;
+        if (!el || !el.getAttribute) {
+            if (this.lastMouseOverSeqIdx === -1) return;
+            this.lastMouseOverSeqIdx = -1;
+            this.highlightQueue.next({ seqIdx: -1, buttons, button, modifiers });
+            return;
+        }
+        const seqIdx = el.hasAttribute('data-seqid') ? +el.getAttribute('data-seqid')! : -1;
+        if (this.lastMouseOverSeqIdx === seqIdx) {
+            return;
+        } else {
+            this.lastMouseOverSeqIdx = seqIdx;
+            if (this.mouseDownLoci !== undefined) {
+                const loci = this.getLoci(seqIdx);
+                this.hover(loci, ButtonsType.Flag.None, ButtonsType.Flag.None, { ...modifiers, shift: true });
+            } else {
+                this.highlightQueue.next({ seqIdx, buttons, button, modifiers });
+            }
+        }
+    };
+
+    mouseLeave = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        this.mouseDownLoci = undefined;
+
+        if (this.lastMouseOverSeqIdx === -1) return;
+        this.lastMouseOverSeqIdx = -1;
+        const buttons = getButtons(e.nativeEvent);
+        const button = getButton(e.nativeEvent);
+        const modifiers = getModifiers(e.nativeEvent);
+        this.highlightQueue.next({ seqIdx: -1, buttons, button, modifiers });
+    };
+
+    render() {
+        const sw = this.props.sequenceWrapper;
+
+        const elems: JSX.Element[] = [];
+
+        const hasNumbers = !this.props.hideSequenceNumbers, period = this.sequenceNumberPeriod;
+        for (let i = 0, il = sw.length; i < il; ++i) {
+            const label = sw.residueLabel(i);
+            // add sequence number before name so the html element do not get separated by a line-break
+            if (hasNumbers && i % period === 0 && i < il) {
+                elems[elems.length] = this.getSequenceNumberSpan(i, label);
+            }
+            elems[elems.length] = this.residue(i, label, sw.markerArray[i]);
+        }
+
+        // calling .updateMarker here is neccesary to ensure existing
+        // residue spans are updated as react won't update them
+        this.updateMarker();
+
+        return <div
+            className='msp-sequence-wrapper'
+            onContextMenu={this.contextMenu}
+            onMouseDown={this.mouseDown}
+            onMouseUp={this.mouseUp}
+            onMouseMove={this.mouseMove}
+            onMouseLeave={this.mouseLeave}
+            ref={this.parentDiv}
+        >
+            {elems}
+        </div>;
+    }
+}

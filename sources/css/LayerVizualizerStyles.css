@@ -184,6 +184,12 @@
 	cursor: pointer;
 }
 
+.btn-sm-vizualizer {
+	--bs-btn-padding-y: 0.05rem !important;
+	--bs-btn-padding-x: 0.30rem !important;
+	--bs-btn-font-size: 0.775 rem !important;
+}
+
 @media only screen and (max-width: 1300px) {
 	.layerVizualizer * .controls .common-area{
 		position:relative;

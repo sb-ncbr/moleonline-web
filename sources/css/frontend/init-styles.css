@@ -1,0 +1,127 @@
+body {
+    background: #f8f8f8
+}
+
+.InitForm table tr td:first-child {
+    width: 150px;
+    vertical-align: middle
+}
+
+.InitForm input[type="submit"]:disabled {
+    color: gray !important
+}
+
+.InitForm .buttons {
+    padding: 0
+}
+
+a {
+    color: #337ab7;
+    text-decoration: none
+}
+
+a:focus,
+a:hover {
+    color: #23527c;
+    text-decoration: underline
+}
+
+a:focus {
+    outline: 5px auto -webkit-focus-ring-color;
+    outline-offset: -2px
+}
+
+#topmenu a {
+    color: white;
+    background: none;
+    background-color: #616161
+}
+
+#topmenu a:hover {
+    background-color: #9a9a9a
+}
+
+#topmenu li.active a,
+#topmenu li.active a:hover {
+    background-color: white;
+    color: #000
+}
+
+.fb-icon {
+    width: 50px
+}
+
+figure {
+    text-align: center
+}
+
+figure img {
+    max-width: 100%
+}
+
+.fade.in {
+    opacity: 1
+}
+
+.alert-success {
+    color: #3c763d;
+    background-color: #dff0d8;
+    border-color: #d6e9c6
+}
+
+.alert-info {
+    color: #31708f;
+    background-color: #d9edf7;
+    border-color: #bce8f1
+}
+
+.alert-warning {
+    color: #8a6d3b;
+    background-color: #fcf8e3;
+    border-color: #faebcc
+}
+
+.alert-danger {
+    color: #a94442;
+    background-color: #f2dede;
+    border-color: #ebccd1
+}
+
+.alert-dismissable,
+.alert-dismissible {
+    padding-right: 35px
+}
+
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px
+}
+
+.fade {
+    opacity: 0;
+    -webkit-transition: opacity .15s linear;
+    -o-transition: opacity .15s linear;
+    transition: opacity .15s linear
+}
+
+.detail .alert-messages-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 75vw;
+    padding: 15px;
+    margin-top: 60px;
+    z-index: 1000;
+    display: none
+}
+
+.detail .alert-messages-container.active {
+    display: block;
+    cursor: pointer
+}
+
+.index .alert-messages-container .alert {
+    margin-bottom: 8px
+}

@@ -1,6 +1,36 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    // "noImplicitAny": true,
+    // "noEmitOnError": true,
+    // "removeComments": false,
+    // "sourceMap": false,
+    // "declaration": false,
+    // "strictNullChecks": true,
+    // "noImplicitThis": true,
+    // "lib": [ "es6", "es2015.collection", "dom", "es2015.promise"],
+    // "target": "es5",
+    // "jsx": "react",
+    // // "module": "system",
+    // "module": "esnext",
+    // "moduleResolution": "node",
+    // "types": [],
+    // "skipDefaultLibCheck": true,
+    // "allowSyntheticDefaultImports": true
+    "target": "ES2017",
+    "lib": [ "es6", "dom", "esnext.asynciterable", "es2016" ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    // "rootDir": "./src",
+    // "outDir": "./lib",
+    "ignoreDeprecations": "5.0",
     "noImplicitAny": true,
     "noEmitOnError": true,
     "removeComments": false,
@@ -8,18 +38,15 @@
     "declaration": false,
     "strictNullChecks": true,
     "noImplicitThis": true,
-    "lib": [ "es6", "es2015.collection", "dom", "es2015.promise"],
-    "target": "es5",
-    "jsx": "react",
-    "module": "system",
-    "types": [],
+    "types": ["node"],
     "skipDefaultLibCheck": true
+    // "downlevelIteration": true
   },
   "files": [
     "../../provided/src/LiteMol-plugin.d.ts",
 
     "../../config/common.ts",
-    "../../../tmp/config.ts",
+    // "../../../tmp/config.ts",
 
     //Data Interface
     "../DataInterface.ts",
@@ -37,6 +64,8 @@
     "CommonUtils/Misc.ts",
     "CommonUtils/FormEvents.ts",
     "CommonUtils/Validators.ts",
+    "CommonUtils/LayerColors.ts",
+    "CommonUtils/TwoDProtsBridge.ts",
 
     //Annotation data provider
     /*"../AnnotationDataProvider.ts", */
@@ -123,10 +152,44 @@
     //Main UI
     "Behaviour.ts",
     "State.ts",
-    "UI/LiteMolControl/UI.tsx",
+    // "UI/LiteMolControl/UI.tsx",
     "Spec.ts",
+    "UI/PluginControl/UI.tsx",
+    "UI/PluginControl/ChannelsUI.tsx",
 
+    //MOL*
+    "VizualizerMol/helpers.ts",
+    "VizualizerMol/labels.ts",
+    "VizualizerMol/plugin-custom-state.ts",
+    "VizualizerMol/sifts-mapping.ts",
+    "VizualizerMol/sifts-mappings-behaviour.ts",
+    "VizualizerMol/spec.ts",
+    "VizualizerMol/objects.ts",
+    "VizualizerMol/visualizing.ts",
+    "MolViewer/UI.tsx",
+    "UI/SequenceViewer/MoleSequence.tsx",
+    "UI/SequenceViewer/MoleSequenceView.tsx",
+    "UI/SequenceViewer/newUI.tsx",
+    "VizualizerMol/color-tunnels/algorithm.ts",
+    "VizualizerMol/color-tunnels/data-model.ts",
+    "VizualizerMol/color-tunnels/property-color.ts",
+    "VizualizerMol/color-tunnels/kd-tree.ts",
+    "VizualizerMol/color-tunnels/colored-tunnel-theme.ts",
+    "VizualizerMol/color-tunnels/shapeRepresentation.ts",
+    "VizualizerMol/mmcif-tunnels/converter.ts",
+    "VizualizerMol/mmcif-tunnels/converter2json.ts",
+
+    //2DProts
+    "UI/2DProts/UI.tsx",
+    
     //App
-    "App.ts"
-  ]
+    "App.tsx",
+    "RightPanel.tsx",
+    "LeftPanel.tsx",
+
+    "Context.ts",
+
+    "UI/ControlsTab/UI.tsx"
+  ],
+  "exclude": ["node_modules"],
 }
