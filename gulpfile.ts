@@ -91,7 +91,6 @@ function buildInitResources(){
         '!'+projectPath + 'tsconfig.json']).pipe(gulp.dest(destDir))
 
         let providedJs = [
-            /*sourcesPath + '/provided/src/LiteMol-plugin.js'*/
             sourcesPath + '/provided/src/react.js',
             sourcesPath + '/provided/src/react-with-addons.js',
             sourcesPath + '/provided/src/react-dom.js',

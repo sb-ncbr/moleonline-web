@@ -37,7 +37,6 @@
     "skipDefaultLibCheck": true
   },
   "files": [
-    "../../provided/src/LiteMol-plugin.d.ts",
     /*"../../provided/src/react.d.ts",
     "../../provided/src/react-dom.d.ts",*/
 

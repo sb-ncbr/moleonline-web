@@ -43,8 +43,6 @@
     // "downlevelIteration": true
   },
   "files": [
-    "../../provided/src/LiteMol-plugin.d.ts",
-
     "../../config/common.ts",
     // "../../../tmp/config.ts",
 
@@ -152,7 +150,6 @@
     //Main UI
     "Behaviour.ts",
     "State.ts",
-    // "UI/LiteMolControl/UI.tsx",
     "Spec.ts",
     "UI/PluginControl/UI.tsx",
     "UI/PluginControl/ChannelsUI.tsx",
