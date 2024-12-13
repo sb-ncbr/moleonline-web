@@ -38,6 +38,7 @@ import { getPropertyProps } from "./VizualizerMol/color-tunnels/data-model";
 import { ColorBound, Property } from "./VizualizerMol/color-tunnels/property-color";
 import { parseCifText } from "molstar/lib/mol-io/reader/cif/text/parser";
 import { loadCifTunnels } from "./VizualizerMol/mmcif-tunnels/converter2json";
+import { Events } from "../Bridge";
 import { adjustCaverDistance } from "./VizualizerMol/color-tunnels/algorithm";
 
 const MySpec: PluginUISpec = {
@@ -312,28 +313,72 @@ export class Context {
         }
     }
 
+    private async determineFileType(text: string): Promise<"pdb" | "cif" | "unknown"> {
+        // Read the first few lines of the file
+        const lines = text.split("\n").map(line => line.trim());
+
+        // Check for .cif characteristics
+        if (lines.some(line => line.startsWith("data_"))) {
+            return "cif";
+        }
+        if (lines.some(line => line.startsWith("_"))) {
+            return "cif";
+        }
+
+        // Check for .pdb characteristics
+        if (lines.some(line => line.startsWith("ATOM") || line.startsWith("HETATM") || line.startsWith("HEADER"))) {
+            return "pdb";
+        }
+
+        return "unknown"; // If it doesn't match either format
+    }
+
+
     public async load(url: string, isBinary: boolean, custom: boolean, assemblyId?: string | null) {
         const update = this.plugin.build();
 
         let structure;
-        
-        if (custom) {
-            structure = await update.toRoot()
-            .apply(Download, { url, isBinary })
-            // .apply(TrajectoryFromPDB)
-            .apply(ParseCif)
-            .apply(TrajectoryFromMmCif)
-            .apply(ModelFromTrajectory)
-            .apply(StructureFromModel, { type: { name: 'assembly', params: {} } }/*, { ref: "protein-data"}*/);
 
+        if (custom) {
+            try {
+                const response = await fetch(url);
+                if (response.ok) {
+                    const text = await response.text();
+                    const type = await this.determineFileType(text);
+                    if (type === "cif") {
+                        structure = await update.toRoot()
+                            .apply(Download, { url, isBinary })
+                            .apply(ParseCif)
+                            .apply(TrajectoryFromMmCif)
+                            .apply(ModelFromTrajectory)
+                            .apply(StructureFromModel, { type: { name: 'assembly', params: {} } }/*, { ref: "protein-data"}*/);
+                    } else if (type === "pdb") {
+                        structure = await update.toRoot()
+                            .apply(Download, { url, isBinary })
+                            .apply(TrajectoryFromPDB)
+                            .apply(ModelFromTrajectory)
+                            .apply(StructureFromModel, { type: { name: 'assembly', params: {} } }/*, { ref: "protein-data"}*/);
+                    } else {
+                        throw Error("Unkown type of input file")
+                    }
+                } else {
+                    throw Error("Something went wrong while retrieving input file");
+                }
+            } catch (error) {
+                Events.invokeNotifyMessage({
+                    messageType: "Danger",
+                    message: `${error}`
+                })
+                return;
+            }
             await loadCifTunnels(url);
         } else {
             structure = await update.toRoot()
-            .apply(Download, { url, isBinary })
-            .apply(ParseCif)
-            .apply(TrajectoryFromMmCif)
-            .apply(ModelFromTrajectory)
-            .apply(StructureFromModel, { type: { name: 'assembly', params: assemblyId !== undefined && assemblyId !== null ? { id: assemblyId } : {} } }/*, { ref: "protein-data"}*/);
+                .apply(Download, { url, isBinary })
+                .apply(ParseCif)
+                .apply(TrajectoryFromMmCif)
+                .apply(ModelFromTrajectory)
+                .apply(StructureFromModel, { type: { name: 'assembly', params: assemblyId !== undefined && assemblyId !== null ? { id: assemblyId } : {} } }/*, { ref: "protein-data"}*/);
         }
 
         const polymer = structure.apply(StructureComponent, { type: { name: 'static', params: 'polymer' } }, { ref: "protein-data" });
