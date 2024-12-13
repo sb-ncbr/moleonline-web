@@ -19,7 +19,7 @@ import { Controls } from "./UI/Controls/UI";
 import { getParameters } from "../Common/Util/Router";
 import { Events } from "../Bridge";
 import { CommonOptions } from "../../config/common";
-import { generateGuidAll, loadAllChannels, loadData } from "./State";
+import { addCaverTag, generateGuidAll, loadAllChannels, loadData } from "./State";
 import { StateSelection } from "molstar/lib/mol-state";
 import { ChannelsDBChannels, ChannelsDBData, MoleData } from "../DataInterface";
 import { ComputationInfo } from "../DataProxy";
@@ -72,7 +72,8 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
             }
             ChannelsDBDataCache.getChannelsData(info.PdbId).then(async channelsDbData => {
                 const guidChannelsDbData = generateGuidAll(channelsDbData);
-                Tunnels.setChannelsDB(guidChannelsDbData);
+                const completeChannelsDbData = addCaverTag(guidChannelsDbData);
+                Tunnels.setChannelsDB(completeChannelsDbData);
                 channels.set(-1, guidChannelsDbData);
                 for (const submission of info.Submissions) {
                     const submitId = Number(submission.SubmitId);

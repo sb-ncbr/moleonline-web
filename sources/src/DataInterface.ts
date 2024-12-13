@@ -60,7 +60,8 @@ export interface Tunnel {
     Properties: Properties,
     Profile: Profile[],
     Layers: Layers,
-    GUID: string
+    GUID: string,
+    Caver?: boolean
 };
 export interface ExportTunnel {
     Type: string,

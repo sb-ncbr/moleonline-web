@@ -38,6 +38,7 @@ import { getPropertyProps } from "./VizualizerMol/color-tunnels/data-model";
 import { ColorBound, Property } from "./VizualizerMol/color-tunnels/property-color";
 import { parseCifText } from "molstar/lib/mol-io/reader/cif/text/parser";
 import { loadCifTunnels } from "./VizualizerMol/mmcif-tunnels/converter2json";
+import { adjustCaverDistance } from "./VizualizerMol/color-tunnels/algorithm";
 
 const MySpec: PluginUISpec = {
     ...DefaultPluginUISpec(),
@@ -403,7 +404,7 @@ export class Context {
         return [tunnlRepr.data!.repr.getAllLoci()[0], repr.ref];
     }
 
-    public async renderPropertyColorTunnel(channel: Tunnel & TunnelMetaInfo, colorOptions: {property: Property, colorBounds: ColorBound}): Promise<[Loci, string]> {
+    public async renderPropertyColorTunnel(channel: Tunnel & TunnelMetaInfo, colorOptions: { property: Property, colorBounds: ColorBound }): Promise<[Loci, string]> {
         const update = this.plugin.build();
         const webgl = this.plugin.canvas3dContext?.webgl;
 
@@ -417,18 +418,25 @@ export class Context {
         props.label = `${channel.Type} ${channel.Id} (${name})`;
         props.description = `Length: ${len} Å`;
 
+        const caver = channel.Caver ? channel.Caver : false;
+        if (caver) {
+            adjustCaverDistance(channel);
+        }
+
         const repr = await update
             .toRoot()
             .apply(TunnelFromRawData, { data: { data: channel.Profile, props } })
         const tunnlRepr = await repr
             .apply(TunnelPropertyColorShapeProvider, {
                 webgl,
-                colorTheme: { name: 'colorProperty', params: { 
-                    property: getPropertyProps(colorOptions.property),
-                    colorBounds: colorOptions.colorBounds,
-                    showLayers: true,
-                    skipMiddleColors: false
-                }},
+                colorTheme: {
+                    name: 'colorProperty', params: {
+                        property: getPropertyProps(colorOptions.property),
+                        colorBounds: colorOptions.colorBounds,
+                        showLayers: true,
+                        skipMiddleColors: false
+                    }
+                },
                 layers: channel.Layers.LayersInfo
             })
             .apply(TunnelPropertyColorRepresentation3D, { tunnel: channel as Tunnel })

@@ -217,7 +217,7 @@ export const TunnelPropertyColorRepresentation3D = Transform({
             const data = interpolateTunnel(a.data.data.data.tunnel.data, a.data.data.params.samplingRate);
             repr.setTheme({
                 color: ShapeGroupColorTheme({
-                    tree: createTree(data),
+                    // tree: createTree(data),
                     mappedPoints: assignLayers(data, a.data.data.params.layers),
                     colorOptions: {
                         colorMaxValue: a.data.data.params.colorTheme.params.property.params.colorMaxValue,

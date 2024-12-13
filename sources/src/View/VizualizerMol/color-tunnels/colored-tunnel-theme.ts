@@ -50,7 +50,6 @@ function findClosestPoint(target: Vec3, points: Map<Vec3, { layer: LayersInfo, n
 }
 
 export const ShapeGroupColorThemeParams = {
-    tree: ParamDefinition.Value<KDTree | undefined>(undefined, { isHidden: true }),
     mappedPoints: ParamDefinition.Value<Map<Vec3, { layer: LayersInfo, nextLayer: LayersInfo | undefined, distance: number }>>(new Map(), { isHidden: true }),
     colorOptions: ParamDefinition.Value<ColorOptions | undefined>(undefined, { isHidden: true }),
     property: ParamDefinition.Value<Property | undefined>(undefined, { isHidden: true })
@@ -60,13 +59,13 @@ export function getShapeGroupColorThemeParams(ctx: ThemeDataContext) {
     return ShapeGroupColorThemeParams; // TODO return copy
 }
 
-export function ShapeGroupColorTheme(/*ctx: ThemeDataContext,*/ props: PD.Values<ShapeGroupColorThemeParams>): ColorTheme<ShapeGroupColorThemeParams> {
+export function ShapeGroupColorTheme(props: PD.Values<ShapeGroupColorThemeParams>): ColorTheme<ShapeGroupColorThemeParams> {
     return {
         factory: ShapeGroupColorTheme,
         granularity: 'vertex',
         color: (location: Location): Color => {
             if (!isPositionLocation(location)) return ColorNames.black;
-            if (props.tree && props.colorOptions && props.property) {
+            if (props.colorOptions && props.property) { //props.tree && props.colorOptions && props.property
                 const position = Vec3.toObj(location.position);
                 // const node = props.tree.nearest([position.x, position.y, position.z])
                 // if (node !== null) {

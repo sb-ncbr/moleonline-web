@@ -208,6 +208,13 @@ function generateGuid(tunnels: Tunnel[]) {
     return tunnels;
 }
 
+function generateCaverTag(tunnels: Tunnel[]) {
+    for (let idx = 0; idx < tunnels.length; idx++) {
+        tunnels[idx].Caver = true;
+    }
+    return tunnels;
+}
+
 export function generateGuidAll(moleData: ChannelsDBChannels) {
     moleData.MergedPores = moleData.MergedPores ? generateGuid(moleData.MergedPores) : [];
     moleData.Paths = moleData.Paths ? generateGuid(moleData.Paths) : [];
@@ -226,6 +233,17 @@ export function generateGuidAll(moleData: ChannelsDBChannels) {
     moleData.ProcognateTunnels_Caver = moleData.ProcognateTunnels_Caver ? generateGuid(moleData.ProcognateTunnels_Caver) : [];
     moleData.AlphaFillTunnels_MOLE = moleData.AlphaFillTunnels_MOLE ? generateGuid(moleData.AlphaFillTunnels_MOLE) : [];
     moleData.AlphaFillTunnels_Caver = moleData.AlphaFillTunnels_Caver ? generateGuid(moleData.AlphaFillTunnels_Caver) : [];
+
+    return moleData
+}
+
+export function addCaverTag(moleData: ChannelsDBChannels) {
+    moleData.CSATunnels_Caver = moleData.CSATunnels_Caver ? generateCaverTag(moleData.CSATunnels_Caver) : [];
+    moleData.ReviewedChannels_Caver = moleData.ReviewedChannels_Caver ? generateCaverTag(moleData.ReviewedChannels_Caver) : [];
+    moleData.CofactorTunnels_Caver = moleData.CofactorTunnels_Caver ? generateCaverTag(moleData.CofactorTunnels_Caver) : [];
+    moleData.TransmembranePores_Caver = moleData.TransmembranePores_Caver ? generateCaverTag(moleData.TransmembranePores_Caver) : [];
+    moleData.ProcognateTunnels_Caver = moleData.ProcognateTunnels_Caver ? generateCaverTag(moleData.ProcognateTunnels_Caver) : [];
+    moleData.AlphaFillTunnels_Caver = moleData.AlphaFillTunnels_Caver ? generateCaverTag(moleData.AlphaFillTunnels_Caver) : [];
 
     return moleData
 }
