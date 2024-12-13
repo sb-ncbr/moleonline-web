@@ -11,9 +11,7 @@ export class Routing {
 
 export class DataSources {
     public static API_URL: any = {
-        // "webchem": "https://webchem.ncbr.muni.cz/API/MOLE",
         "upol": "https://api.mole.upol.cz",
-        "webchem": "https://webchem.ncbr.muni.cz/API/MOLE",
     }
 
     public static PATTERN_QUERY_API_URL: any = {
@@ -21,14 +19,12 @@ export class DataSources {
     }
 
     public static ANNOTATION_API_URL: any = {
-        // "webchemdev": "https://webchemdev.ncbr.muni.cz/API/ChannelsDB",
-        "webchemdev": "https://channelsdb2.biodata.ceitec.cz/api",
-        "webchem": "https://webchem.ncbr.muni.cz/API/ChannelsDB"
+        "channelsdb2": "https://channelsdb2.biodata.ceitec.cz/api",
     }
 
     public static MODE = "upol";
     public static PATTERN_QUERY_MODE = "webchem";
-    public static ANNOTATION_API_MODE = "webchemdev";
+    public static ANNOTATION_API_MODE = "channelsdb2";
 }
 
 export class CommonOptions {
