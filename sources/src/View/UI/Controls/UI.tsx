@@ -4,9 +4,9 @@
 // import TooltipText = MoleOnlineWebUI.StaticData.TooltipText;
 
 import React from "react";
-import { Events as BridgeEvents, CopyParametersParams, Instances } from "../../../Bridge";
+import { Events as BridgeEvents, CopyParametersParams, Events, Instances } from "../../../Bridge";
 import { Events as FormEvents } from "../../CommonUtils/FormEvents";
-import { ApiService, CompInfo, ComputationStatus, Submission as ServiceSubmission } from "../../../MoleAPIService";
+import { ApiService, CompInfo, ComputationStatus, MoleConfig, PoresConfig, Submission as ServiceSubmission } from "../../../MoleAPIService";
 import { MoleFormData, PoresFormData } from "./FormData";
 import { ComputationInfo, JobStatus } from "../../../DataProxy";
 // import { CheckBox, ComboBox, ComboBoxItem, ControlGroup, LMControlWrapper, NumberBox, StartingPointBox, TextBox, TextBoxWithHelp, ValidationState } from "../Common/Controls/FromLiteMol";
@@ -25,6 +25,7 @@ import { BookmarksOutlinedSvg, CloseSvg } from "molstar/lib/mol-plugin-ui/contro
 import { BoolControl, BoundedIntervalControl, IntervalControl, NumberRangeControl, SelectControl, TextControl } from "molstar/lib/mol-plugin-ui/controls/parameters";
 import { ParamDefinition } from "molstar/lib/mol-util/param-definition";
 import { StartingPointBox, ValidationState } from "../Common/Controls/FromLiteMol";
+import { isMoleJobResult, parseToMoleConfigOrPoresConfig } from "./ExportParser";
 require("molstar/lib/mol-plugin-ui/skin/light.scss");
 
 var Provider = ComputationInfo.DataProvider;
@@ -352,7 +353,7 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
         let data = this.state.moleFormData;
         return <div className="settings-form basic-settings">
             <h3>Channels</h3>
-            <ControlGroup header='Active Atoms/Residues' initialExpanded={false}>
+            <ControlGroup header='Active Atoms/Residues' initialExpanded={this.props.parent.state.openControls}>
                 <BoolControl name='Ignore HETATMs' param={ParamDefinition.Boolean(true, { label: 'Ignore HETATMs' })} value={valueOrDefault(data.getIgnoreHETATMs(), true)} onChange={(v) => {
                     let s = this.state;
                     if (s.moleFormData !== null) {
@@ -369,7 +370,7 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                     }).bind(v)();
                 }}
                 />
-                <ControlGroup header='Advanced options'>
+                <ControlGroup header='Advanced options' initialExpanded={this.props.parent.state.openControls}>
                     <BoolControl name='Ignore Hydrogens' param={ParamDefinition.Boolean(false, { label: 'Ignore Hydrogens' })} value={valueOrDefault(data.getIgnoreHydrogens(), false)} onChange={(v) => {
                         let s = this.state;
                         if (s.moleFormData !== null) {
@@ -449,7 +450,7 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                     }} />
                 </ControlGroup>
             </ControlGroup>
-            <ControlGroup header='Cavity Parameters'>
+            <ControlGroup header='Cavity Parameters' initialExpanded={this.props.parent.state.openControls}>
                 <NumberRangeControl name="Probe Radius" param={ParamDefinition.Numeric(5, { min: 1.4, max: 45, step: 0.01 })} value={valueOrDefault(data.getProbeRadius(), 5)} onChange={(v) => {
                     let s = this.state;
                     if (s.moleFormData !== null) {
@@ -481,7 +482,7 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                     }).bind(v)();
                 }} />
             </ControlGroup>
-            <ControlGroup header='Channel Parameters'>
+            <ControlGroup header='Channel Parameters' initialExpanded={this.props.parent.state.openControls}>
                 <NumberRangeControl name="Origin Radius" param={ParamDefinition.Numeric(5, { min: 0.1, max: 10, step: 0.05 })} value={valueOrDefault(data.getOriginRadius(), 5)} onChange={(v) => {
                     let s = this.state;
                     if (s.moleFormData !== null) {
@@ -611,7 +612,7 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                     }} />
                 </ControlGroup>
             </ControlGroup>
-            <ControlGroup header='Selection'>
+            <ControlGroup header='Selection' initialExpanded={this.props.parent.state.openControls}>
                 <StartingPointBox label="Starting Point" tooltip={TooltipText.get("startingPoint")} defaultItems={this.state.moleFormData.getStartingPoints()} noDataText={"No starting points selected..."} onChange={(v) => {
                     let s = this.state;
                     if (s.moleFormData !== null) {
@@ -630,312 +631,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
 
     getMoleForm() {
         return <></>
-        // if (this.state.moleFormData === null) {
-        //     return <div />
-        // }
-
-        // let pdbid = this.state.pdbid;
-        // let data = this.state.moleFormData;
-        // return <div className="settings-form basic-settings">
-        //     <h3>Channels</h3>
-
-        //     <LMControlWrapper controls={[
-        //         <ControlGroup label="Active Atoms/Residues" tooltip="" controls={[
-        //             <CheckBox label="Ignore HETATMs" defaultValue={valueOrDefault(data.getIgnoreHETATMs(), true)} tooltip={TooltipText.get("ignoreAllHetatm")} onChange={(v) => {
-        //                 let s = this.state;
-        //                 if (s.moleFormData !== null) {
-        //                     s.moleFormData.setIgnoreHETATMs(v);
-        //                 }
-        //             }} onMount={(control) => {
-        //                 (() => {
-        //                     FormEvents.attachOnClearEventHandler((formGroup) => {
-        //                         if (formGroup !== validationGroup) {
-        //                             return;
-        //                         }
-        //                         control.reset();
-        //                     });
-        //                 }).bind(control)();
-        //             }} />,
-        //             <ControlGroup label="Advanced options" tooltip="" controls={[
-        //                 <CheckBox label="Ignore Hydrogens" defaultValue={valueOrDefault(data.getIgnoreHydrogens(), false)} tooltip={TooltipText.get("ignoreHydrogens")} onChange={(v) => {
-        //                     let s = this.state;
-        //                     if (s.moleFormData !== null) {
-        //                         s.moleFormData.setIgnoreHydrogens(v);
-        //                     }
-        //                 }} onMount={(control) => {
-        //                     (() => {
-        //                         FormEvents.attachOnClearEventHandler((formGroup) => {
-        //                             if (formGroup !== validationGroup) {
-        //                                 return;
-        //                             }
-        //                             control.reset();
-        //                         });
-        //                     }).bind(control)();
-        //                 }} />,
-        //                 <TextBoxWithHelp label="Query Filter" tooltip={TooltipText.get("queryFilter")} placeholder="Residues('GOL')" hint={this.getPatternQueryHint()} defaultValue={valueOrDefault(data.getQueryFilter(), "")} onChange={(v) => {
-        //                     let s = this.state;
-        //                     if (s.moleFormData !== null) {
-        //                         s.moleFormData.setQueryFilter(v);
-        //                     }
-        //                 }} onMount={(control) => {
-        //                     (() => {
-        //                         FormEvents.attachOnClearEventHandler((formGroup) => {
-        //                             if (formGroup !== validationGroup) {
-        //                                 return;
-        //                             }
-        //                             control.reset();
-        //                         });
-        //                     }).bind(control)();
-        //                 }} validate={validatePatternQuery} validationGroup={validationGroup} />,
-        //                 <CheckBox label="Read All Models" defaultValue={valueOrDefault(data.getReadAllModels(), false)} tooltip={TooltipText.get("readAllModels")} onChange={(v) => {
-        //                     let s = this.state;
-        //                     if (s.moleFormData !== null) {
-        //                         s.moleFormData.setReadAllModels(v);
-        //                     }
-        //                 }} onMount={(control) => {
-        //                     (() => {
-        //                         FormEvents.attachOnClearEventHandler((formGroup) => {
-        //                             if (formGroup !== validationGroup) {
-        //                                 return;
-        //                             }
-        //                             control.reset();
-        //                         });
-        //                     }).bind(control)();
-        //                 }} />,
-        //                 <TextBox label="Ignored Residues" tooltip={TooltipText.get("nonActiveResidues")} placeholder="A 69, A 386, ..." defaultValue={flattenResidues(valueOrDefault(data.getIgnoredResidues(), ""))} onChange={(v) => {
-        //                     let s = this.state;
-        //                     if (s.moleFormData !== null) {
-        //                         s.moleFormData.setIgnoredResidues(parseResidues(v));
-        //                     }
-        //                 }} onMount={(control) => {
-        //                     (() => {
-        //                         FormEvents.attachOnClearEventHandler((formGroup) => {
-        //                             if (formGroup !== validationGroup) {
-        //                                 return;
-        //                             }
-        //                             control.reset();
-        //                         });
-        //                     }).bind(control)();
-        //                 }} validate={validateResidueSimpleArray} validationGroup={validationGroup} />,
-        //                 <TextBox label="Specific Chains" tooltip={TooltipText.get("specificChains")} placeholder="A, B, ..." defaultValue={valueOrDefault(data.getSpecificChains(), "")} onChange={(v) => {
-        //                     let s = this.state;
-        //                     if (s.moleFormData !== null) {
-        //                         s.moleFormData.setSpecificChains(v);
-        //                     }
-        //                 }} onMount={(control) => {
-        //                     (() => {
-        //                         FormEvents.attachOnClearEventHandler((formGroup) => {
-        //                             if (formGroup !== validationGroup) {
-        //                                 return;
-        //                             }
-        //                             control.reset();
-        //                         });
-        //                     }).bind(control)();
-        //                 }} validate={validateChainsArray} validationGroup={validationGroup} />
-        //             ]} expanded={this.state.expandedPanels.activeAtomsResiduesAdvanced} onChange={(e) => {
-        //                 let s = this.state;
-        //                 s.expandedPanels.activeAtomsResiduesAdvanced = e;
-        //                 this.setState(s);
-        //             }} />,
-        //         ]} expanded={this.state.expandedPanels.activeAtomsResidues} onChange={(e) => {
-        //             let s = this.state;
-        //             s.expandedPanels.activeAtomsResidues = e;
-        //             if (e === false) {
-        //                 s.expandedPanels.activeAtomsResiduesAdvanced = false;
-        //             }
-        //             this.setState(s);
-        //         }} />,
-        //         <ControlGroup label="Cavity Parameters" tooltip="" controls={[
-        //             <NumberBox label="Probe Radius" tooltip={TooltipText.get("probeRadius")} min={1.4} max={45} defaultValue={valueOrDefault(data.getProbeRadius(), 5)} step={0.01} onChange={(v) => {
-        //                 let s = this.state;
-        //                 if (s.moleFormData !== null) {
-        //                     s.moleFormData.setProbeRadius(Number(v).valueOf());
-        //                 }
-        //             }} onMount={(control) => {
-        //                 (() => {
-        //                     FormEvents.attachOnClearEventHandler((formGroup) => {
-        //                         if (formGroup !== validationGroup) {
-        //                             return;
-        //                         }
-        //                         control.reset();
-        //                     });
-        //                 }).bind(control)();
-        //             }} />,
-        //             <NumberBox label="Interior Treshold" tooltip={TooltipText.get("interiorTreshold")} min={0.3} max={3} defaultValue={valueOrDefault(data.getInteriorThreshold(), 1.1)} step={0.01} onChange={(v) => {
-        //                 let s = this.state;
-        //                 if (s.moleFormData !== null) {
-        //                     s.moleFormData.setInteriorThreshold(Number(v).valueOf());
-        //                 }
-        //             }} onMount={(control) => {
-        //                 (() => {
-        //                     FormEvents.attachOnClearEventHandler((formGroup) => {
-        //                         if (formGroup !== validationGroup) {
-        //                             return;
-        //                         }
-        //                         control.reset();
-        //                     });
-        //                 }).bind(control)();
-        //             }} />
-        //         ]} expanded={this.state.expandedPanels.cavityParameters} onChange={(e) => {
-        //             let s = this.state;
-        //             s.expandedPanels.cavityParameters = e;
-        //             this.setState(s);
-        //         }} />,
-        //         <ControlGroup label="Channel Parameters" tooltip="" controls={[
-        //             <NumberBox label="Origin Radius" tooltip={TooltipText.get("originRadius")} min={0.1} max={10} defaultValue={valueOrDefault(data.getOriginRadius(), 5)} step={0.05} onChange={(v) => {
-        //                 let s = this.state;
-        //                 if (s.moleFormData !== null) {
-        //                     s.moleFormData.setOriginRadius(Number(v).valueOf());
-        //                 }
-        //             }} onMount={(control) => {
-        //                 (() => {
-        //                     FormEvents.attachOnClearEventHandler((formGroup) => {
-        //                         if (formGroup !== validationGroup) {
-        //                             return;
-        //                         }
-        //                         control.reset();
-        //                     });
-        //                 }).bind(control)();
-        //             }} />,
-        //             <NumberBox label="Surface Cover Radius" tooltip={TooltipText.get("surfaceCoverRadius")} min={5} max={20} defaultValue={valueOrDefault(data.getSurfaceCoverRadius(), 10)} step={0.5} onChange={(v) => {
-        //                 let s = this.state;
-        //                 if (s.moleFormData !== null) {
-        //                     s.moleFormData.setSurfaceCoverRadius(Number(v).valueOf());
-        //                 }
-        //             }} onMount={(control) => {
-        //                 (() => {
-        //                     FormEvents.attachOnClearEventHandler((formGroup) => {
-        //                         if (formGroup !== validationGroup) {
-        //                             return;
-        //                         }
-        //                         control.reset();
-        //                     });
-        //                 }).bind(control)();
-        //             }} />,
-        //             <ComboBox label="Weight Function" tooltip={TooltipText.get("tunnelWeightFunction")} items={WeightFunctions.get().map((val, idx, arr) => { return new ComboBoxItem(val.value, val.label) })} selectedValue={valueOrDefault(data.getWeightFunction(), "VoronoiScale")} onChange={(v) => {
-        //                 let s = this.state;
-        //                 if (s.moleFormData !== null) {
-        //                     s.moleFormData.setWeightFunction(v);
-        //                 }
-        //             }} onMount={(control) => {
-        //                 (() => {
-        //                     FormEvents.attachOnClearEventHandler((formGroup) => {
-        //                         if (formGroup !== validationGroup) {
-        //                             return;
-        //                         }
-        //                         control.reset();
-        //                     });
-        //                 }).bind(control)();
-        //             }} />,
-        //             <CheckBox label="Merge Pores" defaultValue={valueOrDefault(data.getMergePores(), false)} tooltip={TooltipText.get("mergePores")} onChange={(v) => {
-        //                 let s = this.state;
-        //                 if (s.moleFormData !== null) {
-        //                     s.moleFormData.setMergePores(v);
-        //                 }
-        //             }} onMount={(control) => {
-        //                 (() => {
-        //                     FormEvents.attachOnClearEventHandler((formGroup) => {
-        //                         if (formGroup !== validationGroup) {
-        //                             return;
-        //                         }
-        //                         control.reset();
-        //                     });
-        //                 }).bind(control)();
-        //             }} />,
-        //             <CheckBox label="Automatic Pores" defaultValue={valueOrDefault(data.getAutomaticPores(), false)} tooltip={TooltipText.get("automaticPores")} onChange={(v) => {
-        //                 let s = this.state;
-        //                 if (s.moleFormData !== null) {
-        //                     s.moleFormData.setAutomaticPores(v);
-        //                 }
-        //             }} onMount={(control) => {
-        //                 (() => {
-        //                     FormEvents.attachOnClearEventHandler((formGroup) => {
-        //                         if (formGroup !== validationGroup) {
-        //                             return;
-        //                         }
-        //                         control.reset();
-        //                     });
-        //                 }).bind(control)();
-        //             }} />,
-        //             <ControlGroup label="Advanced options" tooltip="" controls={[
-        //                 <NumberBox label="Bottleneck Radius" tooltip={TooltipText.get("bottleneckRadius")} min={0} max={5} defaultValue={valueOrDefault(data.getBottleneckRadius(), 1.2)} step={0.01} onChange={(v) => {
-        //                     let s = this.state;
-        //                     if (s.moleFormData !== null) {
-        //                         s.moleFormData.setBottleneckRadius(Number(v).valueOf());
-        //                     }
-        //                 }} onMount={(control) => {
-        //                     (() => {
-        //                         FormEvents.attachOnClearEventHandler((formGroup) => {
-        //                             if (formGroup !== validationGroup) {
-        //                                 return;
-        //                             }
-        //                             control.reset();
-        //                         });
-        //                     }).bind(control)();
-        //                 }} />,
-        //                 <NumberBox label="Bottleneck Tolerance" tooltip={TooltipText.get("bottleneckTolerance")} min={0} max={5} defaultValue={valueOrDefault(data.getBottleneckTollerance(), 3.0)} step={0.1} onChange={(v) => {
-        //                     let s = this.state;
-        //                     if (s.moleFormData !== null) {
-        //                         s.moleFormData.setBottleneckTolerance(Number(v).valueOf());
-        //                     }
-        //                 }} onMount={(control) => {
-        //                     (() => {
-        //                         FormEvents.attachOnClearEventHandler((formGroup) => {
-        //                             if (formGroup !== validationGroup) {
-        //                                 return;
-        //                             }
-        //                             control.reset();
-        //                         });
-        //                     }).bind(control)();
-        //                 }} />,
-        //                 <NumberBox label="Max Tunnel Similarity" tooltip={TooltipText.get("maxTunnelSimilarity")} min={0} max={1} defaultValue={valueOrDefault(data.getMaxTunnelSimilarity(), 0.7)} step={0.05} onChange={(v) => {
-        //                     let s = this.state;
-        //                     if (s.moleFormData !== null) {
-        //                         s.moleFormData.setMaxTunnelSimilarity(Number(v));
-        //                     }
-        //                 }} onMount={(control) => {
-        //                     (() => {
-        //                         FormEvents.attachOnClearEventHandler((formGroup) => {
-        //                             if (formGroup !== validationGroup) {
-        //                                 return;
-        //                             }
-        //                             control.reset();
-        //                         });
-        //                     }).bind(control)();
-        //                 }} />
-        //             ]} expanded={this.state.expandedPanels.channelParametersAdvanced} onChange={(e) => {
-        //                 let s = this.state;
-        //                 s.expandedPanels.channelParametersAdvanced = e;
-        //                 this.setState(s);
-        //             }} />
-        //         ]} expanded={this.state.expandedPanels.channelParameters} onChange={(e) => {
-        //             let s = this.state;
-        //             s.expandedPanels.channelParameters = e;
-        //             if (e === false) {
-        //                 s.expandedPanels.channelParametersAdvanced = false;
-        //             }
-        //             this.setState(s);
-        //         }} />,
-        //         <ControlGroup label="Selection" tooltip="" controls={[
-        //             <StartingPointBox label="Starting Point" tooltip={TooltipText.get("startingPoint")} defaultItems={this.state.moleFormData.getStartingPoints()} noDataText={"No starting points selected..."} onChange={(v) => {
-        //                 let s = this.state;
-        //                 if (s.moleFormData !== null) {
-        //                     s.moleFormData.setStartingPoints(v);
-        //                 }
-        //             }} formGroup={validationGroup} extraClearGroup={`${validationGroup}/selection`} allowPatternQuery={true} />,
-        //             <StartingPointBox label="End Point" tooltip={TooltipText.get("endPoint")} defaultItems={this.state.moleFormData.getEndingPoints()} noDataText={"No end points selected..."} onChange={(v) => {
-        //                 let s = this.state;
-        //                 if (s.moleFormData !== null) {
-        //                     s.moleFormData.setEndPoints(v);
-        //                 }
-        //             }} formGroup={validationGroup} extraClearGroup={`${validationGroup}/selection`} allowPatternQuery={false} />,
-        //         ]} expanded={this.state.expandedPanels.selection} onChange={(e) => {
-        //             let s = this.state;
-        //             s.expandedPanels.selection = e;
-        //             this.setState(s);
-        //         }} />
-        //     ]} />
-        // </div>
     }
 
     getPoresForm() {
@@ -1008,55 +703,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                 }).bind(v)();
             }} />
         </div>
-        //     <LMControlWrapper controls={[
-        //         <CheckBox label="Beta Structure" defaultValue={data.getBetaStructure()} tooltip={TooltipText.get("poresIsBetaStructure")} onChange={(val) => {
-        //             if (this.state.poresFormData !== null) {
-        //                 this.state.poresFormData.setBetaStructure(val);
-        //             }
-        //         }} />,
-        //         <CheckBox label="Membrane Region" defaultValue={data.getMembraneRegion()} tooltip={TooltipText.get("poresInMembrane")} onChange={(val) => {
-        //             if (this.state.poresFormData !== null) {
-        //                 this.state.poresFormData.setMembraneRegion(val);
-        //             }
-        //         }} />,
-        //         <TextBox label="Specific Chains" defaultValue={chains} tooltip={TooltipText.get("chains")} placeholder="A, B, ..." validate={validateChainsArray} validationGroup={validationGroup} onChange={(val) => {
-        //             if (this.state.poresFormData !== null) {
-        //                 this.state.poresFormData.setSpecificChains(val);
-        //             }
-        //         }} />,
-        //         <NumberBox label="Probe Radius" tooltip={TooltipText.get("probeRadius")} min={1.4} max={45} defaultValue={valueOrDefault(data.getProbeRadius(), 13)} step={0.01} onChange={(v) => {
-        //             let s = this.state;
-        //             if (s.poresFormData !== null) {
-        //                 s.poresFormData.setProbeRadius(Number(v).valueOf());
-        //             }
-        //         }} onMount={(control) => {
-        //             (() => {
-        //                 FormEvents.attachOnClearEventHandler((formGroup) => {
-        //                     if (formGroup !== validationGroup) {
-        //                         return;
-        //                     }
-        //                     control.reset();
-        //                 });
-        //             }).bind(control)();
-        //         }} />,
-        //         <NumberBox label="Interior Treshold" tooltip={TooltipText.get("poresInteriorTreshold")} min={0.3} max={3} defaultValue={valueOrDefault(data.getInteriorThreshold(), 0.8)} step={0.01} onChange={(v) => {
-        //             let s = this.state;
-        //             if (s.poresFormData !== null) {
-        //                 s.poresFormData.setInteriorThreshold(Number(v).valueOf());
-        //             }
-        //         }} onMount={(control) => {
-        //             (() => {
-        //                 FormEvents.attachOnClearEventHandler((formGroup) => {
-        //                     if (formGroup !== validationGroup) {
-        //                         return;
-        //                     }
-        //                     control.reset();
-        //                 });
-        //             }).bind(control)();
-        //         }} />
-        //     ]} />
-
-        // </div>
     }
 }
 
@@ -1411,7 +1057,7 @@ export class Submission extends React.Component<{ data: ServiceSubmission, compu
                 <div id={`submit-data-${data.SubmitId}`} className={`panel-collapse collapse${(currentSubmitId.toString() === data.SubmitId.toString()) ? ' in' : ''}`}>
                     {contents}
                     <div className="panel-footer">
-                        <span className="btn btn-xs btn-primary" onClick={(() => this.copyParams(data.SubmitId)).bind(this)}>Copy</span><span className="btn btn-xs btn-primary" aria-disabled={!canResubmit} onClick={(() => this.reSubmit()).bind(this)}>Resubmit</span>
+                        <span className="btn btn-sm btn-primary" onClick={(() => this.exportParams()).bind(this)}>Export</span><span className="btn btn-sm btn-primary" onClick={(() => this.copyParams(data.SubmitId)).bind(this)}>Copy</span><span className="btn btn-sm btn-primary" aria-disabled={!canResubmit} onClick={(() => this.reSubmit()).bind(this)}>Resubmit</span>
                     </div>
                 </div>
             </div>
@@ -1420,11 +1066,13 @@ export class Submission extends React.Component<{ data: ServiceSubmission, compu
 
     private reSubmit() {
         if (isMoleJob(this.props.data)) {
+            gtag('event', 'Submit', { 'event_category': 'MOLE' });
             BridgeEvents.invokeOnReSubmit(
                 ApiService.submitMoleJob(this.props.computationId, this.props.data.MoleConfig)
             );
         }
         else {
+            gtag('event', 'Submit', { 'event_category': 'Pores' });
             BridgeEvents.invokeOnReSubmit(
                 ApiService.submitPoresJob(this.props.computationId, this.props.data.PoresConfig)
             );
@@ -1435,6 +1083,78 @@ export class Submission extends React.Component<{ data: ServiceSubmission, compu
         if (this.props.onCopy !== void 0) {
             this.props.onCopy(submitId);
         }
+    }
+
+    private exportParams() {
+        if (this.props === undefined) {
+            return;
+        }
+        let currentSubmitId = this.props.currentSubmitId;
+        let computationId = this.props.computationId;
+        let data = this.props.data;
+        let result;
+        if (isMoleJob(data)) {
+            result = {
+                Computation: {
+                    Id: computationId,
+                    SubmissionId: currentSubmitId
+                },
+                Active_Atoms_Resiudes: {
+                    Ignore_Hydrogens: (data.MoleConfig.Cavity === void 0) ? false : (data.MoleConfig.Cavity.IgnoreHydrogens) ? true : false,
+                    Ignore_HETATMs: (data.MoleConfig.Cavity === void 0) ? false : (data.MoleConfig.Cavity.IgnoreHETAtoms) ? true : false,
+                    Query_Filter: (data.MoleConfig.QueryFilter === void 0) ? "" : data.MoleConfig.QueryFilter,
+                    Read_All_Models: (data.MoleConfig.Input === void 0) ? false : (data.MoleConfig.Input.ReadAllModels) ? true : false,
+                    Ignored_Residues: (data.MoleConfig.NonActiveResidues === void 0 || data.MoleConfig.NonActiveResidues === null) ? "" : flattenResidues(data.MoleConfig.NonActiveResidues),
+                    Specific_Chains: (data.MoleConfig.Input === void 0) ? "" : data.MoleConfig.Input.SpecificChains
+                },
+                Cavity_Parameters: {
+                    Probe_Radius: (data.MoleConfig.Cavity === void 0) ? "" : data.MoleConfig.Cavity.ProbeRadius,
+                    Interior_Threshold: (data.MoleConfig.Cavity === void 0) ? "" : data.MoleConfig.Cavity.InteriorThreshold
+                },
+                Channel_Parameters: {
+                    Origin_Radius: (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.OriginRadius,
+                    Surface_Cover_Radius: (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.SurfaceCoverRadius,
+                    Weight_Function: (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.WeightFunction,
+                    Bottleneck_Radius: (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.BottleneckRadius,
+                    Bottleneck_Tolerance: (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.BottleneckTolerance,
+                    Max_Tunnel_Similarity: (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.MaxTunnelSimilarity,
+                    Merge_Pores: (data.MoleConfig.PoresMerged === void 0 || data.MoleConfig.PoresMerged === null) ? false : (data.MoleConfig.PoresMerged) ? true : true,
+                    Automatic_Pores: (data.MoleConfig.PoresAuto === void 0 || data.MoleConfig.PoresAuto === null) ? false : (data.MoleConfig.PoresAuto) ? true : false,
+                },
+                Selection: {
+                    Starting_Point: (data.MoleConfig.Origin === void 0 || data.MoleConfig.Origin === null) ? "" : (data.MoleConfig.Origin.Residues === void 0 || data.MoleConfig.Origin.Residues === null || data.MoleConfig.Origin.Residues.length === 0) ? "" : flattenResiduesArray(data.MoleConfig.Origin.Residues),
+                    Starting_Point_xyz: (data.MoleConfig.Origin === void 0 || data.MoleConfig.Origin === null) ? "" : (data.MoleConfig.Origin.Points === void 0 || data.MoleConfig.Origin.Points === null) ? "" : pointsToString(data.MoleConfig.Origin.Points),
+                    End_Point: (data.MoleConfig.CustomExits === void 0 || data.MoleConfig.CustomExits === null) ? "" : (data.MoleConfig.CustomExits.Residues === void 0 || data.MoleConfig.CustomExits.Residues === null || data.MoleConfig.CustomExits.Residues.length === 0) ? "" : flattenResiduesArray(data.MoleConfig.CustomExits.Residues),
+                    End_Point_xyz: (data.MoleConfig.CustomExits === void 0 || data.MoleConfig.CustomExits === null) ? "" : (data.MoleConfig.CustomExits.Points === void 0 || data.MoleConfig.CustomExits.Points === null) ? "" : pointsToString(data.MoleConfig.CustomExits.Points),
+                    Query: (data.MoleConfig.Origin === void 0 || data.MoleConfig.Origin === null) ? "" : (data.MoleConfig.Origin.QueryExpression === void 0 || data.MoleConfig.Origin.QueryExpression === null) ? "" : data.MoleConfig.Origin.QueryExpression
+                }
+            }
+        }
+        else {
+            result = {
+                Computation: {
+                    Id: computationId,
+                    SubmissionId: currentSubmitId
+                },
+                Beta_Structure: (data.PoresConfig.IsBetaBarel === void 0) ? false : (data.PoresConfig.IsBetaBarel) ? true : false,
+                Membrane_Region: (data.PoresConfig.InMembrane === void 0) ? false : (data.PoresConfig.InMembrane) ? true : true,
+                Specific_Chains: (data.PoresConfig.Chains === void 0) ? "" : data.PoresConfig.Chains,
+                Probe_Radius: (data.PoresConfig === void 0) ? "" : data.PoresConfig.ProbeRadius,
+                Interior_Threshold: (data.PoresConfig === void 0) ? "" : data.PoresConfig.InteriorThreshold,
+            }
+        }
+
+        const jsonString = JSON.stringify(result, null, 2);
+
+        const blob = new Blob([jsonString], { type: "application/json" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `params_${computationId}_${currentSubmitId}.json`;
+
+        link.click();
+
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
     }
 }
 
@@ -1489,6 +1209,7 @@ interface ControlTabState {
     err?: String,
     submitId: number,
     canSubmit: boolean,
+    openControls: boolean,
 };
 export class ControlTabs extends React.Component<{ activeTab?: number }, ControlTabState> {
 
@@ -1497,7 +1218,8 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
         data: void 0,
         err: void 0,
         submitId: 1,
-        canSubmit: true
+        canSubmit: true,
+        openControls: false
     }
 
     componentDidMount() {
@@ -1540,6 +1262,7 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
         BridgeEvents.subscribeChangeSubmitId((submitId) => {
             let state = this.state;
             state.submitId = submitId;
+            state.openControls = false;
             this.setState(state);
         });
 
@@ -1579,6 +1302,12 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
         FormEvents.invokeOnSubmit(validationGroup);
     }
 
+    setOpenControls(open: boolean) {
+        let state = this.state;
+        state.openControls = open;
+        this.setState(state);
+    }
+
     render() {
         let tabs: JSX.Element[] = [];
 
@@ -1615,7 +1344,7 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
                     this.setState(s);
                 }).bind(this)} />
                 <form className="form-horizontal" id="submission-form" onSubmit={this.handleSubmit.bind(this)}>
-                    <ControlButtons submitId={this.state.submitId} computationInfo={this.state.data} isLoading={!this.state.canSubmit} />
+                    <ControlButtons submitId={this.state.submitId} computationInfo={this.state.data} isLoading={!this.state.canSubmit} setOpenControls={this.setOpenControls.bind(this)}/>
                 </form>
                 {/* <div id="right-panel-toggler" className="toggler glyphicon glyphicon-resize-vertical"></div> */}
             </div>
@@ -1636,7 +1365,8 @@ interface ControlButtonsState {
 interface ControlButtonsProps {
     submitId: number,
     computationInfo: CompInfo | undefined,
-    isLoading: boolean
+    isLoading: boolean,
+    setOpenControls: (open: boolean) => void,
 }
 
 export class ControlButtons extends React.Component<ControlButtonsProps, ControlButtonsState> {
@@ -1797,6 +1527,44 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
         return idx - 1;
     }
 
+    private handleOnreaderload(reader: FileReader, props: Readonly<ControlButtonsProps>) {
+        if (props === undefined || props.setOpenControls === undefined) {
+            return;
+        }
+        try {
+            const jsonData = JSON.parse(reader.result as string);
+            console.log('Loaded JSON data:', jsonData);
+            const data = parseToMoleConfigOrPoresConfig(jsonData);
+            if (data !== null) {
+                const moleJob = isMoleJobResult(jsonData);
+                BridgeEvents.invokeCopyParameters({
+                    mode: moleJob ? "mole" : "pores",
+                    moleConfig: moleJob ? data as MoleConfig : null,
+                    poresConfig: moleJob ? data as PoresConfig : null
+                });
+                props.setOpenControls(true);
+            }
+        } catch (error) {
+            Events.invokeNotifyMessage({
+                messageType: "Danger",
+                message: `Error loading JSON: ${error}`
+            });
+        }
+    }
+
+    private handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+        if (this.props === undefined) {
+            return;
+        }
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = () => this.handleOnreaderload(reader, this.props);
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+    }
+
     render() {
         let canKill = (this.props.computationInfo !== void 0 && this.state.hasKillable);
         let items = this.prepareSubmissionItems();
@@ -1830,6 +1598,15 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
                 role="status"
                 aria-hidden="true"
             ></div> */}
+            <label className="btn btn-sm btn-primary load-button">
+                Load params
+                <input
+                    type="file"
+                    accept=".json"
+                    className="d-none"
+                    onChange={this.handleFileChange.bind(this)}
+                />
+            </label>
             <input type="button" className="btn btn-sm btn-primary kill-job-button" disabled={!canKill} onClick={(e => {
                 if ($(e.currentTarget).attr("disabled") !== "disabled") {
                     $('#killJobDialog').modal('show');
@@ -1844,9 +1621,11 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
             <input className="btn btn-sm btn-primary clear-button" type="button" value="Clear" onClick={() => {
                 FormEvents.invokeOnClear(validationGroup + "_form");
             }} />
-            <input className="btn btn-sm btn-primary submit-arrow" type="button" value=">" disabled={(!canShiftNext) ? true : void 0} data-value={(!canShiftNext || idx === void 0) ? void 0 : items[this.getNextIdx(idx)].value} onClick={this.changeSubmitIdByStep.bind(this)} />
-            <SimpleComboBox id="submissionComboSwitch" items={items} defaultSelectedIndex={idx} className="form-control submit-combo" onSelectedChange={this.onSubmitIdComboSelectChange.bind(this)} />
-            <input className="btn btn-sm btn-primary submit-arrow" type="button" value="<" disabled={(!canShiftPrev) ? true : void 0} data-value={(!canShiftPrev || idx == void 0) ? void 0 : items[this.getPrevIdx(idx)].value} onClick={this.changeSubmitIdByStep.bind(this)} />
+            <div>
+                <input className="btn btn-sm btn-primary submit-arrow" type="button" value=">" disabled={(!canShiftNext) ? true : void 0} data-value={(!canShiftNext || idx === void 0) ? void 0 : items[this.getNextIdx(idx)].value} onClick={this.changeSubmitIdByStep.bind(this)} />
+                <SimpleComboBox id="submissionComboSwitch" items={items} defaultSelectedIndex={idx} className="form-control submit-combo" onSelectedChange={this.onSubmitIdComboSelectChange.bind(this)} />
+                <input className="btn btn-sm btn-primary submit-arrow" type="button" value="<" disabled={(!canShiftPrev) ? true : void 0} data-value={(!canShiftPrev || idx == void 0) ? void 0 : items[this.getPrevIdx(idx)].value} onClick={this.changeSubmitIdByStep.bind(this)} />
+            </div>
             <ModalDialog id="killJobDialog" header="Do you really want to kill running job?" body={this.prepareKillJobDialogBody()} />
             <ModalDialog id="deleteProjectDialog" header="Do you really want to delete whole computation project?" body={this.prepareDeleteDialogBody()} />
         </div>

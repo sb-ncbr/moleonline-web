@@ -128,6 +128,7 @@
     //Submit Settings
     "UI/Controls/UI.tsx",
     "UI/Controls/FormData.ts",
+    "UI/Controls/ExportParser.ts",
 
     //Download report
     "UI/DownloadReport/UI.tsx",

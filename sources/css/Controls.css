@@ -42,11 +42,8 @@
 .submit-form-container .settings-form h3 {
     font-weight: bold;
     margin-top: -1px;
+    margin-bottom: 0px;
     font-size: 15pt;
-}
-
-.submit-form-container .settings-form h3 {
-    margin-bottom: 0;
 }
 
 .submit-form-container .tab-content {
@@ -60,7 +57,7 @@
 
 .toggled .submit-form-container .tab-content {
     border-bottom: none;
-    max-height: 58vh;
+    max-height: 47vh;
 }
 
 .toggled .submit-form-container .submit-parent {
@@ -77,12 +74,13 @@
     margin-left: 3px;
     padding-left: 5px;
     border-left: 1px solid #9a9a9a;
+    display: flex;
+    flex-wrap: wrap;
+    padding-top: 5px;
 }
 
 .submit-form-container .submit {
     max-height: 3.5vh;
-    margin-top: 0.75vh;
-    margin-bottom: 0.75vh;
     line-height: 2vh;
     padding: 0.75vh 0;
 }
@@ -211,7 +209,9 @@
     margin-top: 0.75vh;
     margin-bottom: 0.75vh;
     line-height: 2vh;
-    padding: 0.75vh 10px;
+    padding: 0.75vh 0px;
+    padding-left: 10px;
+    padding-right: 10px;
     float: right;
     height: initial;
 }
@@ -237,6 +237,7 @@
 */
 }
 
+.submit-parent .load-button,
 .submit-parent .kill-job-button {
     margin-left: 4px;
     margin-right: 2px;
@@ -256,6 +257,7 @@
 .submit-parent .kill-job-button,
 .submit-parent .delete-project-button,
 .submit-parent .clear-button,
+.submit-parent .load-button,
 .submit-parent .submit-arrow {
     height: 3vh;
     line-height: 2.5vh;
