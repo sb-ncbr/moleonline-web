@@ -67,7 +67,6 @@ export class InitForm extends React.Component<{}, State> {
             }
         }
         if (file === void 0 || file === null) {
-            this.triggerAnalyticsEvent((pdbid.length > 0) ? pdbid : null, pores, (assembly === void 0) ? null : assembly, null);
             ApiService.initWithParams(pdbid, pores, assembly)
                 .then((response) => {
                     this.handleFormSubmitResponse(response);
@@ -78,7 +77,6 @@ export class InitForm extends React.Component<{}, State> {
                 })
         }
         else {
-            this.triggerAnalyticsEvent(null, false, null, file);
             let data = new FormData();
             data.append("file", file)
             ApiService.initWithFile(data)
@@ -92,32 +90,6 @@ export class InitForm extends React.Component<{}, State> {
         }
 
         return false;
-    }
-
-    private triggerAnalyticsEvent(pdbid: string | null, pores: boolean, assembly: string | null, file: File | null) {
-        if (file !== null) {
-            let extension = file.name.split(".").filter((v, i, a) => { return i !== 0; }).join(".");
-            return;
-        }
-        else {
-            if (pdbid === null) {
-                return;
-            }
-
-            if (pores) {
-                return;
-            }
-            if (assembly !== null) {
-                let assembly_number = Number(assembly);
-                if (isNaN(assembly_number.valueOf())) {
-                    assembly_number = 0;
-                }
-                return;
-            }
-            if (!pores && assembly === null) {
-                return;
-            }
-        }
     }
 
     private handleFormSubmitResponse(response: InitResponse) {
