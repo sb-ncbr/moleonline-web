@@ -29,9 +29,7 @@ gulp.task("merge-js", function() {
     return gulp.src([
         "./sources/js/jquery-3.7.1.js",
         "./sources/js/jquery-ui.js",
-        // "./sources/provided/js/02-jquery-ui.js",
         "./sources/js/jspdf.min.js",
-        // "./sources/js/jsloader.js",
         "./sources/js/canvas2svg.js",
         "./sources/js/datagrid.js",
         "./sources/js/html2canvas.js",
@@ -39,12 +37,7 @@ gulp.task("merge-js", function() {
         "./sources/js/svg2pdf.js",
         "./sources/js/tabsConfig.js",
         "./sources/js/utf8.js",
-        // "./sources/provided/js/00-fetch.min.js",
-        // "./sources/provided/js/03-bootstrap.min.js",
         "./sources/js/bootstrap.min.js",
-        // "./sources/provided/js/04-LiteMol-core.js",
-        // "./sources/provided/js/05-LiteMol-plugin.js",
-        // "./sources/provided/js/06-pako.min.js",
     ])
     .pipe(concat("scripts.js"))
     .pipe(beautify({
@@ -61,7 +54,6 @@ gulp.task('merge-css', function() {
         "./sources/css/AglomeredParameters.css",
         "./sources/css/AlertMessages.css",
         "./sources/css/annotate.css",
-        // "./sources/css/bootstrap.min.css",
         "./sources/css/ChannelParameters.css",
         "./sources/css/CofactorPickBox.css",
         "./sources/css/Components.css",
@@ -71,7 +63,6 @@ gulp.task('merge-css', function() {
         "./sources/css/DownloadReport.css",
         "./sources/css/FromLiteMol.css",
         "./sources/css/Help.css",
-        // "./sources/css/Init.css",
         "./sources/css/jquery-ui.css",
         "./sources/css/LayerVizualizerStyles.css",
         "./sources/css/lining-residues.css",
@@ -92,16 +83,8 @@ gulp.task('merge-css', function() {
 
 gulp.task('merge-css-init', function() {
     return gulp.src([
-        // "./sources/css/frontend/bootstrap.min.css",
         "./sources/css/init/bootstrap.min.css",
-        // "./sources/css/frontend/cssloader.css",
-        // "./sources/css/frontend/init-styles.css",
-        // "./sources/css/frontend/LiteMol-plugin.css",
-        // "./sources/css/frontend/styles-init.css",
-        // "./sources/css/frontend/provided.css",
         "./sources/css/frontend/styles.css",
-        // "./sources/css/frontend/cssloader.css~",
-        // "./sources/css/frontend/print.front.css",
     ])
     .pipe(concat("init-styles.css"))
     .pipe(gulp.dest("./sources/css"))
