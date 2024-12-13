@@ -609,7 +609,7 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
                             let originalTitle = document.title;
 
                             if (urlParams !== null) {
-                                document.title = `MoleOnline - ${urlParams.computationId}/${urlParams.submitId}`;
+                                document.title = `MOLEonline - ${urlParams.computationId}/${urlParams.submitId}`;
                             }
 
                             window.setTimeout(() => {

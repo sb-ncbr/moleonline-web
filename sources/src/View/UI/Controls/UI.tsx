@@ -30,7 +30,6 @@ require("molstar/lib/mol-plugin-ui/skin/light.scss");
 var Provider = ComputationInfo.DataProvider;
 
 declare function $(p: any, p1?: any): any;
-declare function gtag(ga_type: string, action: string, options: { 'event_category': string, 'event_label'?: string, 'value'?: any }): any;
 
 let validationGroup = "SettingsFormValidatonGroup";
 
@@ -253,11 +252,9 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
             let promise;
 
             if (this.state.mode === "Channels") {
-                gtag('event', 'Submit', { 'event_category': 'MOLE' });
                 promise = ApiService.submitMoleJob(this.state.computationId, this.state.moleFormData.getPackage())
             }
             else {
-                gtag('event', 'Submit', { 'event_category': 'Pores' });
                 promise = ApiService.submitPoresJob(this.state.computationId, this.state.poresFormData.getPackage())
             }
 
@@ -1423,13 +1420,11 @@ export class Submission extends React.Component<{ data: ServiceSubmission, compu
 
     private reSubmit() {
         if (isMoleJob(this.props.data)) {
-            gtag('event', 'Submit', { 'event_category': 'MOLE' });
             BridgeEvents.invokeOnReSubmit(
                 ApiService.submitMoleJob(this.props.computationId, this.props.data.MoleConfig)
             );
         }
         else {
-            gtag('event', 'Submit', { 'event_category': 'Pores' });
             BridgeEvents.invokeOnReSubmit(
                 ApiService.submitPoresJob(this.props.computationId, this.props.data.PoresConfig)
             );

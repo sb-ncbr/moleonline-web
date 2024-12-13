@@ -105,7 +105,7 @@ export const TunnelRepresentation3D = Transform({
     params: { ...BaseGeometry.Params, tag: PD.Value<string>("Tunnel", { isHidden: true }), tunnel: PD.Value<Tunnel | null >(null, { isHidden: true}) }
 })({
     apply({ a, params }) {
-        return Task.create('MoleOnline Tunnel Shape Representation', async ctx => {
+        return Task.create('MOLEonline Tunnel Shape Representation', async ctx => {
             const props = { ...PD.getDefaultValues(a.data.params), ...params};
             let repr = ShapeRepresentation(a.data.getShape, a.data.geometryUtils);
             await repr.createOrUpdate(props, a.data.data).runInContext(ctx);
@@ -205,7 +205,7 @@ export const TunnelPropertyColorRepresentation3D = Transform({
     params: { ...BaseGeometry.Params, tag: PD.Value<string>("PropertyColorTunnel", { isHidden: true }), tunnel: PD.Value<Tunnel | null >(null, { isHidden: true}) }
 })({
     apply({ a, params }) {
-        return Task.create('MoleOnline Tunnel Shape Representation', async ctx => {
+        return Task.create('MOLEonline Tunnel Shape Representation', async ctx => {
             let props = { ...PD.getDefaultValues(a.data.params), ...params, ...ColorSmoothingParams};
             // if (a.data.params.showRadii) {
             //     props = { ...PD.getDefaultValues(a.data.params), ...params, instanceGranularity: false };

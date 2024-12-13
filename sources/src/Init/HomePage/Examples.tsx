@@ -4,8 +4,6 @@ import { Events } from "../../Bridge";
 import { GlobalRouter } from "../../SimpleRouter";
 
 declare function $(p: any): any;
-declare function gtag(ga_type: string, action: string, options: { 'event_category': string, 'event_label'?: string, 'value'?: any }): any;
-
 
 export class Examples extends React.Component<{}, { activeButton: number }> {
     private computationId: string;
@@ -96,7 +94,6 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
     private handleFormSubmit(pdbId: string) {
         let assembly;
         let pores: boolean = false;
-        gtag('event', 'Init', { 'event_category': pdbId, 'event_label': 'asymetricUnit' });
         ApiService.initWithParams(pdbId, pores, assembly)
             .then((response) => {
                 this.handleFormSubmitResponse(response);

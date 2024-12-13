@@ -13,7 +13,6 @@ import { Routing } from "../../../config/common";
 import AlertMessages from "../../Common/UI/AlertMessages/UI";
 
 declare function $(p: any): any;
-declare function gtag(ga_type: string, action: string, options: { 'event_category': string, 'event_label'?: string, 'value'?: any }): any;
 
 interface State {
     app: InitForm,
@@ -98,7 +97,6 @@ export class InitForm extends React.Component<{}, State> {
     private triggerAnalyticsEvent(pdbid: string | null, pores: boolean, assembly: string | null, file: File | null) {
         if (file !== null) {
             let extension = file.name.split(".").filter((v, i, a) => { return i !== 0; }).join(".");
-            gtag('event', 'Init', { 'event_category': 'userStructure', 'event_label': extension });
             return;
         }
         else {
@@ -107,7 +105,6 @@ export class InitForm extends React.Component<{}, State> {
             }
 
             if (pores) {
-                gtag('event', 'Init', { 'event_category': pdbid, 'event_label': 'bio' });
                 return;
             }
             if (assembly !== null) {
@@ -115,11 +112,9 @@ export class InitForm extends React.Component<{}, State> {
                 if (isNaN(assembly_number.valueOf())) {
                     assembly_number = 0;
                 }
-                gtag('event', 'Init', { 'event_category': pdbid, 'event_label': 'assembly', 'value': assembly_number });
                 return;
             }
             if (!pores && assembly === null) {
-                gtag('event', 'Init', { 'event_category': pdbid, 'event_label': 'asymetricUnit' });
                 return;
             }
         }

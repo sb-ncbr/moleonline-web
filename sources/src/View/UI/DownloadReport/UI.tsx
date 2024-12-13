@@ -6,8 +6,6 @@ import { Tunnels } from "../../CommonUtils/Tunnels";
 import { JSON2CIF } from "../../VizualizerMol/mmcif-tunnels/converter";
 import { TwoDProtsBridge } from "../../CommonUtils/TwoDProtsBridge";
 
-declare function gtag(ga_type: string, action: string, options: { 'event_category': string, 'event_label'?: string, 'value'?: any }): any;
-
 export class DownloadReport extends React.Component<{}, {}> {
 
     componentDidMount() {
@@ -126,46 +124,32 @@ class DownloadResultsMenu extends React.Component<{}, DownloadResultsMenuState> 
         if (computationId !== void 0) {
             items.push(
                 <BootstrapDropDownMenuItem linkText="Molecule" /*link={`${linkBase}&format=molecule`}*/ targetBlank={true} onClick={() => {
-                    gtag('event', 'Download', { 'event_category': 'molecule' });
                     this.generateMoleculeContent();
                 }} />
             );
             if (this.state.submitId > 0) {
                 items.push(
-                    <BootstrapDropDownMenuItem linkText="PyMol" link={`${linkBase}&format=pymol`} targetBlank={true} onClick={() => {
-                        gtag('event', 'Download', { 'event_category': 'pymol' });
-                    }} />
+                    <BootstrapDropDownMenuItem linkText="PyMol" link={`${linkBase}&format=pymol`} targetBlank={true}  />
                 );
                 items.push(
-                    <BootstrapDropDownMenuItem linkText="VMD" link={`${linkBase}&format=vmd`} targetBlank={true} onClick={() => {
-                        gtag('event', 'Download', { 'event_category': 'vmd' });
-                    }} />
+                    <BootstrapDropDownMenuItem linkText="VMD" link={`${linkBase}&format=vmd`} targetBlank={true} />
                 );
                 items.push(
-                    <BootstrapDropDownMenuItem linkText="PDB" link={`${linkBase}&format=pdb`} targetBlank={true} onClick={() => {
-                        gtag('event', 'Download', { 'event_category': 'pdb' });
-                    }} />
+                    <BootstrapDropDownMenuItem linkText="PDB" link={`${linkBase}&format=pdb`} targetBlank={true} />
                 );
                 items.push(
-                    <BootstrapDropDownMenuItem linkText="Chimera" link={`${linkBase}&format=chimera`} targetBlank={true} onClick={() => {
-                        gtag('event', 'Download', { 'event_category': 'chimera' });
-                    }} />
+                    <BootstrapDropDownMenuItem linkText="Chimera" link={`${linkBase}&format=chimera`} targetBlank={true} />
                 );
                 items.push(
-                    <BootstrapDropDownMenuItem linkText="JSON" link={`${linkBase}`} targetBlank={true} onClick={() => {
-                        gtag('event', 'Download', { 'event_category': 'json' });
-                    }} />
+                    <BootstrapDropDownMenuItem linkText="JSON" link={`${linkBase}`} targetBlank={true} />
                 );
                 items.push(
-                    <BootstrapDropDownMenuItem linkText="Results" link={`${linkBase}&format=report`} targetBlank={true} onClick={() => {
-                        gtag('event', 'Download', { 'event_category': 'zip' });
-                    }} />
+                    <BootstrapDropDownMenuItem linkText="Results" link={`${linkBase}&format=report`} targetBlank={true} />
                 );
             }
             if (this.state.submitId !== 0) {
                 items.push(
                     <BootstrapDropDownMenuItem linkText="PDF report" onClick={() => {
-                        gtag('event', 'Download', { 'event_category': 'pdf' });
                         Events.invokeRunPDFReport();
                     }} />
                 );
