@@ -18,13 +18,13 @@
 .submit-form-container .form-horizontal .checkbox-inline,
 .submit-form-container .form-horizontal .radio,
 .submit-form-container .form-horizontal .radio-inline {
-    padding-top: 0px;
+    padding-top: 0;
     margin-top: 5px;
     margin-left: 3px;
 }
 
 .submit-form-container .form-horizontal .checkbox {
-    margin-top: 0px;
+    margin-top: 0;
 }
 
 .submit-form-container .settings-form {
@@ -36,14 +36,17 @@
 .submit-form-container .settings-form h4 {
     font-size: 13px;
     border-bottom: 1px solid #777;
-    padding-bottom: 0px;
+    padding-bottom: 0;
 }
 
 .submit-form-container .settings-form h3 {
     font-weight: bold;
     margin-top: -1px;
-    margin-bottom: 0px;
     font-size: 15pt;
+}
+
+.submit-form-container .settings-form h3 {
+    margin-bottom: 0;
 }
 
 .submit-form-container .tab-content {
@@ -66,7 +69,7 @@
 
 .submit-form-container .submit-parent {
     position: relative;
-    bottom: 0px;
+    bottom: 0;
     border-top: none;
     padding-right: 5px;
     /* left: 0;
@@ -81,7 +84,7 @@
     margin-top: 0.75vh;
     margin-bottom: 0.75vh;
     line-height: 2vh;
-    padding: 0.75vh 0px;
+    padding: 0.75vh 0;
 }
 
 .submit-form-container .nav-tabs>li>a {
@@ -129,8 +132,8 @@
 }
 
 .submit-form-container h4 {
-    margin-top: 0px;
-    margin-bottom: 0px;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
 .submit-form-container .form-control {
@@ -208,9 +211,7 @@
     margin-top: 0.75vh;
     margin-bottom: 0.75vh;
     line-height: 2vh;
-    padding: 0.75vh 0px;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding: 0.75vh 10px;
     float: right;
     height: initial;
 }
@@ -378,9 +379,8 @@
 .optional-parameters .panel-colapse,
 .optional-category .optional-parameters .panel-colapse,
 .optional-category .optional-parameters.panel-group .panel-heading+.panel-collapse>.list-group,
-.optional-category .optional-parameters.panel-group .panel-heading+.panel-collapse>.panel-body,
-{
-border-top: 1px solid #eee;
+.optional-category .optional-parameters.panel-group .panel-heading+.panel-collapse>.panel-body {
+    border-top: 1px solid #eee;
 }
 
 .optional-parameters .panel-colapse,
@@ -405,7 +405,7 @@ border-top: 1px solid #eee;
     color: red !important;
     background-color: #ffdfdf !important;
     opacity: 0.9;
-    box-shadow: red 0px 0px 1px;
+    box-shadow: red 0 0 1px;
 }
 
 .settings-form .tooltip.bottom>.tooltip-arrow {

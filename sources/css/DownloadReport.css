@@ -10,10 +10,9 @@
 .download-button .dropdown{
     height: 100%;
     padding: 0;
-    margin: 0;
     top: 0;
     left: 0;
-    margin-top: -3px;
+    margin: -3px 0 0;
     width: 100%;
 }
 .download-button{
@@ -46,8 +45,8 @@ button.download.dropdown-toggle {
 .download-button .dropdown-menu{
     max-width: 120px !important;
     min-width: 120px;
-    border-top-left-radius: 0px;
-    border-top-right-radius: 0px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
     margin-top: 1px;
 }
 

@@ -14866,9 +14866,7 @@ figure img {
 
 .layer-vizualizer-hint-div {
     text-align: center;
-    padding: 5.5vh;
-    padding-left: 2vw;
-    padding-right: 2vw;
+    padding: 5.5vh 2vw;
     font-size: 24pt;
     font-weight: bold;
     color: #333;
@@ -15140,12 +15138,9 @@ only screen and (max-height: 800px) {
     width: 95%;
     margin-left: 5%;
     top: 0;
-    padding-right: 5px;
     border-left: 1px solid #aaa;
-    padding-left: 4px;
-    padding-top: 3px;
     border-bottom: 1px solid #aaa;
-    padding-bottom: 3px
+    padding: 3px 5px 3px 4px;
 }
 
 .sequence-viewer .seq-residue {
@@ -15191,8 +15186,7 @@ only screen and (max-height: 800px) {
 
 .sequence-viewer .seq-letter:hover,
 .sequence-viewer .seq-letter.selected {
-    padding: 0;
-    padding-right: 1px;
+    padding: 0 1px 0 0;
     border: 1px solid #aaa;
     background-color: #333;
     color: white
@@ -15229,13 +15223,11 @@ only screen and (max-height: 900px) {
     font-size: 13pt;
     background-color: #f8f8f8;
     left: 140px;
-    padding: 0;
     color: #777;
     border: 1px #ccc solid;
     border-top: 0;
     border-right: 0;
-    padding-left: 10px;
-    padding-right: 10px
+    padding: 0 10px;
 }
 
 .annotate .annotate-form-fade.visible {
@@ -15259,15 +15251,14 @@ only screen and (max-height: 900px) {
     border-radius: 15px;
     box-shadow: 0px 0px 100px #aaa;
     border: 1px solid #ddd;
-    padding: 15px;
-    padding-top: 50px;
+    padding: 50px 15px 15px;
     z-index: 1000
 }
 
 .annotate .annotate-form .buttons {
-    bottom: 0px;
-    left: 0px;
-    right: 0px;
+    bottom: 0;
+    left: 0;
+    right: 0;
     height: 40px
 }
 
@@ -15339,8 +15330,7 @@ only screen and (max-height: 900px) {
     position: absolute;
     right: 0;
     width: 30px;
-    padding: 10px 25px;
-    padding-left: 10px;
+    padding: 10px 25px 10px 10px;
     text-align: center
 }
 
@@ -15353,8 +15343,7 @@ only screen and (max-height: 900px) {
 }
 
 .annotate .annotate-form .component-combobox-container .dropdown-menu li {
-    padding: 6px;
-    padding-left: 12px;
+    padding: 6px 6px 6px 12px;
     cursor: pointer;
     border-bottom: 1px solid #ddd;
     margin-left: 1px;

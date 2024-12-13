@@ -8,13 +8,11 @@
     font-size: 13pt;
     background-color: #f8f8f8;
     right: 140px;
-    padding: 0;
     color: #777;
     border: 1px #ccc solid;
     border-top: 0;
     border-left: 0;
-    padding-left: 0px;
-    padding-right: 0px;
+    padding: 0 0;
 }
 
 .annotate .annotate-form-fade.visible{
@@ -36,18 +34,17 @@
     left: 10%;
     background-color: white;
     border-radius: 15px;
-    box-shadow: 0px 0px 100px #aaa;
+    box-shadow: 0 0 100px #aaa;
     border: 1px solid #ddd;
-    padding: 15px;
-    padding-top: 50px;
+    padding: 50px 15px 15px;
     z-index: 1000;
 }
 
 .annotate .annotate-form .buttons{
     /*position: absolute;*/
-    bottom: 0px;
-    left: 0px;
-    right: 0px;
+    bottom: 0;
+    left: 0;
+    right: 0;
     height: 40px;
 }
 
@@ -96,7 +93,6 @@
     display: block;
     width: 100%;
     height: 34px;
-    padding: 6px 12px;
     font-size: 14px;
     line-height: 1.42857143;
     color: #555;
@@ -109,7 +105,7 @@
     -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
     -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
     transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
-    padding-right: 35px;
+    padding: 6px 35px 6px 12px;
     text-align: left;
 }
 
@@ -118,8 +114,7 @@
     position: absolute;
     right: 0;
     width: 30px;
-    padding: 10px 25px;
-    padding-left:10px;
+    padding: 10px 25px 10px 10px;
     text-align: center;
 }
 
@@ -132,8 +127,7 @@
 }
 
 .annotate .annotate-form .component-combobox-container .dropdown-menu li{
-    padding: 6px;
-    padding-left: 12px;
+    padding: 6px 6px 6px 12px;
     cursor: pointer;
     border-bottom: 1px solid #ddd;
     margin-left: 1px;
@@ -234,8 +228,6 @@ button.channelsdb.dropdown-toggle {
     background-color: transparent;
     border: 0;
     box-shadow: none !important;
-    /*width: 100%;
-    height: 100%;*/
     font-size: 11pt;
     padding-left: 0;
     padding-right: 0;

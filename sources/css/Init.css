@@ -31,8 +31,7 @@ a:focus {
 
 #topmenu a {
     color: white;
-    background:none;
-    background-color: #616161;
+    background: #616161 none;
 }
 #topmenu a:hover {
     background-color: #9a9a9a;
@@ -128,7 +127,7 @@ figure img{
 }
 
 .tabs ul{
-    margin-left:0px !important;
+    margin-left:0 !important;
 }
 
 .nav-tabs > li > a:focus, 

@@ -65,7 +65,7 @@
 	width:100%;
 }
 .residueItem:last-child, .propertyItem:last-child{
-	margin-right:0px;
+	margin-right:0;
 }
 
 .layer-vizualizer-detail-div{
@@ -104,9 +104,7 @@
 
 .layer-vizualizer-hint-div{
 	text-align: center;
-	padding: 5.5vh;
-	padding-left: 2vw;
-	padding-right: 2vw;
+	padding: 5.5vh 2vw;
 	font-size: 24pt;
 	font-weight: bold;
 	/*color: darkkhaki;
@@ -163,8 +161,8 @@
 	font-weight:400;
 	float:none;
 	clear:both;
-	margin-top:0px;
-	margin-bottom:0px;
+	margin-top:0;
+	margin-bottom:0;
 	padding-top:15px;
 }
 
@@ -226,7 +224,7 @@
 		padding-top:10px;
 	}
 	.bottom-panel-toggled .bottom-tabs-toggled .layerVizualizer * h3:first-child{
-		padding-top:0px;
+		padding-top:0;
 	}
 	.bottom-tabs-toggled .wrapper-container{
 		width:100%;

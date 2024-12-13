@@ -33,8 +33,7 @@ a:focus {
 
 #topmenu a {
     color: white;
-    background: none;
-    background-color: #616161
+    background: #616161 none;
 }
 
 #topmenu a:hover {
