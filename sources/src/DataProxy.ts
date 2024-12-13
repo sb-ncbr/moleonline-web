@@ -531,7 +531,7 @@ export namespace TwoDProts {
                     },
                     body: JSON.stringify({
                         protein_url: proteinUrl,
-                        channels_url: channels,
+                        channels: channels,
                     }),
                 });
 

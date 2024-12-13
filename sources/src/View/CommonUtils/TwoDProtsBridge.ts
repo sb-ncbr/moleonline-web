@@ -35,7 +35,7 @@ export class TwoDProtsBridge {
                 Id: tunnel.Id,
                 Type: tunnel.Type,
                 Profile: tunnel.Profile,
-                Color: Color.toHexString(tunnel.__color)
+                Color: "black" //Color.toHexString(tunnel.__color)
             }
             channels.push(t as (Tunnel&TunnelColor));
         })
