@@ -719,6 +719,23 @@ function getSubmissionIdx(compInfo: CompInfo, submitId: number): number | null {
     return null;
 }
 
+function deepEqual(objA: any, objB: any): boolean {
+    if (objA === objB) return true; // Same reference or both null/undefined
+
+    if (typeof objA !== "object" || typeof objB !== "object" || objA === null || objB === null) {
+        return false; // Primitives or one of them is null
+    }
+
+    const keysA = Object.keys(objA);
+    const keysB = Object.keys(objB);
+
+    if (keysA.length !== keysB.length) {
+        return false;
+    }
+
+    return keysA.every(key => deepEqual(objA[key], objB[key]));
+}
+
 interface SubmissionsProps {
     computationInfo: CompInfo,
     onResubmit: (info: CompInfo) => void
@@ -734,6 +751,12 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
     private hasKillable = false;
 
     componentWillReceiveProps(nextProps: { computationInfo: CompInfo }) {
+        let compInfo = this.state.computationInfo;
+        if (compInfo !== null) {
+            if (deepEqual(compInfo, nextProps.computationInfo)) {
+                return;
+            }
+        }
         this.prepareSubmissionData(nextProps.computationInfo);
     }
 
