@@ -199,8 +199,8 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                 </div>
                 <div id="left-panel-tabs" className="left-panel-tabs">
                     <ul className="nav nav-tabs flex-column" role="tablist">
-                        <li className="nav-item"><a style={{ writingMode: "vertical-lr" }} className="nav-link active left-panel-tab" id="ui-tab" data-bs-toggle="tab" data-bs-target="#ui" role="tab" aria-controls="ui" aria-selected="true" aria-disabled="true">Channels</a></li>
-                        <li className="nav-item"><a style={{ writingMode: "vertical-lr" }} className="nav-link left-panel-tab" id="controls-tab" data-bs-toggle="tab" data-bs-target="#controls" role="tab" aria-controls="controls" aria-selected="true" aria-disabled="true">Compute</a></li>
+                        <li className="nav-item"><a style={{ writingMode: "vertical-lr" }} className="nav-link active left-panel-tab disabled" id="ui-tab" data-bs-toggle="tab" data-bs-target="#ui" role="tab" aria-controls="ui" aria-selected="true" aria-disabled="true">Channels</a></li>
+                        <li className="nav-item"><a style={{ writingMode: "vertical-lr" }} className="nav-link left-panel-tab disabled" id="controls-tab" data-bs-toggle="tab" data-bs-target="#controls" role="tab" aria-controls="controls" aria-selected="true" aria-disabled="true">Compute</a></li>
                     </ul>
                 </div>
             </div>;
