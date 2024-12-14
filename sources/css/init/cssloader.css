@@ -265,17 +265,8 @@ ul.error li {
 }
 
 .groupbox {
-    border: 1px solid #ccc;
     padding: 7px;
-    background: #f5f5f5;
     margin: 0 0 7px 0;
-    color: #222
-}
-
-.groupbox:hover {
-    border: 1px solid #b9b9b9;
-    background: #f0f0f0;
-    color: #000
 }
 
 .groupbox h3 {
@@ -734,7 +725,7 @@ span.hint,div.hint {
     max-width: 385px;
     margin-right: 15px;
     position: relative;
-    display: block
+    display: none
 }
 
 .hint img.toptip {

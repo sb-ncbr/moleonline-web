@@ -21,16 +21,19 @@
 					el.animate({ 'opacity': 0 }, 2000).slideUp();
 				}, 10100);
 			});
-
+	
 			// format hint messages
 			$('span.hint, div.hint').before('<img src="/images/help.png" class="hint" alt="">').each(function () {
 				var div = $(this);
 				var img = div.prev('img.hint');
-				div.hide();
 				div.css('position', 'fixed');
 				div.append('<img src="/images/front/hint_toptip.png" alt="" class="toptip">');
-				img.mouseenter(function () { $(this).next('.hint').show(); });
-				img.mouseout(function () { $(this).next('.hint').hide(); });
+				img.mouseenter(function () {
+					$(this).next('.hint').show();
+				});
+				img.mouseout(function () {
+					$(this).next('.hint').hide();
+				});
 			});
 		});
 	</script>
@@ -42,16 +45,15 @@
 
 		<div class="card shadow-sm mb-4 sticky-top">
 			<div class="card-body d-flex align-items-center" style="position: relative;">
-				<div class="header-gradient-background"></div>
-				<div class="header-gradient-text fs-3 fw-bold px-3" style="margin-right: 28rem;">
-					<img src="\images/favicon.ico" alt="M" class="header-icon">OLEonline
+				<div class="header-gradient-text fs-3 fw-bold px-3" style="margin-right: 28rem; color:#1674d8">
+					MOLEOnline
 				</div>
 				<ul class="nav nav-pills nav-fill flex-grow-1">
 					<li class="nav-item">
 						<a class="nav-link active" aria-current="page" href="#">Home</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" href="https://github.com/sb-ncbr/moleonline-web/wiki" target="_blank">Documentation</a>
+						<a class="nav-link" href="./html/documentation.html">Documentation</a>
 					</li>
 					<li class="nav-item">
 						<a class="nav-link" href="./html/about.html">About</a>
@@ -60,6 +62,7 @@
 						<a class="nav-link" href="./html/news.html">News</a>
 					</li>
 				</ul>
+				<img src="\images/favicon.ico" alt="MOLE" class="header-icon">
 			</div>
 		</div>
 
@@ -74,7 +77,7 @@
 			<div class="row d-flex flex-row justify-content-center align-items-center w-50">
 				<div class="col mr-5">
 					<div class="card shadow"
-						style="height: 29rem; background: linear-gradient(180deg, #0095ff43, #00e5ff47); border-color: #00dc9a; border-width: 2px;">
+						style="height: 29rem; border-width: 2px;">
 						<div id="init-form"></div>
 					</div>
 				</div>

@@ -95,7 +95,7 @@ export class InitForm extends React.Component<{}, State> {
     private handleFormSubmitResponse(response: InitResponse) {
         if (response.Status === "FailedInitialization") {
             $('#frm-jobSetup-setupForm-next').prop('disabled', false);
-            $('#frm-jobSetup-setupForm-next').val('Next');
+            $('#frm-jobSetup-setupForm-next').val('Submit');
             Events.invokeNotifyMessage({
                 messageType: "Danger",
                 message: `API was unable to initialize computation with specified parameters. API responded with message: ${response.ErrorMsg}`
@@ -146,7 +146,7 @@ export class InitForm extends React.Component<{}, State> {
 
     render() {
 
-        let buttons = <input type="submit" name="next" className="button" id="frm-jobSetup-setupForm-next" value="Next" />;
+        let buttons = <input type="submit" name="next" className="button" id="frm-jobSetup-setupForm-next" value="Submit" />;
         let content = this.formByPDBID();
         let tabs: JSX.Element[] = [];
 
@@ -167,7 +167,7 @@ export class InitForm extends React.Component<{}, State> {
         return (
             <>
                 <div className="card-header bg-primary text-white">
-                    Online
+                    Submit job
                 </div>
                 <div className="card-body">
                     <div id="alert-messages" className="index">
