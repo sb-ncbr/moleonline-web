@@ -1,5 +1,6 @@
 import { CommonOptions } from "../config/common";
 import { ApiService, CompInfo, InitResponse, CSAResidues, Cofactors } from "./MoleAPIService";
+import {Tunnel} from "./DataInterface";
 
 export namespace ComputationInfo {
     type CompInfoHandler = (compId: string, info: CompInfo) => void;
@@ -441,8 +442,8 @@ export namespace TwoDProts {
     export type OnErrorHandler = (err: any) => void;
 
     export class Watcher {
-        private static baseURL = 'http://147.251.21.23/api/v1/custom_protein';
-        private static statusURL = (jobId: string) => `http://147.251.21.23/api/v1/custom_protein/${jobId}`;
+        private static baseURL = 'https://2dprots.ncbr.muni.cz/api/v1/custom_protein';
+        private static statusURL = (jobId: string) => `https://2dprots.ncbr.muni.cz/api/v1/custom_protein/${jobId}`;
         private static activeMonitors: Map<string, boolean> = new Map();
 
         // public static async startJob(
@@ -518,7 +519,7 @@ export namespace TwoDProts {
 
         public static async startJob(
             proteinUrl: string,
-            channels: string, // Local channels object
+            channels: (Tunnel)[], // Local channels object
             onStatusChange: OnStatusChangeHandler,
             onError: OnErrorHandler
         ) {

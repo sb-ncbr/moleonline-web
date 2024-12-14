@@ -1,8 +1,8 @@
 import React from "react";
-import { TwoDProts as TwoDProtsProxy } from "../../../DataProxy";
-import { getParameters } from "../../../Common/Util/Router";
-import { TwoDProtsBridge } from "../../CommonUtils/TwoDProtsBridge";
-import { Events } from "../../../Bridge";
+import {TwoDProts as TwoDProtsProxy} from "../../../DataProxy";
+import {getParameters} from "../../../Common/Util/Router";
+import {TwoDProtsBridge} from "../../CommonUtils/TwoDProtsBridge";
+import {Events} from "../../../Bridge";
 
 export class TwoDProts extends React.Component<{}, { isComputing: boolean, error?: any, jobId: string, canceled: boolean }> {
     state = { isComputing: false, error: void 0, jobId: "", canceled: false };
@@ -19,7 +19,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
         const pdbid = TwoDProtsBridge.getPdbId();
         this.setState({canceled: false});
         if (pdbid === undefined) {
-            this.setState({ isComputing: false, jobId: '', error: <div className="text-danger">Error: 2D prots can't compute on custom structures yet</div> })
+            this.setState({ isComputing: false, jobId: '', error: <div className="text-danger">Error: 2DProts can't compute on custom structures yet</div> })
             return;
         }
         let params = getParameters();
@@ -27,13 +27,10 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
             this.setState({ isComputing: false, jobId: '', error: `Cannot get structure url` });
             return;
         }
-        const submitId = params.submitId;
-        const computationId = params.computationId;
-        const channels = JSON.stringify(TwoDProtsBridge.getVizualizedChannels(), null, 2);
         try {
-            TwoDProtsProxy.Watcher.startJob(
-                `https://files.rcsb.org/download/${pdbid}.pdb`,
-                channels,
+            await TwoDProtsProxy.Watcher.startJob(
+                `https://files.rcsb.org/download/${pdbid}.cif`,
+                TwoDProtsBridge.getVizualizedChannels(),
                 (status, jobId, errorMsg) => {
                     console.log(`2DProts Job Status: ${status}`);
                     if (status === 'SUCCESS') {
@@ -73,8 +70,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
                 throw new Error(`Failed to fetch SVG: ${response.status} ${response.statusText}`);
             }
             const svgText = await response.text();
-            const svgBlob = new Blob([svgText], { type: 'image/svg+xml' });
-            return svgBlob;
+            return new Blob([svgText], {type: 'image/svg+xml'});
         } catch (error) {
             Events.invokeNotifyMessage({
                 messageType: "Danger",
@@ -85,7 +81,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
 
     render() {
         return <div className="d-flex flex-column justify-content-center align-items-center h-100 w-100">
-            {this.state.jobId !== '' && !this.state.canceled && !this.state.isComputing ? <img style={{ objectFit: 'contain', maxHeight: '90%', width: 'auto' }} alt="2DProtsOutput" src={`http://147.251.21.23/static/2DProt/custom_jobs/${this.state.jobId}/output.svg`} /> : <></>}
+            {this.state.jobId !== '' && !this.state.canceled && !this.state.isComputing ? <img style={{ objectFit: 'contain', maxHeight: '90%', width: 'auto' }} alt="2DProtsOutput" src={`https://2dprots.ncbr.muni.cz/static/2DProt/custom_jobs/${this.state.jobId}/output.svg`} /> : <></>}
             {this.state.isComputing ?
                 <div>
                     <button className="btn btn-primary" type="button" style={{ marginRight: '10px' }} disabled>
@@ -106,7 +102,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
                             <span>Start computation</span>
                         </button>
                         <button className="btn btn-primary" type="button" style={{ marginLeft: '10px' }} onClick={() => {
-                            this.fetchSvgAndCreateBlob(`http://147.251.21.23/static/2DProt/custom_jobs/${this.state.jobId}/output.svg`).then((blob) => {
+                            this.fetchSvgAndCreateBlob(`https://2dprots.ncbr.muni.cz/static/2DProt/custom_jobs/${this.state.jobId}/output.svg`).then((blob) => {
                                 if (blob) {
                                     const blobUrl = URL.createObjectURL(blob);
                                     const downloadLink = document.createElement('a');
