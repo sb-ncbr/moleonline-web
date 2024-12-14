@@ -45640,6 +45640,9 @@ $(function() {
   $(window).on("resize", dgResize);
   $(window).on("contentResize", dgResize);
 
+  $(window).on("resize", doAfterCollapseActivated);
+  $(window).on("contentResize", doAfterCollapseActivated);
+
   fillSpaceOnResize("layer-residues", "right-tabs-1", "right-tabs", 39);
   fillSpaceOnResize("layer-properties", "right-tabs-1", "right-tabs", 59);
   // datagridOnResize("dg-lining-residues","right-tabs-2","right-tabs");
