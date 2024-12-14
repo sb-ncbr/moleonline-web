@@ -28,6 +28,7 @@ module.exports = [
                     { from: './sources/html/*', to: () => { return `html/[name][ext]`; }, globOptions: { ignore: ['**/index.html'] } },
                     { from: './sources/config/*', to: () => { return `config/[name][ext]`; } },
                     { from: './sources/templates/*', to: () => { return `html/templates/[name][ext]`; } },
+                    { from: './static/data/*', to: () => { return `static/[name][ext]`; } },
                 ]
             }),
         ],

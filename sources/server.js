@@ -25,9 +25,13 @@ app.post('/write-json', (req, res) => {
     });
 });
 
+app.get('/online/:sessionNumber/:submissionNumber', (req, res) => {
+    res.sendFile(path.join(__dirname, 'html/detail.html'));
+});
 app.get('/online/:sessionNumber', (req, res) => {
     res.sendFile(path.join(__dirname, 'html/detail.html'));
 });
+
 
 app.get('/online/templates/pdf-report.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'html/templates/pdf-report.html'));
