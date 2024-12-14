@@ -6,10 +6,9 @@
     <link rel="shortcut icon" href="\images/favicon.ico" type="image/icon">
 	<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1.0, user-scalable=1" />
     <title>MOLEOnline | Computation detail</title>
-	<link rel="stylesheet" href="../../node_modules/molstar/lib/mol-plugin-ui/skin/light.scss" type="text/scss" />
-	<link rel="stylesheet" href="../css/styles.css?version=R1.1.9.1" type="text/css" />
+	<link rel="stylesheet" href="/css/styles.css?version=R1.1.9.1" type="text/css" />
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-	<script src="../js/scripts.js?version=R1.1.9.1"></script>
+	<script src="/js/scripts.js?version=R1.1.9.1"></script>
 	<script>
 		function handleTabClick(event) {
 			// Prevent default tab switching
@@ -21,76 +20,13 @@
 </head>
 <body>
 	<div id="controls-tab" class="controls-tab"></div>
-	<!-- <div class="home-button" title="Home"><a href="/"> <img src="\images/molelogo.png"></a></div> -->
-	<!-- <div id="pdbid-sign" class="current-pbdbid-sign"></div> -->
 	<div id="pdf-report-generator" class="pdf-report-generator"></div>
-	<!-- <div id="annotate" class="annotate"></div>
-	<div id="download-report" class="download-button"></div>
-	<div id="help-button" class="help-button"></div> -->
 	<div id="alert-messages" class="detail"></div>
 	<div id="loading-screen"></div>
 	<div class="d-flex flex-row" style="height: 100vh;">
 		<div id="left-panel" class="left-panel"></div>
 		<div id="right-panel" style="flex: 3.5;"></div>
 	</div>
-
-	<!-- <div class="chdb-panel plugin" id="plugin"></div>        
-	<div class="chdb-panel sequence-viewer" id="sequence-viewer"></div>
-	<div class="chdb-panel bottom-panel" id="bottom-pannel">
-		<div class="left-tabs">
-			<div id="left-tabs">
-				<ul class="nav nav-tabs" role="tablist">
-					<li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" aria-current="page" href="#left-tabs-help"><span class="bi bi-question-circle"></span></a></li>
-					<li class="nav-item"><a class="nav-link" data-bs-toggle="tab" aria-current="page" href="#left-tabs-1">Profile</a></li>
-					<li class="nav-item"><a class="nav-link" data-bs-toggle="tab" aria-current="page" href="#left-tabs-2" onclick="handleTabClick(event)">Channels properties</a></li>
-				</ul>
-				<div class="tab-content" >
-					<div id="left-tabs-help" class="tab-pane show active">
-						<div class="quick-help" id="quick-help"></div>
-					</div>
-					<div id="left-tabs-1" class="tab-pane">
-						<div class="layerVizualizer" id="layer-vizualizer-ui"></div>
-					</div>
-					<div id="left-tabs-2" class="tab-pane">
-						<div class="aglomered-parameters" id="aglomered-parameters-ui"></div> 
-					</div>
-				</div>
-			</div>
-			<div id="bottom-tabs-toggler" class="toggler glyphicon glyphicon-resize-horizontal"></div>
-		</div>
-		<div class="right-tabs">
-			<div id="right-tabs">
-				<ul class="nav nav-tabs">
-					<li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" aria-current="page" href="#right-tabs-1" onclick="handleTabClick(event)">Layer</a></li>
-					<li class="nav-item"><a class="nav-link" data-bs-toggle="tab" aria-current="page" href="#right-tabs-2" onclick="handleTabClick(event)">Lining residues</a></li>
-					<li class="nav-item"><a class="nav-link" data-bs-toggle="tab" aria-current="page" title="Physico-chemical Properties"  href="#right-tabs-3" onclick="handleTabClick(event)">Phys. Chem. Properties</a></li>
-				</ul>
-				<div class="tab-content" >
-					<div id="right-tabs-1" class="tab-pane show active">
-						<div id="layer-residues">
-						</div>
-						<div id="layer-properties">
-						</div>
-					</div>
-					<div id="right-tabs-2" class="tab-pane">
-					</div>
-					<div id="right-tabs-3" class="tab-pane">
-					</div>
-				</div>
-			</div>
-		</div>	
-		<div id="bottom-panel-toggler" class="toggler glyphicon glyphicon-resize-vertical"></div>
-	</div> -->
-
-	<!-- <div class="chdb-panel right-panel">
-		<div id="right-panel-toggle-minimize" class="vertical-toggler">
-			<span class="glyphicon glyphicon-resize-horizontal"/>
-		</div>
-		<div id="ui" class="ui toggled">
-            <button id="process">Process</button>
-        </div>
-		<div id="controls" class="bottom toggled"></div>
-	</div> -->
-	<script src="../MOLEOnline_View-Core.js?version=R1.1.9.1"></script>
+	<script src="/MOLEOnline_View-Core.js?version=R1.1.9.1"></script>
 </body>
 </html>
