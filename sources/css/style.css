@@ -818,7 +818,7 @@ span.ATable-label {
     height: 50px;
     position: absolute;
     right: 0;
-    z-index: 3;
+    z-index: 1051;
 }
 
 .controls-tab.minimized {
@@ -1338,6 +1338,10 @@ span.ATable-label {
     font-size: 12px;
     line-height: 1.5;
     border-radius: 3px;
+}
+
+.msp-plugin .msp-layout-expanded {
+    z-index: 1050 !important;
 }
 
 @media only screen and (max-width: 1830px){
