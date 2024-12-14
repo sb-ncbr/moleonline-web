@@ -26,12 +26,6 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
     private currentProteinId: string;
 
     componentDidMount() {
-        let params = getParameters();
-        let channelsDB = false;
-        if (params !== null) {
-            channelsDB = params.isChannelsDB;
-        }
-        // this.load(channelsDB);
         this.setState({ data: this.props.data })
         $(window).on("contentResize", this.onContentResize.bind(this));
 
@@ -135,8 +129,15 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
                             <div>
                                 <b>Data for specified protein are not available.</b>
                             </div>
-                            <div>
+                            <div style={{wordWrap: "break-word"}}>
                                 <b>Reason:</b> <i dangerouslySetInnerHTML={{ __html: errorMessage }}></i>
+                            </div>
+                        </div>);
+                } else {
+                    controls.push(
+                        <div className="error-message">
+                            <div>
+                                <b>Data for specified protein are not available.</b>
                             </div>
                         </div>);
                 }
