@@ -95,13 +95,6 @@ gulp.task('merge-js-init', function() {
         "./node_modules/jquery/dist/jquery.min.js",
         "./node_modules/jquery-ui-dist/jquery-ui.min.js",
         "./node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
-        "./sources/js/canvas2svg.js",
-        "./sources/js/datagrid.js",
-        "./sources/js/html2canvas.js",
-        "./sources/js/Palette.js",
-        "./sources/js/svg2pdf.js",
-        "./sources/js/tabsConfig.js",
-        "./sources/js/jspdf.min.js",
     ])
     .pipe(concat("init-scripts.js"))
     .pipe(beautify({
