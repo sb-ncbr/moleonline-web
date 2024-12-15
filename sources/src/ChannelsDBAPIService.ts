@@ -156,13 +156,13 @@ export class ApiService {
     //link pro uniprot používá adresu http://www.uniprot.org/uniprot/
     private static createLink(type: string, reference: string): string {
         if (type === "DOI") {
-            return `http://dx.doi.org/${reference}`;
+            return `https://doi.org/${reference}`;
         }
         else if (type === "UniProt") {
-            return `http://www.uniprot.org/uniprot/${reference}`;
+            return `https://www.uniprot.org/uniprot/${reference}`;
         }
         else if (type === "PubMed") {
-            return `http://europepmc.org/abstract/MED/${reference}`;
+            return `https://europepmc.org/abstract/MED/${reference}`;
         }
         else {
             console.log(`Unknown reference type ${type} for reference ${reference}`);
