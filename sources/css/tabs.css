@@ -10,6 +10,21 @@
     padding-left:3px;
 }
 
+#right-panel-tabs{
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+#right-tabs {
+    display: flex;
+    flex-direction: column;
+    max-height: 33vh;
+}
+
+#right-tabs .tab-content {
+    overflow: hidden;
+}
+
 #left-tabs{
     padding-left:0;
     display: flex;

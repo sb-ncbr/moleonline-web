@@ -33,10 +33,21 @@ $( function() {
         $( window ).trigger('contentResize');
     });
 
-    $("#right-panel-toggle-minimize").on("click",function(){
-        $(".chdb-panel.right-panel").toggleClass("minimized");
-        $(".controls-tab").toggleClass("minimized");
+    // $("#right-panel-toggle-minimize").on("click",function(){
+    //     $(".chdb-panel.right-panel").toggleClass("minimized");
+    //     $(".controls-tab").toggleClass("minimized");
+    // });
+
+    $(document).on("click", "#left-panel-toggle-minimize", function() {
+        $(".left-panel").toggleClass("minimized");
+        $("#left-panel-tabs").find("a").toggleClass("disabled");
+        leftPanelTabs();
     });
+
+    // $("#left-panel-toggle-minimize").on("click",function(){
+    //     $(".left-panel").toggleClass("minimized");
+    //     leftPanelTabs();
+    // });
 
     var dropdownMenu;
     $(window).on('show.bs.dropdown', function(e) {
@@ -129,7 +140,6 @@ function doAfterCollapseActivated() {
     var checker = function () {
         const collapseSequence = $("#sequence-collapse")[0];
         const collapseBottomPanel = $("#bottom-panel-collapse")[0];
-        const changeViewButton = $("#view-change")[0];
         const plugin = $("#plugin")[0];
     
         const bottomPanel = $("#bottom-pannel");
@@ -151,25 +161,9 @@ function doAfterCollapseActivated() {
     
         const bottomPanelHeight = bottomPanel.attr("class").indexOf("show") >= 0 ? bottomPanel.height() : 0;
         const sequenceViewerHeight = sequenceViewer.attr("class").indexOf("show") >= 0 ? sequenceViewer.height() : 21;
-        let changeViewButtonBottom = 0;
-
-        if (sequenceViewer.attr("class").indexOf("show") >= 0) {
-            if (bottomPanel.attr("class").indexOf("show") >= 0) {
-                changeViewButtonBottom = bottomPanelHeight + sequenceViewerHeight + 21;
-            } else {
-                changeViewButtonBottom = sequenceViewerHeight + 21;
-            }
-        } else {
-            if (bottomPanel.attr("class").indexOf("show") >= 0) {
-                changeViewButtonBottom = bottomPanelHeight + sequenceViewerHeight;
-            } else {
-                changeViewButtonBottom = sequenceViewerHeight;
-            }
-        }
     
         collapseBottomPanel.style.bottom = `${bottomPanelHeight}px`;
         collapseSequence.style.bottom = `${sequenceViewerHeight + bottomPanelHeight}px`;
-        changeViewButton.style.bottom = `${changeViewButtonBottom}px`;
     };
     window.setTimeout(checker, 10);
 }

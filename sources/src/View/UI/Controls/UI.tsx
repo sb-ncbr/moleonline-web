@@ -1642,7 +1642,7 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
             <input className="btn btn-sm btn-primary clear-button" type="button" value="Clear" onClick={() => {
                 FormEvents.invokeOnClear(validationGroup + "_form");
             }} />
-            <div>
+            <div style={{marginLeft: "5px"}}>
                 <input className="btn btn-sm btn-primary submit-arrow" type="button" value=">" disabled={(!canShiftNext) ? true : void 0} data-value={(!canShiftNext || idx === void 0) ? void 0 : items[this.getNextIdx(idx)].value} onClick={this.changeSubmitIdByStep.bind(this)} />
                 <SimpleComboBox id="submissionComboSwitch" items={items} defaultSelectedIndex={idx} className="form-control submit-combo" onSelectedChange={this.onSubmitIdComboSelectChange.bind(this)} />
                 <input className="btn btn-sm btn-primary submit-arrow" type="button" value="<" disabled={(!canShiftPrev) ? true : void 0} data-value={(!canShiftPrev || idx == void 0) ? void 0 : items[this.getPrevIdx(idx)].value} onClick={this.changeSubmitIdByStep.bind(this)} />

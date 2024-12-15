@@ -164,6 +164,9 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                         <li className="nav-item"><a style={{ writingMode: "vertical-lr" }} className="nav-link active left-panel-tab" id="ui-tab" data-bs-toggle="tab" data-bs-target="#ui" role="tab" aria-controls="ui" aria-selected="true">Channels</a></li>
                         <li className="nav-item"><a style={{ writingMode: "vertical-lr" }} className="nav-link left-panel-tab" id="controls-tab" data-bs-toggle="tab" data-bs-target="#controls" role="tab" aria-controls="controls" aria-selected="true">Compute</a></li>
                     </ul>
+                    <div id="left-panel-toggle-minimize" className="vertical-toggler">
+                    <span className="bi bi-arrows-expand-vertical"/>
+                    </div>
                 </div>
             </div>
         } else {

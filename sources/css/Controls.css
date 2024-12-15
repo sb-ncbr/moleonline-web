@@ -4,6 +4,7 @@
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    max-height: 60vh;
 }
 
 .control-text span {
@@ -77,6 +78,7 @@
     display: flex;
     flex-wrap: wrap;
     padding-top: 5px;
+    padding-bottom: 5px;
 }
 
 .submit-form-container .submit {
@@ -203,11 +205,18 @@
     margin-right: 0;
 }
 
-.submit-parent .submit-arrow,
+.submit-parent .submit-arrow {
+    max-height: 3.5vh;
+    line-height: 2vh;
+    padding: 0.75vh 0px;
+    padding-left: 10px;
+    padding-right: 10px;
+    float: right;
+    height: initial;
+}
+
 .submit-parent .submit-combo {
     max-height: 3.5vh;
-    margin-top: 0.75vh;
-    margin-bottom: 0.75vh;
     line-height: 2vh;
     padding: 0.75vh 0px;
     padding-left: 10px;
@@ -454,7 +463,8 @@ only screen and (max-height: 900px) {
     .submit-form-container .kill-job-button,
     .submit-form-container .submit-arrow,
     .submit-form-container .submit-combo,
-    .submit-form-container .clear-button {
+    .submit-form-container .clear-button,
+    .submit-form-container .load-button {
         max-height: 4.5vh;
         margin-top: 2px;
         margin-bottom: 0.5vh;

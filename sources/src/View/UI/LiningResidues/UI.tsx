@@ -55,17 +55,11 @@ export class LiningResidues extends React.Component<{ }, State> {
 
     render() {
         if (this.state.data !== null) {
-            return (
-                <div>
-                    <DGTable {...this.state} />
-                    {/* <Controls {...this.state} /> */}
-                </div>
+            return (<DGTable {...this.state} />
             );
         }
 
-        return <div>
-            <DGNoData {...this.state} />
-        </div>
+        return <DGNoData {...this.state} />
     }
 }
 function residueStringToResidueLight(residue: string): LightResidueInfo {

@@ -25,8 +25,7 @@
 }
 .wrapper-container{
 	width: 100%;
-    position: absolute;
-    left: 0;
+    position: relative;
     margin: auto auto;
     padding-top: 3px;
     padding-left: 4px;
