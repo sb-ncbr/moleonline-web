@@ -1089,13 +1089,11 @@ export class Submission extends React.Component<{ data: ServiceSubmission, compu
 
     private reSubmit() {
         if (isMoleJob(this.props.data)) {
-            gtag('event', 'Submit', { 'event_category': 'MOLE' });
             BridgeEvents.invokeOnReSubmit(
                 ApiService.submitMoleJob(this.props.computationId, this.props.data.MoleConfig)
             );
         }
         else {
-            gtag('event', 'Submit', { 'event_category': 'Pores' });
             BridgeEvents.invokeOnReSubmit(
                 ApiService.submitPoresJob(this.props.computationId, this.props.data.PoresConfig)
             );
