@@ -7,3 +7,5 @@ debug.log
 tmp/
 dev/
 dist/
+sources/js/init-scripts.js
+sources/js/scripts.js
