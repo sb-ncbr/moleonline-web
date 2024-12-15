@@ -29,6 +29,7 @@ gulp.task("merge-js", function() {
     return gulp.src([
         "./node_modules/jquery/dist/jquery.min.js",
         "./node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
+        "./node_modules/utf8/utf8.js",
         "./sources/js/jquery-ui.js",
         "./sources/js/jspdf.min.js",
         "./sources/js/canvas2svg.js",
@@ -37,7 +38,6 @@ gulp.task("merge-js", function() {
         "./sources/js/Palette.js",
         "./sources/js/svg2pdf.js",
         "./sources/js/tabsConfig.js",
-        "./sources/js/utf8.js",
     ])
     .pipe(concat("scripts.js"))
     .pipe(beautify({
@@ -101,7 +101,6 @@ gulp.task('merge-js-init', function() {
         "./sources/js/Palette.js",
         "./sources/js/svg2pdf.js",
         "./sources/js/tabsConfig.js",
-        "./sources/js/utf8.js",
         "./sources/js/jspdf.min.js",
     ])
     .pipe(concat("init-scripts.js"))
