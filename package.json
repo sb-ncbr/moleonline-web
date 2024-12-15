@@ -40,6 +40,7 @@
     "http-server": "^14.1.1",
     "immutable": "^4.3.7",
     "jquery": "^3.7.1",
+    "jquery-ui-dist": "^1.13.3",
     "lodash": "^4.17.21",
     "merge2": "^1.0.3",
     "molstar": "^4.5.0",
