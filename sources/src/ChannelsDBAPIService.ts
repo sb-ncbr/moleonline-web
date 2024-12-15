@@ -1,6 +1,4 @@
 import { AnnotationObject, Annotations, ChannelsDBChannels, ChannelsDBData, Tunnel } from "./DataInterface";
-// import LiteMoleEvent = LiteMol.Bootstrap.Event;
-// import FastMap = LiteMol.Core.Utils.FastMap;
 import { Fetching } from "./FetchingIf";
 import { CommonOptions, DataSources } from "../config/common";
 
