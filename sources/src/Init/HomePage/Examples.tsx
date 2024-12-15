@@ -151,7 +151,7 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
                                     {example.title} (PDB ID:{' '}
                                         {example.id}
                                     ); DOI:{' '}
-                                    <a target="_blank" href={`http://dx.doi.org/${example.doi}`}>
+                                    <a target="_blank" href={`https://doi.org/${example.doi}`}>
                                         {example.doi}
                                     </a>
                                 </figcaption>
@@ -189,7 +189,7 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
                                     {example.title} (PDB ID:{' '}
                                         {example.id}
                                     ); DOI:{' '}
-                                    <a target="_blank" href={`http://dx.doi.org/${example.doi}`}>
+                                    <a target="_blank" href={`https://doi.org/${example.doi}`}>
                                         {example.doi}
                                     </a>
                                 </figcaption>

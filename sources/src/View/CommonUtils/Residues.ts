@@ -552,24 +552,3 @@ export class Residues {
         return centerOfMass;
     }
 }
-
-// function getNodeFromTree(root: LiteMol.Bootstrap.Entity.Any, ref: string): LiteMol.Bootstrap.Entity.Any | null {
-//     if (root.ref === ref) {
-//         return root;
-//     }
-//     for (let c of root.children) {
-//         let n = getNodeFromTree(c, ref);
-//         if (n !== null) {
-//             return n;
-//         }
-//     }
-
-//     return null;
-// }
-
-// function removeNodeFromTree(plugin: LiteMol.Plugin.Controller, nodeRef: string) {
-//     let obj = getNodeFromTree(plugin.root, nodeRef);
-//     if (obj !== null) {
-//         LiteMol.Bootstrap.Tree.remove(obj);
-//     }
-// }

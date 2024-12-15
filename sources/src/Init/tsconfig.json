@@ -37,8 +37,6 @@
     "skipDefaultLibCheck": true
   },
   "files": [
-    /*"../../provided/src/react.d.ts",
-    "../../provided/src/react-dom.d.ts",*/
 
     "../../config/common.ts",
     // "../../../tmp/config.ts",  //TODO dont know what this should be

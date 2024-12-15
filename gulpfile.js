@@ -27,8 +27,10 @@ exports.watchSass = watchSass;
 
 gulp.task("merge-js", function() {
     return gulp.src([
-        "./sources/js/jquery-3.7.1.js",
-        "./sources/js/jquery-ui.js",
+        "./node_modules/jquery/dist/jquery.min.js",
+        "./node_modules/jquery-ui-dist/jquery-ui.min.js",
+        "./node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
+        "./node_modules/utf8/utf8.js",
         "./sources/js/jspdf.min.js",
         "./sources/js/canvas2svg.js",
         "./sources/js/datagrid.js",
@@ -36,8 +38,6 @@ gulp.task("merge-js", function() {
         "./sources/js/Palette.js",
         "./sources/js/svg2pdf.js",
         "./sources/js/tabsConfig.js",
-        "./sources/js/utf8.js",
-        "./sources/js/bootstrap.min.js",
     ])
     .pipe(concat("scripts.js"))
     .pipe(beautify({
@@ -50,7 +50,8 @@ gulp.task("merge-js", function() {
 
 gulp.task('merge-css', function() {
     return gulp.src([
-        "./sources/css/bootstrap.min_5.3.3.css",
+        "./node_modules/bootstrap/dist/css/bootstrap.min.css",
+        "./node_modules/jquery-ui-dist/jquery-ui.min.css",
         "./sources/css/AglomeredParameters.css",
         "./sources/css/AlertMessages.css",
         "./sources/css/annotate.css",
@@ -63,7 +64,6 @@ gulp.task('merge-css', function() {
         "./sources/css/DownloadReport.css",
         "./sources/css/FromLiteMol.css",
         "./sources/css/Help.css",
-        "./sources/css/jquery-ui.css",
         "./sources/css/LayerVizualizerStyles.css",
         "./sources/css/lining-residues.css",
         "./sources/css/LoadingScreen.css",
@@ -83,8 +83,8 @@ gulp.task('merge-css', function() {
 
 gulp.task('merge-css-init', function() {
     return gulp.src([
-        "./sources/css/init/bootstrap.min.css",
-        "./sources/css/frontend/styles.css",
+        "./node_modules/bootstrap/dist/css/bootstrap.min.css",
+        "./sources/css/init/styles.css",
     ])
     .pipe(concat("init-styles.css"))
     .pipe(gulp.dest("./sources/css"))
@@ -92,17 +92,9 @@ gulp.task('merge-css-init', function() {
 
 gulp.task('merge-js-init', function() {
     return gulp.src([
-        "./sources/js/jquery-3.7.1.js",
-        "./sources/js/jquery-ui.js",
-        "./sources/js/bootstrap.min.js",
-        "./sources/js/canvas2svg.js",
-        "./sources/js/datagrid.js",
-        "./sources/js/html2canvas.js",
-        "./sources/js/Palette.js",
-        "./sources/js/svg2pdf.js",
-        "./sources/js/tabsConfig.js",
-        "./sources/js/utf8.js",
-        "./sources/js/jspdf.min.js",
+        "./node_modules/jquery/dist/jquery.min.js",
+        "./node_modules/jquery-ui-dist/jquery-ui.min.js",
+        "./node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
     ])
     .pipe(concat("init-scripts.js"))
     .pipe(beautify({

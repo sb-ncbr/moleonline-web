@@ -7,3 +7,8 @@ debug.log
 tmp/
 dev/
 dist/
+sources/js/init-scripts.js
+sources/js/scripts.js
+sources/css/init-styles.css
+sources/css/styles.css
+

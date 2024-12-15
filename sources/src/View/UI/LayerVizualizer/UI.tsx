@@ -62,9 +62,6 @@ async function showLayerResidues3DAndFocus(layerIds: number[], data: LayerData[]
         await Context.getInstance().visual.select({ data: residues, focusCenter: true });
 }
 
-// export function render(vizualizer: Vizualizer, target: Element, plugin: LiteMol.Plugin.Controller) {
-//     LiteMol.Plugin.ReactDOM.render(<App vizualizer={vizualizer} controller={plugin} />, target);
-// }
 
 type TunnelWithMetaData = DataTunnel & TunnelMetaInfo;
 

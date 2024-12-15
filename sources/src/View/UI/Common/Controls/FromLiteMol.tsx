@@ -1,5 +1,4 @@
 import React from "react";
-// import LMControls = LiteMol.Plugin.Controls;
 import { Tooltips } from "../../../CommonUtils/Tooltips";
 import { Events } from "../../../CommonUtils/FormEvents";
 import { flattenPoints, flattenResidues, parsePoint, parseResidues } from "../../../CommonUtils/Misc";
