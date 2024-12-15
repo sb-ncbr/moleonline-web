@@ -84,7 +84,7 @@ gulp.task('merge-css', function() {
 gulp.task('merge-css-init', function() {
     return gulp.src([
         "./sources/css/init/bootstrap.min.css",
-        "./sources/css/frontend/styles.css",
+        "./sources/css/init/styles.css",
     ])
     .pipe(concat("init-styles.css"))
     .pipe(gulp.dest("./sources/css"))
