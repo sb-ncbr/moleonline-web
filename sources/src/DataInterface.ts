@@ -8,7 +8,8 @@ export interface LayerGeometry {
     StartDistance: number,
     EndDistance: number,
     LocalMinimum: boolean,
-    Bottleneck: boolean
+    Bottleneck: boolean,
+    bottleneck: boolean
 };
 export interface Layerweightedproperties {
     Hydrophobicity: number,
