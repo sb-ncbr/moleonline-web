@@ -89,8 +89,29 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                 }
                 Tunnels.invokeOnTunnelsLoaded();
                 this.setState({ channelsData: channels, isLoadingChannels: false })
-            }).catch(error => {
-                this.setState({isLoadingChannels: false, error })
+            }).catch(async error => {
+                if (info.Submissions.length === 0) {
+                    this.setState({isLoadingChannels: false, error })
+                    return;
+                }
+                try {
+                    for (const submission of info.Submissions) {
+                        const submitId = Number(submission.SubmitId);
+        
+                        const data = await ApiService.getChannelsData(compId, submitId)
+                        let dataObj = JSON.parse(data) as MoleData;
+                        if (dataObj !== undefined && dataObj.Channels !== undefined) {
+                            const guidData = generateGuidAll(dataObj.Channels)
+                            TunnelName.reload({Channels: guidData}, submitId.toString())
+                            Tunnels.addChannels(submitId.toString(), guidData);
+                            channels.set(submitId, guidData);
+                        }
+                    }
+                    Tunnels.invokeOnTunnelsLoaded();
+                    this.setState({ channelsData: channels, isLoadingChannels: false })
+                } catch (error) {
+                    this.setState({isLoadingChannels: false, error })
+                }
             });
         }).bind(this))
     }
@@ -151,18 +172,18 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
         if (!this.state.isLoading && !this.state.isLoadingChannels) {
             return <div className="d-flex flex-column h-100">
                 <div className="tab-content">
-                    <div id="ui" className="toggled tab-pane show active" role="tabpanel">
+                    <div id="ui" className={`toggled tab-pane ${this.state.channelsData.size === 0 ? '' : 'show active'}`} role="tabpanel">
                         <ChannelsControl computationId={this.state.compId} submissions={this.state.channelsData} />
                     </div>
-                    <div id="controls" className="bottom toggled tab-pane flex flex-column" role="tabpanel">
+                    <div id="controls" className={`bottom toggled tab-pane flex flex-column ${this.state.channelsData.size === 0 ? 'show active' : ''}`} role="tabpanel">
                         <PluginControl data={this.state.data} />
                         <PluginReactContext.Provider value={this.props.context.plugin}><Controls /></PluginReactContext.Provider>
                     </div>
                 </div>
                 <div id="left-panel-tabs" className="left-panel-tabs">
                     <ul className="nav nav-tabs flex-column" role="tablist">
-                        <li className="nav-item"><a style={{ writingMode: "vertical-lr" }} className="nav-link active left-panel-tab" id="ui-tab" data-bs-toggle="tab" data-bs-target="#ui" role="tab" aria-controls="ui" aria-selected="true">Channels</a></li>
-                        <li className="nav-item"><a style={{ writingMode: "vertical-lr" }} className="nav-link left-panel-tab" id="controls-tab" data-bs-toggle="tab" data-bs-target="#controls" role="tab" aria-controls="controls" aria-selected="true">Compute</a></li>
+                        <li className="nav-item"><a style={{ writingMode: "vertical-lr" }} className={`nav-link ${this.state.channelsData.size === 0 ? '' : 'active'} left-panel-tab`} id="ui-tab" data-bs-toggle="tab" data-bs-target="#ui" role="tab" aria-controls="ui" aria-selected="true">Channels</a></li>
+                        <li className="nav-item"><a style={{ writingMode: "vertical-lr" }} className={`nav-link ${this.state.channelsData.size === 0 ? 'active' : ''} left-panel-tab`} id="controls-tab" data-bs-toggle="tab" data-bs-target="#controls" role="tab" aria-controls="controls" aria-selected="true">Compute</a></li>
                     </ul>
                     <div id="left-panel-toggle-minimize" className="vertical-toggler">
                     <span className="bi bi-arrows-expand-vertical"/>
