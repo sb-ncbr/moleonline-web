@@ -610,7 +610,7 @@ class PropertyColorTunnel extends React.Component<{ state: State }, { property: 
     render() {
         return (
             <span className="block-like">
-                <span id="color-tunnel-span" className="control-label">Color tunnel: </span>
+                <span id="color-tunnel-span" className="control-label">Colour the tunnel in Mol*: </span>
                 <input type='checkbox'
                     checked={this.state.checked}
                     onChange={() => {
