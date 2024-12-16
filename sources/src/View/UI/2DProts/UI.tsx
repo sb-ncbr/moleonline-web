@@ -16,20 +16,17 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
     }
 
     private async startComputation() {
-        const pdbid = TwoDProtsBridge.getPdbId();
         this.setState({canceled: false});
-        if (pdbid === undefined) {
-            this.setState({ isComputing: false, jobId: '', error: <div className="text-danger">Error: 2DProts can't compute on custom structures yet</div> })
-            return;
-        }
         let params = getParameters();
         if (params === null) {
             this.setState({ isComputing: false, jobId: '', error: `Cannot get structure url` });
             return;
         }
+        const submitId = params.submitId;
+        const computationId = params.computationId;
         try {
-            await TwoDProtsProxy.Watcher.startJob(
-                `https://files.rcsb.org/download/${pdbid}.cif`,
+            TwoDProtsProxy.Watcher.startJob(
+                `https://api.mole.upol.cz/Data/${computationId}?submitId=${submitId}&format=molecule`,
                 TwoDProtsBridge.getVizualizedChannels(),
                 (status, jobId, errorMsg) => {
                     console.log(`2DProts Job Status: ${status}`);
@@ -42,12 +39,12 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
                     }
                 },
                 (error => {
-                    this.setState({ isComputing: false, jobId: '', error: <div className="text-danger">Error: {error}</div> })
+                    this.setState({ isComputing: false, jobId: '', error: <div className="text-danger">Error: {error.message}</div> })
                 })
             )
         } catch (error) {
             console.error('Error sending JSON to backend:', error);
-            this.setState({ isComputing: false, jobId: '', error: <div className="text-danger">Error: {error}</div> })
+            this.setState({ isComputing: false, jobId: '', error: <div className="text-danger">Error: {error.message}</div> })
         }
     }
 
