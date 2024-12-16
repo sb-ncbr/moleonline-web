@@ -431,8 +431,8 @@ export class Context {
 
         props.id = channel.Id;
         props.type = channel.Type;
-        props.highlight_label = `<b>${channel.Type} (${name})</b>, Length: ${len} Å`;
-        props.label = `${channel.Type} ${channel.Id} (${name})`;
+        props.highlight_label = `<b>${channel.Type} ${name ? '(' + name + ')' : ''}</b>, Length: ${len} Å`;
+        props.label = `${channel.Type} ${channel.Id} ${name ? '(' + name + ')' : ''}`;
         props.description = `Length: ${len} Å`;
 
         const repr = await update
