@@ -1594,7 +1594,7 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
         let canShiftNext = this.canShiftNext();
         return <div className="submit-parent">
             {this.props.isLoading || this.state.submitLoading
-                ? <button className="btn btn-sm btn-primary submit" type="submit" id="controls-submit" disabled>
+                ? <button className="btn btn-sm btn-success submit" type="submit" id="controls-submit" disabled>
                     <span
                         id="controls-loader"
                         className="spinner-border spinner-border-sm me-2"
@@ -1603,22 +1603,7 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
                     ></span>
                     Submit
                 </button>
-                : <button className="btn btn-sm btn-primary submit" type="submit" id="controls-submit">Submit</button>}
-            {/* <button className="btn btn-sm btn-primary submit" type="submit" id="controls-submit">
-                {this.props.isLoading || this.state.submitLoading ? <span
-                    id="controls-loader"
-                    className="spinner-border spinner-border-sm me-2"
-                    role="status"
-                    aria-hidden="true"
-                ></span> : <></>}
-                Submit
-            </button> */}
-            {/* <input className="btn btn-sm btn-primary submit" type="submit" value="Submit" /> */}
-            {/* <div
-                className={`spinner-border spinner-border-sm ms-2 ${this.state.submitLoading ? "" : "d-none"}`}
-                role="status"
-                aria-hidden="true"
-            ></div> */}
+                : <button className="btn btn-sm btn-success submit" type="submit" id="controls-submit">Submit</button>}
             <label className="btn btn-sm btn-primary load-button">
                 Load params
                 <input
