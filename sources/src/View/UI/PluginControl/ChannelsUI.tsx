@@ -114,7 +114,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
 
         Events.subscribeChangeSubmitId(this.handleTunnelsCollect.bind(this));
         let params = getParameters();
-        if (params === null) {
+        if (params === null || params.submitId === 0) {
             if (this.props.submissions.size !== 0) this.setState({ currentSubmitId: Array.from(this.props.submissions.keys())[0] })
         } else {
             this.setState({ currentSubmitId: params.submitId })
