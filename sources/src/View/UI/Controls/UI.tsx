@@ -1547,7 +1547,7 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
         return idx - 1;
     }
 
-    private handleOnreaderload(reader: FileReader, props: Readonly<ControlButtonsProps>) {
+    private handleOnReaderLoad(reader: FileReader, props: Readonly<ControlButtonsProps>) {
         if (props === undefined || props.setOpenControls === undefined) {
             return;
         }
@@ -1579,7 +1579,7 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
         const file = event.target.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = () => this.handleOnreaderload(reader, this.props);
+            reader.onload = () => this.handleOnReaderLoad(reader, this.props);
             reader.readAsText(file);
             event.target.value = '';
         }
@@ -1647,7 +1647,7 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
                     ApiService.killRunningJob(this.props.computationInfo.ComputationId).then((result) => {
                         if (result.Status !== "Aborted") {
                             BridgeEvents.invokeNotifyMessage({
-                                message: (result.ErrorMsg.length === 0) ? "Attempt to kill job was not successfull." : result.ErrorMsg,
+                                message: (result.ErrorMsg.length === 0) ? "Attempt to kill job was not successful." : result.ErrorMsg,
                                 messageType: "Warning"
                             });
                             return;
@@ -1681,7 +1681,7 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
                     }
                     ApiService.deleteProject(this.props.computationInfo.ComputationId).then(() => {
                         BridgeEvents.invokeNotifyMessage({
-                            message: "Current computation was succesfuly deleted. You will be redirected to initial page.",
+                            message: "Current computation was successfully deleted. You will be redirected to initial page.",
                             messageType: "Success"
                         });
                         window.setTimeout(() => {

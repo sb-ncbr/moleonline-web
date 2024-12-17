@@ -42,7 +42,7 @@ export class RightPanel extends React.Component<{ context: Context }, {twoDProts
             <div className="chdb-panel plugin flex-grow-1" id="plugin">
                 <div style={{visibility: this.state.twoDProts ? "collapse" : "visible"}}><Viewer context={this.props.context} /></div>
                 <div className="h-100 w-100" style={{visibility: this.state.twoDProts ? "visible" : "collapse"}}><TwoDProts /></div>
-                <button id="view-change" type="button" className="btn btn-outline-secondary change-view-button" onClick={() => {this.setState({twoDProts: !this.state.twoDProts})}}>{this.state.twoDProts ? <i className="bi bi-backspace"></i> : "2DProts"}</button>
+                <button id="view-change" type="button" className="btn btn-outline-secondary change-view-button" onClick={() => {this.setState({twoDProts: !this.state.twoDProts})}}>{this.state.twoDProts ? "Mol*": "2DProts"}</button>
             </div>
             <a className="sequence-viewer-header" id="sequence-collapse" onClick={() => {doAfterCollapseActivated()}} data-bs-toggle="collapse" href="#sequence-viewer" role="button" aria-expanded="false" aria-controls="sequence-viewer">Protein Sequence <span className="bi bi-arrows-expand"></span></a>
             <div className="chdb-panel sequence-viewer collapse" id="sequence-viewer">
