@@ -156,9 +156,9 @@ export class PluginControl extends React.Component<
         let submissionsControls: any[] = [];
 
         if (this.state.submissionsElems.size === 0) {
-            return <div className="ui-channels" style={{ height: '100%', padding: '0 0', marginRight: '0px' }}>
+            return <div className="ui-channels d-flex flex-column" style={{ maxHeight: '100vh', padding: '0 0', marginRight: '0px' }}>
                 <div>
-                    <div className="ui-header" style={{ margin: 0 }}>
+                    <div className="ui-header flex-grow-0 flex-shrink-0" style={{ margin: 0 }}>
                         Channels
                     </div>
                     <div className="no-channels-data">There are no channels available...</div>
@@ -188,16 +188,14 @@ export class PluginControl extends React.Component<
 
         let noChannelsData = <div className="no-channels-data">There are no channels available...</div>
 
-        return <div className="ui-channels" style={{ height: '100%', padding: '0 0', marginRight: '0px' }}>
-            <div>
-                <div className="ui-header channels-header" style={{ margin: 0 }}>
+        return <div className="ui-channels d-flex flex-column" style={{ maxHeight: '100vh', padding: '0 0', marginRight: '0px' }}>
+                <div className="ui-header channels-header flex-grow-0 flex-shrink-0" style={{ margin: 0 }}>
                     <span>Channels</span>
                     <button className="btn btn-primary btn-sm bt-none" style={{ marginTop: '0.5em', marginBottom: '0.5em' }} onClick={e => this.toggle(e)}>Hide all</button>
                 </div>
-                <div className="accordion h-100" id="channelsAccordion">
+                <div className="accordion flex-fill overflow-auto" id="channelsAccordion">
                     {(submissionsControls.length === 0) ? noChannelsData : submissionsControls}
                 </div>
-            </div>
         </div>;
     }
 }
