@@ -240,8 +240,8 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
 
     private getAnnotationToggler() {
         return [(this.state.isAnnotationsVisible)
-            ? <span className="hand glyphicon glyphicon-chevron-up" title="Hide list annotations for this channel" onClick={this.toggleAnnotations.bind(this)} />
-            : <span className="hand glyphicon glyphicon-chevron-down" title="Show all annotations available for this channel" onClick={this.toggleAnnotations.bind(this)} />];
+            ? <span className="hand bi bi-chevron-up" title="Hide list annotations for this channel" onClick={this.toggleAnnotations.bind(this)} />
+            : <span className="hand bi bi-chevron-down" title="Show all annotations available for this channel" onClick={this.toggleAnnotations.bind(this)} />];
     }
 
     private getAnnotationsElements() {
@@ -255,7 +255,7 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
         for (let annotation of this.props.annotations) {
             let reference = <i>(No reference provided)</i>;
             if (annotation.reference !== "") {
-                reference = <a target="_blank" href={annotation.link}>{annotation.reference} <span className="glyphicon glyphicon-new-window" /></a>;
+                reference = <a target="#" href={annotation.link}>{annotation.reference} <span className="bi-box-arrow-up-right" /></a>;
             }
             elements.push(
                 <div className="annotation-line">
@@ -269,7 +269,7 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
     render() {
         let emptyToggler;
         if (isInChannelsDBMode()) {
-            emptyToggler = <span className="disabled glyphicon glyphicon-chevron-down" title="No annotations available for this channel" onClick={this.toggleAnnotations.bind(this)} />
+            emptyToggler = <span className="disabled bi bi-chevron-down" title="No annotations available for this channel" onClick={this.toggleAnnotations.bind(this)} />
         }
         return <div className="ui-label">
             <input type='checkbox' checked={!!this.props.element.__isVisible} onChange={() => this.toggle()} disabled={!!this.props.element.__isBusy} />
