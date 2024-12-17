@@ -9,7 +9,7 @@ import { Tunnels } from "../../CommonUtils/Tunnels";
 import { ChannelsDBData, LastVisibleChannels, TunnelName } from "../../../Cache";
 import { ChannelAnnotation } from "../../../ChannelsDBAPIService";
 import { isInChannelsDBMode } from "../../../Common/Util/Router";
-import { generateGuidAll, showChannelVisuals } from "../../State";
+import { generateGuidAll, showChannelVisuals, showDefaultVisuals } from "../../State";
 import { Context } from "../../Context";
 import { Representation } from "molstar/lib/mol-repr/representation";
 import { EmptyLoci, Loci } from "molstar/lib/mol-model/loci";
@@ -92,6 +92,8 @@ export class PluginControl extends React.Component<{ computationId: string, subm
         })
 
         Events.subscribeChangeSubmitId(this.handleTunnelsCollect.bind(this));
+
+        showDefaultVisuals(this.props.submissions).then(() => this.forceUpdate());
 
         // Tunnels.attachOnTunnelsCollect(this.handleTunnelsCollect);
 
