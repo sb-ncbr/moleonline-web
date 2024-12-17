@@ -170,7 +170,7 @@ export class QuickHelp extends React.Component<{}, State> {
             }
         }
         hints.push(<div>
-            For more information see <a target="blank" href="/documentation/">documentation page</a>.
+            For more information see <a target="blank" href="https://github.com/sb-ncbr/moleonline-web/wiki">documentation page</a>.
         </div>);
         return <div>
             <h3>Quick help</h3>
