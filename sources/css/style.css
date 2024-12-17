@@ -1296,6 +1296,7 @@ input[type=radio] {
     flex: 1;
     min-width: 330px;
     border: 1px solid #e5e5e5;
+    background-color: white;
 }
 
 .left-panel-tab {
@@ -1666,7 +1667,7 @@ only screen and (max-height: 542px) {
     }
 
     .left-panel {
-        position: absolute;
+        position: fixed;
         height: 100vh;
         z-index: 910;
         left: 0;
