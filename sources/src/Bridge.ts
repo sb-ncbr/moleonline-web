@@ -36,6 +36,7 @@ export interface ToggleSequenceViewerParams { minimized: boolean };
 type SimpleHandler = (args?: any) => any;
 
 export type NewSubmitHandler = (submitId: number) => void;
+export type SubmitDoneHandler = (submitId: number) => void;
 export type ChangeSubmitIdHandler = (submitId: number) => void;
 export type ChannelSelectHandler = (channelId: number) => void;
 export type ChangeHasKillableHandler = (hasKillable: boolean) => void;
@@ -50,6 +51,7 @@ export type OnMembraneDataReadyHandler = () => void;
 
 namespace HandlerTypes {
     export const NewSubmitType = "NEW-SUBMIT";
+    export const SubmitDoneType = "SUBMIT-DONE";
     export const ChangeSubmitIdType = "CHANGE-SUBMIT-ID";
     export const ChannelSelectType = "CHANNEL-SELECT";
     export const ChangeHasKillableType = "CHANGE-HAS-KILLABLE";
@@ -64,6 +66,7 @@ namespace HandlerTypes {
     export const OnMembraneDataReadyType = "ON-MEMBRANE-DATA-READY";
 
     export type NewSubmit = "NEW-SUBMIT";
+    export type SubmitDone = "SUBMIT-DONE";
     export type ChangeSubmitId = "CHANGE-SUBMIT-ID";
     export type ChannelSelect = "CHANNEL-SELECT";
     export type ChangeHasKillable = "CHANGE-HAS-KILLABLE";
@@ -90,7 +93,8 @@ type HandlerType = HandlerTypes.NewSubmit
     | HandlerTypes.CopyParameters
     | HandlerTypes.OnReSubmit
     | HandlerTypes.OnSequneceViewerToggle
-    | HandlerTypes.OnMembraneDataReady;
+    | HandlerTypes.OnMembraneDataReady
+    | HandlerTypes.SubmitDone;
 
 export class Events {
     private static handlers = new Map<HandlerType, SimpleHandler[]>();
@@ -126,6 +130,24 @@ export class Events {
 
     public static invokeNewSubmit(submitId: number) {
         let hndlrs = this.handlers.get(HandlerTypes.NewSubmitType);
+        if (hndlrs !== void 0) {
+            for (let h of hndlrs) {
+                h(submitId);
+            }
+        }
+    }
+
+    public static subscribeSubmitDone(h: SubmitDoneHandler) {
+        let list = this.handlers.get(HandlerTypes.SubmitDoneType);
+        if (list === void 0) {
+            list = [];
+        }
+        list.push(h);
+        this.handlers.set(HandlerTypes.SubmitDoneType, list);
+    }
+
+    public static invokeSubmitDone(submitId: number) {
+        let hndlrs = this.handlers.get(HandlerTypes.SubmitDoneType);
         if (hndlrs !== void 0) {
             for (let h of hndlrs) {
                 h(submitId);

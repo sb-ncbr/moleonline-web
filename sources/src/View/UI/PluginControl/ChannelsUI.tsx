@@ -23,9 +23,12 @@ import { SelectionHelper } from "../../CommonUtils/Selection";
 
 declare function $(p: any): any;
 
-export class PluginControl extends React.Component<{ computationId: string, submissions: Map<number, ChannelsDBChannels> }, { isLoading?: boolean, error?: string, data?: any, isWaitingForData?: boolean, submissions: Map<number, ChannelsDBChannels>, hideAll: boolean }> {
+export class PluginControl extends React.Component<
+    { computationId: string, submissions: Map<number, ChannelsDBChannels> },
+    { isLoading?: boolean, error?: string, data?: any, isWaitingForData?: boolean, submissions: Map<number, ChannelsDBChannels>, submissionsElems: Map<number, any[]>, hideAll: boolean, currentSubmitId: number }
+> {
     //TODO store selected/visualized tunnels for 2DProts
-    state = { isLoading: false, data: void 0, error: void 0, submissions: new Map<number, ChannelsDBChannels>(), hideAll: false };
+    state = { isLoading: false, data: void 0, error: void 0, submissions: new Map<number, ChannelsDBChannels>(), submissionsElems: new Map<number, any[]>(), hideAll: false, currentSubmitId: 0 };
 
     private toggle(e: React.MouseEvent<HTMLElement>) {
         e.preventDefault();
@@ -33,7 +36,6 @@ export class PluginControl extends React.Component<{ computationId: string, subm
     }
 
     handleTunnelsCollect = (submitId: number) => {
-        console.log(this.state);
         const submissions = this.getSubmissions();
         const tunnels = submissions.get(submitId);
         if (tunnels) {
@@ -62,36 +64,37 @@ export class PluginControl extends React.Component<{ computationId: string, subm
         }
     }
 
-    private currentProteinId: string;
-
     private getSubmissions() {
         return this.state.submissions;
     }
 
     componentDidMount() {
-        Events.subscribeNewSubmit(async (newSubmitId) => {
-            JobStatus.Watcher.registerOnChangeHandler(this.props.computationId, newSubmitId, async (status) => {
-                if (status.Status === "Finished") {
-                    if (!this.state.submissions.has(newSubmitId)) {
-                        const data = await ApiService.getChannelsData(this.props.computationId, newSubmitId)
-                        let dataObj = JSON.parse(data) as MoleData;
-                        if (dataObj !== undefined && dataObj.Channels !== undefined) {
-                            const submissions = this.state.submissions;
-                            const guidData = generateGuidAll(dataObj.Channels)
-                            TunnelName.reload({ Channels: guidData }, newSubmitId.toString());
-                            Tunnels.addChannels(newSubmitId.toString(), guidData);
-                            submissions.set(newSubmitId, guidData);
-                            Tunnels.invokeOnTunnelsLoaded();
-                            this.setState({ submissions })
-                        }
-                    }
+        Events.subscribeSubmitDone(async (newSubmitId) => {
+            if (!this.state.submissions.has(newSubmitId)) {
+                const data = await ApiService.getChannelsData(this.props.computationId, newSubmitId)
+                let dataObj = JSON.parse(data) as MoleData;
+                if (dataObj !== undefined && dataObj.Channels !== undefined) {
+                    const submissions = this.state.submissions;
+                    const guidData = generateGuidAll(dataObj.Channels)
+                    TunnelName.reload({ Channels: guidData }, newSubmitId.toString());
+                    Tunnels.addChannels(newSubmitId.toString(), guidData);
+                    submissions.set(newSubmitId, guidData);
+                    Tunnels.invokeOnTunnelsLoaded();
+                    const channelElems = this.createChannelElems(dataObj.Channels, newSubmitId)
+                    const currentSumbissionElems = this.state.submissionsElems;
+                    currentSumbissionElems.set(newSubmitId, channelElems);
+                    this.setState({ submissions, currentSubmitId: newSubmitId, submissionsElems: currentSumbissionElems })
                 }
-            }, (err) => {
-
-            })
+            }
+            Events.invokeToggleLoadingScreen({
+                message: "",
+                visible: false
+            });
         })
 
         Events.subscribeChangeSubmitId(this.handleTunnelsCollect.bind(this));
+        if (this.props.submissions.size !== 0) this.setState({ currentSubmitId: Array.from(this.props.submissions.keys())[0] })
+        this.saveChannelsElems();
 
         showDefaultVisuals(this.props.submissions).then(() => this.forceUpdate());
 
@@ -105,11 +108,54 @@ export class PluginControl extends React.Component<{ computationId: string, subm
         }).bind(this));
     }
 
+    private createChannelElems(submissionChannels: ChannelsDBChannels, submitId: number) {
+        const channels = new Map<String, any>();
+        const channelsControls: any[] = [];
+
+        channels.set('Merged pores', (!submissionChannels.MergedPores) ? [] : submissionChannels.MergedPores);
+        channels.set('Paths', (!submissionChannels.Paths) ? [] : submissionChannels.Paths);
+        channels.set('Pores', (!submissionChannels.Pores) ? [] : submissionChannels.Pores);
+        channels.set('Tunnels', (!submissionChannels.Tunnels) ? [] : submissionChannels.Tunnels);
+
+        channels.set('Reviewed Channels MOLE', (!submissionChannels.ReviewedChannels_MOLE) ? [] : submissionChannels.ReviewedChannels_MOLE);
+        channels.set('Reviewed Channels Caver', (!submissionChannels.ReviewedChannels_Caver) ? [] : submissionChannels.ReviewedChannels_Caver);
+        channels.set('CSA Tunnels MOLE', (!submissionChannels.CSATunnels_MOLE) ? [] : submissionChannels.CSATunnels_MOLE);
+        channels.set('CSA Tunnels Caver', (!submissionChannels.CSATunnels_Caver) ? [] : submissionChannels.CSATunnels_Caver);
+        channels.set('Transmembrane Pores MOLE', (!submissionChannels.TransmembranePores_MOLE) ? [] : submissionChannels.TransmembranePores_MOLE);
+        channels.set('Transmembrane Pores Caver', (!submissionChannels.TransmembranePores_Caver) ? [] : submissionChannels.TransmembranePores_Caver);
+        channels.set('Cofactor Tunnels MOLE', (!submissionChannels.CofactorTunnels_MOLE) ? [] : submissionChannels.CofactorTunnels_MOLE);
+        channels.set('Cofactor Tunnels Caver', (!submissionChannels.CofactorTunnels_Caver) ? [] : submissionChannels.CofactorTunnels_Caver);
+        channels.set('Procognate Tunnels MOLE', (!submissionChannels.ProcognateTunnels_MOLE) ? [] : submissionChannels.ProcognateTunnels_MOLE);
+        channels.set('Procognate Tunnels Caver', (!submissionChannels.ProcognateTunnels_Caver) ? [] : submissionChannels.ProcognateTunnels_Caver);
+        channels.set('AlphaFill Tunnels MOLE', (!submissionChannels.AlphaFillTunnels_MOLE) ? [] : submissionChannels.AlphaFillTunnels_MOLE);
+        channels.set('AlphaFill Tunnels_Caver', (!submissionChannels.AlphaFillTunnels_Caver) ? [] : submissionChannels.AlphaFillTunnels_Caver);
+
+        channels.forEach((val, key, map) => {
+            if (val.length > 0) {
+                channelsControls.push(
+                    <Channels channels={val} header={key.valueOf()} channelsDB={submitId === -1} submissionId={submitId === -1 ? 'ChannelsDB' : submitId.toString()} hide={this.state.hideAll} />
+                );
+            }
+        });
+
+        return channelsControls;
+    }
+
+    private saveChannelsElems() {
+        if (this.props.submissions === undefined) return;
+        let submissionsElems = new Map<number, any[]>()
+        for (const submitId of Array.from(this.props.submissions.keys())) {
+            const submissionChannels = this.props.submissions.get(submitId)
+            if (submissionChannels === undefined) continue;
+            submissionsElems.set(submitId, this.createChannelElems(submissionChannels, submitId))
+        }
+        this.setState({ submissionsElems })
+    }
+
     render() {
         let submissionsControls: any[] = [];
-        let first = true;
 
-        if (this.props.submissions === undefined) {
+        if (this.state.submissionsElems.size === 0) {
             return <div className="ui-channels" style={{ height: '100%', padding: '0 0', marginRight: '0px' }}>
                 <div>
                     <div className="ui-header" style={{ margin: 0 }}>
@@ -120,54 +166,24 @@ export class PluginControl extends React.Component<{ computationId: string, subm
             </div>;
         }
 
-        for (const submitId of Array.from(this.props.submissions.keys())) { //TODO can be fastforward with storing submissionsControls into state
-            const channels = new Map<String, any>();
-            let channelsControls: any[] = [];
-            const submissionChannels = this.props.submissions.get(submitId)
-            if (submissionChannels === undefined) continue;
-
-            channels.set('Merged pores', (!submissionChannels.MergedPores) ? [] : submissionChannels.MergedPores);
-            channels.set('Paths', (!submissionChannels.Paths) ? [] : submissionChannels.Paths);
-            channels.set('Pores', (!submissionChannels.Pores) ? [] : submissionChannels.Pores);
-            channels.set('Tunnels', (!submissionChannels.Tunnels) ? [] : submissionChannels.Tunnels);
-
-            channels.set('Reviewed Channels MOLE', (!submissionChannels.ReviewedChannels_MOLE) ? [] : submissionChannels.ReviewedChannels_MOLE);
-            channels.set('Reviewed Channels Caver', (!submissionChannels.ReviewedChannels_Caver) ? [] : submissionChannels.ReviewedChannels_Caver);
-            channels.set('CSA Tunnels MOLE', (!submissionChannels.CSATunnels_MOLE) ? [] : submissionChannels.CSATunnels_MOLE);
-            channels.set('CSA Tunnels Caver', (!submissionChannels.CSATunnels_Caver) ? [] : submissionChannels.CSATunnels_Caver);
-            channels.set('Transmembrane Pores MOLE', (!submissionChannels.TransmembranePores_MOLE) ? [] : submissionChannels.TransmembranePores_MOLE);
-            channels.set('Transmembrane Pores Caver', (!submissionChannels.TransmembranePores_Caver) ? [] : submissionChannels.TransmembranePores_Caver);
-            channels.set('Cofactor Tunnels MOLE', (!submissionChannels.CofactorTunnels_MOLE) ? [] : submissionChannels.CofactorTunnels_MOLE);
-            channels.set('Cofactor Tunnels Caver', (!submissionChannels.CofactorTunnels_Caver) ? [] : submissionChannels.CofactorTunnels_Caver);
-            channels.set('Procognate Tunnels MOLE', (!submissionChannels.ProcognateTunnels_MOLE) ? [] : submissionChannels.ProcognateTunnels_MOLE);
-            channels.set('Procognate Tunnels Caver', (!submissionChannels.ProcognateTunnels_Caver) ? [] : submissionChannels.ProcognateTunnels_Caver);
-            channels.set('AlphaFill Tunnels MOLE', (!submissionChannels.AlphaFillTunnels_MOLE) ? [] : submissionChannels.AlphaFillTunnels_MOLE);
-            channels.set('AlphaFill Tunnels_Caver', (!submissionChannels.AlphaFillTunnels_Caver) ? [] : submissionChannels.AlphaFillTunnels_Caver);
-
-            channels.forEach((val, key, map) => {
-                if (val.length > 0) {
-                    channelsControls.push(
-                        <Channels channels={val} header={key.valueOf()} channelsDB={submitId === -1} submissionId={submitId === -1 ? 'ChannelsDB' : submitId.toString()} hide={this.state.hideAll} />
-                    );
-                }
-            });
-
-            submissionsControls.push(
-                <div className="accordion-item">
-                    <h2 className="accordion-header">
-                        <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target={`#submission-${submitId}`} aria-expanded={first ? true : false} aria-controls={`submission-${submitId}`}>
-                            {submitId === -1 ? 'ChannelsDB' : `Submission-${submitId}`}
-                        </button>
-                    </h2>
-                    <div id={`submission-${submitId}`} className={`accordion-collapse collapse ${first ? 'show' : ''}`}>
-                        <div className="accordion-body">
-                            {channelsControls}
+        for (const submitId of Array.from(this.state.submissionsElems.keys())) {
+            let currentChannels = this.state.submissionsElems.get(submitId);
+            if (currentChannels) {
+                submissionsControls.push(
+                    <div className="accordion-item">
+                        <h2 className="accordion-header">
+                            <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target={`#submission-${submitId}`} aria-expanded={submitId === this.state.currentSubmitId ? true : false} aria-controls={`submission-${submitId}`}>
+                                {submitId === -1 ? 'ChannelsDB' : `Submission-${submitId}`}
+                            </button>
+                        </h2>
+                        <div id={`submission-${submitId}`} className={`accordion-collapse collapse ${submitId === this.state.currentSubmitId ? 'show' : ''}`}>
+                            <div className="accordion-body">
+                                {currentChannels}
+                            </div>
                         </div>
                     </div>
-                </div>
-
-            )
-            first = false;
+                )
+            }
         }
 
         let noChannelsData = <div className="no-channels-data">There are no channels available...</div>

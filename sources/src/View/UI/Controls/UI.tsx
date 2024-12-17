@@ -199,14 +199,10 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                     Provider.get(result.ComputationId, ((compId: string, info: CompInfo) => {
                         JobStatus.Watcher.registerOnChangeHandler(result.ComputationId, result.SubmitId, (status) => {
                             if (checkCanSubmit(status.Status)) {
-                                BridgeEvents.invokeToggleLoadingScreen({
-                                    message: "",
-                                    visible: false
-                                });
-
                                 let state = this.props.parent.state;
                                 state.canSubmit = true;
                                 this.props.parent.setState(state);
+                                BridgeEvents.invokeSubmitDone(result.SubmitId);
                             }
                         }, (err) => {
                             BridgeEvents.invokeNotifyMessage({

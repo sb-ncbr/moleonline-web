@@ -49,6 +49,15 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
         $(window).on("resize", (() => {
             this.forceUpdate();
         }).bind(this));
+
+        Events.subscribeToggleLoadingScreen(({message, visible}) => {
+            if (!visible) {
+                const uiTabsElement = document.querySelector('#ui-tab');
+                if (uiTabsElement) {
+                    (uiTabsElement as HTMLElement).click();
+                }
+            }
+        })
     }
 
     private onContentResize(_: any) {
