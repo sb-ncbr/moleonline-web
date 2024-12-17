@@ -624,11 +624,6 @@ only screen and (max-height: 900px) {
     margin-bottom: 0
 }
 
-.settings-form input.invalid.lm-form-control {
-    color: red !important;
-    background-color: #ffdfdf !important
-}
-
 .settings-form .tooltip>.tooltip-inner {
     min-width: 180px;
     min-height: 30px;
@@ -12022,12 +12017,6 @@ body {
     top: 25vh
 }
 
-.plugin .lm-highlight-info,
-.plugin .lm-background-tasks {
-    top: initial;
-    bottom: 40px
-}
-
 .right-panel {
     width: 25vw;
     height: 100vh;
@@ -12417,12 +12406,6 @@ span.ATable-label {
     cursor: pointer
 }
 
-.ui .lm-color-picker {
-    position: absolute;
-    width: 120px;
-    height: 80px
-}
-
 .ui label {
     font-weight: normal;
     margin-bottom: 2px
@@ -12755,10 +12738,6 @@ only screen and (max-height: 542px) {
     .right-panel.minimized {
         min-width: 4px
     }
-
-    .lm-viewport-controls {
-        margin-right: 15px
-    }
 }
 
 @media only screen and (max-width: 700px) {
@@ -12807,10 +12786,6 @@ only screen and (max-height: 542px) {
 }
 
 @media only screen and (max-width: 600px) {
-    .lm-viewport-controls {
-        margin-top: 35px
-    }
-
     .current-pbdbid-sign .glyphicon,
     .download-button .glyphicon,
     .annotate .glyphicon {

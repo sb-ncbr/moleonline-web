@@ -14,7 +14,6 @@ import { ParamDefinition } from "molstar/lib/mol-util/param-definition";
 import { CheckSvg } from "molstar/lib/mol-plugin-ui/controls/icons";
 
 
-
 declare function $(p: any, p1?: any): any;
 
 interface FormControl { }
@@ -207,72 +206,6 @@ function TextBoxOnBlur(e: React.FormEvent<HTMLInputElement>, validateFn?: ((valu
                 Tooltips.destroy(element);
             }
         })
-    }
-}
-
-interface TextBoxWithHelpProps extends TextBoxCommonProps {
-    hint: { link: string, title: string },
-    onMount?: (control: TextBoxWithHelp) => void
-};
-interface TextBoxWithHelpState extends TextBoxState {
-};
-export class TextBoxWithHelp extends React.Component<TextBoxWithHelpProps, TextBoxWithHelpState> implements FormControl {
-
-    state: TextBoxWithHelpState = { control: this.createControl(), value: this.props.defaultValue }
-
-    componentDidMount() {
-        if (this.props.onMount) {
-            this.props.onMount(this);
-        }
-    }
-
-    reset() {
-        this.setState({
-            value: this.props.defaultValue,
-            control: <div />
-        });
-        this.setState({
-            value: this.props.defaultValue,
-            control: this.createControl()
-        });
-    }
-
-    private createControl(props?: TextBoxWithHelpProps) {
-        if (props === void 0) {
-            props = this.props;
-        }
-        return <></>
-        //TODO
-        // return LMControls.TextBox({
-        //     defaultValue: props.defaultValue,
-        //     placeholder: props.placeholder,
-        //     onBlur: (e) => {
-        //         TextBoxOnBlur(e, this.props.validate, this.props.validationGroup);
-        //         e.preventDefault();
-        //     },
-        //     onChange: (v) => {
-        //         let s = this.state;
-        //         s.value = v;
-        //         this.setState(s);
-        //         if (this.props.onChange !== void 0) {
-        //             this.props.onChange(v);
-        //         }
-        //         if (this.props.validationGroup !== void 0) {
-        //             ValidationState.reset(this.props.validationGroup);
-        //         }
-        //     },
-        //     onKeyPress: (e) => {
-        //     }
-        // })
-    }
-
-    render() {
-        return <div className='lm-control-row lm-options-group' title={this.props.tooltip}>
-            <span>{this.props.label} <a className="hint" href={this.props.hint.link} target="_blank" title={this.props.hint.title}><span className="glyphicon glyphicon-info-sign" /></a></span>
-            <div>
-                {this.state.control}
-            </div>
-        </div>
     }
 }
 

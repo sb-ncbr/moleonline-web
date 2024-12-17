@@ -312,17 +312,6 @@ only screen and (max-height: 600px) {
     /* width:75vw; */
 }
 
-/* .sequence-viewer.bottom-panel-toggled{
-    top:25vh;
-} */
-
-
-.plugin .lm-highlight-info,
-.plugin .lm-background-tasks {
-    top: initial;
-    bottom: 40px;
-}
-
 .right-panel {
     width: 25vw;
     height: 100vh;
@@ -815,12 +804,6 @@ span.ATable-label {
     margin: 2px 2px -4px 4px;
     border: 1px solid black;
     cursor: pointer;
-}
-
-.ui .lm-color-picker {
-    position: absolute;
-    width: 120px;
-    height: 80px;
 }
 
 .ui label {
@@ -1682,10 +1665,6 @@ only screen and (max-height: 542px) {
         min-width: 4px;
     }
 
-    .lm-viewport-controls {
-        margin-right: 15px;
-    }
-
     .left-panel {
         position: absolute;
         height: 100vh;
@@ -1825,10 +1804,6 @@ only screen and (max-height: 542px) {
 }
 
 @media only screen and (max-width: 650px) {
-    .lm-viewport-controls {
-        margin-top: 35px;
-    }
-
     .current-pbdbid-sign .glyphicon,
     .download-button .glyphicon,
     .annotate-button .glyphicon,

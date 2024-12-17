@@ -404,11 +404,6 @@
     margin-bottom: 0;
 }
 
-.settings-form input.invalid.lm-form-control {
-    color: red !important;
-    background-color: #ffdfdf !important;
-}
-
 .settings-form .tooltip>.tooltip-inner {
     min-width: 180px;
     min-height: 30px;

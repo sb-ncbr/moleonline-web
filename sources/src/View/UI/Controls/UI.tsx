@@ -9,7 +9,6 @@ import { Events as FormEvents } from "../../CommonUtils/FormEvents";
 import { ApiService, CompInfo, ComputationStatus, MoleConfig, PoresConfig, Submission as ServiceSubmission } from "../../../MoleAPIService";
 import { MoleFormData, PoresFormData } from "./FormData";
 import { ComputationInfo, JobStatus } from "../../../DataProxy";
-// import { CheckBox, ComboBox, ComboBoxItem, ControlGroup, LMControlWrapper, NumberBox, StartingPointBox, TextBox, TextBoxWithHelp, ValidationState } from "../Common/Controls/FromLiteMol";
 import { TooltipText, WeightFunctions } from "../../../StaticData";
 import { validateChainsArray, validatePatternQuery, validateResidueSimpleArray } from "../../CommonUtils/Validators";
 import { flattenResidues, flattenResiduesArray, isMoleJob, parseResidues, pointsToString } from "../../CommonUtils/Misc";
