@@ -721,9 +721,8 @@ span.hint,div.hint {
     font-size: 14px;
     font-weight: normal;
     z-index: 1000;
-    margin: 4px 0 0 0;
     max-width: 385px;
-    margin-right: 15px;
+    margin: 4px 15px 0 0;
     position: relative;
     display: none
 }

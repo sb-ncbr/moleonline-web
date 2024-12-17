@@ -170,25 +170,8 @@ export class ApiService {
     }
 
     private static prepareInitUrl(pdbid: string, usePores: boolean, assemblyId?: string) {
-
-        let pores = (usePores) ? "Pores/" : "";
-        let opts: string[] = [];
-        let optional = "";
-        if (assemblyId !== void 0) {
-            optional = "?";
-        }
-
-        if (assemblyId !== void 0) {
-            opts.push(`assemblyId=${assemblyId}`);
-        }
-
-        for (let idx = 0; idx < opts.length; idx++) {
-            if (idx > 0) {
-                optional += "&";
-            }
-            optional += opts[idx];
-        }
-
+        const pores = usePores ? 'Pores/' : '';
+        const optional = assemblyId ? `?assemblyId=${assemblyId}` : '';
         return `${this.baseUrl}/Init/${pores}${pdbid}${optional}`;
     }
 

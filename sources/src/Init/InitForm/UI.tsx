@@ -1,15 +1,11 @@
-// import ApiService = MoleOnlineWebUI.Service.MoleAPI.ApiService;
-// import MoleAPI = MoleOnlineWebUI.Service.MoleAPI;
-// import LastNSessions = Common.Util.LastNSessions;
-
 import React from "react";
-import { ApiService, CompInfo, InitResponse } from "../../MoleAPIService";
-import { Events } from "../../Bridge";
-import { GlobalRouter } from "../../SimpleRouter";
-import { TabbedContainer } from "../../Common/UI/Tabs/BootstrapTabs";
-import { getNthSession, LAST_N_SESSIONS_N } from "../../Common/Util/LastNSessions";
-import { ComputationInfo } from "../../DataProxy";
-import { Routing } from "../../../config/common";
+import {ApiService, CompInfo, InitResponse} from "../../MoleAPIService";
+import {Events} from "../../Bridge";
+import {GlobalRouter} from "../../SimpleRouter";
+import {TabbedContainer} from "../../Common/UI/Tabs/BootstrapTabs";
+import {getNthSession, LAST_N_SESSIONS_N} from "../../Common/Util/LastNSessions";
+import {ComputationInfo} from "../../DataProxy";
+import {Routing} from "../../../config/common";
 import AlertMessages from "../../Common/UI/AlertMessages/UI";
 
 declare function $(p: any): any;
@@ -26,7 +22,7 @@ export class InitForm extends React.Component<{}, State> {
 
     state: State = {
         app: this,
-        useBiologicalUnit: false,
+        useBiologicalUnit: true,
         activeTabIdx: 0,
     };
 
@@ -40,10 +36,11 @@ export class InitForm extends React.Component<{}, State> {
         e.preventDefault();
 
         let form = e.target as HTMLFormElement;
-        $('#frm-jobSetup-setupForm-next').val('Submiting...');
-        $('#frm-jobSetup-setupForm-next').prop('disabled', true);
+        let $next = $('#frm-jobSetup-setupForm-next');
+        $next.val('Submitting...');
+        $next.prop('disabled', true);
 
-        let pdbid = "";
+        let pdbid = '';
         let assembly;
         let pores: boolean = false;
         let file;
@@ -56,16 +53,18 @@ export class InitForm extends React.Component<{}, State> {
                     pdbid = item.value;
                     break;
                 case 'assembly':
-                    assembly = (item.value !== "" && !item.disabled) ? item.value : void 0;
+                    assembly = (item.value !== '' && !item.disabled) ? item.value : void 0;
                     break;
                 case 'biological-unit':
-                    pores = (item.value !== "") ? item.checked : false;
+                    pores = (item.value !== '') ? item.checked : false;
                     break;
                 case 'file':
                     file = (item.files !== null) ? item.files[0] : void 0;
                     break;
             }
+            console.log(name, pores, assembly);
         }
+
         if (file === void 0 || file === null) {
             ApiService.initWithParams(pdbid, pores, assembly)
                 .then((response) => {
@@ -93,9 +92,10 @@ export class InitForm extends React.Component<{}, State> {
     }
 
     private handleFormSubmitResponse(response: InitResponse) {
+        let $next = $('#frm-jobSetup-setupForm-next');
         if (response.Status === "FailedInitialization") {
-            $('#frm-jobSetup-setupForm-next').prop('disabled', false);
-            $('#frm-jobSetup-setupForm-next').val('Submit');
+            $next.prop('disabled', false);
+            $next.val('Submit');
             Events.invokeNotifyMessage({
                 messageType: "Danger",
                 message: `API was unable to initialize computation with specified parameters. API responded with message: ${response.ErrorMsg}`
@@ -108,7 +108,7 @@ export class InitForm extends React.Component<{}, State> {
 
         if (response.Status === "Initialized") {
             console.log("Initialized");
-            $('#frm-jobSetup-setupForm-next').val('Initialized!');
+            $next.val('Initialized!');
             Events.invokeNotifyMessage({
                 messageType: "Success",
                 message: "Computation was successfully initialized. You will be redirected to detail page."
@@ -119,15 +119,15 @@ export class InitForm extends React.Component<{}, State> {
 
         if (response.Status === "Initializing") {
             console.log("Waiting for computation initialization...");
-            $('#frm-jobSetup-setupForm-next').val('Initializing computation...');
+            $next.val('Initializing computation...');
             window.setTimeout(this.waitForComputationInitialization.bind(this), 500);
             return;
         }
 
-        $('#frm-jobSetup-setupForm-next').prop('disabled', false);
+        $next.prop('disabled', false);
         Events.invokeNotifyMessage({
             messageType: "Danger",
-            message: `Unexpected computation status recieved from API: ${response.Status}`
+            message: `Unexpected computation status received from API: ${response.Status}`
         })
     }
 
@@ -147,7 +147,6 @@ export class InitForm extends React.Component<{}, State> {
     render() {
 
         let buttons = <input type="submit" name="next" className="button" id="frm-jobSetup-setupForm-next" value="Submit" />;
-        let content = this.formByPDBID();
         let tabs: JSX.Element[] = [];
 
         tabs.push(
@@ -201,16 +200,16 @@ export class InitForm extends React.Component<{}, State> {
                     <tr>
                         <td><label htmlFor="frm-jobSetup-setupForm-code">PDB ID</label>:</td>
                         <td>
-                            <input type="text" name="pdbid" maxLength={4} size={10} className="text" id="frm-jobSetup-setupForm-code" defaultValue="1tqn" />
+                            <input type="text" name="pdbid" maxLength={4} size={15} className="text" id="frm-jobSetup-setupForm-code" defaultValue="1tqn" />
                             <div className="hint">PDB ID code as can be found on www.pdb.org, for example 1z10.</div>
                         </td>
                     </tr>
 
                     <tr>
                         <td><label htmlFor="frm-jobSetup-setupForm-unit">Assembly ID (optional)</label>:</td>
-                        <td><input disabled={this.state.useBiologicalUnit} type="text" name="assembly" maxLength={3} size={10} className="text" id="frm-jobSetup-setupForm-unit" defaultValue="" />
+                        <td><input disabled={this.state.useBiologicalUnit} type="text" name="assembly" maxLength={3} size={15} className="text" id="frm-jobSetup-setupForm-unit" placeholder="(asymmetric unit)" />
                             <div className="hint">
-                                no value - assymetric unit (default)
+                                no value - asymmetric unit (default)
                             </div>
                         </td>
                     </tr>
@@ -264,7 +263,7 @@ export class InitForm extends React.Component<{}, State> {
             sessions.push(
                 <tr>
                     <td colSpan={4}>
-                        There are no last openned sessions available...
+                        There are no last opened sessions available...
                     </td>
                 </tr>
             );
@@ -303,7 +302,7 @@ export class InitForm extends React.Component<{}, State> {
 }
 
 interface LastSessionProps { session: string, parent: InitForm }
-interface LastSessionState { loaded: boolean, data: CompInfo | null };
+interface LastSessionState { loaded: boolean, data: CompInfo | null }
 class LastSession extends React.Component<LastSessionProps, LastSessionState> {
     state: LastSessionState = { loaded: false, data: null }
 
@@ -336,14 +335,13 @@ class LastSession extends React.Component<LastSessionProps, LastSessionState> {
                 assemblyId = this.state.data.AssemblyId;
             }
             if (assemblyId === null) {
-                assemblyId = "Assymetric unit"
+                assemblyId = "Asymmetric unit"
             }
 
             let submitIdParts = sessionUrl.split("/");
             let submission;
             if (submitIdParts.length === 2) {
-                let submitId = submitIdParts[1];
-                submission = submitId;
+                submission = submitIdParts[1];
             }
             return <tr onClick={() => {
                 GlobalRouter.redirect(`/online/${sessionUrl}`);
