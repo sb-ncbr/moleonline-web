@@ -482,7 +482,7 @@ class ColorBySwitch extends React.Component<{ state: State, coloringProperty: st
         let items = this.generateColorMenu();
         return (
             <span className="block-like">
-                <span className="control-label">Color by:</span> {items}
+                <span className="control-label">Colour by:</span> {items}
             </span>
         );
     }
@@ -511,7 +511,7 @@ class RadiusSwitch extends React.Component<{ state: State, radiusProperty: Radiu
         let items = this.generateRadiusSwitch();
         return (
             <span className="block-like">
-                <span className="control-label">Tunnel radius:</span> {items}
+                <span className="control-label">Channel radius:</span> {items}
             </span>
         );
     }
@@ -610,7 +610,7 @@ class PropertyColorTunnel extends React.Component<{ state: State }, { property: 
     render() {
         return (
             <span className="block-like">
-                <span id="color-tunnel-span" className="control-label">Colour the tunnel in Mol*: </span>
+                <span id="color-tunnel-span" className="control-label">Colour the channel in Mol*: </span>
                 <input type='checkbox'
                     checked={this.state.checked}
                     onChange={() => {
@@ -712,8 +712,8 @@ class ColorBoundsSwitchButton extends React.Component<{ items: JSX.Element }, {}
     render() {
         return (
             <span className="color-bounds-button-container">
-                <span className="control-label" title="Color bounds for both halfs of vizualized tunnel.">
-                    Color bounds:
+                <span className="control-label" title="Colour bounds for both halfs of vizualized channel.">
+                    Colour bounds:
                 </span> {this.props.items}
             </span>
         );
