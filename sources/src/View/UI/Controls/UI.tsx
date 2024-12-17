@@ -1211,6 +1211,8 @@ export class ChannelsDBSubmission extends React.Component<{ pdbid: string, compu
 function changeSubmitId(computationId: string, submitId: number) {
     if (submitId === -1) {
         fakeRedirect(computationId, "ChannelsDB");
+    } else if (submitId === 0) {
+        fakeRedirect(computationId, "")
     }
     else {
         fakeRedirect(computationId, (submitId > 0) ? String(submitId) : void 0);
@@ -1428,13 +1430,6 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
 
         let rv = [];
 
-        rv.push(
-            {
-                label: `-`,
-                value: '0'
-            }
-        );
-
         if (this.props.computationInfo !== void 0) {
             if (this.props.computationInfo.PdbId !== null && this.props.computationInfo.PdbId !== "") {
                 rv.push({
@@ -1443,6 +1438,13 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
                 });
             }
         }
+
+        rv.push(
+            {
+                label: `-`,
+                value: '0'
+            }
+        );
 
         if (submissions.length === 0) {
             return rv;
@@ -1506,21 +1508,24 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
             return false;
         }
 
+        let submissions = this.getSubmissions();
+
         if (String(this.state.submitId) === String(0)) {
-            return false;
+            if (!left) return submissions.length > 0;
+            return true;
         }
 
-        let submissions = this.getSubmissions();
+        if (String(this.state.submitId) === String(-1)) {
+            return !left;
+        }
 
         for (let idx = 0; idx < submissions.length; idx++) {
             if (String(submissions[idx].SubmitId) === String(this.props.submitId)) {
-                let nextIdx = idx + ((left) ? -1 : 1);
-                if (nextIdx < 0 || nextIdx >= submissions.length) {
-                    return false;
+                if (!left) {
+                    let nextIdx = idx + 1;
+                    return nextIdx < submissions.length;
                 }
-                else {
-                    return true;
-                }
+                return true;
             }
         }
 
