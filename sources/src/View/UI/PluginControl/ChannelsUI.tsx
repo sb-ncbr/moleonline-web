@@ -8,7 +8,7 @@ import { ChannelsDBChannels, MoleData, Tunnel, TunnelMetaInfo } from "../../../D
 import { Tunnels } from "../../CommonUtils/Tunnels";
 import { ChannelsDBData, LastVisibleChannels, TunnelName } from "../../../Cache";
 import { ChannelAnnotation } from "../../../ChannelsDBAPIService";
-import { isInChannelsDBMode } from "../../../Common/Util/Router";
+import { getParameters, isInChannelsDBMode } from "../../../Common/Util/Router";
 import { generateGuidAll, showChannelVisuals, showDefaultVisuals } from "../../State";
 import { Context } from "../../Context";
 import { Representation } from "molstar/lib/mol-repr/representation";
@@ -23,10 +23,19 @@ import { SelectionHelper } from "../../CommonUtils/Selection";
 
 declare function $(p: any): any;
 
-export class PluginControl extends React.Component<
-    { computationId: string, submissions: Map<number, ChannelsDBChannels> },
-    { isLoading?: boolean, error?: string, data?: any, isWaitingForData?: boolean, submissions: Map<number, ChannelsDBChannels>, submissionsElems: Map<number, any[]>, hideAll: boolean, currentSubmitId: number }
-> {
+type ChannelsControlProps = { computationId: string, submissions: Map<number, ChannelsDBChannels> }
+type ChannelsControlState = {
+    isLoading?: boolean,
+    error?: string,
+    data?: any,
+    isWaitingForData?: boolean,
+    submissions: Map<number, ChannelsDBChannels>,
+    submissionsElems: Map<number, any[]>,
+    hideAll: boolean,
+    currentSubmitId: number
+}
+
+export class ChannelsControl extends React.Component<ChannelsControlProps, ChannelsControlState> {
     //TODO store selected/visualized tunnels for 2DProts
     state = { isLoading: false, data: void 0, error: void 0, submissions: new Map<number, ChannelsDBChannels>(), submissionsElems: new Map<number, any[]>(), hideAll: false, currentSubmitId: 0 };
 
@@ -68,6 +77,17 @@ export class PluginControl extends React.Component<
         return this.state.submissions;
     }
 
+    private focusOnElement(elementId: string) {
+        const targetElement = document.querySelector(elementId);
+        if (targetElement) {
+            targetElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'nearest'
+            });
+        }
+    }
+
     componentDidMount() {
         Events.subscribeSubmitDone(async (newSubmitId) => {
             if (!this.state.submissions.has(newSubmitId)) {
@@ -93,7 +113,12 @@ export class PluginControl extends React.Component<
         })
 
         Events.subscribeChangeSubmitId(this.handleTunnelsCollect.bind(this));
-        if (this.props.submissions.size !== 0) this.setState({ currentSubmitId: Array.from(this.props.submissions.keys())[0] })
+        let params = getParameters();
+        if (params === null) {
+            if (this.props.submissions.size !== 0) this.setState({ currentSubmitId: Array.from(this.props.submissions.keys())[0] })
+        } else {
+            this.setState({ currentSubmitId: params.submitId })
+        }
         this.saveChannelsElems();
 
         showDefaultVisuals(this.props.submissions).then(() => this.forceUpdate());
@@ -106,6 +131,10 @@ export class PluginControl extends React.Component<
         $(window).on("resize", (() => {
             this.forceUpdate();
         }).bind(this));
+    }
+
+    componentDidUpdate(prevProps: ChannelsControlProps, prevState: ChannelsControlState, snapshot?: any): void {
+        this.focusOnElement(`#submission-${this.state.currentSubmitId}`);
     }
 
     private createChannelElems(submissionChannels: ChannelsDBChannels, submitId: number) {

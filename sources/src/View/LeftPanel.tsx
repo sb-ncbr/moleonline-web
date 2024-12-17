@@ -13,7 +13,7 @@ import { LiningResidues } from "./UI/LiningResidues/UI";
 import { ChannelParameters } from "./UI/ChannelParameters/UI";
 import { doAfterCollapseActivated, leftPanelTabs } from "./CommonUtils/Tabs";
 import { PluginControl } from "./UI/PluginControl/UI";
-import { PluginControl as ChannelsControl } from "./UI/PluginControl/ChannelsUI";
+import { ChannelsControl } from "./UI/PluginControl/ChannelsUI";
 import { PluginReactContext } from "molstar/lib/mol-plugin-ui/base";
 import { Controls } from "./UI/Controls/UI";
 import { getParameters } from "../Common/Util/Router";
