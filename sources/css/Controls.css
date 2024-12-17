@@ -423,16 +423,6 @@
     border-bottom-color: red;
 }
 
-
-.settings-form .lm-plugin .lm-icon-info:before,
-.settings-form .lm-panel-description-content {
-    display: none !important;
-}
-
-.settings-form .lm-plugin .lm-panel {
-    margin-bottom: 5px;
-}
-
 /* .msp-control-group-header > button, .msp-control-group-header div {
     height: 32px !important;
     line-height: 32px !important;

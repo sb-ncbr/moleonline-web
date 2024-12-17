@@ -17,18 +17,8 @@ import { CheckSvg } from "molstar/lib/mol-plugin-ui/controls/icons";
 
 declare function $(p: any, p1?: any): any;
 
-interface FormControl { };
+interface FormControl { }
 
-export class LMControlWrapper extends React.Component<{ controls: JSX.Element[] }, {}> {
-    render() {
-
-        return <div className="litemol-controls-wrapper">
-            <div className="lm-plugin">
-                {this.props.controls}
-            </div>
-        </div>
-    }
-}
 
 export type ValidationStates = "VALID" | "INVALID"
 export type ValidationStateChangeHandler = (oldState: ValidationStates, newState: ValidationStates) => void

@@ -1,39 +1,3 @@
-.litemol-controls-wrapper{
-    position:relative;
-    width:100%;
-    height:auto;
-}
-
-.litemol-controls-wrapper .hint{
-    margin-right: -1px;
-    color: #333;
-}
-
-.litemol-controls-wrapper .hint .glyphicon{
-    vertical-align: text-top;
-    margin-left: 3px;
-}
-
-.litemol-controls-wrapper .lm-plugin .lm-control-row > span{
-    width:160px;
-}
-.litemol-controls-wrapper .lm-plugin .lm-control-row > div{
-    left: 160px;
-}
-
-.litemol-controls-wrapper .lm-plugin .lm-control-row button{
-    text-align:right;
-    background-color: transparent;
-}
-
-.starting-point-result-box{
-    margin-bottom:5px;
-}
-
-.litemol-controls-wrapper .lm-plugin .starting-point-result-box .lm-control-row button{
-    text-align: left;
-}
-
 .starting-point-result-box .msp-control-row div.empty,
 .starting-point-control-container .msp-control-row div.info{
     line-height: 30px;
@@ -45,11 +9,4 @@
 .starting-point-result-box .msp-control-row:first-child > span{
     width: 100% !important;
     text-align: center;
-}
-
-.litemol-controls-wrapper .lm-plugin .starting-point-result-box .lm-control-row button span.glyphicon{
-    position: absolute;
-    right: 0;
-    margin-right: 10px;
-    margin-top: 8px;
 }

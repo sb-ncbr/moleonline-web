@@ -298,10 +298,6 @@ only screen and (max-height: 600px) {
     height: 65.3vh;
 }
 
-.lm-plugin .lm-viewport-controls {
-    z-index: 0;
-}
-
 .plugin.bottom-panel-toggled {
     height: 25vh;
 }
