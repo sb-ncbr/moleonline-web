@@ -103,3 +103,7 @@
 .right-panel-tabs .tab-content{
     padding-left: 13px;
 }
+
+.left-panel-tabs .nav-link.active {
+    background-color: #9d9d9d !important;
+}
