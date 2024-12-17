@@ -21,11 +21,9 @@ export class Fetching {
     private static resolveImpl() {
         //fetch() is currently overriden by polyfill - should be working even for IE 11 and Safari
         if (fetch !== void 0) {
-            console.log("Fetching: Using Fetching API impl.");
             return new FetchingFetchImpl();
         }
 
-        console.log("Fetching: Using default impl.");
         //NOTICE: most cross platform impl should be set as default in here
         return new FetchingJQueryImpl();
     }

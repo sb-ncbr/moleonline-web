@@ -175,7 +175,7 @@ export class InitForm extends React.Component<{}, State> {
                     <div className="InitForm">
                         <form onSubmit={this.handleFormSubmit.bind(this)} action={`${Routing.ROUTING_OPTIONS[Routing.ROUTING_MODE].defaultContextPath}/`} method="post" encType="multipart/form-data">
                             <div className="groupbox">
-                                <TabbedContainer header={["PDBID", "File", "Last session"]} tabContents={tabs} namespace="quick-start-panel-tabs-" htmlClassName="tabs" htmlId="quick-start-panel-tabs" activeTab={this.state.activeTabIdx} onChange={((tabIdx: number) => {
+                                <TabbedContainer header={["PDB ID", "File", "Last session"]} tabContents={tabs} namespace="quick-start-panel-tabs-" htmlClassName="tabs" htmlId="quick-start-panel-tabs" activeTab={this.state.activeTabIdx} onChange={((tabIdx: number) => {
                                     let s = this.state;
                                     s.activeTabIdx = tabIdx;
                                     this.setState(s);
@@ -214,8 +214,8 @@ export class InitForm extends React.Component<{}, State> {
                         </td>
                     </tr>
                     <tr>
-                        <td><label htmlFor="frm-jobSetup-setupForm-chains">Use biological unit</label>:</td>
-                        <td><input type="checkbox" onChange={this.biologicalUnitChange.bind(this)} name="biological-unit" className="checkbox" defaultChecked={true} />
+                        <td><label htmlFor="frm-jobSetup-setupForm-biological-unit">Use biological unit</label>:</td>
+                        <td><input type="checkbox" onChange={this.biologicalUnitChange.bind(this)} id="frm-jobSetup-setupForm-biological-unit" name="biological-unit" className="checkbox" defaultChecked={true} />
                             <div className="hint">
                                 use biological unit
                             </div>
