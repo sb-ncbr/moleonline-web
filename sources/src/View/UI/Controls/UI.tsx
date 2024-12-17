@@ -1593,44 +1593,48 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
         let canShiftPrev = this.canShiftPrev();
         let canShiftNext = this.canShiftNext();
         return <div className="submit-parent">
-            {this.props.isLoading || this.state.submitLoading
-                ? <button className="btn btn-sm btn-success submit" type="submit" id="controls-submit" disabled>
-                    <span
-                        id="controls-loader"
-                        className="spinner-border spinner-border-sm me-2"
-                        role="status"
-                        aria-hidden="true"
-                    ></span>
-                    Submit
-                </button>
-                : <button className="btn btn-sm btn-success submit" type="submit" id="controls-submit">Submit</button>}
-            <label className="btn btn-sm btn-primary load-button">
-                Load params
-                <input
-                    type="file"
-                    accept=".json"
-                    className="d-none"
-                    onChange={this.handleFileChange.bind(this)}
-                />
-            </label>
-            <input type="button" className="btn btn-sm btn-primary kill-job-button" disabled={!canKill} onClick={(e => {
-                if ($(e.currentTarget).attr("disabled") !== "disabled") {
-                    $('#killJobDialog').modal('show');
+            <div className="d-flex flex-wrap mb-1">
+                {this.props.isLoading || this.state.submitLoading
+                    ? <button className="btn btn-sm btn-success submit px-3" type="submit" id="controls-submit" disabled>
+                        <span
+                            id="controls-loader"
+                            className="spinner-border spinner-border-sm me-2"
+                            role="status"
+                            aria-hidden="true"
+                        ></span>
+                        Submit
+                    </button>
+                    : <button className="btn btn-sm btn-success submit px-3" type="submit" id="controls-submit">Submit</button>}
+                <input type="button" className="btn btn-sm btn-primary kill-job-button px-3" disabled={!canKill} onClick={(e => {
+                    if ($(e.currentTarget).attr("disabled") !== "disabled") {
+                        $('#killJobDialog').modal('show');
+                        $(".chdb-panel.right-panel").addClass("has-modal");
+                    }
+                })} value="Kill" />
+                <input type="button" className="btn btn-sm btn-primary delete-project-button px-3" data-toggle="modal" data-target="#deleteProjectDialog" onClick={(e => {
+                    e.preventDefault();
                     $(".chdb-panel.right-panel").addClass("has-modal");
-                }
-            })} value="Kill" />
-            <input type="button" className="btn btn-sm btn-primary delete-project-button" data-toggle="modal" data-target="#deleteProjectDialog" onClick={(e => {
-                e.preventDefault();
-                $(".chdb-panel.right-panel").addClass("has-modal");
-                return false;
-            })} value="Delete" />
-            <input className="btn btn-sm btn-primary clear-button" type="button" value="Clear" onClick={() => {
-                FormEvents.invokeOnClear(validationGroup + "_form");
-            }} />
-            <div style={{marginLeft: "5px"}}>
-                <input className="btn btn-sm btn-primary submit-arrow" type="button" value=">" disabled={(!canShiftNext) ? true : void 0} data-value={(!canShiftNext || idx === void 0) ? void 0 : items[this.getNextIdx(idx)].value} onClick={this.changeSubmitIdByStep.bind(this)} />
-                <SimpleComboBox id="submissionComboSwitch" items={items} defaultSelectedIndex={idx} className="form-control submit-combo" onSelectedChange={this.onSubmitIdComboSelectChange.bind(this)} />
-                <input className="btn btn-sm btn-primary submit-arrow" type="button" value="<" disabled={(!canShiftPrev) ? true : void 0} data-value={(!canShiftPrev || idx == void 0) ? void 0 : items[this.getPrevIdx(idx)].value} onClick={this.changeSubmitIdByStep.bind(this)} />
+                    return false;
+                })} value="Delete" />
+                <input className="btn btn-sm btn-primary clear-button px-3" type="button" value="Clear" onClick={() => {
+                    FormEvents.invokeOnClear(validationGroup + "_form");
+                }} />
+            </div>
+            <div className="d-flex flex-wrap">
+                <label className="btn btn-sm btn-primary load-button px-2">
+                    Load params
+                    <input
+                        type="file"
+                        accept=".json"
+                        className="d-none"
+                        onChange={this.handleFileChange.bind(this)}
+                    />
+                </label>
+                <div style={{ marginLeft: "5px" }}>
+                    <input className="btn btn-sm btn-primary submit-arrow" type="button" value=">" disabled={(!canShiftNext) ? true : void 0} data-value={(!canShiftNext || idx === void 0) ? void 0 : items[this.getNextIdx(idx)].value} onClick={this.changeSubmitIdByStep.bind(this)} />
+                    <SimpleComboBox id="submissionComboSwitch" items={items} defaultSelectedIndex={idx} className="form-control submit-combo" onSelectedChange={this.onSubmitIdComboSelectChange.bind(this)} />
+                    <input className="btn btn-sm btn-primary submit-arrow" type="button" value="<" disabled={(!canShiftPrev) ? true : void 0} data-value={(!canShiftPrev || idx == void 0) ? void 0 : items[this.getPrevIdx(idx)].value} onClick={this.changeSubmitIdByStep.bind(this)} />
+                </div>
             </div>
             <ModalDialog id="killJobDialog" header="Do you really want to kill running job?" body={this.prepareKillJobDialogBody()} />
             <ModalDialog id="deleteProjectDialog" header="Do you really want to delete whole computation project?" body={this.prepareDeleteDialogBody()} />

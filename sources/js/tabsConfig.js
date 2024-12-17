@@ -41,6 +41,7 @@ $( function() {
     $(document).on("click", "#left-panel-toggle-minimize", function() {
         $(".left-panel").toggleClass("minimized");
         $("#left-panel-tabs").find("a").toggleClass("disabled");
+        $('#left-panel .tab-content').toggleClass("hide");
         leftPanelTabs();
     });
 

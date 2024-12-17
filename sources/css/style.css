@@ -1773,7 +1773,6 @@ only screen and (max-height: 542px) {
     }
 
     #controls .submit-parent {
-        height: 4vh;
         border-bottom: 1px solid #aaa;
         margin-bottom: 2px;
     }
@@ -1895,7 +1894,7 @@ only screen and (max-height: 375px) {
     }
 
     #controls.toggled {
-        height: 97% !important;
+        height: 100% !important;
     }
 
     .right-panel .bottom form#submission-form {
@@ -1931,16 +1930,11 @@ only screen and (max-height: 375px) {
     .submit-form-container .submit-arrow,
     .submit-form-container .submit-combo,
     .submit-form-container .clear-button {
-        height: 90%;
         margin-top: 2px;
         margin-bottom: 0.5vh;
         line-height: normal;
         padding: 5px 5px;
         max-height: 90%;
-    }
-
-    .submit-form-container .submit-combo {
-        font-size: 7pt;
     }
 
 }
