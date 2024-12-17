@@ -1628,7 +1628,7 @@ only screen and (max-height: 542px) {
     }
 
     .chdb-panel.bottom-panel .left-tabs {
-        min-height: 30vh;
+        min-height: 37vh;
     }
 
     .chdb-panel.bottom-panel .right-tabs {
@@ -1721,7 +1721,7 @@ only screen and (max-height: 542px) {
 
     #right-panel {
         flex: none !important;
-        overflow-y: scroll;
+        /* overflow-y: scroll; */
         height: 100vh;
         width: 100vh;
     }
