@@ -9,7 +9,7 @@ import { Tunnels } from "../../CommonUtils/Tunnels";
 import { ChannelsDBData, LastVisibleChannels, TunnelName } from "../../../Cache";
 import { ChannelAnnotation } from "../../../ChannelsDBAPIService";
 import { getParameters, isInChannelsDBMode } from "../../../Common/Util/Router";
-import { generateGuidAll, showChannelVisuals, showDefaultVisuals } from "../../State";
+import { generateGuidAll, showChannelVisuals, showDefaultVisuals, showDefaultVisualsNewSubmission } from "../../State";
 import { Context } from "../../Context";
 import { Representation } from "molstar/lib/mol-repr/representation";
 import { EmptyLoci, Loci } from "molstar/lib/mol-model/loci";
@@ -87,6 +87,24 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
             });
         }
     }
+    private showSelections(containerId: string) {
+        const container = document.querySelector(containerId);
+    
+        if (!container) {
+            console.error(`Container with id "${containerId}" not found.`);
+            return;
+        }
+        
+        const hiddenDivs = Array.from(container.querySelectorAll('div[style*="display: none"]'));
+    
+        if (hiddenDivs.length > 0) {
+            const links = container.querySelectorAll('.ui-subheader a');
+            links.forEach(link => {
+                (link as HTMLElement).click();
+            });
+
+        }
+    }
     
     componentWillMount() {
         showDefaultVisuals(this.props.submissions).then(() => {
@@ -109,6 +127,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
                     const channelElems = this.createChannelElems(dataObj.Channels, newSubmitId)
                     const currentSumbissionElems = this.state.submissionsElems;
                     currentSumbissionElems.set(newSubmitId, channelElems);
+                    await showDefaultVisualsNewSubmission(guidData);
                     this.setState({ submissions, currentSubmitId: newSubmitId, submissionsElems: currentSumbissionElems })
                 }
             }
@@ -116,6 +135,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
                 message: "",
                 visible: false
             });
+            this.handleTunnelsCollect(newSubmitId);
         })
 
         Events.subscribeChangeSubmitId(this.handleTunnelsCollect.bind(this));
@@ -139,6 +159,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
 
     componentDidUpdate(prevProps: ChannelsControlProps, prevState: ChannelsControlState, snapshot?: any): void {
         this.focusOnElement(`#submission-${this.state.currentSubmitId}`);
+        this.showSelections(`#submission-${this.state.currentSubmitId}`);
     }
 
     private createChannelElems(submissionChannels: ChannelsDBChannels, submitId: number) {
