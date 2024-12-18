@@ -316,7 +316,7 @@ export class Selection extends React.Component<State, { label?: string | JSX.Ele
                     tunnelName = annotations[0].name;
                 }
                 $("#left-tabs li a[href='#left-tabs-1']")
-                    .text(`Channel profile (${tunnelName})`);
+                    .text(`Channel profile (${channel.Type})`);
                 this.setState({ label: <span><b>{tunnelName}</b>, {`Length: ${len} Å`}</span>, tunnel: true });
             }
             else {
