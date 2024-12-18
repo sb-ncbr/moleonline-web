@@ -50,26 +50,9 @@ export class QuickHelp extends React.Component<{}, State> {
             ComputationInfo.DataProvider.subscribe(params.computationId, (compid, info) => {
                 let s1 = this.state;
 
-                if (info.PdbId === null || info.PdbId === void 0 || info.PdbId === "") {
-                    s1.fromPDBID = false;
-                }
-                else {
-                    s1.fromPDBID = true;
-                }
-
-                if (info.Submissions.length > 0) {
-                    s1.hasSubmissions = true;
-                }
-                else {
-                    s1.hasSubmissions = false;
-                }
-
-                if (TunnelName.getCachedItemsCount() > 0) {
-                    s1.hasChannels = true;
-                }
-                else {
-                    s1.hasChannels = false;
-                }
+                s1.fromPDBID = !(info.PdbId === null || info.PdbId === void 0 || info.PdbId === '');
+                s1.hasSubmissions = info.Submissions.length > 0;
+                s1.hasChannels = TunnelName.getCachedItemsCount() > 0;
 
                 this.setState(s1);
             });
@@ -142,7 +125,7 @@ export class QuickHelp extends React.Component<{}, State> {
                             </ul>
                         </li>
                         <li>
-                            Try to compare your data with channels from <a target="_blank" href="http://ncbr.muni.cz/ChannelsDB/">ChannelsDB</a>
+                            Try to compare your data with channels from <a target="_blank" href="https://channelsdb2.biodata.ceitec.cz/">ChannelsDB</a>
                             &nbsp;- click on <b>#ChDB</b> submission located on <b>Submission tab</b> in the bottom right side of the screen.
                         </li>
                     </ul>
