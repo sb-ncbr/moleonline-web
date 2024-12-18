@@ -15,7 +15,7 @@ export class ControlsTab extends React.Component<{}, {}> {
             <PdbIdSign />
             <Annotate/>
             <DownloadReport />
-            <Help />
+            {/* <Help /> */}
         </>
     }
 
