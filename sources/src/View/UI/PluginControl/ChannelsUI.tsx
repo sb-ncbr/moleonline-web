@@ -87,6 +87,12 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
             });
         }
     }
+    
+    componentWillMount() {
+        showDefaultVisuals(this.props.submissions).then(() => {
+            this.saveChannelsElems();
+        })
+    }
 
     componentDidMount() {
         Events.subscribeSubmitDone(async (newSubmitId) => {
@@ -119,9 +125,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
         } else {
             this.setState({ currentSubmitId: params.submitId })
         }
-        this.saveChannelsElems();
-
-        showDefaultVisuals(this.props.submissions).then(() => this.forceUpdate());
+        // showDefaultVisuals(this.props.submissions).then(() => this.forceUpdate());
 
         // Tunnels.attachOnTunnelsCollect(this.handleTunnelsCollect);
 

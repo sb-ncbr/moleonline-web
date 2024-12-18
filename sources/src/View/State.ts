@@ -26,19 +26,10 @@ import { Property } from "./VizualizerMol/color-tunnels/property-color";
 import { LayerColors } from "./CommonUtils/LayerColors";
 import { TwoDProtsBridge } from "./CommonUtils/TwoDProtsBridge";
 
-// export type SelectableElement =
-//     | { kind: 'nothing' }
-//     | { kind: 'molecule', data: Bootstrap.Interactivity.Molecule.SelectionInfo }
-//     | { kind: 'point', data: number[] }
-
-// export type SurfaceTag =
-//     | { kind: 'Channel' | 'Cavity-inner' | 'Origins' | 'Points' | 'TPoint', element: any }
-//     | { kind: 'Cavity-boundary', element: any, surface: Core.Geometry.Surface }
-
-
 export async function showDefaultVisuals(submissionChannels: Map<number, ChannelsDBChannels>) {
     return new Promise(res => {
         let toShow: Tunnel[] = [];
+        let channelsDB = true;
 
         for (const submitId of Array.from(submissionChannels.keys())) {
             const data = submissionChannels.get(submitId)
@@ -46,15 +37,19 @@ export async function showDefaultVisuals(submissionChannels: Map<number, Channel
             //-- MoleOnline
             if (data.MergedPores && data.MergedPores.length > 0) {
                 toShow = data.MergedPores;
+                channelsDB = false;
             }
             else if (data.Paths && data.Paths.length > 0) {
                 toShow = data.Paths;
+                channelsDB = false;
             }
             else if (data.Pores && data.Pores.length > 0) {
                 toShow = data.Pores;
+                channelsDB = false;
             }
             else if (data.Tunnels && data.Tunnels.length > 0) {
                 toShow = data.Tunnels;
+                channelsDB = false;
             }
             //-- ChannelsDB
             else if (data.ReviewedChannels_MOLE && data.ReviewedChannels_MOLE.length > 0) {
@@ -95,19 +90,9 @@ export async function showDefaultVisuals(submissionChannels: Map<number, Channel
             }
 
             if (toShow.length > 0) {
-                return showChannelVisuals((toShow.slice(0, 5)) as (Tunnel&TunnelMetaInfo)[], true).then(() => {
+                return showChannelVisuals((toShow.slice(0, 5)) as (Tunnel&TunnelMetaInfo)[], true, undefined, channelsDB).then(() => {
                     res(null);
                     return;
-                    // if (data.Cavities === void 0) {
-                    //     res(null);
-                    //     return;
-                    // }
-                    // let cavity = data.Cavities.Cavities[0];
-                    // if (!cavity) {
-                    //     res(null);
-                    //     return;
-                    // }
-                    // showCavityVisuals([cavity], true).then(() => { res(null) }); //TODO
                 })
             }
 
