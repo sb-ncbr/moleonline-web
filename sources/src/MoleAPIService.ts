@@ -2,7 +2,6 @@ import { CommonOptions, DataSources } from "../config/common";
 import { MembranePoint } from "./DataInterface";
 import { Fetching } from "./FetchingIf";
 
-declare var pako: any;
 
 export type ComputationStatus =
     "Initializing" |
@@ -270,82 +269,6 @@ export class ApiService {
         }
 
         return filename;
-    }
-
-    public static getProteinStructure(computationId: string, submitId: number): Promise<ProteinData> {
-        let fetching = Fetching.get();
-
-        let url = `${this.baseUrl}/Data/${computationId}?submitId=${submitId}&format=molecule`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
-
-        return new Promise<any>((res, rej) => {
-            if (this.DEBUG_MODE)
-                console.time('protein-raw');
-            fetching.fetch(url, {
-                method: "GET",
-            })
-                .then((rawResponse) => {
-                    let filename = this.getFilenameFromResponseHeader(rawResponse);
-                    if (this.DEBUG_MODE)
-                        console.log(filename);
-                    if (this.DEBUG_MODE)
-                        console.timeEnd('protein-raw');
-                    if (!rawResponse.ok) {
-                        if (this.DEBUG_MODE) {
-                            console.log(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
-                        }
-                        rej(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
-                        return;
-                    }
-
-                    // Decompression from gz needed
-                    if (rawResponse.body !== null && filename !== null && filename.toLowerCase().indexOf(".gz") >= 0) {
-                        let reader = rawResponse.body.getReader();
-                        let binData: Uint8Array[] = [];
-                        reader.read().then(function handleStreamResponse(value: { done: boolean, value: Uint8Array }) {
-
-                            binData.push(value.value);
-
-                            if (value.done) {
-                                let bytes = binData.reduce((p, cv, ci, a) => {
-                                    if (cv === void 0) {
-                                        cv = new Uint8Array(0);
-                                    }
-                                    let newVal = new Uint8Array(p.length + cv.length);
-                                    newVal.set(p);
-                                    newVal.set(cv, p.length);
-                                    return newVal;
-                                }, new Uint8Array(0));
-
-                                let stringData = pako.inflate(bytes, { to: 'string' });
-                                res({
-                                    data: stringData,
-                                    filename: filename
-                                });
-                                return;
-                            }
-                            reader.read().then(handleStreamResponse)
-                                .catch(error => {
-                                    rej(error);
-                                })
-                        });
-                    }
-                    else {
-                        rawResponse.text().then(value => {
-                            res({
-                                data: value,
-                                filename: filename
-                            });
-                        })
-                            .catch(error => {
-                                rej(error);
-                            })
-                    }
-                })
-                .catch(error => rej(error));
-        });
     }
 
     public static getChannelsData(computationId: string, submitId: number): Promise<string> {

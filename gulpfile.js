@@ -24,9 +24,7 @@ gulp.task("merge-js", function() {
         "./node_modules/utf8/utf8.js",
         "./sources/js/canvas2svg.js",
         "./sources/js/datagrid.js",
-        "./sources/js/html2canvas.js",
         "./sources/js/Palette.js",
-        "./sources/js/svg2pdf.js",
         "./sources/js/tabsConfig.js",
     ])
     .pipe(concat("scripts.js"))
