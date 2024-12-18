@@ -391,10 +391,10 @@ export class Channel extends React.Component<{ channel: any, channelsDB: boolean
         let annotations = ChannelsDBData.getChannelAnnotationsImmediate(c.Id);
         if (annotations !== null && annotations !== void 0) {
             let annotation = annotations[0];
-            return <Renderable annotations={annotations} submissionId={this.props.submissionId} channelsDB={this.props.channelsDB} label={<span><b><a href="#" onClick={this.selectChannel.bind(this, true)}>{annotation.name}</a></b><ColorPicker tunnel={this.props.channel} />, Length: <b>{len} Å</b></span>} element={c} toggle={showChannelVisuals} />
+            return <Renderable annotations={annotations} submissionId={this.props.submissionId} channelsDB={this.props.channelsDB} label={<span><b><a href="javascript:void(0)" onClick={this.selectChannel.bind(this, true)}>{annotation.name}</a></b><ColorPicker tunnel={this.props.channel} />, Length: <b>{len} Å</b></span>} element={c} toggle={showChannelVisuals} />
         }
         else {
-            return <Renderable channelsDB={this.props.channelsDB} submissionId={this.props.submissionId} label={<span><b><a href="#" onClick={this.selectChannel.bind(this, true)}>{c.Type}{namePart}</a></b><ColorPicker tunnel={this.props.channel} />, Length: <b>{`${len | 0} Å`}</b></span>} element={c} toggle={(ch: Tunnel[] & TunnelMetaInfo[], v: boolean, repaint?: boolean, channelsDB?: boolean, submissionId?: string) => {
+            return <Renderable channelsDB={this.props.channelsDB} submissionId={this.props.submissionId} label={<span><b><a href="javascript:void(0)" onClick={this.selectChannel.bind(this, true)}>{c.Type}{namePart}</a></b><ColorPicker tunnel={this.props.channel} />, Length: <b>{`${len | 0} Å`}</b></span>} element={c} toggle={(ch: Tunnel[] & TunnelMetaInfo[], v: boolean, repaint?: boolean, channelsDB?: boolean, submissionId?: string) => {
                 if (submissionId) {
                     return showChannelVisuals(ch, v, undefined, channelsDB, submissionId)
                         .then(res => {
