@@ -11,7 +11,7 @@ import { getParameters } from "../../../../Common/Util/Router";
 import { Button, ControlRow, TextInput, ToggleButton } from "molstar/lib/mol-plugin-ui/controls/common";
 import { SelectControl, TextControl } from "molstar/lib/mol-plugin-ui/controls/parameters";
 import { ParamDefinition } from "molstar/lib/mol-util/param-definition";
-import { CheckSvg } from "molstar/lib/mol-plugin-ui/controls/icons";
+import { CheckSvg, CloseSvg } from "molstar/lib/mol-plugin-ui/controls/icons";
 
 
 declare function $(p: any, p1?: any): any;
@@ -1326,7 +1326,7 @@ export class StartingPointQueryBox extends React.Component<StartingPointQueryBox
                     residue: ""
                 } as StartingPointQuery]);
             }
-        }} title={this.state.isValid && !this.state.validationInProgress ? 'Add' : this.state.validationMessage} commit={this.state.isValid && !this.state.validationInProgress} icon={CheckSvg}>
+        }} title={this.state.isValid && !this.state.validationInProgress ? 'Add' : this.state.validationMessage} commit={this.state.isValid && !this.state.validationInProgress} icon={this.state.isValid && !this.state.validationInProgress ? CheckSvg : CloseSvg}>
             <span>Add</span>
         </Button>
 
