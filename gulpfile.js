@@ -10,20 +10,11 @@ const paths = {
     }
 };
 
-function compileSass() {
+gulp.task('compile-sass', function () {
     return gulp.src(paths.scss.src)
         .pipe(sass().on('error', sass.logError))
         .pipe(gulp.dest(paths.scss.dest));
-}
-
-function watchSass() {
-    gulp.watch(paths.scss.src, compileSass);
-}
-
-gulp.task('default', gulp.series(compileSass, watchSass));
-
-exports.compileSass = compileSass;
-exports.watchSass = watchSass;
+});
 
 gulp.task("merge-js", function() {
     return gulp.src([

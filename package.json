@@ -7,7 +7,7 @@
     "merge-css": "gulp merge-css",
     "merge-init-js": "gulp merge-js-init",
     "merge-init-css": "gulp merge-css-init",
-    "compile-sass": "gulp compileSass",
+    "compile-sass": "gulp compile-sass",
     "build-webpack": "npx webpack --mode production",
     "build-webpack-dev": "npx webpack --mode development",
     "build": "npm run merge-js && npm run compile-sass && npm run merge-css && npm run merge-init-css && npm run merge-init-js && npm run build-webpack",
