@@ -39,7 +39,6 @@ module.exports = [
             rules: [
                 {
                     test: /\.tsx?$/,
-                    // use: 'ts-loader',
                     use: [
                         {
                             loader: 'babel-loader',
@@ -51,12 +50,6 @@ module.exports = [
                                 ]
                             }
                         },
-                        // {
-                        //     loader: 'ts-loader', // Type checking only
-                        //     options: {
-                        //         transpileOnly: true, // Disable TypeScript transpilation
-                        //     },
-                        // }, // Use both Babel and TypeScript loaders
                     ],
                     exclude: /node_modules/,
                 },
