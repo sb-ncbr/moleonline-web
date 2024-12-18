@@ -61,7 +61,7 @@ export class Annotate extends React.Component<{}, AppState> {
 
         return <div className="annotate">
             <DropDownMenu app={this} canAnnotate={this.state.computationId !== void 0 && this.state.submitId !== void 0} />
-            <AnnotateForm app={this} visible={this.state.annotationFormVisible} computationId={computationId} submitId={submitId} />
+            {/* <AnnotateForm app={this} visible={this.state.annotationFormVisible} computationId={computationId} submitId={submitId} /> */}
         </div>
     }
 }
@@ -161,17 +161,17 @@ class DropDownMenu extends React.Component<{ app: Annotate, canAnnotate: boolean
                 //     }} />
                 // );
             }
-            if (this.props.canAnnotate) {
-                items.push(
-                    <BootstrapDropDownMenuItem linkText="Annotate" onClick={() => {
-                        let s = this.props.app.state;
-                        // s.annotationFormVisible = !s.annotationFormVisible;
-                        this.props.app.setState({
-                            annotationFormVisible: !s.annotationFormVisible
-                        });
-                    }} />
-                );
-            }
+            // if (this.props.canAnnotate) {
+            //     items.push(
+            //         <BootstrapDropDownMenuItem linkText="Annotate" onClick={() => {
+            //             let s = this.props.app.state;
+            //             // s.annotationFormVisible = !s.annotationFormVisible;
+            //             this.props.app.setState({
+            //                 annotationFormVisible: !s.annotationFormVisible
+            //             });
+            //         }} />
+            //     );
+            // }
         }
 
         return <BootstrapDropDownMenuButton items={items} />
