@@ -12916,3 +12916,25 @@ only screen and (max-height: 542px) {
     border: 1px solid #777;
     max-width: 180px
 }
+
+figure {
+    filter: saturate(0.5);
+    /* transition: filter 0.3s ease; */
+}
+
+figure:hover {
+    filter: saturate(1.2);
+}
+
+.disabled {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.spinner-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+}
