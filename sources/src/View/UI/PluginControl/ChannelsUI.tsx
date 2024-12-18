@@ -42,6 +42,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
     private toggle(e: React.MouseEvent<HTMLElement>) {
         e.preventDefault();
         this.setState({ hideAll: !this.state.hideAll });
+        Tunnels.invokeOnTunnelsHide();
     }
 
     handleTunnelsCollect = (submitId: number) => {
@@ -377,10 +378,10 @@ export class Channels extends React.Component<{ channels: any[], header: string,
         return !this.props.channels || (this.props.channels !== void 0 && this.props.channels.length == 0);
     }
 
-    componentDidUpdate(prevProps: any) {
-        if (this.props.hide !== prevProps.hide) {
+    componentDidMount() {
+        Tunnels.attachOnTunnelsHide(() => {
             this.show(false);
-        }
+        })
     }
 
     render() {

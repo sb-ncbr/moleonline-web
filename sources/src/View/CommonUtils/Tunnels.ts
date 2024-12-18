@@ -7,6 +7,7 @@ export class Tunnels {
     private static loadedChannelsDB: ChannelsDBChannels | undefined;
     private static onTunnelsLoaded: { handler: () => void }[];
     private static onTunnelsCollect: { handler: (submitId: number) => void }[];
+    private static onTunnelsHide: { handler: () => void }[];
 
     public static setChannelsDB(channels: ChannelsDBChannels) {
         this.loadedChannelsDB = channels;
@@ -29,6 +30,23 @@ export class Tunnels {
         }
 
         for (let h of this.onTunnelsLoaded) {
+            h.handler();
+        }
+    }
+
+    public static attachOnTunnelsHide(handler: () => void) {
+        if (this.onTunnelsHide === void 0) {
+            this.onTunnelsHide = [];
+        }
+
+        this.onTunnelsHide.push({ handler });
+    }
+    public static invokeOnTunnelsHide() {
+        if (this.onTunnelsHide === void 0) {
+            return;
+        }
+
+        for (let h of this.onTunnelsHide) {
             h.handler();
         }
     }
