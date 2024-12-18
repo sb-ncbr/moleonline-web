@@ -22,7 +22,6 @@ gulp.task("merge-js", function() {
         "./node_modules/jquery-ui-dist/jquery-ui.min.js",
         "./node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
         "./node_modules/utf8/utf8.js",
-        "./sources/js/jspdf.min.js",
         "./sources/js/canvas2svg.js",
         "./sources/js/datagrid.js",
         "./sources/js/html2canvas.js",

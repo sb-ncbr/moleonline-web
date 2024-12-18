@@ -16,14 +16,6 @@ declare var utf8: {
     decode: (a: string) => string
 };
 
-declare class jsPDF {
-    constructor(unitSize: string, unit: string, params: any);
-    addSVG(svg: any, leftMargin: number, rightMargin: number, w: number, h: number): any;
-    addImage(img: any, x: number, y: number, width: number, height: number): any;
-    output(type: string): string;
-    setProperties(props: any): any
-};
-
 export type DataURL = string;
 
 type PropertyKey = "Polarity" | "Mutability" | "Hydropathy" | "Hydrophobicity" | "Charge" | "NumNegatives" | "NumPositives" | "LogP" | "LogD" | "LogS" | "Ionizable" | "BRadius"
@@ -1600,63 +1592,6 @@ export class Vizualizer {
         this.selectLayers(selectedLayers);
 
         return svg;
-    }
-
-    //TODO: Not working properly - image is not the same in PDF output as on screen => seems like a bug in jsPDF library
-    public exportPDF(): string {
-
-        if (!this.isDOMBound || this.isDataDirty()) {
-            throw new Error("Data not prepared!");
-        }
-
-        //Deselekce vrstvy
-        let selectedLayers: number[] = [];
-        if (this.selectedLayerIds.length > 0) {
-            selectedLayers = this.selectedLayerIds;
-            this.deselectLayers();
-        }
-
-        this.switchToTmpCanvas();
-        this.wrapSVG();
-
-        let canvas = this.getCanvas();
-        if (canvas === void 0 || canvas === null) {
-            throw new Error("Canvas element not initiated");
-        }
-        let width = canvas.width;
-        let height = canvas.height;
-
-        this.vizualize();
-
-        let svg = this.getSVGData();
-
-        this.unwrapSVG();
-        this.switchToMainCanvas();
-
-        // create a new jsPDF instance
-        var pdf = new jsPDF('p', 'pt', [width, height]);
-        pdf.setProperties({
-            title: "Report"
-        });
-        //console.log(svg);
-
-        //pdf.addImage(this.exportSVGImage(),0,0,200,500);
-        //pdf.addSVG(svg,0,0,width,height);
-        // render the svg element
-
-        svg2pdf(svg, pdf, {
-            xOffset: 0,
-            yOffset: 0,
-            scale: 1
-        });
-
-
-        //pdf.addSVG(svg, 0, 0, width, height);
-
-        //Opetovne oznaceni vrstvy(stav pred exportem)
-        this.selectLayers(selectedLayers);
-
-        return pdf.output('datauristring');
     }
 
     public setCustomColoringPropertyKey(coloringPropertyKey: string) {
