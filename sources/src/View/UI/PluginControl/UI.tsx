@@ -580,6 +580,21 @@ export class Membrane extends React.Component<{ label: string | JSX.Element, mem
         Events.subscribeOnMembraneDataReady(() => {
             this.forceUpdate();
         });
+        Events.subscribeToggleLoadingScreen(({message, visible}) => {
+            if (!visible) {
+                this.props.membraneData.__isVisible = false;
+                this.toggle();
+            }
+        })
+        this.toggle();
+    }
+
+    componentWillReceiveProps(nextProps: any) {
+        if (nextProps.membraneData !== this.props.membraneData) {
+            this.toggle();
+        } else {
+            console.log("Props are unchanged, skipping updates.");
+        }
     }
 
     private toggle() {
@@ -591,10 +606,6 @@ export class Membrane extends React.Component<{ label: string | JSX.Element, mem
 
     private highlight(isOn: boolean) {
         // this.props.plugin.command(Bootstrap.Command.Entity.Highlight, { entities: this.props.plugin.context.select(this.props.membraneData.__id), isOn });
-    }
-
-    componentWillUnmount(): void {
-        console.log('here');
     }
 
     render() {

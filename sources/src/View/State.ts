@@ -344,7 +344,7 @@ function generateGuidChannelsDB(moleData: ChannelsDBChannels) {
 }
 
 async function downloadMembraneData(computationId: string) {
-    await removeMembraneData();
+    // await removeMembraneData();
     console.log("MEMBRNE");
     console.log(Context.getInstance().plugin)
     return new Promise<any>((res, rej) => {
@@ -378,7 +378,7 @@ async function downloadMembraneData(computationId: string) {
             res(null);
         });
     }).then(() => {
-        Events.invokeOnMembraneDataReady();
+        // Events.invokeOnMembraneDataReady();
     });
 }
 
