@@ -12,7 +12,7 @@
     "build-webpack-dev": "npx webpack --mode development",
     "build": "npm run merge-js && npm run compile-sass && npm run merge-css && npm run merge-init-css && npm run merge-init-js && npm run build-webpack",
     "build-dev": "npm run merge-js && npm run compile-sass && npm run merge-css && npm run merge-init-css && npm run merge-init-js && npm run build-webpack-dev",
-    "start": "cd ./dist/MoleOnline && http-server"
+    "start": "cd ./dist/ && http-server"
   },
   "main": "index.js",
   "typings": "index.d.ts",

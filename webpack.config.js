@@ -5,12 +5,12 @@ module.exports = [
     {
         cache: false,
         entry: {
-            MOLEOnline_View: './sources/src/View/App.tsx',
-            MOLEOnline_Init: './sources/src/Init/App.tsx',
+            MOLEonline_View: './sources/src/View/App.tsx',
+            MOLEonline_Init: './sources/src/Init/App.tsx',
         },
         output: {
             filename: '[name]-Core.js?version=R1.1.9.1',
-            path: path.resolve(__dirname, 'dist/MoleOnline'),
+            path: path.resolve(__dirname, 'dist/'),
         },
         devtool: 'source-map',
         plugins: [
