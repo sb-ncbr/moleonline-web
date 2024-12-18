@@ -24,7 +24,7 @@ import { BookmarksOutlinedSvg, CloseSvg } from "molstar/lib/mol-plugin-ui/contro
 import { BoolControl, BoundedIntervalControl, IntervalControl, NumberRangeControl, SelectControl, TextControl } from "molstar/lib/mol-plugin-ui/controls/parameters";
 import { ParamDefinition } from "molstar/lib/mol-util/param-definition";
 import { StartingPointBox, ValidationState } from "../Common/Controls/FromLiteMol";
-import { isMoleJobResult, parseToMoleConfigOrPoresConfig } from "./ExportParser";
+import { checkConfigType, isMoleJobResult, parseToMoleConfigOrPoresConfig } from "./ExportParser";
 require("molstar/lib/mol-plugin-ui/skin/light.scss");
 
 var Provider = ComputationInfo.DataProvider;
@@ -1558,14 +1558,17 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
         }
         try {
             const jsonData = JSON.parse(reader.result as string);
-            console.log('Loaded JSON data:', jsonData);
-            const data = parseToMoleConfigOrPoresConfig(jsonData);
-            if (data !== null) {
+            // const data = parseToMoleConfigOrPoresConfig(jsonData);
+            const check = checkConfigType(jsonData);
+            if (check === "Unknown type") {
+                throw Error("The file is not in the required format")
+            }
+            if (jsonData !== null) {
                 const moleJob = isMoleJobResult(jsonData);
                 BridgeEvents.invokeCopyParameters({
-                    mode: moleJob ? "mole" : "pores",
-                    moleConfig: moleJob ? data as MoleConfig : null,
-                    poresConfig: moleJob ? data as PoresConfig : null
+                    mode: check === "MoleConfig" ? "mole" : "pores",
+                    moleConfig: check === "MoleConfig" ? jsonData as MoleConfig : null,
+                    poresConfig: check !== "MoleConfig" ? jsonData as PoresConfig : null
                 });
                 props.setOpenControls(true);
             }

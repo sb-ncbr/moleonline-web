@@ -1,4 +1,4 @@
-import { MoleConfig, MoleConfigPoint, MoleConfigResidue, PoresConfig } from "../../../MoleAPIService";
+import { MoleConfig, MoleConfigCavity, MoleConfigInput, MoleConfigOrigin, MoleConfigPoint, MoleConfigResidue, MoleConfigTunnel, PoresConfig } from "../../../MoleAPIService";
 
 export function parseToMoleConfigOrPoresConfig(jsonObject: any): MoleConfig | PoresConfig | null {
     try {
@@ -121,4 +121,81 @@ function parsePointsString(pointsString: string): MoleConfigPoint[] {
         points.push({ X: x, Y: y, Z: z });
     }
     return points;
+}
+
+
+function isMoleConfig(obj: any): obj is MoleConfig {
+    return obj && 
+           typeof obj === "object" &&
+           (obj.Input === undefined || isMoleConfigInput(obj.Input)) &&
+           (obj.Cavity === undefined || isMoleConfigCavity(obj.Cavity)) &&
+           (obj.Tunnel === undefined || isMoleConfigTunnel(obj.Tunnel)) &&
+           (obj.NonActiveResidues === undefined || Array.isArray(obj.NonActiveResidues)) &&
+           (obj.QueryFilter === undefined || typeof obj.QueryFilter === "string") &&
+           (obj.Origin === undefined || isMoleConfigOrigin(obj.Origin)) &&
+           (obj.CustomExits === undefined || isMoleConfigOrigin(obj.CustomExits)) &&
+           (obj.PoresMerged === undefined || typeof obj.PoresMerged === "boolean") &&
+           (obj.PoresAuto === undefined || typeof obj.PoresAuto === "boolean");
+}
+
+// Deep type guard for PoresConfig
+function isPoresConfig(obj: any): obj is PoresConfig {
+    return obj && 
+           typeof obj === "object" &&
+           (obj.InMembrane === undefined || typeof obj.InMembrane === "boolean") &&
+           (obj.IsBetaBarel === undefined || typeof obj.IsBetaBarel === "boolean") &&
+           (obj.Chains === undefined || obj.Chains === null) &&
+           (obj.InteriorThreshold === undefined || typeof obj.InteriorThreshold === "number") &&
+           (obj.ProbeRadius === undefined || typeof obj.ProbeRadius === "number");
+}
+
+// Deep type guard for MoleConfigInput
+function isMoleConfigInput(obj: any): obj is MoleConfigInput {
+    return obj && 
+           typeof obj === "object" &&
+           typeof obj.SpecificChains === "string" &&
+           typeof obj.ReadAllModels === "boolean";
+}
+
+// Deep type guard for MoleConfigCavity
+function isMoleConfigCavity(obj: any): obj is MoleConfigCavity {
+    return obj && 
+           typeof obj === "object" &&
+           typeof obj.IgnoreHETAtoms === "boolean" &&
+           typeof obj.IgnoreHydrogens === "boolean" &&
+           typeof obj.InteriorThreshold === "number" &&
+           typeof obj.ProbeRadius === "number";
+}
+
+// Deep type guard for MoleConfigTunnel
+function isMoleConfigTunnel(obj: any): obj is MoleConfigTunnel {
+    return obj && 
+           typeof obj === "object" &&
+           typeof obj.WeightFunction === "string" &&
+           typeof obj.BottleneckRadius === "number" &&
+           typeof obj.BottleneckTolerance === "number" &&
+           typeof obj.MaxTunnelSimilarity === "number" &&
+           typeof obj.OriginRadius === "number" &&
+           typeof obj.SurfaceCoverRadius === "number" &&
+           typeof obj.UseCustomExitsOnly === "boolean";
+}
+
+// Deep type guard for MoleConfigOrigin
+function isMoleConfigOrigin(obj: any): obj is MoleConfigOrigin {
+    return obj && 
+           typeof obj === "object" &&
+           (obj.Points === null || Array.isArray(obj.Points)) &&
+           (obj.QueryExpression === null || typeof obj.QueryExpression === "string") &&
+           (obj.Residues === null || Array.isArray(obj.Residues));
+}
+
+// Function to check the type of a JSON object
+export function checkConfigType(jsonObject: any): string {
+    if (isMoleConfig(jsonObject)) {
+        return "MoleConfig";
+    } else if (isPoresConfig(jsonObject)) {
+        return "PoresConfig";
+    } else {
+        return "Unknown type";
+    }
 }
