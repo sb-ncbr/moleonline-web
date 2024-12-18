@@ -13,7 +13,7 @@ export class Service {
 
     private static DEBUG_MODE = CommonOptions.DEBUG_MODE;
 
-    private static baseUrl = "/online/templates";
+    private static baseUrl = "/html/templates";
 
     private static version = 6;
     private static noCacheMode = false;

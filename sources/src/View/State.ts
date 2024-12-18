@@ -90,7 +90,7 @@ export async function showDefaultVisuals(submissionChannels: Map<number, Channel
             }
 
             if (toShow.length > 0) {
-                return showChannelVisuals((toShow.slice(0, 5)) as (Tunnel&TunnelMetaInfo)[], true, undefined, channelsDB).then(() => {
+                return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB).then(() => {
                     res(null);
                     return;
                 })
@@ -760,6 +760,38 @@ async function showSurfaceVisuals(elements: any[], visible: boolean, type: strin
 
 export function showCavityVisuals(cavities: any[], visible: boolean): Promise<any> {
     return showSurfaceVisuals(cavities, visible, 'Cavity', (cavity: any) => `${cavity.Type} ${cavity.Id}`, 0.33);
+}
+
+async function showChannelDefaultVisuals(channels: Tunnel[] & TunnelMetaInfo[], channelsDB: boolean): Promise<any> {
+    const context = Context.getInstance();
+
+    let visibleChannels: Tunnel[] & TunnelMetaInfo[] = [];
+    for (let channel of channels) {
+        channel.__id = UUID.create22();
+
+        channel.__isVisible = true;
+        if (!channel.__color) {
+            channel.__color = ColorGenerator.next().value;
+        }
+
+        if (channelsDB !== undefined && channelsDB) {
+            channel.__channelsDB = true;
+        }
+        visibleChannels.push(channel);
+        LayerColors.invokeOnChannelAdd(channel.__ref);
+        LastVisibleChannels.set(channel);
+
+        const [loci, ref] = await context.renderTunnel(channel);
+        channel.__ref = ref;
+        channel.__loci = loci as Shape.Loci;
+        TwoDProtsBridge.addChannel(channel);
+    }
+
+    return Promise.resolve().then(() => {
+        for (let channel of channels) {
+            channel.__isBusy = false;
+        }
+    });
 }
 
 export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], visible: boolean, forceRepaint?: boolean, channelsDB?: boolean, submitId?: string): Promise<any> {
