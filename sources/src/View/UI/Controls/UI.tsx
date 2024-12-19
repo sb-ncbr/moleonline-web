@@ -24,7 +24,7 @@ import { BookmarksOutlinedSvg, CloseSvg } from "molstar/lib/mol-plugin-ui/contro
 import { BoolControl, BoundedIntervalControl, IntervalControl, NumberRangeControl, SelectControl, TextControl } from "molstar/lib/mol-plugin-ui/controls/parameters";
 import { ParamDefinition } from "molstar/lib/mol-util/param-definition";
 import { StartingPointBox, ValidationState } from "../Common/Controls/FromLiteMol";
-import { checkConfigType, isMoleJobResult, parseToMoleConfigOrPoresConfig } from "./ExportParser";
+import { isMoleConfigOrPoresConfig } from "./ParamsChecker";
 require("molstar/lib/mol-plugin-ui/skin/light.scss");
 
 var Provider = ComputationInfo.DataProvider;
@@ -1112,56 +1112,10 @@ export class Submission extends React.Component<{ data: ServiceSubmission, compu
         if (isMoleJob(data)) {
             const moleData = new MoleFormData(data.MoleConfig)
             result = moleData.getPackage();
-            // result = {
-            //     Computation: {
-            //         Id: computationId,
-            //         SubmissionId: currentSubmitId
-            //     },
-            //     Active_Atoms_Resiudes: {
-            //         Ignore_Hydrogens: (data.MoleConfig.Cavity === void 0) ? false : (data.MoleConfig.Cavity.IgnoreHydrogens) ? true : false,
-            //         Ignore_HETATMs: (data.MoleConfig.Cavity === void 0) ? false : (data.MoleConfig.Cavity.IgnoreHETAtoms) ? true : false,
-            //         Query_Filter: (data.MoleConfig.QueryFilter === void 0) ? "" : data.MoleConfig.QueryFilter,
-            //         Read_All_Models: (data.MoleConfig.Input === void 0) ? false : (data.MoleConfig.Input.ReadAllModels) ? true : false,
-            //         Ignored_Residues: (data.MoleConfig.NonActiveResidues === void 0 || data.MoleConfig.NonActiveResidues === null) ? "" : flattenResidues(data.MoleConfig.NonActiveResidues),
-            //         Specific_Chains: (data.MoleConfig.Input === void 0) ? "" : data.MoleConfig.Input.SpecificChains
-            //     },
-            //     Cavity_Parameters: {
-            //         Probe_Radius: (data.MoleConfig.Cavity === void 0) ? "" : data.MoleConfig.Cavity.ProbeRadius,
-            //         Interior_Threshold: (data.MoleConfig.Cavity === void 0) ? "" : data.MoleConfig.Cavity.InteriorThreshold
-            //     },
-            //     Channel_Parameters: {
-            //         Origin_Radius: (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.OriginRadius,
-            //         Surface_Cover_Radius: (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.SurfaceCoverRadius,
-            //         Weight_Function: (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.WeightFunction,
-            //         Bottleneck_Radius: (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.BottleneckRadius,
-            //         Bottleneck_Tolerance: (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.BottleneckTolerance,
-            //         Max_Tunnel_Similarity: (data.MoleConfig.Tunnel === void 0 || data.MoleConfig.Tunnel === null) ? "" : data.MoleConfig.Tunnel.MaxTunnelSimilarity,
-            //         Merge_Pores: (data.MoleConfig.PoresMerged === void 0 || data.MoleConfig.PoresMerged === null) ? false : (data.MoleConfig.PoresMerged) ? true : true,
-            //         Automatic_Pores: (data.MoleConfig.PoresAuto === void 0 || data.MoleConfig.PoresAuto === null) ? false : (data.MoleConfig.PoresAuto) ? true : false,
-            //     },
-            //     Selection: {
-            //         Starting_Point: (data.MoleConfig.Origin === void 0 || data.MoleConfig.Origin === null) ? "" : (data.MoleConfig.Origin.Residues === void 0 || data.MoleConfig.Origin.Residues === null || data.MoleConfig.Origin.Residues.length === 0) ? "" : flattenResiduesArray(data.MoleConfig.Origin.Residues),
-            //         Starting_Point_xyz: (data.MoleConfig.Origin === void 0 || data.MoleConfig.Origin === null) ? "" : (data.MoleConfig.Origin.Points === void 0 || data.MoleConfig.Origin.Points === null) ? "" : pointsToString(data.MoleConfig.Origin.Points),
-            //         End_Point: (data.MoleConfig.CustomExits === void 0 || data.MoleConfig.CustomExits === null) ? "" : (data.MoleConfig.CustomExits.Residues === void 0 || data.MoleConfig.CustomExits.Residues === null || data.MoleConfig.CustomExits.Residues.length === 0) ? "" : flattenResiduesArray(data.MoleConfig.CustomExits.Residues),
-            //         End_Point_xyz: (data.MoleConfig.CustomExits === void 0 || data.MoleConfig.CustomExits === null) ? "" : (data.MoleConfig.CustomExits.Points === void 0 || data.MoleConfig.CustomExits.Points === null) ? "" : pointsToString(data.MoleConfig.CustomExits.Points),
-            //         Query: (data.MoleConfig.Origin === void 0 || data.MoleConfig.Origin === null) ? "" : (data.MoleConfig.Origin.QueryExpression === void 0 || data.MoleConfig.Origin.QueryExpression === null) ? "" : data.MoleConfig.Origin.QueryExpression
-            //     }
-            // }
         }
         else {
             const poreData = new PoresFormData(data.PoresConfig);
             result = poreData.getPackage();
-            // result = {
-            //     Computation: {
-            //         Id: computationId,
-            //         SubmissionId: currentSubmitId
-            //     },
-            //     Beta_Structure: (data.PoresConfig.IsBetaBarel === void 0) ? false : (data.PoresConfig.IsBetaBarel) ? true : false,
-            //     Membrane_Region: (data.PoresConfig.InMembrane === void 0) ? false : (data.PoresConfig.InMembrane) ? true : true,
-            //     Specific_Chains: (data.PoresConfig.Chains === void 0) ? "" : data.PoresConfig.Chains,
-            //     Probe_Radius: (data.PoresConfig === void 0) ? "" : data.PoresConfig.ProbeRadius,
-            //     Interior_Threshold: (data.PoresConfig === void 0) ? "" : data.PoresConfig.InteriorThreshold,
-            // }
         }
 
         const jsonString = JSON.stringify(result, null, 2);
@@ -1559,12 +1513,11 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
         try {
             const jsonData = JSON.parse(reader.result as string);
             // const data = parseToMoleConfigOrPoresConfig(jsonData);
-            const check = checkConfigType(jsonData);
-            if (check === "Unknown type") {
+            const check = isMoleConfigOrPoresConfig(jsonData);
+            if (check === null) {
                 throw Error("The file is not in the required format")
             }
             if (jsonData !== null) {
-                const moleJob = isMoleJobResult(jsonData);
                 BridgeEvents.invokeCopyParameters({
                     mode: check === "MoleConfig" ? "mole" : "pores",
                     moleConfig: check === "MoleConfig" ? jsonData as MoleConfig : null,
