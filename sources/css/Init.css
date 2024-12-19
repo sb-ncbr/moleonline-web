@@ -1,0 +1,277 @@
+#page {
+    width: 980px;
+    margin: 10px auto
+}
+
+.groupbox {
+    padding: 7px;
+    margin: 0 0 7px 0;
+}
+
+.groupbox table {
+    margin-top: 0
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0
+}
+
+table td, table th {
+    padding: 4px 0;
+    margin: 0
+}
+
+a, a img {
+    border: none;
+    outline: none;
+    color: #05f
+}
+
+#header ol, ul {
+    list-style: none;
+    padding: 0;
+    margin: 0
+}
+
+td {
+    vertical-align: top
+}
+
+#ajaxspinner {
+    position: absolute;
+    left: 50%;
+    top: 35%;
+    margin: -15px 0 0 -15px;
+    display: none;
+    background: #fff url('/images/spinner.gif') no-repeat 50% 50%;
+    padding: 13px;
+    border: 2px solid #CCC
+}
+
+p, div.p {
+    padding: 0;
+    margin: 0 0 10px 0
+}
+
+a, .link {
+    text-decoration: underline;
+    cursor: pointer;
+    color: #05f
+}
+
+form {
+    margin: 0;
+    padding: 0
+}
+
+input[type=text] {
+    border: 1px solid #ccc;
+    padding: 2px;
+    color: #333;
+    margin: 0;
+    position: relative;
+    z-index: 5;
+    font-size: 12px
+}
+
+.buttons {
+    padding: 0 0 10px 30px;
+    overflow: hidden
+}
+
+input[type=checkbox], input[type=radio] {
+    outline: none
+}
+
+a.button, input[type=submit], input[type=button] {
+    float: left;
+    padding: 0 10px;
+    margin: 0 5px 0 0;
+    text-shadow: #fff 0 1px 0;
+    border: 1px solid #707070;
+    display: block;
+    background: #f0f0f0 url('/images/front/btn.png') repeat-x 0 50%;
+    color: #000 !important;
+    font-size: 13px !important;
+    cursor: pointer;
+    text-decoration: none;
+    height: 27px;
+    line-height: 27px
+}
+
+span.hint, div.hint {
+    background: #d5e9ee;
+    border: 2px solid #9cc6d0;
+    color: #0f4b74;
+    padding: 5px;
+    font-size: 14px;
+    font-weight: normal;
+    z-index: 1000;
+    max-width: 385px;
+    margin: 4px 15px 0 0;
+    position: relative;
+    display: none
+}
+
+.header-gradient-text {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: end;
+    gap: 0.5rem;
+}
+
+.header-icon {
+    width: 32px;
+    height: 32px;
+    margin-left: 10px;
+}
+
+body {
+    background: #f8f8f8
+}
+
+.InitForm table tr td:first-child {
+    vertical-align: middle
+}
+
+.InitForm input[type="submit"]:disabled {
+    color: gray !important
+}
+
+.InitForm .buttons {
+    padding: 0
+}
+
+a {
+    color: #337ab7;
+    text-decoration: none
+}
+
+a:focus,
+a:hover {
+    color: #23527c;
+    text-decoration: underline
+}
+
+a:focus {
+    outline: 5px auto -webkit-focus-ring-color;
+    outline-offset: -2px
+}
+
+figure {
+    text-align: center
+}
+
+figure img {
+    max-width: 100%
+}
+
+.tabs .ui-state-active,
+.btn-primary {
+    color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+
+h2 {
+    border-bottom: 1px solid #999;
+    margin-bottom: 5px
+}
+
+h3 {
+    margin-top: 5px;
+    margin-bottom: 5px
+}
+
+body {
+    background: white;
+    color: #333
+}
+
+.help {
+    cursor: help
+}
+
+.hand {
+    cursor: pointer
+}
+
+.disabled {
+    cursor: not-allowed;
+    color: #777
+}
+
+#controls {
+    min-width: 330px
+}
+
+.nav > li > a {
+    padding: 2px 8px
+}
+
+.nav {
+    padding-top: 4px
+}
+
+#left-tabs .nav {
+    padding-left: 4px
+}
+
+.nav-tabs {
+    border-bottom: 1px solid #ddd;
+    border-bottom-color: #9a9a9a
+}
+
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:focus,
+.nav-tabs > li.active > a:hover {
+    color: #333;
+    background-color: #fff;
+    border-top-color: #9a9a9a;
+    border-right-color: #9a9a9a;
+    border-left-color: #9a9a9a
+}
+
+.nav-tabs > li > a:focus,
+.nav-tabs > li > a:hover {
+    background-color: #9a9a9a;
+    border-bottom-color: #9a9a9a;
+    color: white
+}
+
+.nav-tabs > li > a {
+    color: #333
+}
+
+.tooltip.in {
+    opacity: 1 !important
+}
+
+.tooltip > .tooltip-inner {
+    max-height: 170px;
+    max-width: 400px
+}
+
+figure {
+    filter: saturate(0.5);
+    /* transition: filter 0.3s ease; */
+}
+
+figure:hover {
+    filter: saturate(1.2);
+}
+
+.disabled {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.spinner-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+}

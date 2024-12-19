@@ -20,7 +20,6 @@ module.exports = [
                     { from: './sources/js/init-scripts.js', to: () => { return `js/[name][ext]`; } },
                     { from: './sources/css/styles.css', to: () => { return `css/[name][ext]`; } },
                     { from: './sources/css/init-styles.css', to: () => { return `css/[name][ext]`; } },
-                    { from: './sources/css/init/*', to: () => { return `css/init/[name][ext]`; } },
                     { from: './sources/fonts/*', to: () => { return `fonts/[name][ext]`; } },
                     { from: './sources/images/*', to: () => { return `images/[name][ext]`; } },
                     { from: './sources/images/front/*', to: () => { return `images/front/[name][ext]`; } },
