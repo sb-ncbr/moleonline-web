@@ -2,10 +2,10 @@
   "Mode": "Pores",
   "PoresInit":true,
   "Config": {
+    "Chains": "",
     "InMembrane": true,
-    "InteriorThreshold": 0.8,
-    "ProbeRadius": 10.0,
     "IsBetaBarel": false,
-    "Chains": ""
+    "InteriorThreshold": 0.8,
+    "ProbeRadius": 10
   }
 }
