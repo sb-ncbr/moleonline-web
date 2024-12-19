@@ -11,32 +11,6 @@
     <link rel="stylesheet" href="../css/init-styles.css" type="text/css">
     <script src="../js/init-scripts.js?version=R1.1.9.1"></script>
 
-    <script type="text/javascript">
-        $(function () {
-            // auto-hide flash messages
-            $('.flashmsg.info, .flashmsg.ok').each(function () {
-                var el = $(this);
-                setTimeout(function () {
-                    el.animate({'opacity': 0}, 2000).slideUp();
-                }, 10100);
-            });
-
-            // format hint messages
-            $('span.hint, div.hint').before('<img src="/images/help.png" class="hint" alt="">').each(function () {
-                var div = $(this);
-                var img = div.prev('img.hint');
-                div.hide();
-                div.css('position', 'fixed');
-                div.append('<img src="/images/front/hint_toptip.png" alt="" class="toptip">');
-                img.mouseenter(function () {
-                    $(this).next('.hint').show();
-                });
-                img.mouseout(function () {
-                    $(this).next('.hint').hide();
-                });
-            });
-        });
-    </script>
 </head>
 
 <body>

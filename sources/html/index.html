@@ -26,7 +26,6 @@
 				var div = $(this);
 				var img = div.prev('img.hint');
 				div.css('position', 'fixed');
-				div.append('<img src="/images/front/hint_toptip.png" alt="" class="toptip">');
 				img.mouseenter(function () {
 					$(this).next('.hint').show();
 				});
