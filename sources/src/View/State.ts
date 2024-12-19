@@ -26,7 +26,7 @@ import { Property } from "./VizualizerMol/color-tunnels/property-color";
 import { LayerColors } from "./CommonUtils/LayerColors";
 import { TwoDProtsBridge } from "./CommonUtils/TwoDProtsBridge";
 
-export async function showDefaultVisualsNewSubmission(channels: ChannelsDBChannels) {
+export async function showDefaultVisualsNewSubmission(channels: ChannelsDBChannels, submitId: string) {
     return new Promise(res => {
         let toShow: Tunnel[] = [];
         let channelsDB = true;
@@ -87,7 +87,7 @@ export async function showDefaultVisualsNewSubmission(channels: ChannelsDBChanne
         }
 
         if (toShow.length > 0) {
-            return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB).then(() => {
+            return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB, submitId).then(() => {
                 res(null);
                 return;
             })
@@ -159,7 +159,7 @@ export async function showDefaultVisuals(currentSubmitId: number, submissionChan
             }
 
             if (toShow.length > 0) {
-                return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB).then(() => {
+                return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB, currentSubmitId === -1 ? "ChannelsDB" : currentSubmitId.toString()).then(() => {
                     res(null);
                     return;
                 })
@@ -225,7 +225,7 @@ export async function showDefaultVisuals(currentSubmitId: number, submissionChan
             }
 
             if (toShow.length > 0) {
-                return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB).then(() => {
+                return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB, currentSubmitId === -1 ? "ChannelsDB" : currentSubmitId.toString()).then(() => {
                     res(null);
                     return;
                 })
@@ -897,7 +897,7 @@ export function showCavityVisuals(cavities: any[], visible: boolean): Promise<an
     return showSurfaceVisuals(cavities, visible, 'Cavity', (cavity: any) => `${cavity.Type} ${cavity.Id}`, 0.33);
 }
 
-async function showChannelDefaultVisuals(channels: Tunnel[] & TunnelMetaInfo[], channelsDB: boolean): Promise<any> {
+async function showChannelDefaultVisuals(channels: Tunnel[] & TunnelMetaInfo[], channelsDB: boolean, submitId: string): Promise<any> {
     const context = Context.getInstance();
 
     let visibleChannels: Tunnel[] & TunnelMetaInfo[] = [];
@@ -912,6 +912,9 @@ async function showChannelDefaultVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
         if (channelsDB !== undefined && channelsDB) {
             channel.__channelsDB = true;
         }
+
+        channel.__submissionId = submitId.toString();
+
         visibleChannels.push(channel);
         LayerColors.invokeOnChannelAdd(channel.__ref);
         LastVisibleChannels.set(channel);

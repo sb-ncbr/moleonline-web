@@ -137,7 +137,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
                     const channelElems = this.createChannelElems(dataObj.Channels, newSubmitId)
                     const currentSumbissionElems = this.state.submissionsElems;
                     currentSumbissionElems.set(newSubmitId, channelElems);
-                    await showDefaultVisualsNewSubmission(guidData);
+                    await showDefaultVisualsNewSubmission(guidData, newSubmitId.toString());
                     this.setState({ submissions, currentSubmitId: newSubmitId, submissionsElems: currentSumbissionElems })
                 }
             }
