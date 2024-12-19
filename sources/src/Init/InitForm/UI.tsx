@@ -231,9 +231,9 @@ export class InitForm extends React.Component<{}, State> {
             <table style={{ width: "100%" }}>
                 <tbody>
                     <tr>
-                        <td><label htmlFor="frm-jobSetup-setupForm-file">Upload your own file</label>:</td>
+                        <td><label htmlFor="frm-jobSetup-setupForm-file">Upload file</label>:</td>
                         <td>
-                            <input type="file" name="file" className="text" id="frm-jobSetup-setupForm-file" />
+                            <input type="file" name="file" className="text" id="frm-jobSetup-setupForm-file" style = {{ maxWidth: '250px' }}/>
                             <div className="hint">
                                 Plain text PDB files (UTF-8 encoding), ZIP and GZIP archives are supported,
                                 maximal file size is 50MB.<br />
