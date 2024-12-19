@@ -69,15 +69,6 @@ gulp.task('merge-css', function() {
     .pipe(gulp.dest("./sources/css"))
 })
 
-gulp.task('merge-css-init', function() {
-    return gulp.src([
-        "./node_modules/bootstrap/dist/css/bootstrap.min.css",
-        "./sources/css/Init.css",
-    ])
-    .pipe(concat("init-styles.css"))
-    .pipe(gulp.dest("./sources/css"))
-})
-
 gulp.task('merge-js-init', function() {
     return gulp.src([
         "./node_modules/jquery/dist/jquery.min.js",
