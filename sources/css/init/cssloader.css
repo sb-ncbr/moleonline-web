@@ -66,45 +66,6 @@ ul.error li {
     margin: 0
 }
 
-.info {
-    background: #c4dde3 url('/images/msg/info.png') 5px 50% no-repeat;
-    border: 1px solid #9cc6d0;
-    color: #0f4b74
-}
-
-.comment {
-    background: #fefefe url('/images/msg/comment.png') 5px 50% no-repeat;
-    border: 1px solid #dbdbdb;
-    color: #4f4f4f
-}
-
-.ok {
-    background: #c7e5c2 url('/images/msg/ok.png') 5px 50% no-repeat;
-    border: 1px solid #a2d399;
-    color: #386d19
-}
-
-.error {
-    background: #e2c5c5 url('/images/msg/error.png') 5px 50% no-repeat;
-    border: 1px solid #cf9e9e;
-    color: #ae2727
-}
-
-.warning {
-    background: #eae1b1 url('/images/msg/warning.png') 5px 50% no-repeat;
-    border: 1px solid #e0d182;
-    color: #675918
-}
-
-.confirm_dialog {
-    border: 1px solid #e0d182;
-    color: #675918;
-    background: #f5ecb9 url('/images/msg/warning.png') 10px 11px no-repeat;
-    padding: 10px 10px 10px 35px;
-    margin: 0 0 10px 0;
-    overflow: hidden
-}
-
 .confirm_dialog p {
     margin: 0 0 10px 0 !important
 }
@@ -157,70 +118,6 @@ ul.error li {
 #header h1 a {
     text-decoration: none;
     color: #000
-}
-
-#topmenu {
-    margin: 0 0 0 0;
-    overflow: hidden;
-    position: absolute;
-    right: 30px;
-    bottom: 0
-}
-
-#topmenu ul {
-    list-style: none;
-    height: 32px;
-    position: relative
-}
-
-#topmenu li {
-    float: left;
-    text-decoration: none;
-    border: 1px solid #D2D2D2;
-    background: #f2f2f2;
-    margin: 0 0 0 5px;
-    position: relative;
-    cursor: pointer
-}
-
-#topmenu a {
-    color: #000;
-    padding: 0 15px;
-    display: block;
-    height: 30px;
-    line-height: 30px;
-    background: url('/images/front/bgmenu.png') 0 0 repeat-x
-}
-
-#topmenu li.active {
-    border-bottom-color: #fff
-}
-
-#topmenu li:hover,#topmenu li.active {
-    background: #fff;
-    background-image: none
-}
-
-#topmenu li.active a {
-    text-decoration: none
-}
-
-#topmenu li:hover a,#topmenu li.active a {
-    background-image: none
-}
-
-#submenu {
-    margin: 10px 0 15px 0;
-    font-size: 16px
-}
-
-#submenu a.active {
-    color: #000;
-    text-decoration: none
-}
-
-#submenu a:hover {
-    text-decoration: none
 }
 
 #content {
@@ -313,14 +210,6 @@ ul.error li {
     color: #666
 }
 
-.toggler.plus {
-    background-image: url('/images/icons/plus.png')
-}
-
-.toggler.minus {
-    background-image: url('/images/icons/minus.png')
-}
-
 h2 {
     font-size: 20px;
     margin: 10px 0 10px 0
@@ -411,12 +300,6 @@ input:focus:-moz-focus-inner {
     width: 220px
 }
 
-input.date {
-    padding-right: 20px !important;
-    background: #fff url('/images/common/bgcalendar.png') 100% 50% no-repeat;
-    cursor: pointer
-}
-
 a.button,input[type=submit],input[type=button] {
     float: left;
     padding: 0px 10px;
@@ -449,39 +332,6 @@ a.button img {
     position: relative;
     top: 2px;
     margin: 0 5px 0 0
-}
-
-x.button.delete {
-    background: #e2c5c5 url('/images/icons/deny.png') 5px 50% no-repeat;
-    padding-left: 25px;
-    border: 1px solid #c97d7d;
-    color: #a51b1b !important
-}
-
-x.button.delete:hover {
-    background: #e6b4b4 url('/images/icons/deny.png') 5px 50% no-repeat;
-    border: 1px solid #c06e6e;
-    color: #9a1111 !important
-}
-
-.button.delete:hover {
-    background-image: url('/images/front/btnred.png');
-    border: 1px solid #c97d7d;
-    color: #a51b1b !important
-}
-
-.button.delete .icon {
-    background: url('/images/icons/deny_gray.png') 0 0 no-repeat;
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    margin: 0 5px 0 -5px;
-    position: relative;
-    top: 2px
-}
-
-.button.delete:hover .icon {
-    background-image: url('/images/icons/deny.png')
 }
 
 table {
@@ -530,64 +380,6 @@ table.settings th {
 
 .ui-widget-content {
     background: #fff
-}
-
-.reslistdlg {
-    font-size: 13px;
-    display: none
-}
-
-.reslistdlg table,.reslistdlg p {
-    margin: 0 0 7px 0
-}
-
-.reslistdlg table td,.reslistdlg table th {
-    padding: 3px 5px;
-    border: 1px solid #aaa
-}
-
-.reslistdlg h4 {
-    margin: 0 0 2px 0;
-    font-size: 14px
-}
-
-.reslistdlg span {
-    font-style: italic;
-    color: #444
-}
-
-.reslistdlg span.bb {
-    font-style: normal;
-    font-weight: bold;
-    color: #000
-}
-
-.reslistdlg tr.bn td {
-    background: #ADBEF9
-}
-
-.reslistdlg tr.lm td {
-    background-color: #ADEBF9
-}
-
-.reslistdlg p.bn {
-    font-weight: bold;
-    background: #ADBEF9;
-    padding: 2px 4px
-}
-
-.reslistdlg p.lm {
-    font-weight: bold;
-    background: #ADEBF9;
-    padding: 2px 4px
-}
-
-.reslistdlg th.num {
-    min-width: 40px
-}
-
-.reslistdlg th {
-    background: #ddd
 }
 
 .clearimg {
