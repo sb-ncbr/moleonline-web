@@ -121,12 +121,12 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
     }
 
     examples = [
-        { id: '1GPN', src: '/images/example_1GPN.png', title: '1GPN - Structure of acetylcholinesterase complexed with huperzine B' },
-        { id: '1V9E', src: '/images/example_1V9E.png', title: '1V9E - Crystal Structure Analysis of Bovine Carbonic Anhydrase II' },
-        { id: '2V61', src: '/images/example_2V61.png', title: '2V61 - Structure of human MAO B in complex with the selective inhibitor 7-(3- chlorobenzyloxy)-4-(methylamino)methyl-coumarin' },
-        { id: '2VV5', src: '/images/example_2VV5.png', title: '2VV5 - The open structure of MscS' },
-        { id: '2XN8', src: '/images/example_2XN8.png', title: '2XN8 - X-ray structure of the substrate-free Mycobacterium tuberculosis cytochrome P450 CYP125' },
-        { id: '3LDC', src: '/images/example_3LDC.png', title: '3LDC - Open MthK pore structure crystallized in 100 mM K+' },
+        { id: '1GPN', src: '/images/example_1GPN.png', title: '1GPN - Acetylcholinesterase complex with anti-Alzheimer drug' },
+        { id: '1V9E', src: '/images/example_1V9E.png', title: '1V9E - Bovine Carbonic Anhydrase II' },
+        { id: '2V61', src: '/images/example_2V61.png', title: '2V61 - Human monoamine oxidase B complexes with inhibitors' },
+        { id: '2VV5', src: '/images/example_2VV5.png', title: '2VV5 - Open form of an E. coli mechanosensitive channel' },
+        { id: '2XN8', src: '/images/example_2XN8.png', title: '2XN8 - Cytochrome P450 Cyp 125 from M. Tuberculosis' },
+        { id: '3LDC', src: '/images/example_3LDC.png', title: '3LDC - Open K(+) channel pore of MthK' },
     ];
 
     render() {
