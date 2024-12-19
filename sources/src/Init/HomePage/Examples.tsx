@@ -131,7 +131,7 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
 
     render() {
         return (
-            <div className="container-fluid text-center" style={{ marginBottom: '10rem' }}>
+            <div className="container-fluid text-center">
                 <div className="row">
                     <div className="col">
                         <h4><b>Examples</b></h4>
