@@ -69,6 +69,7 @@ export class MoleFormData {
     private CustomExits: MoleConfigOrigin | null
     private PoresMerged: boolean
     private PoresAuto: boolean
+    private IgnoredResidues: string
 
     public constructor(data?: MoleConfig) {
         if (data !== void 0 && data.Cavity !== null && data.Cavity !== void 0) {
@@ -359,6 +360,14 @@ export class MoleFormData {
 
     public getQueryFilter() {
         return this.QueryFilter;
+    }
+
+    public setIgnoredResiduesStr(value: string) {
+        this.IgnoredResidues = value;
+    }
+
+    public getIgnoredResiduesStr() {
+        return this.IgnoredResidues;
     }
 
     private setPoints(value: StartingPoint[], isStart: boolean) {

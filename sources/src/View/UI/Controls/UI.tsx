@@ -413,10 +413,11 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                         }).bind(v)();
                     }}
                     />
-                    <TextControl name="Ignored Residues" param={ParamDefinition.Text('', { label: 'Ignored Residues', placeholder: 'A 69, A 386, ...' })} value={flattenResidues(valueOrDefault(data.getIgnoredResidues(), ""))} onChange={(v) => {
+                    <TextControl name="Ignored Residues" param={ParamDefinition.Text('', { label: 'Ignored Residues', placeholder: 'A 69, A 386, ...' })} value={valueOrDefault(data.getIgnoredResiduesStr(), "")} onChange={(v) => {
                         let s = this.state;
                         if (s.moleFormData !== null) {
                             s.moleFormData.setIgnoredResidues(parseResidues(v.value));
+                            s.moleFormData.setIgnoredResiduesStr(v.value)
                             this.setState(s);
                         }
                         (() => {
@@ -425,6 +426,7 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                                     return;
                                 }
                                 s.moleFormData.setIgnoredResidues(parseResidues(''));
+                                s.moleFormData.setIgnoredResiduesStr('');
                             });
                         }).bind(v)();
                     }} />
