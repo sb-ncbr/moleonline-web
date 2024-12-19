@@ -236,7 +236,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
                         </h2>
                         <div id={`submission-${submitId}`} className={`accordion-collapse collapse ${submitId === this.state.currentSubmitId ? 'show' : ''}`}>
                             <div className="accordion-body">
-                                {currentChannels}
+                                {currentChannels.length > 0 ? currentChannels : <div className="no-channels-data">There are no channels available...</div>}
                             </div>
                         </div>
                     </div>
