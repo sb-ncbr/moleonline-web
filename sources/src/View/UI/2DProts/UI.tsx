@@ -4,8 +4,8 @@ import {getParameters} from "../../../Common/Util/Router";
 import {TwoDProtsBridge} from "../../CommonUtils/TwoDProtsBridge";
 import {Events} from "../../../Bridge";
 
-export class TwoDProts extends React.Component<{}, { isComputing: boolean, error?: any, jobId: string, canceled: boolean }> {
-    state = { isComputing: false, error: void 0, jobId: "", canceled: false };
+export class TwoDProts extends React.Component<{}, { isComputing: boolean, error?: any, jobId: string, canceled: boolean, modifiedSVG: string }> {
+    state = { isComputing: false, error: void 0, jobId: "", canceled: false, modifiedSVG: "" };
 
     private getLastErrorMessage(message: string): string {
         const lastColonIndex = message.lastIndexOf(':');
@@ -31,7 +31,9 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
                 (status, jobId, errorMsg) => {
                     console.log(`2DProts Job Status: ${status}`);
                     if (status === 'SUCCESS') {
-                        this.setState({ isComputing: false, jobId })
+                        this.modifySVG(jobId).then(() => {
+                            this.setState({ isComputing: false, jobId })
+                        });
                     } else if (status === 'FAILURE') {
                         this.setState({ isComputing: false, jobId: '', error: <div className="text-danger">{this.getLastErrorMessage(errorMsg)}</div> })
                     } else if (status === 'PENDING' && this.state.jobId === '') {
@@ -76,9 +78,48 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
         }
     }
 
+    private async modifySVG(jobId: string) {
+        const url = `https://2dprots.ncbr.muni.cz/static/2DProt/custom_jobs/${jobId}/output.svg`;
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Failed to fetch SVG");
+
+            const svgText = await response.text();
+
+            const parser = new DOMParser();
+            const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
+            const svgElement = svgDoc.documentElement;
+
+            const tunnelElements = svgElement.querySelectorAll('.tunnel');
+            tunnelElements.forEach(element => {
+                element.setAttribute('style', 'fill: black; stroke: black; opacity: 0.65');
+            });
+
+            const serializer = new XMLSerializer();
+            const modifiedSVG = serializer.serializeToString(svgElement);
+
+            const encodedSVG = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(modifiedSVG)}`;
+
+            this.setState({ modifiedSVG: encodedSVG })
+        } catch (error) {
+            Events.invokeNotifyMessage({
+                messageType: "Danger",
+                message: `Error while delivering 2DProts SVG: ${error}`
+            })
+            console.error("Error modifying SVG:", error);
+        }
+    }
+
     render() {
         return <div className="d-flex flex-column justify-content-center align-items-center h-100 w-100">
-            {this.state.jobId !== '' && !this.state.canceled && !this.state.isComputing ? <img style={{ objectFit: 'contain', maxHeight: '90%', width: 'auto' }} alt="2DProtsOutput" src={`https://2dprots.ncbr.muni.cz/static/2DProt/custom_jobs/${this.state.jobId}/output.svg`} /> : <></>}
+            {this.state.jobId !== '' && !this.state.canceled && !this.state.isComputing ?
+                <img
+                    src={this.state.modifiedSVG !== "" ? this.state.modifiedSVG : `https://2dprots.ncbr.muni.cz/static/2DProt/custom_jobs/${this.state.jobId}/output.svg`}
+                    alt="2DProts output"
+                    style={{ objectFit: 'contain', maxHeight: '90%', width: 'auto' }}
+                /> : <></>
+            }
             {this.state.isComputing ?
                 <div>
                     <button className="btn btn-primary" type="button" style={{ marginRight: '10px' }} disabled>
@@ -99,7 +140,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
                             <span>Start computation</span>
                         </button>
                         <button className="btn btn-primary" type="button" style={{ marginLeft: '10px' }} onClick={() => {
-                            this.fetchSvgAndCreateBlob(`https://2dprots.ncbr.muni.cz/static/2DProt/custom_jobs/${this.state.jobId}/output.svg`).then((blob) => {
+                            this.fetchSvgAndCreateBlob(this.state.modifiedSVG !== "" ? this.state.modifiedSVG : `https://2dprots.ncbr.muni.cz/static/2DProt/custom_jobs/${this.state.jobId}/output.svg`).then((blob) => {
                                 if (blob) {
                                     const blobUrl = URL.createObjectURL(blob);
                                     const downloadLink = document.createElement('a');
