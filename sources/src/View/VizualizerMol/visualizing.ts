@@ -73,7 +73,7 @@ export function createMembrane(data: MembranePoint[], color: Color) {
         const el = data[i];
         const t = Mat4.identity();
         builder.currentGroup = i;
-        Mat4.scaleUniformly(t, Mat4.setTranslation(t, Vec3.create(el.Position.X, el.Position.Y, el.Position.Z)), 0.4);
+        Mat4.scaleUniformly(t, Mat4.setTranslation(Mat4.identity(), Vec3.create(el.Position.X, el.Position.Y, el.Position.Z)), 0.4);
         MeshBuilder.addPrimitive(builder, t, Polyhedron(vertices, indices));
         MeshBuilder.addPrimitiveFlipped(builder, t, Polyhedron(vertices, indices));
     }
