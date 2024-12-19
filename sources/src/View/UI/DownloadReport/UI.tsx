@@ -123,7 +123,7 @@ class DownloadResultsMenu extends React.Component<{}, DownloadResultsMenuState> 
 
         if (computationId !== void 0) {
             items.push(
-                <BootstrapDropDownMenuItem linkText="Molecule" /*link={`${linkBase}&format=molecule`}*/ targetBlank={true} onClick={() => {
+                <BootstrapDropDownMenuItem linkText="mmCIF" /*link={`${linkBase}&format=molecule`}*/ targetBlank={true} onClick={() => {
                     this.generateMoleculeContent();
                 }} />
             );
