@@ -5,12 +5,11 @@
   "scripts": {
     "merge-js": "gulp merge-js",
     "merge-css": "gulp merge-css",
-    "merge-init-js": "gulp merge-js-init",
     "compile-sass": "gulp compile-sass",
     "build-webpack": "npx webpack --mode production",
     "build-webpack-dev": "npx webpack --mode development",
-    "build": "npm run merge-js && npm run compile-sass && npm run merge-css && npm run merge-init-js && npm run build-webpack",
-    "build-dev": "npm run merge-js && npm run compile-sass && npm run merge-css && npm run merge-init-js && npm run build-webpack-dev",
+    "build": "npm run merge-js && npm run compile-sass && npm run merge-css && npm run build-webpack",
+    "build-dev": "npm run merge-js && npm run compile-sass && npm run merge-css && npm run build-webpack-dev",
     "start": "cd ./dist/ && http-server"
   },
   "main": "index.js",

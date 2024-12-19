@@ -68,17 +68,3 @@ gulp.task('merge-css', function() {
     .pipe(concat("styles.css"))
     .pipe(gulp.dest("./sources/css"))
 })
-
-gulp.task('merge-js-init', function() {
-    return gulp.src([
-        "./node_modules/jquery/dist/jquery.min.js",
-        "./node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
-    ])
-    .pipe(concat("init-scripts.js"))
-    .pipe(beautify({
-        indent_size: 2,
-        space_in_empty_paren: true,
-        preserve_newlines: true,
-    }))
-    .pipe(gulp.dest("./sources/js"))
-})
