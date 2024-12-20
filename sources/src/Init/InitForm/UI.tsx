@@ -56,7 +56,7 @@ export class InitForm extends React.Component<{}, State> {
                     assembly = (item.value !== '' && !item.disabled) ? item.value : void 0;
                     break;
                 case 'biological-unit':
-                    pores = (item.value !== '') ? item.checked : false;
+                    pores = item.checked;
                     break;
                 case 'file':
                     file = (item.files !== null) ? item.files[0] : void 0;

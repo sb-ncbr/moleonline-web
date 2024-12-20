@@ -334,52 +334,43 @@ export class Context {
     }
 
 
-    public async load(url: string, isBinary: boolean, custom: boolean, assemblyId?: string | null) {
+    public async load(url: string, isBinary: boolean, assemblyId?: string | null) {
         const update = this.plugin.build();
 
         let structure;
 
-        if (custom) {
-            try {
-                const response = await fetch(url);
-                if (response.ok) {
-                    const text = await response.text();
-                    const type = await this.determineFileType(text);
-                    if (type === "cif") {
-                        structure = await update.toRoot()
-                            .apply(Download, { url, isBinary })
-                            .apply(ParseCif)
-                            .apply(TrajectoryFromMmCif)
-                            .apply(ModelFromTrajectory)
-                            .apply(StructureFromModel, { type: { name: 'assembly', params: {} } }/*, { ref: "protein-data"}*/);
-                    } else if (type === "pdb") {
-                        structure = await update.toRoot()
-                            .apply(Download, { url, isBinary })
-                            .apply(TrajectoryFromPDB)
-                            .apply(ModelFromTrajectory)
-                            .apply(StructureFromModel, { type: { name: 'assembly', params: {} } }/*, { ref: "protein-data"}*/);
-                    } else {
-                        throw Error("Unkown type of input file")
-                    }
+        try {
+            const response = await fetch(url);
+            if (response.ok) {
+                const text = await response.text();
+                const type = await this.determineFileType(text);
+                if (type === "cif") {
+                    structure = await update.toRoot()
+                        .apply(Download, { url, isBinary })
+                        .apply(ParseCif)
+                        .apply(TrajectoryFromMmCif)
+                        .apply(ModelFromTrajectory)
+                        .apply(StructureFromModel, { type: assemblyId === null ? { name: 'model', params: {} } : { name: 'assembly', params: { id: assemblyId } } });
+                } else if (type === "pdb") {
+                    structure = await update.toRoot()
+                        .apply(Download, { url, isBinary })
+                        .apply(TrajectoryFromPDB)
+                        .apply(ModelFromTrajectory)
+                        .apply(StructureFromModel, { type: assemblyId === null ? { name: 'model', params: {} } : { name: 'assembly', params: { id: assemblyId } } });
                 } else {
-                    throw Error("Something went wrong while retrieving input file");
+                    throw Error("Unkown type of input file")
                 }
-            } catch (error) {
-                Events.invokeNotifyMessage({
-                    messageType: "Danger",
-                    message: `${error}`
-                })
-                return;
+            } else {
+                throw Error("Something went wrong while retrieving input file");
             }
-            await loadCifTunnels(url);
-        } else {
-            structure = await update.toRoot()
-                .apply(Download, { url, isBinary })
-                .apply(ParseCif)
-                .apply(TrajectoryFromMmCif)
-                .apply(ModelFromTrajectory)
-                .apply(StructureFromModel, { type: { name: 'assembly', params: assemblyId !== undefined && assemblyId !== null ? { id: assemblyId } : {} } }/*, { ref: "protein-data"}*/);
+        } catch (error) {
+            Events.invokeNotifyMessage({
+                messageType: "Danger",
+                message: `${error}`
+            })
+            return;
         }
+        await loadCifTunnels(url);
 
         const polymer = structure.apply(StructureComponent, { type: { name: 'static', params: 'polymer' } }, { ref: "protein-data" });
         // const water = structure.apply(StructureComponent, { type: { name: 'static', params: 'water' } });
