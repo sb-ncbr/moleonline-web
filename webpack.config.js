@@ -20,7 +20,6 @@ module.exports = [
                     { from: './sources/css/styles.css', to: 'css/styles.css' },
                     { from: './sources/css/Init.css', to: 'css/init-styles.css' },
                     { from: './sources/images/*', to: () => { return `images/[name][ext]`; } },
-                    { from: './sources/images/front/*', to: () => { return `images/front/[name][ext]`; } },
                     { from: './sources/html/index.html', to: () => { return `index.html`; } },
                     { from: './sources/html/*', to: () => { return `html/[name][ext]`; }, globOptions: { ignore: ['**/index.html'] } },
                     { from: './sources/config/*', to: () => { return `config/[name][ext]`; } },

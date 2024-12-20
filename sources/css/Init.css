@@ -72,22 +72,6 @@ input[type=checkbox], input[type=radio] {
     outline: none
 }
 
-a.button, input[type=submit], input[type=button] {
-    float: left;
-    padding: 0 10px;
-    margin: 0 5px 0 0;
-    text-shadow: #fff 0 1px 0;
-    border: 1px solid #707070;
-    display: block;
-    background: #f0f0f0 url('/images/front/btn.png') repeat-x 0 50%;
-    color: #000 !important;
-    font-size: 13px !important;
-    cursor: pointer;
-    text-decoration: none;
-    height: 27px;
-    line-height: 27px
-}
-
 span.hint, div.hint {
     background: #d5e9ee;
     border: 2px solid #9cc6d0;
