@@ -12,7 +12,7 @@ declare function $(p: any): any;
 
 interface State {
     app: InitForm,
-    useBiologicalUnit: boolean,
+    useAsymmetricUnit: boolean,
     activeTabIdx: number,
 };
 
@@ -22,7 +22,7 @@ export class InitForm extends React.Component<{}, State> {
 
     state: State = {
         app: this,
-        useBiologicalUnit: true,
+        useAsymmetricUnit: false,
         activeTabIdx: 0,
     };
 
@@ -42,7 +42,7 @@ export class InitForm extends React.Component<{}, State> {
 
         let pdbid = '';
         let assembly;
-        let pores: boolean = false;
+        let pores: boolean = true;
         let file;
 
         for (let idx = 0; idx < form.length; idx++) {
@@ -55,14 +55,16 @@ export class InitForm extends React.Component<{}, State> {
                 case 'assembly':
                     assembly = (item.value !== '' && !item.disabled) ? item.value : void 0;
                     break;
-                case 'biological-unit':
-                    pores = item.checked;
+                case 'asymmetric-unit':
+                    pores = !item.checked;
                     break;
                 case 'file':
                     file = (item.files !== null) ? item.files[0] : void 0;
                     break;
             }
-            console.log(name, pores, assembly);
+        }
+        if (typeof assembly !== 'undefined' && assembly !== "1") {
+            pores = false;
         }
 
         if (file === void 0 || file === null) {
@@ -137,10 +139,10 @@ export class InitForm extends React.Component<{}, State> {
         });
     }
 
-    private biologicalUnitChange(e: Event) {
+    private asymmetricUnitChange(e: Event) {
         let el = e.target as HTMLInputElement;
         let s = this.state;
-        s.useBiologicalUnit = el.checked;
+        s.useAsymmetricUnit = el.checked;
         this.setState(s);
     }
 
@@ -202,23 +204,24 @@ export class InitForm extends React.Component<{}, State> {
                     <td>
                         <input type="text" name="pdbid" maxLength={4} size={15} className="text"
                                id="frm-jobSetup-setupForm-code" defaultValue="1tqn" data-bs-toggle="tooltip"
-                               title="PDB ID code as can be found on www.pdb.org, for example 1z10"/>
+                               title="PDB ID code as can be found on www.pdb.org, for example 1tqn."/>
                     </td>
                 </tr>
 
                 <tr>
                     <td><label htmlFor="frm-jobSetup-setupForm-unit">Assembly ID (optional)</label>:</td>
-                    <td><input disabled={this.state.useBiologicalUnit} type="text" name="assembly" maxLength={3}
+                    <td><input disabled={this.state.useAsymmetricUnit} type="text" name="assembly" maxLength={3}
                                size={15} className="text" id="frm-jobSetup-setupForm-unit"
-                               placeholder="(asymmetric unit)" data-bs-toggle="tooltip"
-                               title="no value - asymmetric unit (default)"/>
+                               defaultValue="1" data-bs-toggle="tooltip"
+                               title="Protein structures are resolved in asymmetric units divided or combined in PDB into assemblies with integer ID numbering.
+                               Assemblies may or may not form biological units, and most biological units have Assembly ID 1."/>
                     </td>
                 </tr>
                 <tr>
-                    <td><label htmlFor="frm-jobSetup-setupForm-biological-unit">Use biological unit</label>:</td>
-                    <td><input type="checkbox" onChange={this.biologicalUnitChange.bind(this)}
-                               id="frm-jobSetup-setupForm-biological-unit" name="biological-unit" className="checkbox"
-                               defaultChecked={true} data-bs-toggle="tooltip" title="Use biological unit"/>
+                    <td><label htmlFor="frm-jobSetup-setupForm-asymmetric-unit">Use asymmetric unit</label>:</td>
+                    <td><input type="checkbox" onChange={this.asymmetricUnitChange.bind(this)}
+                               id="frm-jobSetup-setupForm-assymetric-unit" name="asymmetric-unit" className="checkbox"
+                               defaultChecked={false} data-bs-toggle="tooltip" title="Use asymmetric unit, not Assembly ID."/>
                     </td>
                 </tr>
                 </tbody>
