@@ -522,46 +522,13 @@ async function downloadChannelsDBData(computationId: string) {
 
 function downloadProteinData(computationId: string, submitId: number) {
     return new Promise<any>(async (res, rej) => {
-        // ApiService.getProteinStructure(computationId, submitId).then((p) => {
-        //     const data = p.data;
-        //     if (data === "" || data === null || data === void 0) {
-        //         console.log('Cannot get protein data');
-        //     }
-        //     else {
-        //         Context.getInstance().load(`https://api.mole.upol.cz/Data/${computationId}?submitId=${submitId}&format=molecule`, false)
-        //             .then((data) => {
-        //                 res(data);
-        //                 // TODO: invoke with correct data type
-        //                 // Events.invokeProteinDataLoaded(data);
-        //             })
-        //             .catch(error => rej(error));
-        //     }
-        // }).catch(error => {
-        //     console.log(error);
-        //     rej(error)
-        // });
         try {
             const p = await ApiService.getComputationInfoList(computationId);
-            if (p.PdbId === "" || p.PdbId === null || p.PdbId === void 0) {
-                console.log('PdbId not present');
-                await Context.getInstance().load(`https://api.mole.upol.cz/Data/${computationId}?submitId=${submitId}&format=molecule`, false, true)
-                    .then((data) => {
-                        res(data);
-                        // TODO: invoke with correct data type
-                        // Events.invokeProteinDataLoaded(data);
-                    })
-                    .catch(error => rej(error));
-            }
-            else {
-                TwoDProtsBridge.setPdbId(p.PdbId);
-                await Context.getInstance().load(`https://models.rcsb.org/${p.PdbId}.bcif`, true, false, p.AssemblyId)
-                    .then((data) => {
-                        res(data);
-                        // TODO: invoke with correct data type
-                        // Events.invokeProteinDataLoaded(data);
-                    })
-                    .catch(error => rej(error));
-            }
+            await Context.getInstance().load(`https://api.mole.upol.cz/Data/${computationId}?submitId=${submitId}&format=molecule`, false, true, p.AssemblyId)
+                .then((data) => {
+                    res(data);
+                })
+                .catch(error => rej(error));
         } catch (error) {
             console.log(error);
             rej(error);
