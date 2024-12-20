@@ -18,11 +18,6 @@ gulp.task('compile-sass', function () {
 
 gulp.task("merge-js", function() {
     return gulp.src([
-        "./node_modules/jquery/dist/jquery.min.js",
-        "./node_modules/jquery-ui-dist/jquery-ui.min.js",
-        "./node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
-        "./node_modules/utf8/utf8.js",
-        "./sources/js/canvas2svg.js",
         "./sources/js/datagrid.js",
         "./sources/js/Palette.js",
         "./sources/js/tabsConfig.js",
@@ -38,8 +33,6 @@ gulp.task("merge-js", function() {
 
 gulp.task('merge-css', function() {
     return gulp.src([
-        "./node_modules/bootstrap/dist/css/bootstrap.min.css",
-        "./node_modules/jquery-ui-dist/jquery-ui.min.css",
         "./sources/css/AglomeredParameters.css",
         "./sources/css/AlertMessages.css",
         "./sources/css/annotate.css",

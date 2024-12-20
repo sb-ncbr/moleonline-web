@@ -16,10 +16,9 @@ module.exports = [
         plugins: [
             new CopyWebpackPlugin({
                 patterns: [
-                    { from: './sources/js/scripts.js', to: () => { return `js/[name][ext]`; } },
-                    { from: './sources/css/styles.css', to: () => { return `css/[name][ext]`; } },
+                    { from: './sources/js/scripts.js', to: 'js/scripts.js' },
+                    { from: './sources/css/styles.css', to: 'css/styles.css' },
                     { from: './sources/css/Init.css', to: 'css/init-styles.css' },
-                    { from: './sources/fonts/*', to: () => { return `fonts/[name][ext]`; } },
                     { from: './sources/images/*', to: () => { return `images/[name][ext]`; } },
                     { from: './sources/images/front/*', to: () => { return `images/front/[name][ext]`; } },
                     { from: './sources/html/index.html', to: () => { return `index.html`; } },
