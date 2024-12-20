@@ -1468,11 +1468,12 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
             return false;
         }
 
+        let submissionsItems = this.prepareSubmissionItems();
         let submissions = this.getSubmissions();
 
         if (String(this.state.submitId) === String(0)) {
             if (!left) return submissions.length > 0;
-            return true;
+            return submissionsItems.length > 0 && submissionsItems[0].value !== "0";
         }
 
         if (String(this.state.submitId) === String(-1)) {
