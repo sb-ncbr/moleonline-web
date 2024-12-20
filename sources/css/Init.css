@@ -37,17 +37,6 @@ td {
     vertical-align: top
 }
 
-#ajaxspinner {
-    position: absolute;
-    left: 50%;
-    top: 35%;
-    margin: -15px 0 0 -15px;
-    display: none;
-    background: #fff url('/images/spinner.gif') no-repeat 50% 50%;
-    padding: 13px;
-    border: 2px solid #CCC
-}
-
 p, div.p {
     padding: 0;
     margin: 0 0 10px 0
