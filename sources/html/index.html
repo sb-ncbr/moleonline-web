@@ -26,24 +26,6 @@
 				}, 10100);
 			});
 
-			// Format hint messages
-			const hints = document.querySelectorAll('span.hint, div.hint');
-			hints.forEach(function (hint) {
-				const img = document.createElement('img');
-				img.src = '/images/help.png';
-				img.className = 'hint';
-				img.alt = '';
-				hint.before(img);
-
-				hint.style.position = 'fixed';
-				img.addEventListener('mouseenter', function () {
-					hint.style.display = 'block';
-				});
-				img.addEventListener('mouseleave', function () {
-					hint.style.display = 'none';
-				});
-			});
-
 			// Bootstrap tooltips
 			const tooltipTriggerList = Array.prototype.slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
 			tooltipTriggerList.forEach(function (tooltipTriggerEl) {

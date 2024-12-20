@@ -72,20 +72,6 @@ input[type=checkbox], input[type=radio] {
     outline: none
 }
 
-span.hint, div.hint {
-    background: #d5e9ee;
-    border: 2px solid #9cc6d0;
-    color: #0f4b74;
-    padding: 5px;
-    font-size: 14px;
-    font-weight: normal;
-    z-index: 1000;
-    max-width: 385px;
-    margin: 4px 15px 0 0;
-    position: relative;
-    display: none
-}
-
 .header-gradient-text {
     position: relative;
     z-index: 2;

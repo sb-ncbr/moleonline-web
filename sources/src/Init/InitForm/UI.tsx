@@ -195,32 +195,32 @@ export class InitForm extends React.Component<{}, State> {
 
     formByPDBID() {
         return (
-            <table style={{ width: "100%" }}>
+            <table style={{width: "100%"}}>
                 <tbody>
-                    <tr>
-                        <td><label htmlFor="frm-jobSetup-setupForm-code">PDB ID</label>:</td>
-                        <td>
-                            <input type="text" name="pdbid" maxLength={4} size={15} className="text" id="frm-jobSetup-setupForm-code" defaultValue="1tqn" />
-                            <div className="hint">PDB ID code as can be found on www.pdb.org, for example 1z10.</div>
-                        </td>
-                    </tr>
+                <tr>
+                    <td><label htmlFor="frm-jobSetup-setupForm-code">PDB ID</label>:</td>
+                    <td>
+                        <input type="text" name="pdbid" maxLength={4} size={15} className="text"
+                               id="frm-jobSetup-setupForm-code" defaultValue="1tqn" data-bs-toggle="tooltip"
+                               title="PDB ID code as can be found on www.pdb.org, for example 1z10"/>
+                    </td>
+                </tr>
 
-                    <tr>
-                        <td><label htmlFor="frm-jobSetup-setupForm-unit">Assembly ID (optional)</label>:</td>
-                        <td><input disabled={this.state.useBiologicalUnit} type="text" name="assembly" maxLength={3} size={15} className="text" id="frm-jobSetup-setupForm-unit" placeholder="(asymmetric unit)" />
-                            <div className="hint">
-                                no value - asymmetric unit (default)
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><label htmlFor="frm-jobSetup-setupForm-biological-unit">Use biological unit</label>:</td>
-                        <td><input type="checkbox" onChange={this.biologicalUnitChange.bind(this)} id="frm-jobSetup-setupForm-biological-unit" name="biological-unit" className="checkbox" defaultChecked={true} />
-                            <div className="hint">
-                                use biological unit
-                            </div>
-                        </td>
-                    </tr>
+                <tr>
+                    <td><label htmlFor="frm-jobSetup-setupForm-unit">Assembly ID (optional)</label>:</td>
+                    <td><input disabled={this.state.useBiologicalUnit} type="text" name="assembly" maxLength={3}
+                               size={15} className="text" id="frm-jobSetup-setupForm-unit"
+                               placeholder="(asymmetric unit)" data-bs-toggle="tooltip"
+                               title="no value - asymmetric unit (default)"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label htmlFor="frm-jobSetup-setupForm-biological-unit">Use biological unit</label>:</td>
+                    <td><input type="checkbox" onChange={this.biologicalUnitChange.bind(this)}
+                               id="frm-jobSetup-setupForm-biological-unit" name="biological-unit" className="checkbox"
+                               defaultChecked={true} data-bs-toggle="tooltip" title="Use biological unit"/>
+                    </td>
+                </tr>
                 </tbody>
             </table>
         );
@@ -233,12 +233,8 @@ export class InitForm extends React.Component<{}, State> {
                     <tr>
                         <td><label htmlFor="frm-jobSetup-setupForm-file">Upload file</label>:</td>
                         <td>
-                            <input type="file" name="file" className="text" id="frm-jobSetup-setupForm-file" style = {{ maxWidth: '250px' }}/>
-                            <div className="hint">
-                                Plain text PDB files (UTF-8 encoding), ZIP and GZIP archives are supported,
-                                maximal file size is 50MB.<br />
-                                E.g. cleaned PDB with only one chain and without unnecessary HETATMs.
-                            </div>
+                            <input type="file" name="file" className="text" id="frm-jobSetup-setupForm-file" style = {{ maxWidth: '250px' }} data-bs-toggle="tooltip" title="                                Plain text PDB files (UTF-8 encoding), ZIP and GZIP archives are supported,
+                                maximal file size is 50MB. E.g. cleaned PDB with only one chain and without unnecessary HETATMs."/>
                         </td>
                     </tr>
                 </tbody>
