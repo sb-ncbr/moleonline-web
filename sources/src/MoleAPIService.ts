@@ -254,17 +254,16 @@ export class ApiService {
         return this.sendPOSTjson(url, jsonRequestData);
     }
 
-    private static getFilenameFromResponseHeader(r: Response) {
+    public static getFilenameFromResponseHeader(r: Response) {
         let contentDisposition = r.headers.get("Content-Disposition");
         //https://regex101.com/r/hJ7tS6/1
-        let regExp = RegExp(/filename[^;\n=]*=((['"]).*?\2|[^;\n]*)/)
+        let regExp = /filename[^;\n=]*=(?:(['"])(.*?)\1|([^;\n]*))/;
         let filename: string | null = null;
+
         if (contentDisposition !== null) {
             let result = regExp.exec(contentDisposition);
             if (result !== null) {
-                if (result.length >= 2) {
-                    filename = result[1];
-                }
+                filename = result[2] || result[3];
             }
         }
 

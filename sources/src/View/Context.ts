@@ -1,7 +1,7 @@
 import { SbNcbrTunnels, TunnelFromRawData, TunnelShapeProvider } from "molstar/lib/extensions/sb-ncbr";
 import { ANVILMembraneOrientation } from 'molstar/lib/extensions/anvil/behavior';
 import { StateTransforms } from "molstar/lib/mol-plugin-state/transforms";
-import { Download, ParseCif } from "molstar/lib/mol-plugin-state/transforms/data";
+import { ParseCif, RawData } from "molstar/lib/mol-plugin-state/transforms/data";
 import { TrajectoryFromMmCif, ModelFromTrajectory, StructureFromModel, StructureComponent, TrajectoryFromPDB } from "molstar/lib/mol-plugin-state/transforms/model";
 import { StructureRepresentation3D } from "molstar/lib/mol-plugin-state/transforms/representation";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
@@ -40,6 +40,8 @@ import { parseCifText } from "molstar/lib/mol-io/reader/cif/text/parser";
 import { loadCifTunnels } from "./VizualizerMol/mmcif-tunnels/converter2json";
 import { Events } from "../Bridge";
 import { adjustCaverDistance } from "./VizualizerMol/color-tunnels/algorithm";
+import { ApiService } from "../MoleAPIService";
+import pako from 'pako';
 
 const MySpec: PluginUISpec = {
     ...DefaultPluginUISpec(),
@@ -342,21 +344,32 @@ export class Context {
         try {
             const response = await fetch(url);
             if (response.ok) {
-                const text = await response.text();
+                const filename = ApiService.getFilenameFromResponseHeader(response);
+                const isGzip = filename?.endsWith('.gz');
+                let text;
+
+                if (isGzip) {
+                    const compressedData = await response.arrayBuffer();
+
+                    text = pako.inflate(new Uint8Array(compressedData), { to: 'string' });
+                } else {
+                    text = await response.text();
+                }
+                
                 const type = await this.determineFileType(text);
                 if (type === "cif") {
                     structure = await update.toRoot()
-                        .apply(Download, { url, isBinary })
+                        .apply(RawData, { data: text })
                         .apply(ParseCif)
                         .apply(TrajectoryFromMmCif)
                         .apply(ModelFromTrajectory)
-                        .apply(StructureFromModel, { type: assemblyId === null ? { name: 'model', params: {} } : { name: 'assembly', params: { id: assemblyId } } });
+                        .apply(StructureFromModel, { type: assemblyId === null || assemblyId?.length === 0 ? { name: 'model', params: {} } : { name: 'assembly', params: { id: assemblyId } } });
                 } else if (type === "pdb") {
                     structure = await update.toRoot()
-                        .apply(Download, { url, isBinary })
+                        .apply(RawData, { data: text })
                         .apply(TrajectoryFromPDB)
                         .apply(ModelFromTrajectory)
-                        .apply(StructureFromModel, { type: assemblyId === null ? { name: 'model', params: {} } : { name: 'assembly', params: { id: assemblyId } } });
+                        .apply(StructureFromModel, { type: assemblyId === null || assemblyId?.length === 0 ? { name: 'model', params: {} } : { name: 'assembly', params: { id: assemblyId } } });
                 } else {
                     throw Error("Unkown type of input file")
                 }
@@ -370,6 +383,7 @@ export class Context {
             })
             return;
         }
+        if (!structure) return;
         await loadCifTunnels(url);
 
         const polymer = structure.apply(StructureComponent, { type: { name: 'static', params: 'polymer' } }, { ref: "protein-data" });
