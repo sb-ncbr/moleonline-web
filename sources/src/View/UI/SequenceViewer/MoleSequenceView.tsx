@@ -30,7 +30,7 @@ interface Wrapper { wrapper: (string | SequenceWrapper.Any), label: string, oper
 const MaxDisplaySequenceLength = 5000;
 // TODO: add virtualized Select controls (at best with a search box)?
 const MaxSelectOptionsCount = 1000;
-const MaxSequenceWrappersCount = 30;
+// const MaxSequenceWrappersCount = 30; // uncomment for boundary
 
 export function opKey(l: StructureElement.Location) {
     const ids = SP.unit.pdbx_struct_oper_list_ids(l);
@@ -302,7 +302,7 @@ export class MoleSequenceView extends PluginUIComponent<{ defaultMode?: Sequence
                             chainName,
                         });
                     }
-                    if (wrappers.length > MaxSequenceWrappersCount) return [];
+                    // if (wrappers.length > MaxSequenceWrappersCount) return wrappers;
                 }
             }
         }
