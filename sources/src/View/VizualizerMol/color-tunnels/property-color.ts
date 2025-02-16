@@ -301,8 +301,6 @@ export function colorTunnel(property: Property, groupId: number,
             color = getColor(currentColorValue, property, settings);
             currentColorStop = (currLength / totalLength);
         }
-        // console.log(Color.toHexStyle(color));
-        console.log(`%c Color: ${Color.toRgb(color)}`, `background: ${Color.toHexStyle(color)}`);
         return color;
         // return LayerColors.colorArray[groupId];
     }

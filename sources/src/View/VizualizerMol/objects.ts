@@ -14,7 +14,7 @@ import { PickingId } from "molstar/lib/mol-geo/geometry/picking";
 import { Shape } from "molstar/lib/mol-model/shape";
 import { TunnelShapeProvider } from "molstar/lib/extensions/sb-ncbr";
 import { TunnelStateObject } from "molstar/lib/extensions/sb-ncbr/tunnels/data-model";
-import { assignLayers, createSpheresShape, createTree, createTunnelShape, interpolateTunnel } from "./color-tunnels/algorithm";
+import { assignLayers, createSpheresShape, createTunnelShape, interpolateTunnel } from "./color-tunnels/algorithm";
 import { TunnelPropertyColorShapeParams } from "./color-tunnels/data-model";
 import { ShapeRepresentation as ColorShapeRepresentation } from "./color-tunnels/shapeRepresentation";
 import { ShapeGroupColorTheme, ShapeGroupSizeTheme } from "./color-tunnels/colored-tunnel-theme";

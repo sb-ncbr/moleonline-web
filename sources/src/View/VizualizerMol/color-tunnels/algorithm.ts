@@ -202,7 +202,6 @@ export function interpolateTunnel(profile: Profile[], sampleRate: number) {
 
     // Ensuring the last profile point is included
     interpolatedProfiles.push(profile[profile.length - 1]);
-
     return interpolatedProfiles;
 }
 
@@ -493,7 +492,6 @@ export function assignLayersToPoints(
     centerLine: Profile[],
     layers: LayersInfo[]
 ): { mappedPoints: Map<Vec3, number>; kdTree: KDTree } {
-    const start = performance.now();
     let currentLayerId = 0;
     let currentLayer = layers[currentLayerId];
     let mappedPoints: Map<Vec3, number> = new Map();
@@ -512,9 +510,6 @@ export function assignLayersToPoints(
 
     // Build k-d tree
     const kdTree = new KDTree(pointArray);
-
-    const end = performance.now();
-    console.log('assignLayersToPoints: ', end - start, 'ms');
 
     return { mappedPoints, kdTree };
 }

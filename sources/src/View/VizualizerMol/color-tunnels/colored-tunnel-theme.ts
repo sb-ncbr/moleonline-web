@@ -66,27 +66,12 @@ export function ShapeGroupColorTheme(props: PD.Values<ShapeGroupColorThemeParams
         color: (location: Location): Color => {
             if (!isPositionLocation(location)) return ColorNames.black;
             if (props.colorOptions && props.property) { //props.tree && props.colorOptions && props.property
-                const position = Vec3.toObj(location.position);
-                // const node = props.tree.nearest([position.x, position.y, position.z])
-                // if (node !== null) {
-                //     const mappedPoint = props.mappedPoints.get(Vec3.create(node.point[0], node.point[1], node.point[2]));
-                //     if (mappedPoint) {
-                //         return colorTunnelNew(props.property, mappedPoint.layer, mappedPoint.nextLayer, mappedPoint.distance, props.colorOptions);
-                //     }
-                // }
+                // const position = Vec3.toObj(location.position);
                 const node = findClosestPoint(location.position, props.mappedPoints);
                 if (node) {
                     return colorTunnelNew(props.property, node.layer, node.nextLayer, node.distance, props.colorOptions);
                 }
             }
-            // if (!isPositionLocation(location)) return ColorNames.black;
-            // if (Math.floor(Vec3.toObj(location.position).x) % 2 === 0) {
-            //     return ColorNames.blue;
-            // }
-            // return ColorNames.red;
-            // // if (ShapeGroup.isLocation(location)) {
-            // //     return location.shape.getColor(location.group, location.instance);
-            // // }
             return DefaultColor;
         },
         props,
