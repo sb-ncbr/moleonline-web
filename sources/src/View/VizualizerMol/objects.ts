@@ -102,7 +102,7 @@ export const TunnelRepresentation3D = Transform({
     display: '3D Representation',
     from: PluginStateObject.Shape.Provider,
     to: PluginStateObject.Shape.Representation3D,
-    params: { ...BaseGeometry.Params, tag: PD.Value<string>("Tunnel", { isHidden: true }), tunnel: PD.Value<Tunnel | null >(null, { isHidden: true}) }
+    params: { ...BaseGeometry.Params, doubleSided: PD.Boolean(true, BaseGeometry.CustomQualityParamInfo), tag: PD.Value<string>("Tunnel", { isHidden: true }), tunnel: PD.Value<Tunnel | null >(null, { isHidden: true}) }
 })({
     apply({ a, params }) {
         return Task.create('MOLEonline Tunnel Shape Representation', async ctx => {
@@ -202,7 +202,7 @@ export const TunnelPropertyColorRepresentation3D = Transform({
     display: '3D Representation',
     from: PluginStateObject.Shape.Provider,
     to: PluginStateObject.Shape.Representation3D,
-    params: { ...BaseGeometry.Params, tag: PD.Value<string>("PropertyColorTunnel", { isHidden: true }), tunnel: PD.Value<Tunnel | null >(null, { isHidden: true}) }
+    params: { ...BaseGeometry.Params, doubleSided: PD.Boolean(true, BaseGeometry.CustomQualityParamInfo), tag: PD.Value<string>("PropertyColorTunnel", { isHidden: true }), tunnel: PD.Value<Tunnel | null >(null, { isHidden: true}) }
 })({
     apply({ a, params }) {
         return Task.create('MOLEonline Tunnel Shape Representation', async ctx => {
