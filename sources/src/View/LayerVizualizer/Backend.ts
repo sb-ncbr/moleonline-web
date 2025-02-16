@@ -1043,7 +1043,6 @@ export class Tunnel extends ContextAwareObject {
             color = this.paletteFunction(Number(curColorValue), this.paletteFunctionSettings);
             currentColorStop = (currLength / totalLenght);
         }
-        // console.log(color);
         const regex = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/;
         const match = color.match(regex);
         if (match) {
@@ -1051,7 +1050,6 @@ export class Tunnel extends ContextAwareObject {
             const g = parseInt(match[2], 10);
             const b = parseInt(match[3], 10);
             const c = Color.fromRgb(r, g, b);
-            console.log(`%c Color: ${Color.toRgb(c)}`, `background: ${Color.toHexStyle(c)}`);   
         }
         if (gradient !== null) {
             gradient.addColorStop(currentColorStop, color);

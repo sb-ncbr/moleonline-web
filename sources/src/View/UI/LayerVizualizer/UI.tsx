@@ -517,31 +517,44 @@ class RadiusSwitch extends React.Component<{ state: State, radiusProperty: Radiu
     }
 }
 
-class PropertyColorTunnel extends React.Component<{ state: State }, { property: Property, colorBounds: ColorBound, context: Context, checked: boolean, disabled: boolean }> {
+class PropertyColorTunnel extends React.Component<{ state: State }, { property: Property, colorBounds: ColorBound, context: Context, checked: boolean, disabled: boolean, isProcessing: boolean }> {
 
     state = {
         property: 'hydropathy' as Property,
         colorBounds: 'absolute' as ColorBound,
         context: Context.getInstance(),
         checked: false,
-        disabled: false
+        disabled: false,
+        isProcessing: false,
     }
 
-    toggle(checked: boolean) {
+    private currentTaskId: number = 0;
+
+    async toggle(checked: boolean) {
         if (this.props.state.channel) {
             const channel = this.props.state.channel;
             channel.__isBusy = true;
+            this.setState({ isProcessing: true });
+            const taskId = ++this.currentTaskId;
             if (checked) {
                 this.forceUpdate(() => {
-                    showChannelPropertyColorVisuals(channel, { property: this.state.property, colorBounds: this.state.colorBounds }, true).then(() => this.forceUpdate()).catch(() => this.forceUpdate());
+                    showChannelPropertyColorVisuals(channel, { property: this.state.property, colorBounds: this.state.colorBounds }, true).then(() => {
+                        if (taskId !== this.currentTaskId) {
+                            console.log("Old task ignored.");
+                            return;
+                        }
+                        this.setState({ isProcessing: false });
+                        this.forceUpdate();
+                    }).catch(() => {this.setState({ isProcessing: false }); this.forceUpdate()});
                 })
             } else {
-                this.forceUpdate(() => {
-                    showChannelVisuals([channel], true, true).then(() => {
-                        this.state.context.plugin.managers.interactivity.lociSelects.selectOnly({ loci: channel.__loci });
-                        this.forceUpdate();
-                    }).catch(() => this.forceUpdate());
-                })
+                // this.forceUpdate(() => {
+                showChannelVisuals([channel], true, true).then(() => {
+                    this.state.context.plugin.managers.interactivity.lociSelects.selectOnly({ loci: channel.__loci });
+                    this.setState({ isProcessing: false }); 
+                    this.forceUpdate();
+                }).catch(() => {this.setState({ isProcessing: false }); this.forceUpdate()});
+                // })
             }
         }
     }
@@ -611,16 +624,23 @@ class PropertyColorTunnel extends React.Component<{ state: State }, { property: 
         return (
             <span className="block-like">
                 <span id="color-tunnel-span" className="control-label">Colour the channel in Mol*: </span>
-                <input type='checkbox'
-                    checked={this.state.checked}
-                    onChange={() => {
-                        if (this.props.state.channel) {
-                            this.toggle(!this.state.checked);
-                            this.setState({ checked: !this.state.checked });
-                        }
-                    }}
-                    disabled={this.state.disabled}
-                />
+                {this.state.isProcessing
+                    ? <span
+                        id="colored-tunnel-loader"
+                        className="spinner-border spinner-border-sm me-2"
+                        role="status"
+                        aria-hidden="true"
+                    ></span>
+                    : <input type='checkbox'
+                        checked={this.state.checked}
+                        onChange={() => {
+                            if (this.props.state.channel) {
+                                this.toggle(!this.state.checked);
+                                this.setState({ checked: !this.state.checked });
+                            }
+                        }}
+                        disabled={this.state.disabled}
+                    />}
             </span>
         )
     }
