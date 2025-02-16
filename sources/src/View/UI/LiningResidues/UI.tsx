@@ -7,6 +7,11 @@ import { Events } from "../../../Bridge";
 import { DGElementRow, DGNoDataInfoRow, DGRowEmpty } from "../Common/Datagrid/Components";
 import { ResidueAnnotation } from "../../../ChannelsDBAPIService";
 import { ChannelsDBData } from "../../../Cache";
+import { Structure, StructureProperties, StructureQuery, StructureSelection } from "molstar/lib/mol-model/structure";
+import { Context } from "../../Context";
+import { getStructureOptions } from "../SequenceViewer/MoleSequenceView";
+import { PluginStateObject } from "molstar/lib/mol-plugin-state/objects";
+import { atoms } from "molstar/lib/mol-model/structure/query/queries/generators";
 
 let DGTABLE_COLS_COUNT = 2;
 let NO_DATA_MESSAGE = "Select channel in 3D view for details...";
@@ -67,15 +72,24 @@ function residueStringToResidueLight(residue: string): LightResidueInfo {
     [0 , 1 ,2 ,  3   ]
     VAL 647 A Backbone
     */
-    let residueParts = residue.split(" ");
+    // let residueParts = residue.split(" ");
+    const regex = /^(\w+)\s+(\d+)\s+([A-Za-z]+)(?:_(\d+))?(?:\s+\w+)?$/;
+    const match = residue.match(regex);
+    if (!match) {
+        throw new Error("Invalid format");
+    }
+
+    const [, residueName, seqNumber, chain, operatorNumber] = match;
+
     let rv = {
-        authSeqNumber: Number(residueParts[1]),
+        authSeqNumber: Number(seqNumber),
         chain: {
-            authAsymId: residueParts[2]
+            authAsymId: chain
         },
-        operatorName: "",
+        operatorName: Residues.getOperatorName(operatorNumber),
         isHet: false,
         loci: undefined,
+        residueName
     };
 
     return rv;
@@ -201,7 +215,24 @@ class DGBody extends React.Component<State, {}> {
         if (/\d/.test(residueLightEntity.chain.authAsymId)) { // since we're using always 'Assembly' structure type the operator name always would be 'ASM_1', 'ASM_2', ...
             operatorName = 'ASM_' + residueLightEntity.chain.authAsymId.replace(/.*?(\d+).*/, "$1");
         } else {
-            operatorName = 'ASM_1';
+            let plugin = Context.getInstance().plugin;
+            const structureOptions = getStructureOptions(plugin.state.data);
+            const structureRef = structureOptions.options[0][0];
+            const state = plugin.state.data;
+            const cell = state.select(structureRef)[0];
+            if (!structureRef || !cell || !cell.obj) return null;
+
+            const structure = (cell.obj as PluginStateObject.Molecule.Structure).data;
+            operatorName = 'ASM_1'; // Files obtained from API may be older and some structures does not include data for structure to be loaded as assembly, therefore type 'model' is used and the first chain has operator name '1_555'
+            const query = StructureSelection.unionStructure(StructureQuery.run(atoms({
+                unitTest: ctx => {
+                    return StructureProperties.unit.operator_name(ctx.element) === operatorName;
+                },
+            }), structure))
+
+            if (query.elementCount === 0) {
+                operatorName = '1_555';
+            }
         }
         const asymId = residueLightEntity.chain.authAsymId.split('_')[0];
         SelectionHelper.addResidueToSelection(residueLightEntity.authSeqNumber, asymId, operatorName);

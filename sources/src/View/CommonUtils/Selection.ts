@@ -31,6 +31,7 @@ export interface LightResidueInfo {
     operatorName: string,
     isHet: boolean,
     loci: Loci | undefined,
+    residueName: string | undefined
 };
 
 export interface SelectionObject {
@@ -436,6 +437,7 @@ export class SelectionHelper {
                 operatorName: residue.info.operatorName,
                 isHet: residue.info.isHet,
                 loci: residue.info.loci,
+                residueName: ''
             }
         };
     }
@@ -489,7 +491,7 @@ export class SelectionHelper {
         }
 
         if (!deselectMode) {
-            newSelection.push({ authSeqNumber: seqNumber, chain: { authAsymId: chain }, operatorName: operator_name ? operator_name : "", isHet: isHet ? true : false, loci });
+            newSelection.push({ authSeqNumber: seqNumber, chain: { authAsymId: chain }, operatorName: operator_name ? operator_name : "", isHet: isHet ? true : false, loci, residueName });
         }
 
         if (newSelection.length > 0) {
@@ -537,7 +539,7 @@ export class SelectionHelper {
         if (toRemove.length > 0 && doRemove) {
             for (let r of currentResidues) {
                 if (!contains(r.info, toRemove)) {
-                    newSelection.push({ authSeqNumber: r.info.authSeqNumber, chain: { authAsymId: r.info.chain.authAsymId }, operatorName: r.info.operatorName, isHet: r.info.isHet, loci: r.info.loci });
+                    newSelection.push({ authSeqNumber: r.info.authSeqNumber, chain: { authAsymId: r.info.chain.authAsymId }, operatorName: r.info.operatorName, isHet: r.info.isHet, loci: r.info.loci, residueName: '' });
                 }
             }
         }
@@ -847,7 +849,8 @@ export class SelectionHelper {
                         let chainId = Props.chain.auth_asym_id(l);
                         let residueId = Props.residue.auth_seq_id(l);
                         let operatorName = Props.unit.operator_name(l);
-                        SelectionHelper.addResidueToSelection(residueId, chainId, operatorName, current.loci);
+                        let name = Props.atom.label_comp_id(l);
+                        SelectionHelper.addResidueToSelection(residueId, chainId, operatorName, current.loci, undefined, name);
                     } catch (e) {
                         console.log("Something else selected instead of resiude");
                     }

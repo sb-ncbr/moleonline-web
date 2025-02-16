@@ -255,7 +255,7 @@ export class Selection extends React.Component<State, { label?: string | JSX.Ele
                 return;
             }
             let label = r.map((val, idx, array) => {
-                let name = Residues.getResiudeName(val.authSeqNumber, val.chain.authAsymId, val.operatorName);
+                let name = val.residueName ? val.residueName : Residues.getResiudeName(val.authSeqNumber, val.chain.authAsymId, val.operatorName);
                 return `${name}&nbsp;${val.authSeqNumber}&nbsp;${val.chain.authAsymId}&nbsp;${val.operatorName !== '' ? `${/\d/.test(val.operatorName)
                     ? (val.operatorName).replace(/.*?(\d+).*/, "$1") === '1'
                         ? ''

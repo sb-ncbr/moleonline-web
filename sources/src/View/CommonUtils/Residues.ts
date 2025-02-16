@@ -1,14 +1,11 @@
-import { getChainOptions, getModelEntityOptions, getOperatorOptions, getSequenceWrapper, getStructureOptions } from "molstar/lib/mol-plugin-ui/sequence";
+import { getStructureOptions } from "molstar/lib/mol-plugin-ui/sequence";
 import { Instances } from "../../Bridge";
-// import Model = LiteMol.Core.Structure.Molecule.Model;
-// import Controller = LiteMol.Plugin.Controller;
-//TODO Molstar
 import { MoleConfigResidue } from "../../MoleAPIService";
 import { Context } from "../Context";
 import { PluginStateObject, PluginStateObject as PSO } from 'molstar/lib/mol-plugin-state/objects';
-import { StructureElement, StructureProperties as SP, Unit, Queries, StructureSelection, StructureQuery, StructureProperties } from "molstar/lib/mol-model/structure";
-import { StateSelection } from "molstar/lib/mol-state";
+import { StructureElement, Unit, Queries, StructureSelection, StructureQuery, StructureProperties } from "molstar/lib/mol-model/structure";
 import { Loci } from "molstar/lib/mol-model/loci";
+import { atoms } from 'molstar/lib/mol-model/structure/query/queries/generators';
 
 interface RType { chain: { authAsymId: string }, authSeqNumber: number, operatorName: string, isHet: boolean, loci: Loci | undefined, name?: string, backbone?: boolean };
 export interface Point {
@@ -116,34 +113,67 @@ export class Residues {
         return residue.split(" ");
     }
 
+    public static getOperatorName(number: string) {
+        let plugin = Context.getInstance().plugin;
+        const structureOptions = getStructureOptions(plugin.state.data);
+        const structureRef = structureOptions.options[0][0];
+        const state = plugin.state.data;
+        const cell = state.select(structureRef)[0];
+        if (!structureRef || !cell || !cell.obj) return '';
+
+        const structure = (cell.obj as PluginStateObject.Molecule.Structure).data;
+        let operatorName = 'ASM_' + number; // Files obtained from API may be older and some structures does not include data for structure to be loaded as assembly, therefore type 'model' is used and the first chain has operator name '1_555'
+        const query = StructureSelection.unionStructure(StructureQuery.run(atoms({
+            unitTest: ctx => {
+                return StructureProperties.unit.operator_name(ctx.element) === operatorName;
+            },
+        }), structure))
+
+        if (query.elementCount === 0) {
+            return '1_555';
+        }
+        return operatorName;
+    }
+
     public static parseResidues(residues: string[], hasName?: boolean) {
         if (hasName === void 0) {
             hasName = false;
         }
 
+        const regex = /^(\w+)\s+(\d+)\s+([A-Za-z]+)(?:_(\d+))?(?:\s+(\w+))?$/;
+
         let resParsed: RType[] = [];
         for (let residue of residues) {
             let residueParts = this.parseResidue(residue);
             if (hasName) {
-                resParsed.push(
-                    {
-                        chain: { authAsymId: residueParts[2].replace(/-/g, "_") },
-                        authSeqNumber: Number(residueParts[1]),
-                        name: residueParts[0],
-                        backbone: (residueParts.length === 4),
-                        operatorName: "",
-                        isHet: false,
-                        loci: undefined
-                    }
-                );
+                const match = residue.match(regex);
+                if (!match) {
+                    throw new Error("Invalid format");
+                }
+                const [, residueName, seqNumber, chain, operatorNumber, backbone] = match;
+
+                let rv = {
+                    authSeqNumber: Number(seqNumber),
+                    chain: {
+                        authAsymId: chain
+                    },
+                    operatorName: Residues.getOperatorName(operatorNumber),
+                    isHet: false,
+                    loci: undefined,
+                    name: residueName,
+                    backbone: backbone !== null
+                };
+
+                resParsed.push(rv)
             }
             else {
+                let operatorNumber = residueParts[1].split('_')[1]
                 resParsed.push(
                     {
                         chain: { authAsymId: residueParts[1] },
                         authSeqNumber: Number(residueParts[0]),
                         backbone: (residueParts.length === 3),
-                        operatorName: "",
+                        operatorName: Residues.getOperatorName(operatorNumber ?? '1'),
                         isHet: false,
                         loci: undefined,
                     }
@@ -310,62 +340,9 @@ export class Residues {
         return false;
     }
 
-    private static createResidueQuery(chainGroupId: number, operatorName: string, label_seq_id: number) {
-        return Queries.generators.atoms({
-            unitTest: ctx => {
-                return (
-                    SP.unit.chainGroupId(ctx.element) === chainGroupId &&
-                    SP.unit.operator_name(ctx.element) === operatorName
-                );
-            },
-            residueTest: ctx => {
-                if (ctx.element.unit.kind === 0) { //Unit.Kind.Atomic
-                    return SP.residue.label_seq_id(ctx.element) === label_seq_id;
-                } else {
-                    return (
-                        SP.coarse.seq_id_begin(ctx.element) <= label_seq_id &&
-                        SP.coarse.seq_id_end(ctx.element) >= label_seq_id
-                    );
-                }
-            }
-        });
-    }
-
-    public static getResiudeNameold(authSeqNumber: number, authAsymId: string, operatorName: string) {
-        let plugin = Context.getInstance().plugin;
-        const cell = plugin.state.data.select(StateSelection.first('protein-data'))[0];
-            let moleculeStructure = null;
-            if (cell && cell.obj) {
-                moleculeStructure = (cell.obj as PSO.Molecule.Structure).data;
-            }
-            if (moleculeStructure === null) {
-                console.log("protein data not ready!");
-                return "";
-            }
-
-            for (let unit of moleculeStructure.units) {
-                const l = StructureElement.Location.create(moleculeStructure, unit, unit.elements[0])
-                const asymId = Unit.isAtomic(unit) ? SP.chain.label_asym_id(l) : SP.coarse.asym_id(l);
-                const operatorName = SP.unit.operator_name(l);
-                if (asymId === authAsymId && (operatorName === "" || operatorName === operatorName)) {
-                    const entitySeq = unit.model.sequence.byEntityKey[SP.entity.key(l)];
-                    for (let i = 0; i < entitySeq.sequence.length; i++) {
-                        const query = this.createResidueQuery(unit.chainGroupId, unit.conformation.operator.name, entitySeq.sequence.seqId.value(i));
-                        const loci = StructureSelection.toLociWithSourceUnits(StructureQuery.run(query, moleculeStructure));
-                        const location = StructureElement.Loci.getFirstLocation(loci, StructureElement.Location.create(moleculeStructure, unit));
-                        if (location && SP.residue.auth_seq_id(location) === authSeqNumber) {
-                            if (location) {
-                                return SP.atom.label_comp_id(location);
-                            }
-                        }
-                    }
-                    break;
-                }
-            }
-    }
-
     public static getResiudeName(authSeqNumber: number, authAsymId: string, operatorName: string) {
-        const plugin = Context.getInstance().plugin;
+        let plugin = Context.getInstance().plugin;
+
         const structureOptions = getStructureOptions(plugin.state.data);
         const structureRef = structureOptions.options[0][0];
         const state = plugin.state.data;
@@ -373,40 +350,21 @@ export class Residues {
         if (!structureRef || !cell || !cell.obj) return null;
 
         const structure = (cell.obj as PluginStateObject.Molecule.Structure).data;
-        const l = StructureElement.Location.create(structure);
 
-        for (const [modelEntityId, eLabel] of getModelEntityOptions(structure, false)) {
-            for (const [chainGroupId, cLabel] of getChainOptions(structure, modelEntityId)) {
-                let [modelIdx, entityId] = modelEntityId.split('|');
-                for (const unit of structure.units) {
-                    StructureElement.Location.set(l, structure, unit, unit.elements[0]);
-                    const asymId = Unit.isAtomic(unit) ? StructureProperties.chain.label_asym_id(l) : StructureProperties.coarse.asym_id(l);
-                    if (structure.getModelIndex(unit.model) !== parseInt(modelIdx)) continue;
-                    // if (StructureProperties.entity.id(l) !== entityId) continue;
-                    if (asymId !== authAsymId) continue;
-                    for (const [operatorKey, operator_name] of getOperatorOptions(structure, modelEntityId, chainGroupId)) {
-                        if (operatorName !== "" && operator_name !== operatorName) continue;
-                        const wrapper = getSequenceWrapper({
-                            structure,
-                            modelEntityId,
-                            chainGroupId,
-                            operatorKey
-                        }, plugin.managers.structure.selection)
-                        if (typeof wrapper !== "string") {
-                            for (let i = 0, il = wrapper.length; i < il; ++i) {
-                                const loci = wrapper.getLoci(i);
-                                if (loci.elements.length > 0) {
-                                    const location = StructureElement.Loci.getFirstLocation(loci, StructureElement.Location.create(void 0));
-                                    if (location && StructureProperties.residue.auth_seq_id(location) === authSeqNumber) {
-                                        return SP.atom.label_comp_id(location);
-                                    }
-                                }
-                            }
-                        }
-                    } 
-                }
+        const loci = StructureQuery.loci(atoms({
+            unitTest: ctx => {
+                return StructureProperties.unit.operator_name(ctx.element) === operatorName;
+            },
+            chainTest: ctx => {
+                return StructureProperties.chain.label_asym_id(ctx.element) === authAsymId;
+            },
+            residueTest: ctx => {
+                return StructureProperties.residue.auth_seq_id(ctx.element) === authSeqNumber;
             }
-        }
+        }), structure)
+        const location = StructureElement.Loci.getFirstLocation(loci);
+        if (location)
+            return StructureProperties.atom.label_comp_id(location);
     }
 
     public static getCenterOfMass(residues: MoleConfigResidue[]): Point | null {
@@ -420,113 +378,36 @@ export class Residues {
         if (!structureRef || !cell || !cell.obj) return null;
 
         const structure = (cell.obj as PluginStateObject.Molecule.Structure).data;
-        const l = StructureElement.Location.create(structure);
-        
-        for (let residue of residues) {
-            for (const [modelEntityId, eLabel] of getModelEntityOptions(structure, false)) {
-                for (const [chainGroupId, cLabel] of getChainOptions(structure, modelEntityId)) {
-                    let [modelIdx, entityId] = modelEntityId.split('|');
-                    for (const unit of structure.units) {
-                        StructureElement.Location.set(l, structure, unit, unit.elements[0]);
-                        const asymId = Unit.isAtomic(unit) ? StructureProperties.chain.label_asym_id(l) : StructureProperties.coarse.asym_id(l);
-                        if (structure.getModelIndex(unit.model) !== parseInt(modelIdx)) continue;
-                        // if (StructureProperties.entity.id(l) !== entityId) continue;
-                        if (asymId !== residue.Chain) continue;
-                        for (const [operatorKey, operator_name] of getOperatorOptions(structure, modelEntityId, chainGroupId)) {
-                            if (residue.OperatorName !== "" && operator_name !== residue.OperatorName) continue;
-                            const wrapper = getSequenceWrapper({
-                                structure,
-                                modelEntityId,
-                                chainGroupId,
-                                operatorKey
-                            }, plugin.managers.structure.selection)
-                            if (typeof wrapper !== "string") {
-                                for (let i = 0, il = wrapper.length; i < il; ++i) {
-                                    const loci = wrapper.getLoci(i);
-                                    if (loci.elements.length > 0) {
-                                        const location = StructureElement.Loci.getFirstLocation(loci, StructureElement.Location.create(void 0));
-                                        if (location && StructureProperties.residue.auth_seq_id(location) === residue.SequenceNumber) {
-                                            positions.push({
-                                                X: SP.coarse.x(location),
-                                                Y: SP.coarse.y(location),
-                                                Z: SP.coarse.z(location)
-                                            })
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        } 
-                    }
-                }
-            }
-        }
-
-        if (positions.length === 1) {
-            return positions[0];
-        }
-
-        if (positions.length === 0) {
-            return null;
-        }
-
-        let sum = positions.reduce((prev, cur, idx, array) => {
-            return {
-                X: prev.X + cur.X,
-                Y: prev.Y + cur.Y,
-                Z: prev.Z + cur.Z
-            }
-        });
-
-        let centerOfMass = {
-            X: sum.X / positions.length,
-            Y: sum.Y / positions.length,
-            Z: sum.Z / positions.length,
-        } as Point;
-
-        return centerOfMass;
-    }
-
-    public static getCenterOfMassOld(residues: MoleConfigResidue[]): Point | null {
-        let positions: Point[] = [];
-        let plugin = Context.getInstance().plugin;
-
 
         for (let residue of residues) {
-            const cell = plugin.state.data.select(StateSelection.first('protein-data'))[0];
-            let moleculeStructure = null;
-            if (cell && cell.obj) {
-                moleculeStructure = (cell.obj as PSO.Molecule.Structure).data;
-            }
-            if (moleculeStructure === null || moleculeStructure === undefined) {
-                console.log("protein data not ready!");
-                return null;
-            }
-
-            for (let unit of moleculeStructure.units) {
-                const l = StructureElement.Location.create(moleculeStructure, unit, unit.elements[0])
-                const asymId = Unit.isAtomic(unit) ? SP.chain.label_asym_id(l) : SP.coarse.asym_id(l);
-                // const operatorName = SP.unit.operator_name(l);
-                if (asymId === residue.Chain) {
-                    const entitySeq = unit.model.sequence.byEntityKey[SP.entity.key(l)];
-                    for (let i = 0; i < entitySeq.sequence.length; i++) {
-                        const query = this.createResidueQuery(unit.chainGroupId, unit.conformation.operator.name, entitySeq.sequence.seqId.value(i));
-                        const queryRun = StructureQuery.run(query, moleculeStructure);
-                        const loci = StructureSelection.toLociWithSourceUnits(queryRun);
-                        const location = StructureElement.Loci.getFirstLocation(loci, StructureElement.Location.create(moleculeStructure, unit));
-                        if (location && SP.residue.auth_seq_id(location) === residue.SequenceNumber && SP.atom.label_comp_id(location) === residue.Name.toUpperCase()) {
-                            positions.push({
-                                X: SP.coarse.x(location),
-                                Y: SP.coarse.y(location),
-                                Z: SP.coarse.z(location)
-                            })
-                            break;
-                        }
-                    }
-                    break;
+            const loci = StructureQuery.loci(atoms({
+                unitTest: ctx => {
+                    return StructureProperties.unit.operator_name(ctx.element) === residue.OperatorName;
+                },
+                chainTest: ctx => {
+                    return StructureProperties.chain.label_asym_id(ctx.element) === residue.Chain;
+                },
+                residueTest: ctx => {
+                    return StructureProperties.residue.auth_seq_id(ctx.element) === residue.SequenceNumber;
                 }
+            }), structure)
+            const boundary = StructureElement.Loci.getBoundary(loci);
+            const location = StructureElement.Loci.getFirstLocation(loci);
+            if (location) {
+                positions.push({
+                    X: StructureProperties.atom.x(location),
+                    Y: StructureProperties.atom.y(location),
+                    Z: StructureProperties.atom.z(location),
+                })
+            } else {
+                positions.push({
+                    X: (boundary.box.max[0] + boundary.box.min[0]) / 2,
+                    Y: (boundary.box.max[1] + boundary.box.min[1]) / 2,
+                    Z: (boundary.box.max[2] + boundary.box.min[2]) / 2,
+                })
             }
         }
+
         if (positions.length === 1) {
             return positions[0];
         }
