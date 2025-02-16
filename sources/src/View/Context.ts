@@ -1,7 +1,7 @@
 import { SbNcbrTunnels, TunnelFromRawData, TunnelShapeProvider } from "molstar/lib/extensions/sb-ncbr";
 import { ANVILMembraneOrientation } from 'molstar/lib/extensions/anvil/behavior';
 import { StateTransforms } from "molstar/lib/mol-plugin-state/transforms";
-import { ParseCif, RawData } from "molstar/lib/mol-plugin-state/transforms/data";
+import { DeflateData, ParseCif, RawData } from "molstar/lib/mol-plugin-state/transforms/data";
 import { TrajectoryFromMmCif, ModelFromTrajectory, StructureFromModel, StructureComponent, TrajectoryFromPDB } from "molstar/lib/mol-plugin-state/transforms/model";
 import { StructureRepresentation3D } from "molstar/lib/mol-plugin-state/transforms/representation";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
@@ -26,10 +26,8 @@ import { PluginCommands } from "molstar/lib/mol-plugin/commands";
 import { PluginBehaviors } from "molstar/lib/mol-plugin/behavior";
 import { StructureFocusRepresentation } from "molstar/lib/mol-plugin/behavior/dynamic/selection/structure-focus-representation"
 import { UUID } from "molstar/lib/mol-util";
-import { StructureElement, StructureProperties, Unit } from "molstar/lib/mol-model/structure";
-import { HeteroSequenceWrapper } from "molstar/lib/mol-plugin-ui/sequence/hetero";
+import { StructureElement, StructureProperties } from "molstar/lib/mol-model/structure";
 import { getChainOptions, getModelEntityOptions, getOperatorOptions, getSequenceWrapper, getStructureOptions } from "molstar/lib/mol-plugin-ui/sequence";
-import { BaseGeometry } from "molstar/lib/mol-geo/geometry/base";
 import { Tunnels } from "./CommonUtils/Tunnels";
 import { TunnelName } from "../Cache";
 import { OrderedSet } from 'molstar/lib/mol-data/int';
@@ -41,7 +39,6 @@ import { loadCifTunnels } from "./VizualizerMol/mmcif-tunnels/converter2json";
 import { Events } from "../Bridge";
 import { adjustCaverDistance } from "./VizualizerMol/color-tunnels/algorithm";
 import { ApiService } from "../MoleAPIService";
-import pako from 'pako';
 
 const MySpec: PluginUISpec = {
     ...DefaultPluginUISpec(),
@@ -315,7 +312,7 @@ export class Context {
         }
     }
 
-    private async determineFileType(text: string): Promise<"pdb" | "cif" | "unknown"> {
+    private determineFileType(text: string): "pdb" | "cif" | "unknown" {
         // Read the first few lines of the file
         const lines = text.split("\n").map(line => line.trim());
 
@@ -337,36 +334,27 @@ export class Context {
 
 
     public async load(url: string, isBinary: boolean, assemblyId?: string | null) {
-        const update = this.plugin.build();
-
+        let update = this.plugin.build();
         let structure;
-
         try {
             const response = await fetch(url);
             if (response.ok) {
                 const filename = ApiService.getFilenameFromResponseHeader(response);
                 const isGzip = filename?.endsWith('.gz');
-                let text;
-
-                if (isGzip) {
-                    const compressedData = await response.arrayBuffer();
-
-                    text = pako.inflate(new Uint8Array(compressedData), { to: 'string' });
-                } else {
-                    text = await response.text();
-                }
-                
-                const type = await this.determineFileType(text);
+                const rawData = this.plugin.build().toRoot()
+                    .apply(RawData, { data: isGzip ? await response.arrayBuffer() : await response.text() })
+                const data = isGzip ? rawData.apply(DeflateData, { isString: true }) : rawData;
+                const dataNode = await data.commit();
+                const type = this.determineFileType(dataNode.data as string);
+                update = this.plugin.build();
                 if (type === "cif") {
-                    structure = await update.toRoot()
-                        .apply(RawData, { data: text })
+                    structure = update.to(dataNode)
                         .apply(ParseCif)
                         .apply(TrajectoryFromMmCif)
                         .apply(ModelFromTrajectory)
                         .apply(StructureFromModel, { type: assemblyId === null || assemblyId?.length === 0 ? { name: 'model', params: {} } : { name: 'assembly', params: { id: assemblyId } } });
                 } else if (type === "pdb") {
-                    structure = await update.toRoot()
-                        .apply(RawData, { data: text })
+                    structure = update.to(dataNode)
                         .apply(TrajectoryFromPDB)
                         .apply(ModelFromTrajectory)
                         .apply(StructureFromModel, { type: assemblyId === null || assemblyId?.length === 0 ? { name: 'model', params: {} } : { name: 'assembly', params: { id: assemblyId } } });
@@ -383,7 +371,6 @@ export class Context {
             })
             return;
         }
-        if (!structure) return;
         await loadCifTunnels(url);
 
         const polymer = structure.apply(StructureComponent, { type: { name: 'static', params: 'polymer' } }, { ref: "protein-data" });
