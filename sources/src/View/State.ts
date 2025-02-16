@@ -961,10 +961,6 @@ export async function showChannelPropertyColorVisuals(channel: Tunnel & TunnelMe
     if (!channel.__id) channel.__id = UUID.create22();
     if (!channel.__isVisible && !forceRepaint) return;
 
-    if (forceRepaint !== void 0 && forceRepaint) {
-        await PluginCommands.State.RemoveObject(context.plugin, { state: context.plugin.state.data, ref: channel.__ref });
-    }
-
     channel.__isVisible = true;
     if (!channel.__color) {
         // channel.__color = ColorScheme.Colors.getRandomUnused(); // TODO
@@ -976,6 +972,11 @@ export async function showChannelPropertyColorVisuals(channel: Tunnel & TunnelMe
     }
 
     const [loci, ref] = await context.renderPropertyColorTunnel(channel, colorOptions);
+
+    if (forceRepaint !== void 0 && forceRepaint) {
+        await PluginCommands.State.RemoveObject(context.plugin, { state: context.plugin.state.data, ref: channel.__ref });
+    }
+
     channel.__ref = ref;
     channel.__loci = loci as Shape.Loci;
 
