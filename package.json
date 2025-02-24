@@ -23,12 +23,12 @@
     "express": "^5.0.0",
     "http-server": "^14.1.1",
     "lodash": "^4.17.21",
-    "molstar": "4.6.0",
+    "molstar": "^4.11.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "rxjs": "^7.8.1",
-    "sass": "1.77.8",
-    "sass-loader": "^16.0.0",
+    "sass": "1.83.4",
+    "sass-loader": "^16.0.4",
     "style-loader": "^4.0.0"
   },
   "devDependencies": {
@@ -48,7 +48,7 @@
     "gulp-clean": "^0.4.0",
     "gulp-concat": "^2.6.1",
     "gulp-sass": "^6.0.0",
-    "webpack": "^5.94.0",
-    "webpack-cli": "^5.1.4"
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1"
   }
 }
