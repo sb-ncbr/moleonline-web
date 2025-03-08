@@ -20,7 +20,6 @@ import { ColorBound, colorByDistance, DefaultColor, Property, colorTunnel, getLa
 import { Profile, Tunnel } from 'molstar/lib/extensions/sb-ncbr/tunnels/data-model';
 import { ColorSmoothingParams, getColorSmoothingProps } from 'molstar/lib/mol-geo/geometry/base';
 import { ParamDefinition } from 'molstar/lib/mol-util/param-definition';
-import { KDTree } from './kd-tree';
 
 type MolecularSurfaceMeta = {
     resolution?: number
@@ -491,7 +490,7 @@ export function assignLayers(centerLine: Profile[], layers: LayersInfo[]): Map<V
 export function assignLayersToPoints(
     centerLine: Profile[],
     layers: LayersInfo[]
-): { mappedPoints: Map<Vec3, number>; kdTree: KDTree } {
+): { mappedPoints: Map<Vec3, number> } {
     let currentLayerId = 0;
     let currentLayer = layers[currentLayerId];
     let mappedPoints: Map<Vec3, number> = new Map();
@@ -508,9 +507,6 @@ export function assignLayersToPoints(
         pointArray.push({ point: vec, index: currentLayerId });
     }
 
-    // Build k-d tree
-    const kdTree = new KDTree(pointArray);
-
-    return { mappedPoints, kdTree };
+    return { mappedPoints };
 }
 

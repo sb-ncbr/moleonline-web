@@ -1,7 +1,6 @@
 import { OrderedSet } from "molstar/lib/mol-data/int";
 import { Box3D, fillGridDim, GridLookup3D, Result } from "molstar/lib/mol-math/geometry";
 import { Mat4, Tensor, Vec3 } from "molstar/lib/mol-math/linear-algebra";
-import { KDTree } from "./kd-tree";
 import { RuntimeContext } from "molstar/lib/mol-task";
 import { SurfaceData } from "./algorithm";
 import { LayersInfo, Profile } from "../../../DataInterface";
@@ -147,7 +146,7 @@ self.onmessage = async (e) => {
                                     const g = props.surfaceData.layerIndexes.get(id[i]);
                                     idData[idx] = g ?? -1;
 
-                                    const gii = findClosestPoint(Vec3.create(spx, spy, spz), kdTree, mappedPoints)
+                                    const gii = findClosestPoint(Vec3.create(spx, spy, spz), mappedPoints)
                                     idData[idx] = gii ?? -1;
                                 }
                             }
@@ -277,7 +276,7 @@ self.onmessage = async (e) => {
                                 const g = props.surfaceData.layerIndexes.get(id[OrderedSet.indexOf(indices, dp < 0.0 ? b : a)]);
                                 idData[idx] = g ?? -1;
 
-                                const gii = findClosestPoint(Vec3.create(px, py, pz), kdTree, mappedPoints)
+                                const gii = findClosestPoint(Vec3.create(px, py, pz), mappedPoints)
                                 idData[idx] = gii ?? -1;
                             }
                         }
@@ -311,15 +310,26 @@ self.onmessage = async (e) => {
         console.log('projectTorii: ', end - start, 'ms');
     }
 
-    function findClosestPoint(target: Vec3, kdTree: KDTree, points: Map<Vec3, number>) {
-        const closestIndex = kdTree.findNearest(target);
-        return closestIndex !== -1 ? points.get(Array.from(points.keys())[closestIndex]) ?? -1 : -1;
+    function findClosestPoint(target: Vec3, points: Map<Vec3, number>) {
+        const pointArray = Array.from(points.keys());
+        let closestPoint = pointArray[0];
+        let minDistance = Vec3.distance(target, closestPoint);
+    
+        for (const point of Array.from(points.keys())) {
+            const distance = Vec3.distance(target, point);
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestPoint = point;
+            }
+        }
+    
+        return points.get(closestPoint);
     }
 
     function assignLayersToPoints(
         centerLine: Profile[],
         layers: LayersInfo[]
-    ): { mappedPoints: Map<Vec3, number>; kdTree: KDTree } {
+    ): { mappedPoints: Map<Vec3, number> } {
         const start = performance.now();
         let currentLayerId = 0;
         let currentLayer = layers[currentLayerId];
@@ -337,20 +347,17 @@ self.onmessage = async (e) => {
             pointArray.push({ point: vec, index: currentLayerId });
         }
 
-        // Build k-d tree
-        const kdTree = new KDTree(pointArray);
-
         const end = performance.now();
         console.log('assignLayersToPoints: ', end - start, 'ms');
 
-        return { mappedPoints, kdTree };
+        return { mappedPoints };
     }
 
     const { resolution, probeRadius, probePositions } = props.surfaceData.props;
     const scaleFactor = 1 / resolution;
     const ngTorus = Math.max(5, 2 + Math.floor(probeRadius * scaleFactor));
 
-    const { mappedPoints, kdTree } = assignLayersToPoints(props.surfaceData.data, props.surfaceData.layers);
+    const { mappedPoints } = assignLayersToPoints(props.surfaceData.data, props.surfaceData.layers);
 
     const cellSize = Vec3.create(props.surfaceData.maxRadius, props.surfaceData.maxRadius, props.surfaceData.maxRadius);
     Vec3.scale(cellSize, cellSize, 2);

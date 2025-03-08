@@ -171,7 +171,6 @@
     "VizualizerMol/color-tunnels/algorithm.ts",
     "VizualizerMol/color-tunnels/data-model.ts",
     "VizualizerMol/color-tunnels/property-color.ts",
-    "VizualizerMol/color-tunnels/kd-tree.ts",
     "VizualizerMol/color-tunnels/colored-tunnel-theme.ts",
     "VizualizerMol/color-tunnels/worker.ts",
     "VizualizerMol/color-tunnels/shapeRepresentation.ts",
