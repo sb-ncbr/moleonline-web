@@ -8,6 +8,25 @@ interface TunnelColor {
 export class TwoDProtsBridge {
     private static pdbId: string = '';
     private static vizualizedChannels: Map<string, Tunnel & TunnelMetaInfo> = new Map();
+    private static onColorTunnelChanges: { handler: (channel: Tunnel & TunnelMetaInfo) => void }[];
+
+    public static attachOnColorTunnelChangeHandler(handler: (channel: Tunnel & TunnelMetaInfo) => void) {
+        if (this.onColorTunnelChanges === void 0) {
+            this.onColorTunnelChanges = [];
+        }
+
+        this.onColorTunnelChanges.push({ handler });
+    }
+    public static invokeOnResidueSelectHandlers(channel: Tunnel & TunnelMetaInfo) {
+        if (this.onColorTunnelChanges === void 0) {
+            return;
+        }
+
+        for (let h of this.onColorTunnelChanges) {
+            h.handler(channel);
+        }
+    }
+
 
     public static addChannel(tunnel: Tunnel & TunnelMetaInfo) {
         this.vizualizedChannels.set(tunnel.__id, tunnel);

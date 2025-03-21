@@ -20,6 +20,7 @@ import { debounce } from "lodash";
 import { ApiService } from "../../../MoleAPIService";
 import { JobStatus } from "../../../DataProxy";
 import { SelectionHelper } from "../../CommonUtils/Selection";
+import { TwoDProtsBridge } from "../../CommonUtils/TwoDProtsBridge";
 
 declare function $(p: any): any;
 
@@ -538,6 +539,7 @@ export class ColorPicker extends React.Component<{ tunnel: Tunnel & TunnelMetaIn
         if (this.state.color && this.state.color !== this.props.tunnel.__color) {
             this.props.tunnel.__color = this.state.color;
             showChannelVisuals([this.props.tunnel], (this.props.tunnel as any).__isVisible, true);
+            TwoDProtsBridge.invokeOnResidueSelectHandlers(this.props.tunnel);
         }
 
     }

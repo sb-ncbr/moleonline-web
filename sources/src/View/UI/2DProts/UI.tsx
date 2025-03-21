@@ -6,6 +6,7 @@ import { Events } from "../../../Bridge";
 import { SelectionHelper } from "../../CommonUtils/Selection";
 import { Tunnel, TunnelMetaInfo } from "../../../DataInterface";
 import { LastVisibleChannels } from "../../../Cache";
+import { Color } from "molstar/lib/mol-util/color";
 
 function highlightElement(elementId: string, highlightColour: string): void {
     const svgContainer = document.getElementById('svgContainer');
@@ -130,6 +131,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
                 this.setState({ selectedTunnel: "" })
             }
         })
+        TwoDProtsBridge.attachOnColorTunnelChangeHandler(this.onChannelColorChanged.bind(this))
     }
 
     private getLastErrorMessage(message: string): string {
