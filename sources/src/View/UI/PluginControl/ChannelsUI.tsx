@@ -283,7 +283,19 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
 
     private toggle() {
         this.props.element.__isBusy = true;
+        const svgElement = document.getElementById('svgContainer');
+        const element = document.getElementById(`${this.props.element.Id}`)
         this.forceUpdate(() => {
+            if (svgElement && element) {
+                const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${this.props.element.Id}`)}`);
+                if (targetElement) {
+                    if (!this.props.element.__isVisible) {
+                        targetElement.removeAttribute("display");
+                    } else {
+                        targetElement.setAttribute("display", "none");
+                    }
+                }
+            }
             if (this.props.channelsDB) {
                 this.props.toggle([this.props.element], !this.props.element.__isVisible, undefined, true, this.props.submissionId)
                     .then(() => this.forceUpdate()).catch(() => this.forceUpdate())
@@ -304,6 +316,32 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
             context.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci: this.props.element.__loci } as Representation.Loci)
         else
             context.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci: EmptyLoci } as Representation.Loci)
+
+        const svgElement = document.getElementById('svgContainer');
+        const element = document.getElementById(`${this.props.element.Id}`);
+        if (isOn) {
+            if (svgElement && element) {
+                const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${this.props.element.Id}`)}`);
+                if (targetElement) {
+                    targetElement.dataset.hoverOriginalFill = targetElement.style.fill || '';
+                    targetElement.dataset.hoverOriginalOpacity = targetElement.style.opacity || '';
+                    targetElement.style.fill = '#FF00FF';
+                    targetElement.style.opacity = '1';
+                }
+            }
+        } else {
+            if (svgElement && element) {
+                const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${this.props.element.Id}`)}`);
+                if (targetElement) {
+                    const originalFill = targetElement.dataset.hoverOriginalFill || '';
+                    const originalOpacity = targetElement.dataset.hoverOriginalOpacity || '';
+                    targetElement.style.fill = originalFill;
+                    targetElement.style.opacity = originalOpacity;
+                    delete targetElement.dataset.hoverOriginalFill;
+                    delete targetElement.dataset.hoverOriginalOpacity;
+                }
+            }
+        }
     }
 
     private toggleAnnotations(e: any) {
