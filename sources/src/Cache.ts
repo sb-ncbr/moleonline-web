@@ -67,7 +67,7 @@ export class LastVisibleChannels {
     public static remove(tunnel: Tunnel&TunnelMetaInfo) {
         this.data.delete(tunnel.__id);
     }
-    public static get(): Tunnel[]&TunnelMetaInfo[] {
+    public static get(): (Tunnel&TunnelMetaInfo)[] {
         const result: (Tunnel&TunnelMetaInfo)[] = []
         for (const id of Array.from(this.data.keys())) {
             const tunnel = this.data.get(id);
