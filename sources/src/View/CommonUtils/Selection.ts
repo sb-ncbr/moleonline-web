@@ -197,6 +197,12 @@ export class SelectionHelper {
         this.invokeOnChannelDeselectHandlers();
     }
 
+    //For 2DProts
+    public static forceDeselectChannel() {
+        this.deselectTunnelByRef();
+        this.invokeOnChannelDeselectHandlers();
+    }
+
     public static attachOnPointBulkSelectHandler(handler: (points: Point[]) => void) {
         if (this.onPointSelectHandlers === void 0) {
             this.onPointSelectHandlers = [];

@@ -5,6 +5,7 @@ import { TwoDProtsBridge } from "../../CommonUtils/TwoDProtsBridge";
 import { Events } from "../../../Bridge";
 import { SelectionHelper } from "../../CommonUtils/Selection";
 import { Tunnel, TunnelMetaInfo } from "../../../DataInterface";
+import { LastVisibleChannels } from "../../../Cache";
 
 function highlightElement(elementId: string, highlightColour: string): void {
     const svgContainer = document.getElementById('svgContainer');
@@ -154,6 +155,27 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
 
         });
     }
+
+    private addSvgClickListeners(elements: Element[]) {
+        const tunnels = LastVisibleChannels.get();
+        elements.forEach((element) => {
+            const elementId = element.getAttribute('id');
+            if (elementId) {
+                element.addEventListener('click', () => {
+                    const filteredTunnels = tunnels.filter((t) => t.Id === elementId);
+                    if (filteredTunnels.length > 0) {
+                        const tunnel = filteredTunnels[0];
+                        if (this.state.selectedTunnel === tunnel.Id) {
+                            SelectionHelper.forceDeselectChannel();
+                        } else {
+                            SelectionHelper.selectTunnel(tunnel);
+                        }
+                    }
+                })
+            }
+        })
+    }
+
     private processSvg() {
         const svgElement = document.getElementById('svgContainer')?.querySelector('svg');
 
@@ -163,7 +185,18 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
         }
 
         let svgTunnels = sortElements(Array.from(svgElement.querySelectorAll('g.tunnel')));
+        let tunnels = LastVisibleChannels.get();
+
+        for (const tunnel of tunnels) {
+            const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${tunnel.Id}`)}`);
+            if (targetElement) {
+                targetElement.style.fill = Color.toHexStyle(tunnel.__color);
+                targetElement.style.stroke = Color.toHexStyle(tunnel.__color);
+            }
+        }
+        
         this.addSvgHoverListeners(svgTunnels);
+        this.addSvgClickListeners(svgTunnels);
     }
 
     private async startComputation() {
