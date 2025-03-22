@@ -22,7 +22,7 @@ export class TunnelName {
 
         let cache = new Map<string, string>();
         for (let channel of channels) {
-            channelsMap.set(channel.GUID, `${channel.Type[0]}${channel.Id}C${channel.Cavity}`);
+            channelsMap.set(channel.GUID, `${channel.Type[0]}${channel.Id.split('-')[2]}C${channel.Cavity}`); // channel ID format: 'compId-submissionId-tunnelId'
         }
 
         this.cache.set(submission, channelsMap);
