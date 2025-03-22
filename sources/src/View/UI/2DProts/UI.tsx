@@ -78,11 +78,11 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
     private onChannelSelect = (channel: Tunnel & TunnelMetaInfo) => {
         if (this.state.modifiedSVG !== "") {
             const svgElement = document.getElementById('svgContainer');
-            const targetElement = svgElement ? svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${channel.Id}`)}`) : null;
+            const targetElement = svgElement ? svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${TwoDProtsBridge.getFromIdTable(channel.Id)}`)}`) : null;
     
             if (this.state.selectedTunnel !== channel.Id) {
                 if (this.state.selectedTunnel !== "") {
-                    const oldElement = svgElement ? svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${this.state.selectedTunnel}`)}`) : null;
+                    const oldElement = svgElement ? svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${TwoDProtsBridge.getFromIdTable(this.state.selectedTunnel)}`)}`) : null;
                     if (oldElement) {
                         const originalFill = oldElement.dataset.selectOriginalFill || '';
                         oldElement.dataset.hoverOriginalFill = oldElement.dataset.selectOriginalFill || '';
@@ -105,7 +105,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
     private onChannelColorChanged = (channel: Tunnel & TunnelMetaInfo) => {
         if (this.state.modifiedSVG !== "") {
             const svgElement = document.getElementById('svgContainer');
-            const targetElement = svgElement ? svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${channel.Id}`)}`) : null;
+            const targetElement = svgElement ? svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${TwoDProtsBridge.getFromIdTable(channel.Id)}`)}`) : null;
             if (targetElement) {
                 const color = Color.toHexStyle(channel.__color);
                 targetElement.dataset.selectOriginalFill = color;
@@ -121,7 +121,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
         SelectionHelper.attachOnChannelDeselectHandler(() => {
             if (this.state.modifiedSVG !== "" && this.state.selectedTunnel !== "") {
                 const svgElement = document.getElementById('svgContainer');
-                const targetElement = svgElement ? svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${this.state.selectedTunnel}`)}`) : null;
+                const targetElement = svgElement ? svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${TwoDProtsBridge.getFromIdTable(this.state.selectedTunnel)}`)}`) : null;
                 if (targetElement) {
                     const originalFill = targetElement.dataset.selectOriginalFill || '';
                     targetElement.style.fill = originalFill;
@@ -164,7 +164,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
             const elementId = element.getAttribute('id');
             if (elementId) {
                 element.addEventListener('click', () => {
-                    const filteredTunnels = tunnels.filter((t) => t.Id === elementId);
+                    const filteredTunnels = tunnels.filter((t) => TwoDProtsBridge.getFromIdTable(t.Id) === elementId);
                     if (filteredTunnels.length > 0) {
                         const tunnel = filteredTunnels[0];
                         if (this.state.selectedTunnel === tunnel.Id) {
@@ -190,7 +190,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
         let tunnels = LastVisibleChannels.get();
 
         for (const tunnel of tunnels) {
-            const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${tunnel.Id}`)}`);
+            const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${TwoDProtsBridge.getFromIdTable(tunnel.Id)}`)}`);
             if (targetElement) {
                 targetElement.style.fill = Color.toHexStyle(tunnel.__color);
                 targetElement.style.stroke = Color.toHexStyle(tunnel.__color);

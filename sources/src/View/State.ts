@@ -338,6 +338,13 @@ function generateGuid(tunnels: Tunnel[]) {
     return tunnels;
 }
 
+function generateId(tunnels: Tunnel[], compId: string, submissionId: string) {
+    for (let idx = 0; idx < tunnels.length; idx++) {
+        tunnels[idx].Id = `${compId}-${submissionId}-${idx}`;
+    }
+    return tunnels;
+}
+
 function generateCaverTag(tunnels: Tunnel[]) {
     for (let idx = 0; idx < tunnels.length; idx++) {
         tunnels[idx].Caver = true;
@@ -363,6 +370,29 @@ export function generateGuidAll(moleData: ChannelsDBChannels) {
     moleData.ProcognateTunnels_Caver = moleData.ProcognateTunnels_Caver ? generateGuid(moleData.ProcognateTunnels_Caver) : [];
     moleData.AlphaFillTunnels_MOLE = moleData.AlphaFillTunnels_MOLE ? generateGuid(moleData.AlphaFillTunnels_MOLE) : [];
     moleData.AlphaFillTunnels_Caver = moleData.AlphaFillTunnels_Caver ? generateGuid(moleData.AlphaFillTunnels_Caver) : [];
+
+    return moleData
+}
+
+
+export function generateIdAll(moleData: ChannelsDBChannels, compId: string, submissionId: string) {
+    moleData.MergedPores = moleData.MergedPores ? generateId(moleData.MergedPores, compId, submissionId) : [];
+    moleData.Paths = moleData.Paths ? generateId(moleData.Paths, compId, submissionId) : [];
+    moleData.Pores = moleData.Pores ? generateId(moleData.Pores, compId, submissionId) : [];
+    moleData.Tunnels = moleData.Tunnels ? generateId(moleData.Tunnels, compId, submissionId) : [];
+
+    moleData.CSATunnels_MOLE = moleData.CSATunnels_MOLE ? generateId(moleData.CSATunnels_MOLE, compId, submissionId) : [];
+    moleData.CSATunnels_Caver = moleData.CSATunnels_Caver ? generateId(moleData.CSATunnels_Caver, compId, submissionId) : [];
+    moleData.ReviewedChannels_MOLE = moleData.ReviewedChannels_MOLE ? generateId(moleData.ReviewedChannels_MOLE, compId, submissionId) : [];
+    moleData.ReviewedChannels_Caver = moleData.ReviewedChannels_Caver ? generateId(moleData.ReviewedChannels_Caver, compId, submissionId) : [];
+    moleData.CofactorTunnels_MOLE = moleData.CofactorTunnels_MOLE ? generateId(moleData.CofactorTunnels_MOLE, compId, submissionId) : [];
+    moleData.CofactorTunnels_Caver = moleData.CofactorTunnels_Caver ? generateId(moleData.CofactorTunnels_Caver, compId, submissionId) : [];
+    moleData.TransmembranePores_MOLE = moleData.TransmembranePores_MOLE ? generateId(moleData.TransmembranePores_MOLE, compId, submissionId) : [];
+    moleData.TransmembranePores_Caver = moleData.TransmembranePores_Caver ? generateId(moleData.TransmembranePores_Caver, compId, submissionId) : [];
+    moleData.ProcognateTunnels_MOLE = moleData.ProcognateTunnels_MOLE ? generateId(moleData.ProcognateTunnels_MOLE, compId, submissionId) : [];
+    moleData.ProcognateTunnels_Caver = moleData.ProcognateTunnels_Caver ? generateId(moleData.ProcognateTunnels_Caver, compId, submissionId) : [];
+    moleData.AlphaFillTunnels_MOLE = moleData.AlphaFillTunnels_MOLE ? generateId(moleData.AlphaFillTunnels_MOLE, compId, submissionId) : [];
+    moleData.AlphaFillTunnels_Caver = moleData.AlphaFillTunnels_Caver ? generateId(moleData.AlphaFillTunnels_Caver, compId, submissionId) : [];
 
     return moleData
 }
@@ -546,7 +576,8 @@ export function loadAllChannels(compId: string) {
             const data = await ApiService.getChannelsData(compId, submitId)
             let dataObj = JSON.parse(data) as MoleData;
             if (dataObj !== undefined && dataObj.Channels !== undefined) {
-                const guidData = generateGuidAll(dataObj.Channels)
+                let guidData = generateGuidAll(dataObj.Channels);
+                guidData = generateIdAll(guidData, compId, submitId.toString());
                 channels.set(submitId, guidData);
             }
         }

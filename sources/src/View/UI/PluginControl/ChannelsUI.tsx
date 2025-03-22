@@ -9,7 +9,7 @@ import { Tunnels } from "../../CommonUtils/Tunnels";
 import { ChannelsDBData, LastVisibleChannels, TunnelName } from "../../../Cache";
 import { ChannelAnnotation } from "../../../ChannelsDBAPIService";
 import { getParameters, isInChannelsDBMode } from "../../../Common/Util/Router";
-import { generateGuidAll, showChannelVisuals, showDefaultVisuals, showDefaultVisualsNewSubmission } from "../../State";
+import { generateGuidAll, generateIdAll, showChannelVisuals, showDefaultVisuals, showDefaultVisualsNewSubmission } from "../../State";
 import { Context } from "../../Context";
 import { Representation } from "molstar/lib/mol-repr/representation";
 import { EmptyLoci, Loci } from "molstar/lib/mol-model/loci";
@@ -130,7 +130,8 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
                 let dataObj = JSON.parse(data) as MoleData;
                 if (dataObj !== undefined && dataObj.Channels !== undefined) {
                     const submissions = this.state.submissions;
-                    const guidData = generateGuidAll(dataObj.Channels)
+                    let guidData = generateGuidAll(dataObj.Channels)
+                    guidData = generateIdAll(guidData, this.props.computationId, newSubmitId.toString())
                     TunnelName.reload({ Channels: guidData }, newSubmitId.toString());
                     Tunnels.addChannels(newSubmitId.toString(), guidData);
                     submissions.set(newSubmitId, guidData);
@@ -285,10 +286,11 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
     private toggle() {
         this.props.element.__isBusy = true;
         const svgElement = document.getElementById('svgContainer');
-        const element = document.getElementById(`${this.props.element.Id}`)
+        const elementId = TwoDProtsBridge.getFromIdTable(this.props.element.Id)
+        const element = document.getElementById(`${elementId}`)
         this.forceUpdate(() => {
             if (svgElement && element) {
-                const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${this.props.element.Id}`)}`);
+                const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${elementId}`)}`);
                 if (targetElement) {
                     if (!this.props.element.__isVisible) {
                         targetElement.removeAttribute("display");
@@ -319,10 +321,11 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
             context.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci: EmptyLoci } as Representation.Loci)
 
         const svgElement = document.getElementById('svgContainer');
-        const element = document.getElementById(`${this.props.element.Id}`);
+        const elementId = TwoDProtsBridge.getFromIdTable(this.props.element.Id)
+        const element = document.getElementById(`${elementId}`);
         if (isOn) {
             if (svgElement && element) {
-                const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${this.props.element.Id}`)}`);
+                const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${elementId}`)}`);
                 if (targetElement) {
                     targetElement.dataset.hoverOriginalFill = targetElement.style.fill || '';
                     targetElement.dataset.hoverOriginalOpacity = targetElement.style.opacity || '';
@@ -332,7 +335,7 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
             }
         } else {
             if (svgElement && element) {
-                const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${this.props.element.Id}`)}`);
+                const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${elementId}`)}`);
                 if (targetElement) {
                     const originalFill = targetElement.dataset.hoverOriginalFill || '';
                     const originalOpacity = targetElement.dataset.hoverOriginalOpacity || '';

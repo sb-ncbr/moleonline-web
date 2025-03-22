@@ -19,7 +19,7 @@ import { Controls } from "./UI/Controls/UI";
 import { getParameters } from "../Common/Util/Router";
 import { Events } from "../Bridge";
 import { CommonOptions } from "../../config/common";
-import { addCaverTag, generateGuidAll, loadAllChannels, loadData } from "./State";
+import { addCaverTag, generateGuidAll, generateIdAll, loadAllChannels, loadData } from "./State";
 import { StateSelection } from "molstar/lib/mol-state";
 import { ChannelsDBChannels, ChannelsDBData, MoleData } from "../DataInterface";
 import { ComputationInfo } from "../DataProxy";
@@ -90,7 +90,8 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                     const data = await ApiService.getChannelsData(compId, submitId)
                     let dataObj = JSON.parse(data) as MoleData;
                     if (dataObj !== undefined && dataObj.Channels !== undefined) {
-                        const guidData = generateGuidAll(dataObj.Channels)
+                        let guidData = generateGuidAll(dataObj.Channels);
+                        guidData = generateIdAll(guidData, computationId, submitId.toString())
                         TunnelName.reload({Channels: guidData}, submitId.toString())
                         Tunnels.addChannels(submitId.toString(), guidData);
                         channels.set(submitId, guidData);
