@@ -19,10 +19,51 @@ export class TunnelName {
         if (data.Channels.Tunnels.length > 0) {
             channels = channels.concat(data.Channels.Tunnels);
         }
+        if (data.Channels.ReviewedChannels_MOLE !== void 0) {
+            channels = channels.concat(data.Channels.ReviewedChannels_MOLE);
+        }
+        if (data.Channels.ReviewedChannels_Caver !== void 0) {
+            channels = channels.concat(data.Channels.ReviewedChannels_Caver);
+        }
+        if (data.Channels.CSATunnels_MOLE !== void 0) {
+            channels = channels.concat(data.Channels.CSATunnels_MOLE);
+        }
+        if (data.Channels.CSATunnels_Caver !== void 0) {
+            channels = channels.concat(data.Channels.CSATunnels_Caver);
+        }
+        if (data.Channels.TransmembranePores_MOLE !== void 0) {
+            channels = channels.concat(data.Channels.TransmembranePores_MOLE);
+        }
+        if (data.Channels.TransmembranePores_Caver !== void 0) {
+            channels = channels.concat(data.Channels.TransmembranePores_Caver);
+        }
+        if (data.Channels.CofactorTunnels_MOLE !== void 0) {
+            channels = channels.concat(data.Channels.CofactorTunnels_MOLE);
+        }
+        if (data.Channels.CofactorTunnels_Caver !== void 0) {
+            channels = channels.concat(data.Channels.CofactorTunnels_Caver);
+        }
+        if (data.Channels.ProcognateTunnels_MOLE !== void 0) {
+            channels = channels.concat(data.Channels.ProcognateTunnels_MOLE);
+        }
+        if (data.Channels.ProcognateTunnels_Caver !== void 0) {
+            channels = channels.concat(data.Channels.ProcognateTunnels_Caver);
+        }
+        if (data.Channels.AlphaFillTunnels_MOLE !== void 0) {
+            channels = channels.concat(data.Channels.AlphaFillTunnels_MOLE);
+        }
+        if (data.Channels.AlphaFillTunnels_Caver !== void 0) {
+            channels = channels.concat(data.Channels.AlphaFillTunnels_Caver);
+        }
 
         let cache = new Map<string, string>();
         for (let channel of channels) {
-            channelsMap.set(channel.GUID, `${channel.Type[0]}${channel.Id.split('-')[2]}C${channel.Cavity}`); // channel ID format: 'compId-submissionId-tunnelId'
+            let annotations = ChannelsDBData.getChannelAnnotationsImmediate(channel.Id);
+            if (annotations !== null && annotations !== void 0) {
+                channel.Type = annotations[0].name;
+            }
+
+            channelsMap.set(channel.GUID, `${channel.Type[0]}${channel.Id.toString().split('-')[2]}C${channel.Cavity}`); // channel ID format: 'compId-submissionId-tunnelId'
         }
 
         this.cache.set(submission, channelsMap);

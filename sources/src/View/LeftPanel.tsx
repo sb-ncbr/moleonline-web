@@ -82,6 +82,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
             ChannelsDBDataCache.getChannelsData(info.PdbId).then(async channelsDbData => {
                 const guidChannelsDbData = generateGuidAll(channelsDbData);
                 const completeChannelsDbData = addCaverTag(guidChannelsDbData);
+                TunnelName.reload({Channels: completeChannelsDbData}, '-1')
                 Tunnels.setChannelsDB(completeChannelsDbData);
                 channels.set(-1, guidChannelsDbData);
                 for (const submission of info.Submissions) {
