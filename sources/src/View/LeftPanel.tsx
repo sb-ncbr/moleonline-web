@@ -81,10 +81,11 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
             }
             ChannelsDBDataCache.getChannelsData(info.PdbId).then(async channelsDbData => {
                 const guidChannelsDbData = generateGuidAll(channelsDbData);
-                const completeChannelsDbData = addCaverTag(guidChannelsDbData);
-                TunnelName.reload({Channels: completeChannelsDbData}, '-1')
+                let completeChannelsDbData = addCaverTag(guidChannelsDbData);
+                completeChannelsDbData = generateIdAll(completeChannelsDbData, compId, 'channelsDb');
                 Tunnels.setChannelsDB(completeChannelsDbData);
-                channels.set(-1, guidChannelsDbData);
+                TunnelName.reload({Channels: completeChannelsDbData}, '-1');
+                channels.set(-1, completeChannelsDbData);
                 for (const submission of info.Submissions) {
                     const submitId = Number(submission.SubmitId);
     
@@ -112,7 +113,8 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                         const data = await ApiService.getChannelsData(compId, submitId)
                         let dataObj = JSON.parse(data) as MoleData;
                         if (dataObj !== undefined && dataObj.Channels !== undefined) {
-                            const guidData = generateGuidAll(dataObj.Channels)
+                            let guidData = generateGuidAll(dataObj.Channels)
+                            guidData = generateIdAll(guidData, computationId, submitId.toString())
                             TunnelName.reload({Channels: guidData}, submitId.toString())
                             Tunnels.addChannels(submitId.toString(), guidData);
                             channels.set(submitId, guidData);

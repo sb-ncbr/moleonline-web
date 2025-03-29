@@ -7,16 +7,16 @@ export class TunnelName {
     public static reload(data: MoleData, submission: string) {
         let channels: Tunnel[] = [];
         let channelsMap: Map<string, string> = new Map();
-        if (data.Channels.MergedPores.length > 0) {
+        if (data.Channels.MergedPores !== void 0) {
             channels = channels.concat(data.Channels.MergedPores);
         }
-        if (data.Channels.Paths.length > 0) {
+        if (data.Channels.Paths !== void 0) {
             channels = channels.concat(data.Channels.Paths);
         }
-        if (data.Channels.Pores.length > 0) {
+        if (data.Channels.Pores !== void 0) {
             channels = channels.concat(data.Channels.Pores);
         }
-        if (data.Channels.Tunnels.length > 0) {
+        if (data.Channels.Tunnels !== void 0) {
             channels = channels.concat(data.Channels.Tunnels);
         }
         if (data.Channels.ReviewedChannels_MOLE !== void 0) {
