@@ -136,7 +136,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
                     Tunnels.addChannels(newSubmitId.toString(), guidData);
                     submissions.set(newSubmitId, guidData);
                     Tunnels.invokeOnTunnelsLoaded();
-                    const channelElems = this.createChannelElems(dataObj.Channels, newSubmitId)
+                    const channelElems = this.createChannelElems(guidData, newSubmitId)
                     const currentSumbissionElems = this.state.submissionsElems;
                     currentSumbissionElems.set(newSubmitId, channelElems);
                     await showDefaultVisualsNewSubmission(guidData, newSubmitId.toString());
