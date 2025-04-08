@@ -9,7 +9,7 @@ import { Tunnels } from "../../CommonUtils/Tunnels";
 import { ChannelsDBData, LastVisibleChannels, TunnelName } from "../../../Cache";
 import { ChannelAnnotation } from "../../../ChannelsDBAPIService";
 import { getParameters, isInChannelsDBMode } from "../../../Common/Util/Router";
-import { generateGuidAll, generateIdAll, showChannelVisuals, showDefaultVisuals, showDefaultVisualsNewSubmission } from "../../State";
+import { showChannelVisuals, showDefaultVisuals, showDefaultVisualsNewSubmission } from "../../State";
 import { Context } from "../../Context";
 import { Representation } from "molstar/lib/mol-repr/representation";
 import { EmptyLoci, Loci } from "molstar/lib/mol-model/loci";
@@ -21,6 +21,7 @@ import { ApiService } from "../../../MoleAPIService";
 import { JobStatus } from "../../../DataProxy";
 import { SelectionHelper } from "../../CommonUtils/Selection";
 import { TwoDProtsBridge } from "../../CommonUtils/TwoDProtsBridge";
+import { TunnelsId } from "../../CommonUtils/TunnelsId";
 
 declare function $(p: any): any;
 
@@ -130,8 +131,8 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
                 let dataObj = JSON.parse(data) as MoleData;
                 if (dataObj !== undefined && dataObj.Channels !== undefined) {
                     const submissions = this.state.submissions;
-                    let guidData = generateGuidAll(dataObj.Channels)
-                    guidData = generateIdAll(guidData, this.props.computationId, newSubmitId.toString())
+                    let guidData = TunnelsId.generateGuidAll(dataObj.Channels)
+                    guidData = TunnelsId.generateIdAll(guidData, this.props.computationId, newSubmitId.toString())
                     TunnelName.reload({ Channels: guidData }, newSubmitId.toString());
                     Tunnels.addChannels(newSubmitId.toString(), guidData);
                     submissions.set(newSubmitId, guidData);
@@ -455,13 +456,14 @@ export class Channel extends React.Component<{ channel: any, channelsDB: boolean
         let name = TunnelName.get(c.GUID); // cache.set(channel.GUID, `${channel.Type[0]}${channel.Id}C${channel.Cavity}`);
         let namePart = (name === void 0) ? '' : ` (${name})`;
 
-        let annotations = ChannelsDBData.getChannelAnnotationsImmediate(c.Id);
+        let annotationId = TunnelsId.getAnnotationId(c.Id);
+        let annotations = annotationId ? ChannelsDBData.getChannelAnnotationsImmediate(annotationId) : null;
         if (annotations !== null && annotations !== void 0) {
             let annotation = annotations[0];
-            return <Renderable annotations={annotations} submissionId={this.props.submissionId} channelsDB={this.props.channelsDB} label={<span><b><a href="javascript:void(0)" onClick={this.selectChannel.bind(this, true)}>{annotation.name}</a></b><ColorPicker tunnel={this.props.channel} />, Length: <b>{len} Å</b></span>} element={c} toggle={showChannelVisuals} />
+            return <Renderable annotations={annotations} submissionId={this.props.submissionId} channelsDB={this.props.channelsDB} label={<span><b><a href="javascript:void(0)" onClick={this.selectChannel.bind(this, true)}>{annotation.name}{namePart}</a></b><ColorPicker tunnel={this.props.channel} />, Length: <b>{len} Å</b></span>} element={c} toggle={showChannelVisuals} />
         }
         else {
-            return <Renderable channelsDB={this.props.channelsDB} submissionId={this.props.submissionId} label={<span><b><a href="javascript:void(0)" onClick={this.selectChannel.bind(this, true)}>{c.Type}{namePart}</a></b><ColorPicker tunnel={this.props.channel} />, Length: <b>{`${len | 0} Å`}</b></span>} element={c} toggle={(ch: Tunnel[] & TunnelMetaInfo[], v: boolean, repaint?: boolean, channelsDB?: boolean, submissionId?: string) => {
+            return <Renderable channelsDB={this.props.channelsDB} submissionId={this.props.submissionId} label={<span><b><a href="javascript:void(0)" onClick={this.selectChannel.bind(this, true)}>{c.Type}{namePart}</a></b><ColorPicker tunnel={this.props.channel} />, Length: <b>{len} Å</b></span>} element={c} toggle={(ch: Tunnel[] & TunnelMetaInfo[], v: boolean, repaint?: boolean, channelsDB?: boolean, submissionId?: string) => {
                 if (submissionId) {
                     return showChannelVisuals(ch, v, undefined, channelsDB, submissionId)
                         .then(res => {

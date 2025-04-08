@@ -1,17 +1,11 @@
-import { ChannelsDBChannels, MoleChannels, MoleData, Tunnel } from "../../../DataInterface";
-// import LiteMoleEvent = LiteMol.Bootstrap.Event;
-import { Events } from "../../../Bridge";
+import { ChannelsDBChannels, Tunnel } from "../../../DataInterface";
 import { Tunnels } from "../../CommonUtils/Tunnels";
 import { TooltipText as Tooltips } from "../../../StaticData";
 import { ChannelsDBData, TunnelName } from "../../../Cache";
 import React from "react";
 import { DGRowEmpty } from "../Common/Datagrid/Components";
 import { roundToDecimal } from "../../../Common/Util/Numbers";
-import { getParameters, isInChannelsDBMode } from "../../../Common/Util/Router";
-import { ComputationInfo, JobStatus } from "../../../DataProxy";
-import { ChannelsDBData as ChannelsDBDataCache } from "../../../Cache"
-import { ApiService, CompInfo } from "../../../MoleAPIService";
-import { generateGuidAll } from "../../State";
+import { TunnelsId } from "../../CommonUtils/TunnelsId";
 
 let DGTABLE_COLS_COUNT = 12;
 
@@ -230,17 +224,13 @@ class DGRow extends React.Component<{ tunnel: Tunnel, submissionId: string, app:
 
     render() {
         let name = TunnelName.get(this.props.tunnel.GUID);
-        let namePart = (name === void 0) ? '' : ` (${name})`; //(name === void 0) ? 'X' : ` (${name})`;
+        let namePart = (name === void 0) ? '' : ` (${name})`;
         let tunnelID = this.props.tunnel.Type + namePart;
 
-        if (isInChannelsDBMode()) {
-            let annotations = ChannelsDBData.getChannelAnnotationsImmediate(this.props.tunnel.Id);
-            if (annotations !== null && annotations.length > 0) {
-                tunnelID = annotations[0].name;
-            }
-            else {
-                tunnelID = this.props.tunnel.Type;
-            }
+        const annotationId = TunnelsId.getAnnotationId(this.props.tunnel.Id);
+        let annotations = annotationId ? ChannelsDBData.getChannelAnnotationsImmediate(annotationId) : null;
+        if (annotations !== null && annotations.length > 0) {
+            tunnelID = annotations[0].name + namePart;
         }
 
         return (

@@ -25,6 +25,7 @@ import { ColorBound } from "./VizualizerMol/color-tunnels/property-color";
 import { Property } from "./VizualizerMol/color-tunnels/property-color";
 import { LayerColors } from "./CommonUtils/LayerColors";
 import { TwoDProtsBridge } from "./CommonUtils/TwoDProtsBridge";
+import { TunnelsId } from "./CommonUtils/TunnelsId";
 
 export async function showDefaultVisualsNewSubmission(channels: ChannelsDBChannels, submitId: string) {
     return new Promise(res => {
@@ -392,10 +393,10 @@ export function addCaverTag(moleData: ChannelsDBChannels) {
 }
 
 function generateGuidMole(moleData: MoleData) {
-    moleData.Channels.MergedPores = generateGuid(moleData.Channels.MergedPores);
-    moleData.Channels.Paths = generateGuid(moleData.Channels.Paths);
-    moleData.Channels.Pores = generateGuid(moleData.Channels.Pores);
-    moleData.Channels.Tunnels = generateGuid(moleData.Channels.Tunnels);
+    moleData.Channels.MergedPores = TunnelsId.generateGuid(moleData.Channels.MergedPores);
+    moleData.Channels.Paths = TunnelsId.generateGuid(moleData.Channels.Paths);
+    moleData.Channels.Pores = TunnelsId.generateGuid(moleData.Channels.Pores);
+    moleData.Channels.Tunnels = TunnelsId.generateGuid(moleData.Channels.Tunnels);
 
     return moleData
 }
@@ -493,8 +494,8 @@ async function downloadChannelsDBData(computationId: string) {
                             } else {
                                 console.log(s.data);
                                 let data_ = s.data as ChannelsDBData;
-                                data_.Channels = generateGuidAll(data_.Channels);
-                                data_.Channels = generateIdAll(data_.Channels, computationId, 'channelsDb');
+                                data_.Channels = TunnelsId.generateGuidAll(data_.Channels);
+                                data_.Channels = TunnelsId.generateIdAll(data_.Channels, computationId, 'channelsDb');
                                 data_.Annotations = [];
                                 Tunnels.invokeOnTunnelsCollect(0);
                                 // Events.invokeChannelDataLoaded(data_);
@@ -538,8 +539,8 @@ export function loadAllChannels(compId: string) {
             const data = await ApiService.getChannelsData(compId, submitId)
             let dataObj = JSON.parse(data) as MoleData;
             if (dataObj !== undefined && dataObj.Channels !== undefined) {
-                let guidData = generateGuidAll(dataObj.Channels);
-                guidData = generateIdAll(guidData, compId, submitId.toString());
+                let guidData = TunnelsId.generateGuidAll(dataObj.Channels);
+                guidData = TunnelsId.generateIdAll(guidData, compId, submitId.toString());
                 channels.set(submitId, guidData);
             }
         }
