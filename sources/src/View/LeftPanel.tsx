@@ -26,6 +26,8 @@ import { ComputationInfo } from "../DataProxy";
 import { ApiService, CompInfo } from "../MoleAPIService";
 import { ChannelsDBData as ChannelsDBDataCache, TunnelName } from "../Cache"
 import { Tunnels } from "./CommonUtils/Tunnels";
+import { SbNcbrTunnelsPropertyProvider } from "./VizualizerMol/tunnels-extension/property";
+import { loadCifTunnels } from "./VizualizerMol/mmcif-tunnels/converter2json";
 
 declare function $(p: any): any;
 
@@ -75,15 +77,37 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
         const channels: Map<number, ChannelsDBChannels> = new Map();
 
         ComputationInfo.DataProvider.get(computationId, ((compId: string, info: CompInfo) => {
-            if (info.PdbId === '') {
-                this.setState({isLoadingChannels: false})
-                return;
-            }
+            (async () => {
+                if (info.PdbId === '') {
+                    const context = Context.getInstance();
+                    const model = context.model;
+                    const o = SbNcbrTunnelsPropertyProvider.isApplicable(model!);
+
+                    // if (model && SbNcbrTunnelsPropertyProvider.isApplicable(model)) {0.
+                    //setting first submission from cif file
+                    const data = await loadCifTunnels(`https://api.mole.upol.cz/Data/${computationId}?submitId=0&format=molecule`);
+                    console.log(data);
+                    if (data) {
+                        const dataObj = { Channels: data.Channels } as MoleData;
+                        const guidData = generateGuidAll(dataObj.Channels)
+                        TunnelName.reload({ Channels: guidData }, '-2')
+                        Tunnels.addChannels('-2', guidData);
+                        channels.set(-2, guidData);
+                    }
+                    Tunnels.invokeOnTunnelsLoaded();
+                    this.setState({ channelsData: channels, isLoadingChannels: false })
+                    // } else {
+                    //     this.setState({isLoadingChannels: false})
+                    // }
+                    return;
+                }
+            })();
             ChannelsDBDataCache.getChannelsData(info.PdbId).then(async channelsDbData => {
                 const guidChannelsDbData = generateGuidAll(channelsDbData);
                 const completeChannelsDbData = addCaverTag(guidChannelsDbData);
+                TunnelName.reload({ Channels: completeChannelsDbData }, '-1')
                 Tunnels.setChannelsDB(completeChannelsDbData);
-                channels.set(-1, guidChannelsDbData);
+                channels.set(-1, completeChannelsDbData);
                 for (const submission of info.Submissions) {
                     const submitId = Number(submission.SubmitId);
     

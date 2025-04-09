@@ -185,20 +185,22 @@ export class Data extends React.Component<State, {}> {
         let noCavitiesData = <div className="no-channels-data">There are no cavities available...</div>
 
         let originsControls: any[] = [];
-        if (this.props.data.Origins.User !== void 0)
-            originsControls.push(<Origins origins={this.props.data.Origins.User} {...this.props} label='User Specifed (optimized)' />);
-        if (this.props.data.Origins.InputOrigins !== void 0)
-            originsControls.push(<Origins origins={this.props.data.Origins.InputOrigins} {...this.props} label='User Specifed' />);
-        if (this.props.data.Origins.Computed !== void 0)
-            originsControls.push(<Origins origins={this.props.data.Origins.Computed} {...this.props} label='Computed' />);
-        if (this.props.data.Origins.Databse !== void 0)
-            originsControls.push(<Origins origins={this.props.data.Origins.Database} {...this.props} label='Database' />);
-        if (this.props.data.Origins.InputExits !== void 0)
-            originsControls.push(<Origins origins={this.props.data.Origins.InputExits} {...this.props} label='Input Exits' />);
-        if (this.props.data.Origins.InputFoundExits !== void 0)
-            originsControls.push(<Origins origins={this.props.data.Origins.InputFoundExits} {...this.props} label='Input Found Exits' />);
-        if (this.props.data.Origins.CSAOrigins !== void 0)
-            originsControls.push(<Origins origins={this.props.data.Origins.CSAOrigins} {...this.props} label='CSA Origins' />);
+        if (this.props.data.Origins) {
+            if (this.props.data.Origins.User !== void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.User} {...this.props} label='User Specifed (optimized)' />);
+            if (this.props.data.Origins.InputOrigins !== void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.InputOrigins} {...this.props} label='User Specifed' />);
+            if (this.props.data.Origins.Computed !== void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.Computed} {...this.props} label='Computed' />);
+            if (this.props.data.Origins.Databse !== void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.Database} {...this.props} label='Database' />);
+            if (this.props.data.Origins.InputExits !== void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.InputExits} {...this.props} label='Input Exits' />);
+            if (this.props.data.Origins.InputFoundExits !== void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.InputFoundExits} {...this.props} label='Input Found Exits' />);
+            if (this.props.data.Origins.CSAOrigins !== void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.CSAOrigins} {...this.props} label='CSA Origins' />);
+        }
 
         let noOriginsData = <div className="no-channels-data">There are no origins available...</div>
 
