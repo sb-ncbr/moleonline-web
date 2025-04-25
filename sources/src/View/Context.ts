@@ -39,6 +39,8 @@ import { loadCifTunnels } from "./VizualizerMol/mmcif-tunnels/converter2json";
 import { Events } from "../Bridge";
 import { adjustCaverDistance } from "./VizualizerMol/color-tunnels/algorithm";
 import { ApiService } from "../MoleAPIService";
+import { SbNcbrTunnelsExtension } from "./VizualizerMol/tunnels-extension/behavior";
+import { Model } from "molstar/lib/mol-model/structure";
 
 const MySpec: PluginUISpec = {
     ...DefaultPluginUISpec(),
@@ -74,6 +76,7 @@ const MySpec: PluginUISpec = {
         PluginSpec.Behavior(PluginBehaviors.CustomProps.SecondaryStructure),
         PluginSpec.Behavior(PluginBehaviors.CustomProps.ValenceModel),
         PluginSpec.Behavior(PluginBehaviors.CustomProps.CrossLinkRestraint),
+        PluginSpec.Behavior(SbNcbrTunnelsExtension),
         // ...DefaultPluginUISpec().behaviors,
         // ...DefaultPluginSpec().behaviors,
     ],
@@ -87,6 +90,7 @@ const MySpec: PluginUISpec = {
 
 export class Context {
     public plugin: PluginUIContext;
+    public model: Model | undefined = undefined;
     private assemblyRef = '';
     initParams: InitParams;
     selectedParams: any;
@@ -336,6 +340,7 @@ export class Context {
     public async load(url: string, isBinary: boolean, assemblyId?: string | null) {
         let update = this.plugin.build();
         let structure;
+        let model;
         try {
             const response = await fetch(url);
             if (response.ok) {
@@ -348,16 +353,16 @@ export class Context {
                 const type = this.determineFileType(dataNode.data as string);
                 update = this.plugin.build();
                 if (type === "cif") {
-                    structure = update.to(dataNode)
+                    model = update.to(dataNode)
                         .apply(ParseCif)
                         .apply(TrajectoryFromMmCif)
                         .apply(ModelFromTrajectory)
-                        .apply(StructureFromModel, { type: assemblyId === null || assemblyId?.length === 0 ? { name: 'model', params: {} } : { name: 'assembly', params: { id: assemblyId } } });
+                    structure = model.apply(StructureFromModel, { type: assemblyId === null || assemblyId?.length === 0 ? { name: 'model', params: {} } : { name: 'assembly', params: { id: assemblyId } } });
                 } else if (type === "pdb") {
-                    structure = update.to(dataNode)
+                    model = update.to(dataNode)
                         .apply(TrajectoryFromPDB)
                         .apply(ModelFromTrajectory)
-                        .apply(StructureFromModel, { type: assemblyId === null || assemblyId?.length === 0 ? { name: 'model', params: {} } : { name: 'assembly', params: { id: assemblyId } } });
+                    structure = model.apply(StructureFromModel, { type: assemblyId === null || assemblyId?.length === 0 ? { name: 'model', params: {} } : { name: 'assembly', params: { id: assemblyId } } });
                 } else {
                     throw Error("Unkown type of input file")
                 }
@@ -371,7 +376,6 @@ export class Context {
             })
             return;
         }
-        await loadCifTunnels(url);
 
         const polymer = structure.apply(StructureComponent, { type: { name: 'static', params: 'polymer' } }, { ref: "protein-data" });
         // const water = structure.apply(StructureComponent, { type: { name: 'static', params: 'water' } });
@@ -393,6 +397,8 @@ export class Context {
         // });
 
         await update.commit();
+
+        this.model = model.selector.obj?.data;
 
         const pivotIndex = this.plugin.managers.structure.hierarchy.selection.structures.length - 1;
         const pivot = this.plugin.managers.structure.hierarchy.selection.structures[pivotIndex];

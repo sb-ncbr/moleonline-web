@@ -89,7 +89,7 @@ export class AglomeredParameters extends React.Component<{}, State> {
                 const channels = submissions.get(submission);
                 if (channels) {
                     const concatDataChannels = this.concatTunnels(channels);
-                    submissionsMap.set(submission.toString(), concatDataChannels);
+                    submissionsMap.set(submission === '-2' ? 'FromFile' : submission, concatDataChannels);
                 }
             }
             this.setState({data: submissionsMap});

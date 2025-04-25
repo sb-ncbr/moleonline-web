@@ -160,7 +160,7 @@ export async function showDefaultVisuals(currentSubmitId: number, submissionChan
             }
 
             if (toShow.length > 0) {
-                return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB, currentSubmitId === -1 ? "ChannelsDB" : currentSubmitId.toString()).then(() => {
+                return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB, currentSubmitId === -1 ? "ChannelsDB" : currentSubmitId === -2 ? 'FromFile' : currentSubmitId.toString()).then(() => {
                     res(null);
                     return;
                 })
@@ -226,7 +226,7 @@ export async function showDefaultVisuals(currentSubmitId: number, submissionChan
             }
 
             if (toShow.length > 0) {
-                return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB, currentSubmitId === -1 ? "ChannelsDB" : currentSubmitId.toString()).then(() => {
+                return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB, currentSubmitId === -1 ? "ChannelsDB" : currentSubmitId === -2 ? 'FromFile' : currentSubmitId.toString()).then(() => {
                     res(null);
                     return;
                 })

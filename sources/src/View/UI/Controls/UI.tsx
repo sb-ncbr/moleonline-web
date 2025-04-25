@@ -1169,7 +1169,9 @@ export class ChannelsDBSubmission extends React.Component<{ pdbid: string, compu
 }
 
 function changeSubmitId(computationId: string, submitId: number) {
-    if (submitId === -1) {
+    if (submitId === -2) {
+        fakeRedirect(computationId, "FromFile");
+    } else if (submitId === -1) {
         fakeRedirect(computationId, "ChannelsDB");
     } else if (submitId === 0) {
         fakeRedirect(computationId, "")
@@ -1396,6 +1398,11 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
                     label: 'ChDB',
                     value: '-1'
                 });
+            } else {
+                rv.push({
+                    label: 'File',
+                    value: '-2'
+                });
             }
         }
 
@@ -1477,6 +1484,10 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
         }
 
         if (String(this.state.submitId) === String(-1)) {
+            return !left;
+        }
+
+        if (String(this.state.submitId) === String(-2)) {
             return !left;
         }
 

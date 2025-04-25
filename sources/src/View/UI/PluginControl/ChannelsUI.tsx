@@ -17,8 +17,8 @@ import { MarkerAction } from "molstar/lib/mol-util/marker-action";
 import { Colors, Enum } from "../../../StaticData";
 import { Color } from "molstar/lib/mol-util/color";
 import { debounce } from "lodash";
-import { ApiService } from "../../../MoleAPIService";
-import { JobStatus } from "../../../DataProxy";
+import { ApiService, CompInfo } from "../../../MoleAPIService";
+import { ComputationInfo, JobStatus } from "../../../DataProxy";
 import { SelectionHelper } from "../../CommonUtils/Selection";
 import { TwoDProtsBridge } from "../../CommonUtils/TwoDProtsBridge";
 import { TunnelsId } from "../../CommonUtils/TunnelsId";
@@ -112,10 +112,26 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
     componentWillMount() {
         let params = getParameters();
         if (params === null || params.submitId === 0) {
-            this.setState({ currentSubmitId: -1 })
-            showDefaultVisuals(-1, this.props.submissions).then(() => {
-                this.saveChannelsElems();
-            })
+            if (params?.computationId) {
+                ComputationInfo.DataProvider.get(params.computationId, ((compId: string, info: CompInfo) => {
+                    if (info.PdbId === "") { // from file
+                        this.setState({ currentSubmitId: -2 });
+                        showDefaultVisuals(-2, this.props.submissions).then(() => {
+                            this.saveChannelsElems();
+                        })
+                    } else {
+                        this.setState({ currentSubmitId: -1 })
+                        showDefaultVisuals(-1, this.props.submissions).then(() => {
+                            this.saveChannelsElems();
+                        })
+                    }
+                }))
+            } else {
+                this.setState({ currentSubmitId: -1 })
+                showDefaultVisuals(-1, this.props.submissions).then(() => {
+                    this.saveChannelsElems();
+                })
+            }
         } else {
             this.setState({ currentSubmitId: params.submitId })
             showDefaultVisuals(params.submitId, this.props.submissions).then(() => {
@@ -234,7 +250,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
                     <div className="accordion-item">
                         <h2 className="accordion-header">
                             <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target={`#submission-${submitId}`} aria-expanded={submitId === this.state.currentSubmitId ? true : false} aria-controls={`submission-${submitId}`}>
-                                {submitId === -1 ? 'ChannelsDB' : `Submission-${submitId}`}
+                                {submitId === -1 ? 'ChannelsDB' : submitId === -2 ? 'FromFile' : `Submission-${submitId}`}
                             </button>
                         </h2>
                         <div id={`submission-${submitId}`} className={`accordion-collapse collapse ${submitId === this.state.currentSubmitId ? 'show' : ''}`}>
