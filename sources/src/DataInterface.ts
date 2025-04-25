@@ -100,6 +100,7 @@ export interface TunnelMetaInfo extends Tunnel {
     __loci: Shape.Loci,
     __channelsDB: boolean,
     __submissionId: string,
+    __layerColored: boolean,
 };
 
 export interface ChannelsDBChannels {

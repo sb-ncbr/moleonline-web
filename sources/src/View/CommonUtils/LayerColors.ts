@@ -5,6 +5,8 @@ import { MarkerAction } from "molstar/lib/mol-util/marker-action";
 import { Representation } from "molstar/lib/mol-repr/representation";
 import { Loci } from "molstar/lib/mol-model/loci";
 import { Color } from "molstar/lib/mol-util/color";
+import { Tunnel, TunnelMetaInfo } from "../../DataInterface";
+import { SelectionHelper } from "./Selection";
 
 export class LayerColors {
     private static currentColorProperty: Property = 'hydropathy';
@@ -19,7 +21,7 @@ export class LayerColors {
     private static onColorPropertyChanged: { handler: (property: Property) => void }[];
     private static onColorBoundsChanged: { handler: (bounds: ColorBound) => void }[];
     private static onLayerIndexOver: { handler: (layerIndex: number) => void }[];
-    private static onLayerIndexOverObject: { handler: (layerIndex: number) => void }[];
+    private static onLayerIndexOverObject: { handler: (layerIndex: number, tunnelId: string) => void }[];
     private static onLayerIndexSelect: { handler: (layerIndex: number) => void }[];
     private static onLayerIndexSelectObject: { handler: (layerIndex: number, loci: Representation.Loci<Loci>) => void }[];
     private static onChannelRemoved: { handler: (ref: string) => void }[];
@@ -87,21 +89,21 @@ export class LayerColors {
         }
     }
 
-    public static attachLayerIndexOverObject(handler: (layerIndex: number) => void) {
+    public static attachLayerIndexOverObject(handler: (layerIndex: number, tunnelId: string) => void) {
         if (this.onLayerIndexOverObject === void 0) {
             this.onLayerIndexOverObject = [];
         }
 
         this.onLayerIndexOverObject.push({ handler });
     }
-    public static invokeLayerIndexOverObject(layerIndex: number) {
+    public static invokeLayerIndexOverObject(layerIndex: number, tunnelId: string) {
         this.currentLayerIndex = layerIndex;
         if (this.onLayerIndexOverObject === void 0) {
             return;
         }
 
         for (let h of this.onLayerIndexOverObject) {
-            h.handler(layerIndex);
+            h.handler(layerIndex, tunnelId);
         }
     }
 
@@ -231,7 +233,7 @@ export class LayerColors {
             if (current.loci.kind === 'group-loci') {
                 if (current.repr && current.repr.params && typeof current.repr.params.tag === 'string' && current.repr.params.tag === "PropertyColorTunnel" && current.repr.params.tunnel !== null) {
                     const ids = OrderedSet.toArray(current.loci.groups[0].ids);
-                    LayerColors.invokeLayerIndexOverObject(ids[0]);
+                    LayerColors.invokeLayerIndexOverObject(ids[0], (current.repr.params.tunnel as unknown as Tunnel).Id);
                 }
             } else {
                 // LayerColors.invokeLayerIndexOver(-1);
@@ -242,12 +244,17 @@ export class LayerColors {
             if (current.loci.kind === 'group-loci') {
                 if (current.repr && current.repr.params && typeof current.repr.params.tag === 'string' && current.repr.params.tag === "PropertyColorTunnel" && current.repr.params.tunnel !== null) {
                     const loci = current.loci;
+                    const tunnel = current.repr.params.tunnel as unknown as (Tunnel & TunnelMetaInfo);
                     const ids = OrderedSet.toArray(current.loci.groups[0].ids);
-                    if (this.currentSelectedLayer === ids[0]) {
-                        LayerColors.invokeLayerIndexSelectObject(-1, current);
+                    if (SelectionHelper.getSelectedChannelId() !== tunnel.Id) {
+                        SelectionHelper.selectTunnel(tunnel);
                     } else {
-                        this.currentSelectedLayer = ids[0];
-                        LayerColors.invokeLayerIndexSelectObject(ids[0], current);
+                        if (this.currentSelectedLayer === ids[0]) {
+                            LayerColors.invokeLayerIndexSelectObject(-1, current);
+                        } else {
+                            this.currentSelectedLayer = ids[0];
+                            LayerColors.invokeLayerIndexSelectObject(ids[0], current);
+                        }
                     }
                 } else {
                     // LayerColors.invokeLayerIndexOver(-1);

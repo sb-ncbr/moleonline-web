@@ -875,6 +875,7 @@ async function showChannelDefaultVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
         }
 
         channel.__submissionId = submitId.toString();
+        channel.__layerColored = false;
 
         visibleChannels.push(channel);
         LayerColors.invokeOnChannelAdd(channel.__ref);
@@ -924,6 +925,7 @@ export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
         }
 
         channel.__isVisible = visible;
+        channel.__layerColored = false;
         if (!channel.__color) {
             // channel.__color = ColorScheme.Colors.getRandomUnused(); // TODO
             channel.__color = ColorGenerator.next().value;
@@ -970,6 +972,7 @@ export async function showChannelPropertyColorVisuals(channel: Tunnel & TunnelMe
     if (!channel.__isVisible && !forceRepaint) return;
 
     channel.__isVisible = true;
+    channel.__layerColored = true;
     if (!channel.__color) {
         // channel.__color = ColorScheme.Colors.getRandomUnused(); // TODO
         channel.__color = ColorGenerator.next().value;

@@ -186,7 +186,8 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
             }, 1);
         });
 
-        LayerColors.attachLayerIndexOverObject((layerIndex) => {
+        LayerColors.attachLayerIndexOverObject((layerIndex, tunnelId) => {
+            if (SelectionHelper.getSelectedChannelId() !== tunnelId) return;
             this.vizualizer.highlightHitbox(layerIndex);
             if (!this.state.isLayerSelected) {
                 this.setState({ layerIds: [layerIndex] })
@@ -288,7 +289,6 @@ class PaintingArea extends React.Component<State, {}> {
                     <CanvasWrapper {...this.props} />
                     <Controls {...this.props} isCustom={true} />
                 </div>
-                <CommonControls {...this.props} />
             </div>
         );
     };
@@ -442,7 +442,10 @@ class Controls extends React.Component<State & { isCustom: boolean }, {}> {
             <div className="controls">
                 <RadiusSwitch state={this.props} isCustom={this.props.isCustom} radiusProperty={(this.props.isCustom) ? this.props.customRadiusPropertyKey : this.props.radiusPropertyKey} />
                 <ColorBySwitch state={this.props} isCustom={this.props.isCustom} coloringProperty={(this.props.isCustom) ? this.props.customColoringPropertyKey : this.props.coloringPropertyKey} />
-                {!this.props.isCustom ? <PropertyColorTunnel state={this.props} /> : <></>}
+                {!this.props.isCustom ? <div className='color-controls'>
+                    <CommonControls {...this.props} />
+                    <PropertyColorTunnel state={this.props} />
+                </div> : <></>}
             </div>
         );
     }
@@ -452,7 +455,7 @@ class CommonControls extends React.Component<State, {}> {
 
     render() {
         return (
-            <div className="controls">
+            <div className="controls block-like">
                 <CommonButtonArea {...this.props} />
             </div>
         );
@@ -568,56 +571,70 @@ class PropertyColorTunnel extends React.Component<{ state: State }, { property: 
         return loci;
     }
 
+    onChannelSelect = (channel: TunnelWithMetaData) => {
+        this.setState({
+            checked: channel.__layerColored,
+            disabled: false
+        });
+    };
+
+    onChannelRemoved = (ref: any) => {
+        const channel = this.props.state.channel;
+        if (!channel || channel.__ref === ref) {
+            this.setState({ checked: false, disabled: true });
+        } else {
+            this.setState({ checked: false });
+        }
+    };
+
+    onChannelAdd = (ref: any) => {
+        const channel = this.props.state.channel;
+        if (channel && channel.__ref === ref) {
+            this.setState({ disabled: false });
+        }
+    };
+
+    onColorPropertyChanged = (property: any) => {
+        this.setState({ property });
+        if (this.state.checked) this.toggle(true);
+    };
+
+    onColorBoundsChanged = (colorBounds: any) => {
+        this.setState({ colorBounds });
+        if (this.state.checked) this.toggle(true);
+    };
+
+    onLayerIndexOver = (layerIndex: number) => {
+        const channel = this.props.state.channel;
+        if (!channel) return;
+
+        const loci = layerIndex >= 0
+            ? this.getLoci(channel, layerIndex)
+            : EmptyLoci;
+
+        this.state.context.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci });
+    };
+
+    onLayerIndexSelect = (layerIndex: number) => {
+        const channel = this.props.state.channel;
+        if (!channel || layerIndex < 0) return;
+
+        const loci = this.getLoci(channel, layerIndex);
+        const context = Context.getInstance();
+
+        context.visual.setColor({ select: { r: 255, g: 0, b: 255 } });
+        context.plugin.canvas3d?.mark({ loci } as Representation.Loci<Loci>, MarkerAction.Select);
+        context.visual.reset({ selectColor: true });
+    };
+
     componentDidMount() {
-        SelectionHelper.attachOnChannelSelectHandler(() => {
-            this.setState({ checked: false, disabled: false })
-        })
-        LayerColors.attachOnChannelRemoved((ref) => {
-            if (this.props.state.channel === undefined) {
-                this.setState({ checked: false, disabled: true})
-            } else if (this.props.state.channel.__ref === ref) {
-                this.setState({ checked: false, disabled: true})
-            } else {
-                this.setState({ checked: false })
-            }
-        })
-        LayerColors.attachOnChannelAdd((ref) => {
-            const channel = this.props.state.channel;
-            if (channel !== undefined && channel.__ref === ref) {
-                this.setState({disabled: false})
-            }
-        })
-        LayerColors.attachOnColorPropertyChagned((property) => {
-            this.setState({ property })
-            if (this.state.checked) this.toggle(true)
-        })
-        LayerColors.attachOnColorBoundsChanged((colorBounds) => {
-            this.setState({ colorBounds })
-            if (this.state.checked) this.toggle(true)
-        })
-        LayerColors.attachLayerIndexOver((layerIndex) => {
-            if (this.props.state.channel) {
-                if (layerIndex >= 0) {
-                    const channel = this.props.state.channel;
-                    const loci = this.getLoci(channel, layerIndex)
-                    this.state.context.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci })
-                } else {
-                    this.state.context.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci: EmptyLoci });
-                }
-            }
-        })
-        LayerColors.attachLayerIndexSelect((layerIndex) => {
-            if (this.props.state.channel) {
-                if (layerIndex >= 0) {
-                    const channel = this.props.state.channel;
-                    const loci = this.getLoci(channel, layerIndex)
-                    const context = Context.getInstance();
-                    context.visual.setColor({ select: { r: 255, g: 0, b: 255 } });
-                    context.plugin.canvas3d?.mark({ loci } as Representation.Loci<Loci>, MarkerAction.Select);
-                    context.visual.reset({ selectColor: true });
-                }
-            }
-        })
+        SelectionHelper.attachOnChannelSelectHandler2(this.onChannelSelect.bind(this));
+        LayerColors.attachOnChannelRemoved(this.onChannelRemoved.bind(this));
+        LayerColors.attachOnChannelAdd(this.onChannelAdd.bind(this));
+        LayerColors.attachOnColorPropertyChagned(this.onColorPropertyChanged.bind(this));
+        LayerColors.attachOnColorBoundsChanged(this.onColorBoundsChanged.bind(this));
+        LayerColors.attachLayerIndexOver(this.onLayerIndexOver.bind(this));
+        LayerColors.attachLayerIndexSelect(this.onLayerIndexSelect.bind(this));
     }
 
     render() {
