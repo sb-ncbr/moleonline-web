@@ -1,11 +1,11 @@
-import { getStructureOptions } from "molstar/lib/mol-plugin-ui/sequence";
+import { getChainOptions, getModelEntityOptions, getOperatorOptions, getSequenceWrapper, getStructureOptions } from "molstar/lib/mol-plugin-ui/sequence";
 import { Instances } from "../../Bridge";
 import { MoleConfigResidue } from "../../MoleAPIService";
 import { Context } from "../Context";
 import { PluginStateObject, PluginStateObject as PSO } from 'molstar/lib/mol-plugin-state/objects';
 import { StructureElement, Unit, Queries, StructureSelection, StructureQuery, StructureProperties } from "molstar/lib/mol-model/structure";
 import { Loci } from "molstar/lib/mol-model/loci";
-import { atoms } from 'molstar/lib/mol-model/structure/query/queries/generators';
+import { atoms, residues } from 'molstar/lib/mol-model/structure/query/queries/generators';
 
 interface RType { chain: { authAsymId: string }, authSeqNumber: number, operatorName: string, isHet: boolean, loci: Loci | undefined, name?: string, backbone?: boolean };
 export interface Point {
@@ -385,7 +385,7 @@ export class Residues {
                     return StructureProperties.unit.operator_name(ctx.element) === residue.OperatorName;
                 },
                 chainTest: ctx => {
-                    return StructureProperties.chain.label_asym_id(ctx.element) === residue.Chain;
+                    return StructureProperties.chain.label_asym_id(ctx.element) === residue.Chain || StructureProperties.chain.auth_asym_id(ctx.element) === residue.Chain;
                 },
                 residueTest: ctx => {
                     return StructureProperties.residue.auth_seq_id(ctx.element) === residue.SequenceNumber;
