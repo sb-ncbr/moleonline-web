@@ -909,6 +909,20 @@ export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
             await PluginCommands.State.RemoveObject(context.plugin, { state: context.plugin.state.data, ref: channel.__ref });
         }
 
+        const svgElement = document.getElementById('svgContainer');
+        const elementId = TwoDProtsBridge.getFromIdTable(channel.Id)
+        const element = document.getElementById(`${elementId}`)
+        if (svgElement && element) {
+            const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${elementId}`)}`);
+            if (targetElement) {
+                if (visible) {
+                    targetElement.removeAttribute("display");
+                } else {
+                    targetElement.setAttribute("display", "none");
+                }
+            }
+        }
+
         channel.__isVisible = visible;
         if (!channel.__color) {
             // channel.__color = ColorScheme.Colors.getRandomUnused(); // TODO
@@ -926,6 +940,7 @@ export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
             TwoDProtsBridge.removeChannel(channel.__id);
             await PluginCommands.State.RemoveObject(context.plugin, { state: context.plugin.state.data, ref: channel.__ref });
             LayerColors.invokeOnChannelRemoved(channel.__ref);
+            LastVisibleChannels.remove(channel);
         } else {
             visibleChannels.push(channel);
             LayerColors.invokeOnChannelAdd(channel.__ref);
@@ -934,10 +949,9 @@ export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
             channel.__ref = ref;
             channel.__loci = loci as Shape.Loci;
             TwoDProtsBridge.addChannel(channel);
+            LastVisibleChannels.set(channel);
         }
     }
-
-    // LastVisibleChannels.set(visibleChannels);
 
     return Promise.resolve().then(() => {
         for (let channel of channels) {

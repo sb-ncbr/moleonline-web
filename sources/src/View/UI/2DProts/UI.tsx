@@ -22,6 +22,7 @@ function highlightElement(elementId: string, highlightColour: string): void {
     targetElement.dataset.hoverOriginalOpacity = targetElement.style.opacity || '';
 
     targetElement.style.fill = highlightColour;
+    targetElement.style.stroke = highlightColour;
     targetElement.style.opacity = '1';
 }
 
@@ -39,6 +40,7 @@ function unhighlightElement(elementId: string): void {
     const originalOpacity = targetElement.dataset.hoverOriginalOpacity || '';
 
     targetElement.style.fill = originalFill;
+    targetElement.style.stroke = originalFill;
     targetElement.style.opacity = originalOpacity;
 
     delete targetElement.dataset.hoverOriginalFill;
@@ -84,16 +86,18 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
                 if (this.state.selectedTunnel !== "") {
                     const oldElement = svgElement ? svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${TwoDProtsBridge.getFromIdTable(this.state.selectedTunnel)}`)}`) : null;
                     if (oldElement) {
-                        const originalFill = oldElement.dataset.selectOriginalFill || '';
-                        oldElement.dataset.hoverOriginalFill = oldElement.dataset.selectOriginalFill || '';
+                        const originalFill = oldElement.dataset.selectOriginalFill || oldElement.style.fill || '';
+                        oldElement.dataset.hoverOriginalFill = oldElement.dataset.selectOriginalFill || oldElement.style.fill || '';
                         oldElement.style.fill = originalFill;
+                        oldElement.style.stroke = originalFill;
                         delete oldElement.dataset.selectOriginalFill;
                     }
                 }
     
                 if (targetElement) {
-                    targetElement.dataset.selectOriginalFill = targetElement.dataset.hoverOriginalFill || '';
-                    targetElement.style.fill = '#BF00BF';
+                    targetElement.dataset.selectOriginalFill = targetElement.dataset.hoverOriginalFill || targetElement.style.fill || '';
+                    targetElement.style.fill = '#FF00FF';
+                    targetElement.style.stroke = '#FF00FF';
                     targetElement.dataset.hoverOriginalFill = targetElement.style.fill || '';
                 }
     
@@ -125,6 +129,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
                 if (targetElement) {
                     const originalFill = targetElement.dataset.selectOriginalFill || '';
                     targetElement.style.fill = originalFill;
+                    targetElement.style.stroke = originalFill;
                     targetElement.dataset.hoverOriginalFill = originalFill;
                     delete targetElement.dataset.selectOriginalFill;
                 }
@@ -147,7 +152,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
             const elementId = element.getAttribute('id');
             if (elementId) {
                 element.addEventListener('mouseover', () => {
-                    highlightElement(elementId, '#FC49FC');
+                    highlightElement(elementId, '#FF00FF');
                 });
 
                 element.addEventListener('mouseout', () => {
@@ -217,10 +222,8 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
                 (status, jobId, errorMsg) => {
                     console.log(`2DProts Job Status: ${status}`);
                     if (status === 'SUCCESS') {
-                        this.modifySVG(jobId).then(() => {
-                            this.setState({ isComputing: false, jobId });
-                            this.loadSvg();
-                        })
+                        this.setState({ isComputing: false, jobId });
+                        this.loadSvg()
                             .then(() => new Promise<void>(resolve => setTimeout(resolve, 100)))
                             .then(() => {
                                 this.processSvg()
@@ -270,9 +273,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
     }
 
     private async loadSvg() {
-        const svgUrl = this.state.modifiedSVG !== ""
-            ? this.state.modifiedSVG
-            : `https://2dprots.ncbr.muni.cz/static/2DProt/custom_jobs/${this.state.jobId}/output.svg`;
+        const svgUrl = `https://2dprots.ncbr.muni.cz/static/2DProt/custom_jobs/${this.state.jobId}/output.svg`;
 
         try {
             const response = await fetch(svgUrl);
@@ -287,6 +288,18 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
             inlineSvg.style.width = '100%';
             inlineSvg.setAttribute('preserveAspectRatio', 'xMidYMid meet')
 
+            const tunnelElements = inlineSvg.querySelectorAll('.tunnel');
+            tunnelElements.forEach(element => {
+                element.setAttribute('style', 'fill: black; stroke: black; opacity: 0.9');
+            });
+
+            const serializer = new XMLSerializer();
+            const modifiedSVG = serializer.serializeToString(inlineSvg);
+
+            const encodedSVG = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(modifiedSVG)}`;
+
+            this.setState({ modifiedSVG: encodedSVG })
+
             if (this.svgContainerRef.current) {
                 this.svgContainerRef.current.innerHTML = '';
                 this.svgContainerRef.current.appendChild(inlineSvg);
@@ -298,35 +311,6 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
 
             }
         } catch (error) {
-            console.error('Error loading SVG:', error);
-        }
-    }
-
-    private async modifySVG(jobId: string) {
-        const url = `https://2dprots.ncbr.muni.cz/static/2DProt/custom_jobs/${jobId}/output.svg`;
-
-        try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error("Failed to fetch SVG");
-
-            const svgText = await response.text();
-
-            const parser = new DOMParser();
-            const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
-            const svgElement = svgDoc.documentElement;
-
-            const tunnelElements = svgElement.querySelectorAll('.tunnel');
-            tunnelElements.forEach(element => {
-                element.setAttribute('style', 'fill: black; stroke: black; opacity: 0.65');
-            });
-
-            const serializer = new XMLSerializer();
-            const modifiedSVG = serializer.serializeToString(svgElement);
-
-            const encodedSVG = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(modifiedSVG)}`;
-
-            this.setState({ modifiedSVG: encodedSVG })
-        } catch (error) {
             Events.invokeNotifyMessage({
                 messageType: "Danger",
                 message: `Error while delivering 2DProts SVG: ${error}`
@@ -334,6 +318,22 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
             console.error("Error modifying SVG:", error);
         }
     }
+
+    private createSvgBlobFromContainer = () => {
+        const svgContainer = this.svgContainerRef.current;
+        if (!svgContainer) return null;
+    
+        const svgElement = svgContainer.querySelector('svg');
+        if (!svgElement) return null;
+    
+        const serializer = new XMLSerializer();
+        const svgString = serializer.serializeToString(svgElement);
+    
+        const fullSvgString = '<?xml version="1.0" encoding="UTF-8"?>\n' + svgString;
+    
+        const blob = new Blob([fullSvgString], { type: 'image/svg+xml' });
+        return blob;
+    };
 
     render() {
         return <div className="d-flex flex-column justify-content-center align-items-center h-100 w-100">
@@ -361,17 +361,16 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
                             <span>Start computation</span>
                         </button>
                         <button className="btn btn-primary" type="button" style={{ marginLeft: '10px' }} onClick={() => {
-                            this.fetchSvgAndCreateBlob(this.state.modifiedSVG !== "" ? this.state.modifiedSVG : `https://2dprots.ncbr.muni.cz/static/2DProt/custom_jobs/${this.state.jobId}/output.svg`).then((blob) => {
-                                if (blob) {
-                                    const blobUrl = URL.createObjectURL(blob);
-                                    const downloadLink = document.createElement('a');
-                                    downloadLink.href = blobUrl;
-                                    downloadLink.download = 'output.svg';
-                                    document.body.appendChild(downloadLink);
-                                    downloadLink.click();
-                                    document.body.removeChild(downloadLink);
-                                }
-                            })
+                            const blob = this.createSvgBlobFromContainer();
+                            if (blob) {
+                                const blobUrl = URL.createObjectURL(blob);
+                                const downloadLink = document.createElement('a');
+                                downloadLink.href = blobUrl;
+                                downloadLink.download = 'output.svg';
+                                document.body.appendChild(downloadLink);
+                                downloadLink.click();
+                                document.body.removeChild(downloadLink);
+                            }
                         }}>Download SVG</button>
                     </div>
             }

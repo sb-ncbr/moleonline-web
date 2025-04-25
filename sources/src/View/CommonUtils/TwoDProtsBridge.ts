@@ -1,9 +1,16 @@
-import { ChannelsDBChannels, ExportTunnel, Tunnel, TunnelMetaInfo } from "../../DataInterface";
+import { ChannelsDBChannels, ExportTunnel, Profile, Tunnel, TunnelMetaInfo } from "../../DataInterface";
 import { Color } from "molstar/lib/mol-util/color";
 import murmurhash from 'murmurhash'; 
 
 interface TunnelColor {
     Color: string
+}
+
+interface VizualizedTunnel {
+    Id: string
+    Type: string,
+    Profile: Profile[],
+    Color: string,
 }
 
 export class TwoDProtsBridge {
@@ -51,16 +58,21 @@ export class TwoDProtsBridge {
 
     public static getVizualizedChannels(): (Tunnel&TunnelColor)[] {
         const channels: (Tunnel&TunnelColor)[] = [];
+        const convertIdTunnels: Map<string, VizualizedTunnel> = new Map();
+        let id = 0;
+
         this.vizualizedChannels.forEach(tunnel => {
             const t = {
-                Id: tunnel.__channelsDB ? tunnel.Id : TwoDProtsBridge.convertMoleId(tunnel.Id),
+                Id: id.toString(),
                 Type: tunnel.Type,
                 Profile: tunnel.Profile,
                 Color: "black" //Color.toHexString(tunnel.__color)
             }
             channels.push(t as (Tunnel&TunnelColor));
+            convertIdTunnels.set(tunnel.Id, t);
+            id++;
         })
-        this.initializeIdTable(Array.from(this.vizualizedChannels.values()))
+        this.initializeIdTable(convertIdTunnels)
         return channels;
     }
 
@@ -107,12 +119,14 @@ export class TwoDProtsBridge {
         return parseInt(`${compNum}${subNum}${tunnelNum}`);
     }
 
-    private static initializeIdTable(tunnels: (Tunnel & TunnelMetaInfo)[]) {
+    private static initializeIdTable(tunnels: Map<string, VizualizedTunnel>) {
         this.moleIdTable = new Map();
 
-        tunnels.forEach(tunnel => {
-            const covnertedId = tunnel.__channelsDB ? tunnel.Id : this.convertMoleId(tunnel.Id).toString();
-            this.moleIdTable.set(tunnel.Id, covnertedId);
+        Array.from(tunnels.keys()).forEach(key => {
+            const tunnel = tunnels.get(key);
+            if (tunnel) {
+                this.moleIdTable.set(key, tunnel.Id);
+            }
         })
     }
 

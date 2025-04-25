@@ -302,20 +302,7 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
 
     private toggle() {
         this.props.element.__isBusy = true;
-        const svgElement = document.getElementById('svgContainer');
-        const elementId = TwoDProtsBridge.getFromIdTable(this.props.element.Id)
-        const element = document.getElementById(`${elementId}`)
         this.forceUpdate(() => {
-            if (svgElement && element) {
-                const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${elementId}`)}`);
-                if (targetElement) {
-                    if (!this.props.element.__isVisible) {
-                        targetElement.removeAttribute("display");
-                    } else {
-                        targetElement.setAttribute("display", "none");
-                    }
-                }
-            }
             if (this.props.channelsDB) {
                 this.props.toggle([this.props.element], !this.props.element.__isVisible, undefined, true, this.props.submissionId)
                     .then(() => this.forceUpdate()).catch(() => this.forceUpdate())
@@ -323,8 +310,6 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
                 this.props.toggle([this.props.element], !this.props.element.__isVisible, undefined, undefined, this.props.submissionId)
                     .then(() => this.forceUpdate()).catch(() => this.forceUpdate())
             }
-            if (this.props.element.__isVisible) LastVisibleChannels.set(this.props.element)
-            else LastVisibleChannels.remove(this.props.element)
         });
     }
 
@@ -347,6 +332,7 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
                     targetElement.dataset.hoverOriginalFill = targetElement.style.fill || '';
                     targetElement.dataset.hoverOriginalOpacity = targetElement.style.opacity || '';
                     targetElement.style.fill = '#FF00FF';
+                    targetElement.style.stroke = '#FF00FF';
                     targetElement.style.opacity = '1';
                 }
             }
@@ -357,6 +343,7 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
                     const originalFill = targetElement.dataset.hoverOriginalFill || '';
                     const originalOpacity = targetElement.dataset.hoverOriginalOpacity || '';
                     targetElement.style.fill = originalFill;
+                    targetElement.style.stroke = originalFill;
                     targetElement.style.opacity = originalOpacity;
                     delete targetElement.dataset.hoverOriginalFill;
                     delete targetElement.dataset.hoverOriginalOpacity;
@@ -427,10 +414,6 @@ export class Channels extends React.Component<{ channels: any[], header: string,
                         .then(() => this.setState({ isBusy: false })).catch(() => this.setState({ isBusy: false }));
                 }
             })
-        for (let element of this.props.channels) {
-            if (element.__isVisible) LastVisibleChannels.set(element)
-            else LastVisibleChannels.remove(element)
-        }
     }
 
     private isDisabled() {
@@ -482,23 +465,13 @@ export class Channel extends React.Component<{ channel: any, channelsDB: boolean
             return <Renderable channelsDB={this.props.channelsDB} submissionId={this.props.submissionId} label={<span><b><a href="javascript:void(0)" onClick={this.selectChannel.bind(this, true)}>{c.Type}{namePart}</a></b><ColorPicker tunnel={this.props.channel} />, Length: <b>{len} Å</b></span>} element={c} toggle={(ch: Tunnel[] & TunnelMetaInfo[], v: boolean, repaint?: boolean, channelsDB?: boolean, submissionId?: string) => {
                 if (submissionId) {
                     return showChannelVisuals(ch, v, undefined, channelsDB, submissionId)
-                        .then(res => {
-                            // this.props.channel = ch[0];
-                            for (let element of ch) {
-                                if (element.__isVisible) LastVisibleChannels.set(element)
-                                else LastVisibleChannels.remove(element)
-                            }
+                        .then(() => {
                             this.forceUpdate();
                         })
 
                 }
                 return showChannelVisuals(ch, v)
-                    .then(res => {
-                        // this.props.channel = ch[0];
-                        for (let element of ch) {
-                            if (element.__isVisible) LastVisibleChannels.set(element)
-                            else LastVisibleChannels.remove(element)
-                        }
+                    .then(() => {
                         this.forceUpdate();
                     })
             }} />
