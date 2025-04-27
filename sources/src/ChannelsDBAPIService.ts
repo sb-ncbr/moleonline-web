@@ -8,6 +8,7 @@ export interface ResidueAnnotation {
     link: string,
 };
 export interface ChannelAnnotation {
+    id: string,
     name: string,
     description: string,
     reference: string,
@@ -106,6 +107,7 @@ export class ApiService {
             }
             list.push(
                 {
+                    id: item.Id,
                     name: item.Name,
                     description: item.Description,
                     reference: item.Reference,

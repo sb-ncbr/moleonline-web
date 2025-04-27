@@ -29,6 +29,13 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
         this.setState({ data: this.props.data })
         $(window).on("contentResize", this.onContentResize.bind(this));
 
+        let params = getParameters();
+        let channelsDB = false;
+        if (params !== null) {
+            channelsDB = params.isChannelsDB;
+        }
+        this.load(channelsDB);
+
         Events.subscribeChangeSubmitId((submitId) => {
             try {
                 this.load(submitId === -1);
@@ -129,7 +136,7 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
                             <div>
                                 <b>Data for specified protein are not available.</b>
                             </div>
-                            <div style={{wordWrap: "break-word"}}>
+                            <div style={{ wordWrap: "break-word" }}>
                                 <b>Reason:</b> <i dangerouslySetInnerHTML={{ __html: errorMessage }}></i>
                             </div>
                         </div>);
@@ -185,20 +192,22 @@ export class Data extends React.Component<State, {}> {
         let noCavitiesData = <div className="no-channels-data">There are no cavities available...</div>
 
         let originsControls: any[] = [];
-        if (this.props.data.Origins.User !== void 0)
-            originsControls.push(<Origins origins={this.props.data.Origins.User} {...this.props} label='User Specifed (optimized)' />);
-        if (this.props.data.Origins.InputOrigins !== void 0)
-            originsControls.push(<Origins origins={this.props.data.Origins.InputOrigins} {...this.props} label='User Specifed' />);
-        if (this.props.data.Origins.Computed !== void 0)
-            originsControls.push(<Origins origins={this.props.data.Origins.Computed} {...this.props} label='Computed' />);
-        if (this.props.data.Origins.Databse !== void 0)
-            originsControls.push(<Origins origins={this.props.data.Origins.Database} {...this.props} label='Database' />);
-        if (this.props.data.Origins.InputExits !== void 0)
-            originsControls.push(<Origins origins={this.props.data.Origins.InputExits} {...this.props} label='Input Exits' />);
-        if (this.props.data.Origins.InputFoundExits !== void 0)
-            originsControls.push(<Origins origins={this.props.data.Origins.InputFoundExits} {...this.props} label='Input Found Exits' />);
-        if (this.props.data.Origins.CSAOrigins !== void 0)
-            originsControls.push(<Origins origins={this.props.data.Origins.CSAOrigins} {...this.props} label='CSA Origins' />);
+        if (this.props.data.Origins) {
+            if (this.props.data.Origins.User !== void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.User} {...this.props} label='User Specifed (optimized)' />);
+            if (this.props.data.Origins.InputOrigins !== void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.InputOrigins} {...this.props} label='User Specifed' />);
+            if (this.props.data.Origins.Computed !== void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.Computed} {...this.props} label='Computed' />);
+            if (this.props.data.Origins.Databse !== void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.Database} {...this.props} label='Database' />);
+            if (this.props.data.Origins.InputExits !== void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.InputExits} {...this.props} label='Input Exits' />);
+            if (this.props.data.Origins.InputFoundExits !== void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.InputFoundExits} {...this.props} label='Input Found Exits' />);
+            if (this.props.data.Origins.CSAOrigins !== void 0)
+                originsControls.push(<Origins origins={this.props.data.Origins.CSAOrigins} {...this.props} label='CSA Origins' />);
+        }
 
         let noOriginsData = <div className="no-channels-data">There are no origins available...</div>
 
@@ -307,7 +316,7 @@ export class Selection extends React.Component<State, { label?: string | JSX.Ele
                 .text("Channel profile");
         }).bind(this));
 
-        SelectionHelper.attachOnChannelSelectHandler2((channel) => {;
+        SelectionHelper.attachOnChannelSelectHandler2((channel) => {
             let tunnelName = Tunnels.getName(channel as Tunnel);
             let len = Tunnels.getLength(channel as Tunnel);
             if (channel.__channelsDB) {
@@ -580,7 +589,7 @@ export class Membrane extends React.Component<{ label: string | JSX.Element, mem
         Events.subscribeOnMembraneDataReady(() => {
             this.forceUpdate();
         });
-        Events.subscribeToggleLoadingScreen(({message, visible}) => {
+        Events.subscribeToggleLoadingScreen(({ message, visible }) => {
             if (!visible) {
                 this.props.membraneData.__isVisible = false;
                 this.toggle();

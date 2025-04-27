@@ -25,6 +25,7 @@ import { ColorBound } from "./VizualizerMol/color-tunnels/property-color";
 import { Property } from "./VizualizerMol/color-tunnels/property-color";
 import { LayerColors } from "./CommonUtils/LayerColors";
 import { TwoDProtsBridge } from "./CommonUtils/TwoDProtsBridge";
+import { TunnelsId } from "./CommonUtils/TunnelsId";
 
 export async function showDefaultVisualsNewSubmission(channels: ChannelsDBChannels, submitId: string) {
     return new Promise(res => {
@@ -159,7 +160,7 @@ export async function showDefaultVisuals(currentSubmitId: number, submissionChan
             }
 
             if (toShow.length > 0) {
-                return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB, currentSubmitId === -1 ? "ChannelsDB" : currentSubmitId.toString()).then(() => {
+                return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB, currentSubmitId === -1 ? "ChannelsDB" : currentSubmitId === -2 ? 'FromFile' : currentSubmitId.toString()).then(() => {
                     res(null);
                     return;
                 })
@@ -225,7 +226,7 @@ export async function showDefaultVisuals(currentSubmitId: number, submissionChan
             }
 
             if (toShow.length > 0) {
-                return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB, currentSubmitId === -1 ? "ChannelsDB" : currentSubmitId.toString()).then(() => {
+                return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB, currentSubmitId === -1 ? "ChannelsDB" : currentSubmitId === -2 ? 'FromFile' : currentSubmitId.toString()).then(() => {
                     res(null);
                     return;
                 })
@@ -346,23 +347,36 @@ function generateCaverTag(tunnels: Tunnel[]) {
 }
 
 export function generateGuidAll(moleData: ChannelsDBChannels) {
-    moleData.MergedPores = moleData.MergedPores ? generateGuid(moleData.MergedPores) : [];
-    moleData.Paths = moleData.Paths ? generateGuid(moleData.Paths) : [];
-    moleData.Pores = moleData.Pores ? generateGuid(moleData.Pores) : [];
-    moleData.Tunnels = moleData.Tunnels ? generateGuid(moleData.Tunnels) : [];
+    let idx = 1;
 
-    moleData.CSATunnels_MOLE = moleData.CSATunnels_MOLE ? generateGuid(moleData.CSATunnels_MOLE) : [];
-    moleData.CSATunnels_Caver = moleData.CSATunnels_Caver ? generateGuid(moleData.CSATunnels_Caver) : [];
-    moleData.ReviewedChannels_MOLE = moleData.ReviewedChannels_MOLE ? generateGuid(moleData.ReviewedChannels_MOLE) : [];
-    moleData.ReviewedChannels_Caver = moleData.ReviewedChannels_Caver ? generateGuid(moleData.ReviewedChannels_Caver) : [];
-    moleData.CofactorTunnels_MOLE = moleData.CofactorTunnels_MOLE ? generateGuid(moleData.CofactorTunnels_MOLE) : [];
-    moleData.CofactorTunnels_Caver = moleData.CofactorTunnels_Caver ? generateGuid(moleData.CofactorTunnels_Caver) : [];
-    moleData.TransmembranePores_MOLE = moleData.TransmembranePores_MOLE ? generateGuid(moleData.TransmembranePores_MOLE) : [];
-    moleData.TransmembranePores_Caver = moleData.TransmembranePores_Caver ? generateGuid(moleData.TransmembranePores_Caver) : [];
-    moleData.ProcognateTunnels_MOLE = moleData.ProcognateTunnels_MOLE ? generateGuid(moleData.ProcognateTunnels_MOLE) : [];
-    moleData.ProcognateTunnels_Caver = moleData.ProcognateTunnels_Caver ? generateGuid(moleData.ProcognateTunnels_Caver) : [];
-    moleData.AlphaFillTunnels_MOLE = moleData.AlphaFillTunnels_MOLE ? generateGuid(moleData.AlphaFillTunnels_MOLE) : [];
-    moleData.AlphaFillTunnels_Caver = moleData.AlphaFillTunnels_Caver ? generateGuid(moleData.AlphaFillTunnels_Caver) : [];
+    for (const key in moleData) {
+        if (Array.isArray(moleData[key as keyof ChannelsDBChannels])) {
+            const tunnelsArray = moleData[key as keyof ChannelsDBChannels] as Tunnel[];
+
+            tunnelsArray.forEach(tunnel => {
+                tunnel.GUID =  UUID.create22();
+                idx++;
+            });
+        }
+    }
+
+    return moleData
+}
+
+
+export function generateIdAll(moleData: ChannelsDBChannels, compId: string, submissionId: string) {
+    let idx = 1;
+
+    for (const key in moleData) {
+        if (Array.isArray(moleData[key as keyof ChannelsDBChannels])) {
+            const tunnelsArray = moleData[key as keyof ChannelsDBChannels] as Tunnel[];
+
+            tunnelsArray.forEach(tunnel => {
+                tunnel.Id =  `${compId}-${submissionId}-${idx}`;
+                idx++;
+            });
+        }
+    }
 
     return moleData
 }
@@ -379,32 +393,10 @@ export function addCaverTag(moleData: ChannelsDBChannels) {
 }
 
 function generateGuidMole(moleData: MoleData) {
-    moleData.Channels.MergedPores = generateGuid(moleData.Channels.MergedPores);
-    moleData.Channels.Paths = generateGuid(moleData.Channels.Paths);
-    moleData.Channels.Pores = generateGuid(moleData.Channels.Pores);
-    moleData.Channels.Tunnels = generateGuid(moleData.Channels.Tunnels);
-
-    return moleData
-}
-
-function generateGuidChannelsDB(moleData: ChannelsDBChannels) {
-    moleData.CSATunnels_MOLE = generateGuid(moleData.CSATunnels_MOLE);
-    moleData.CSATunnels_Caver = generateGuid(moleData.CSATunnels_Caver);
-    moleData.ReviewedChannels_MOLE = generateGuid(moleData.ReviewedChannels_MOLE);
-    moleData.ReviewedChannels_Caver = generateGuid(moleData.ReviewedChannels_Caver);
-    moleData.CofactorTunnels_MOLE = generateGuid(moleData.CofactorTunnels_MOLE);
-    moleData.CofactorTunnels_Caver = generateGuid(moleData.CofactorTunnels_Caver);
-    moleData.TransmembranePores_MOLE = generateGuid(moleData.TransmembranePores_MOLE);
-    moleData.TransmembranePores_Caver = generateGuid(moleData.TransmembranePores_Caver);
-    moleData.ProcognateTunnels_MOLE = generateGuid(moleData.ProcognateTunnels_MOLE);
-    moleData.ProcognateTunnels_Caver = generateGuid(moleData.ProcognateTunnels_Caver);
-    moleData.AlphaFillTunnels_MOLE = generateGuid(moleData.AlphaFillTunnels_MOLE);
-    moleData.AlphaFillTunnels_Caver = generateGuid(moleData.AlphaFillTunnels_Caver);
-
-    moleData.MergedPores = [];
-    moleData.Paths = [];
-    moleData.Pores = [];
-    moleData.Tunnels = [];
+    moleData.Channels.MergedPores = TunnelsId.generateGuid(moleData.Channels.MergedPores);
+    moleData.Channels.Paths = TunnelsId.generateGuid(moleData.Channels.Paths);
+    moleData.Channels.Pores = TunnelsId.generateGuid(moleData.Channels.Pores);
+    moleData.Channels.Tunnels = TunnelsId.generateGuid(moleData.Channels.Tunnels);
 
     return moleData
 }
@@ -502,7 +494,8 @@ async function downloadChannelsDBData(computationId: string) {
                             } else {
                                 console.log(s.data);
                                 let data_ = s.data as ChannelsDBData;
-                                data_.Channels = generateGuidChannelsDB(data_.Channels);
+                                data_.Channels = TunnelsId.generateGuidAll(data_.Channels);
+                                data_.Channels = TunnelsId.generateIdAll(data_.Channels, computationId, 'channelsDb');
                                 data_.Annotations = [];
                                 Tunnels.invokeOnTunnelsCollect(0);
                                 // Events.invokeChannelDataLoaded(data_);
@@ -546,7 +539,8 @@ export function loadAllChannels(compId: string) {
             const data = await ApiService.getChannelsData(compId, submitId)
             let dataObj = JSON.parse(data) as MoleData;
             if (dataObj !== undefined && dataObj.Channels !== undefined) {
-                const guidData = generateGuidAll(dataObj.Channels)
+                let guidData = TunnelsId.generateGuidAll(dataObj.Channels);
+                guidData = TunnelsId.generateIdAll(guidData, compId, submitId.toString());
                 channels.set(submitId, guidData);
             }
         }
@@ -881,6 +875,7 @@ async function showChannelDefaultVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
         }
 
         channel.__submissionId = submitId.toString();
+        channel.__layerColored = false;
 
         visibleChannels.push(channel);
         LayerColors.invokeOnChannelAdd(channel.__ref);
@@ -915,7 +910,22 @@ export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
             await PluginCommands.State.RemoveObject(context.plugin, { state: context.plugin.state.data, ref: channel.__ref });
         }
 
+        const svgElement = document.getElementById('svgContainer');
+        const elementId = TwoDProtsBridge.getFromIdTable(channel.Id)
+        const element = document.getElementById(`${elementId}`)
+        if (svgElement && element) {
+            const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${elementId}`)}`);
+            if (targetElement) {
+                if (visible) {
+                    targetElement.removeAttribute("display");
+                } else {
+                    targetElement.setAttribute("display", "none");
+                }
+            }
+        }
+
         channel.__isVisible = visible;
+        channel.__layerColored = false;
         if (!channel.__color) {
             // channel.__color = ColorScheme.Colors.getRandomUnused(); // TODO
             channel.__color = ColorGenerator.next().value;
@@ -932,6 +942,7 @@ export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
             TwoDProtsBridge.removeChannel(channel.__id);
             await PluginCommands.State.RemoveObject(context.plugin, { state: context.plugin.state.data, ref: channel.__ref });
             LayerColors.invokeOnChannelRemoved(channel.__ref);
+            LastVisibleChannels.remove(channel);
         } else {
             visibleChannels.push(channel);
             LayerColors.invokeOnChannelAdd(channel.__ref);
@@ -940,10 +951,9 @@ export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
             channel.__ref = ref;
             channel.__loci = loci as Shape.Loci;
             TwoDProtsBridge.addChannel(channel);
+            LastVisibleChannels.set(channel);
         }
     }
-
-    // LastVisibleChannels.set(visibleChannels);
 
     return Promise.resolve().then(() => {
         for (let channel of channels) {
@@ -962,6 +972,7 @@ export async function showChannelPropertyColorVisuals(channel: Tunnel & TunnelMe
     if (!channel.__isVisible && !forceRepaint) return;
 
     channel.__isVisible = true;
+    channel.__layerColored = true;
     if (!channel.__color) {
         // channel.__color = ColorScheme.Colors.getRandomUnused(); // TODO
         channel.__color = ColorGenerator.next().value;

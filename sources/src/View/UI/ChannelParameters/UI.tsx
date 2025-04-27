@@ -1,7 +1,7 @@
 // import DGComponents = Datagrid.Components;
 
 import React from "react";
-import { ChannelsDBChannels, MoleChannels, Tunnel } from "../../../DataInterface";
+import { ChannelsDBChannels, Tunnel } from "../../../DataInterface";
 import { Events } from "../../../Bridge";
 import { Tunnels } from "../../CommonUtils/Tunnels";
 import { SelectionHelper } from "../../CommonUtils/Selection";
@@ -68,7 +68,7 @@ export class ChannelParameters extends React.Component<{ }, State> {
                 const channels = submissions.get(submission);
                 if (channels) {
                     const concatDataChannels = this.concatTunnels(channels);
-                    submissionsMap.set(submission.toString(), concatDataChannels);
+                    submissionsMap.set(submission === '-2' ? 'FromFile' : submission, concatDataChannels);
                 }
             }
             this.setState({data: submissionsMap});
@@ -296,91 +296,6 @@ class DGBody extends React.Component<State, {}> {
                 }
             }
         }
-
-        // for (let t of data) {
-        //     if (t.Id === this.props.currentTunnel) {
-        //         let length = [
-        //             <span><span className="bi bi-arrows-expand properties-icon" />{"Length"}</span>,
-        //             <span>{roundToDecimal(Tunnels.getLength(t), 2).toString()}</span>
-        //         ];
-        //         let bottleneck = [
-        //             <span><span className="icon bottleneck black properties-icon" />{"Bottleneck"}</span>,
-        //             <span>{Tunnels.getBottleneck(t)}</span>
-        //         ];
-        //         let hydropathy = [
-        //             <span><span className="bi bi-droplet properties-icon" />{"Hydropathy"}</span>,
-        //             <span>{roundToDecimal(t.Properties.Hydropathy, 2).toString()}</span>
-        //         ];
-        //         let charge = [
-        //             <span><span className="bi bi-lightning properties-icon" />{"Charge"}</span>,
-        //             <span>{roundToDecimal(t.Properties.Charge, 2).toString()}</span>
-        //         ];
-        //         let polarity = [
-        //             <span><span className="bi bi-plus properties-icon" />{"Polarity"}</span>,
-        //             <span>{roundToDecimal(t.Properties.Polarity, 2).toString()}</span>
-        //         ];
-        //         let mutability = [
-        //             <span><span className="bi bi-scissors properties-icon" />{"Mutability"}</span>,
-        //             <span>{roundToDecimal(t.Properties.Mutability, 2).toString()}</span>
-        //         ];
-        //         let logP = [
-        //             <span><span className="icon logp black properties-icon" />{"LogP"}</span>,
-        //             <span>{(t.Properties.LogP) ? roundToDecimal(t.Properties.LogP, 2) : 'N/A'}</span>
-        //         ];
-        //         let logD = [
-        //             <span><span className="icon logd black properties-icon" />{"LogD"}</span>,
-        //             <span>{(t.Properties.LogD) ? roundToDecimal(t.Properties.LogD, 2) : 'N/A'}</span>
-        //         ];
-        //         let logS = [
-        //             <span><span className="icon logs black properties-icon" />{"LogS"}</span>,
-        //             <span>{(t.Properties.LogS) ? roundToDecimal(t.Properties.LogS, 2) : 'N/A'}</span>
-        //         ];
-        //         let ionizable = [
-        //             <span><span className="icon ionizable black properties-icon" />{"Ionizable"}</span>,
-        //             <span>{(t.Properties.Ionizable) ? roundToDecimal(t.Properties.Ionizable, 2) : 'N/A'}</span>
-        //         ];
-        //         //Length
-        //         rows.push(
-        //             <DGElementRow columnsCount={columnsCount} columns={length} />
-        //         )
-        //         //Bottleneck
-        //         rows.push(
-        //             <DGElementRow columnsCount={columnsCount} columns={bottleneck} />
-        //         )
-        //         //Hydropathy
-        //         rows.push(
-        //             <DGElementRow columnsCount={columnsCount} columns={hydropathy} />
-        //         )
-        //         //Charge
-        //         rows.push(
-        //             <DGElementRow columnsCount={columnsCount} columns={charge} />
-        //         )
-        //         //Polarity
-        //         rows.push(
-        //             <DGElementRow columnsCount={columnsCount} columns={polarity} />
-        //         )
-        //         //Mutability
-        //         rows.push(
-        //             <DGElementRow columnsCount={columnsCount} columns={mutability} />
-        //         )
-        //         //LogP
-        //         rows.push(
-        //             <DGElementRow columnsCount={columnsCount} columns={logP} />
-        //         )
-        //         //LogD
-        //         rows.push(
-        //             <DGElementRow columnsCount={columnsCount} columns={logD} />
-        //         )
-        //         //LogS
-        //         rows.push(
-        //             <DGElementRow columnsCount={columnsCount} columns={logS} />
-        //         )
-        //         //Ionizable
-        //         rows.push(
-        //             <DGElementRow columnsCount={columnsCount} columns={ionizable} />
-        //         )
-        //     }
-        // }
 
         rows.push(<DGRowEmpty columnsCount={columnsCount} />);
 

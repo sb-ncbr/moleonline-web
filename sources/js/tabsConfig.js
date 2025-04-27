@@ -166,19 +166,16 @@ function doAfterCollapseActivated() {
         collapseBottomPanel.style.bottom = `${bottomPanelHeight}px`;
         collapseSequence.style.bottom = `${sequenceViewerHeight + bottomPanelHeight}px`;
     };
-    window.setTimeout(checker, 10);
+    window.setTimeout(checker, 60);
 }
 
 function leftPanelTabs() {
-    var checker = function () {
-        const leftPanel = $("#left-panel");
-        const tabs = $("#left-panel-tabs")[0];
+    const leftPanel = $("#left-panel");
+    const tabs = $("#left-panel-tabs")[0];
 
-        const leftPanelWidth = leftPanel.width();
+    const leftPanelWidth = leftPanel.width();
 
-        tabs.style.left = `${leftPanelWidth}px`;
-    };
-    window.setTimeout(checker, 10);
+    tabs.style.left = `${leftPanelWidth}px`;
 }
 
 function resizeTabAfterActivate(){

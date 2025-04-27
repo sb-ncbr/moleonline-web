@@ -292,6 +292,7 @@ only screen and (max-height: 600px) {
     /*border-bottom: 1px solid #aaa;*/
     border-right: 1px solid #aaa;
     /* z-index: 1; */
+    min-height: 30vh;
 }
 
 .plugin.sv-minimized {
@@ -310,6 +311,7 @@ only screen and (max-height: 600px) {
     /* top:58vh; */
     height: 17vh;
     /* width:75vw; */
+    min-height: 15vh;
 }
 
 .right-panel {
@@ -322,7 +324,7 @@ only screen and (max-height: 600px) {
 
 .bottom-panel {
     /* width:75vw; */
-    min-height: 34vh;
+    min-height: 35vh;
     /* left:0; */
     /* top:66vh; */
 }
@@ -1388,14 +1390,14 @@ input[type=radio] {
     height: 100%;
 }
 
-#sequence-viewer {
+/* #sequence-viewer {
     min-height: 260px;
-}
-
+} */
+/* 
 .left-tabs,
 .right-tabs {
     min-height: 300px;
-}
+} */
 
 @media only screen and (max-width: 1830px) {
     span.ATable-label {
@@ -1404,10 +1406,6 @@ input[type=radio] {
 }
 
 @media only screen and (max-width: 1300px) and (max-height: 900px) {
-    .plugin {
-        height: 50vh;
-    }
-
     .plugin.bottom-panel-toggled {
         height: 30vh;
     }
@@ -1499,6 +1497,13 @@ input[type=radio] {
     width: 1px;
 }
 
+.color-controls {
+    display: flex; 
+    flex-direction: column; 
+    margin-left: auto;
+    align-items: flex-end;
+}
+
 @media only screen and (max-height: 900px) {
     .right-panel .toggler {
         max-height: 4vh;
@@ -1563,13 +1568,15 @@ only screen and (max-height: 542px) {
         width: 44.35vw;
     }
 
-    .layerVizualizer .common-area {
+    /* .layerVizualizer .common-area {
         position: absolute !important;
-    }
+    } */
 
     .layerVizualizer .control-label {
         display: none;
     }
+
+
 
     #bottom-panel-toggler {
         right: 0;
@@ -1606,7 +1613,7 @@ only screen and (max-height: 542px) {
     }
 }
 
-@media only screen and (max-width: 1000px) {
+@media only screen and (max-width: 1100px) {
 
     .plugin,
     .plugin.sv-minimized,
@@ -1728,6 +1735,10 @@ only screen and (max-height: 542px) {
 
     #right-tabs-1 {
         min-height: 29vh;
+    }
+
+    .color-controls {
+        margin-right: 15px;
     }
 
 }
@@ -1940,6 +1951,15 @@ only screen and (max-height: 375px) {
 
 @media only screen and (max-height: 900px) {
     #plugin {
-        min-height: 300px;
+        min-height: 340px;
+    }
+}
+
+@media only screen and (max-height: 600px) {
+    #plugin {
+        min-height: 260px;
+    }
+    .sequence-viewer {
+        min-height: 150px;
     }
 }

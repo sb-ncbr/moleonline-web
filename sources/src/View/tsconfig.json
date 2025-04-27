@@ -51,6 +51,7 @@
 
     //Common Utils
     "CommonUtils/Tunnels.ts",  
+    "CommonUtils/TunnelsId.ts",
     "../Common/Util/Numbers.ts", 
     "CommonUtils/Residues.ts", 
     "CommonUtils/Selection.ts", 
@@ -176,6 +177,8 @@
     "VizualizerMol/color-tunnels/shapeRepresentation.ts",
     "VizualizerMol/mmcif-tunnels/converter.ts",
     "VizualizerMol/mmcif-tunnels/converter2json.ts",
+    "VizualizerMol/tunnels-extension/behavior.ts",
+    "VizualizerMol/tunnels-extension/property.ts",
 
     //2DProts
     "UI/2DProts/UI.tsx",

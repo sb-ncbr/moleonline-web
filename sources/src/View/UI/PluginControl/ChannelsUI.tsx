@@ -9,7 +9,7 @@ import { Tunnels } from "../../CommonUtils/Tunnels";
 import { ChannelsDBData, LastVisibleChannels, TunnelName } from "../../../Cache";
 import { ChannelAnnotation } from "../../../ChannelsDBAPIService";
 import { getParameters, isInChannelsDBMode } from "../../../Common/Util/Router";
-import { generateGuidAll, showChannelVisuals, showDefaultVisuals, showDefaultVisualsNewSubmission } from "../../State";
+import { showChannelVisuals, showDefaultVisuals, showDefaultVisualsNewSubmission } from "../../State";
 import { Context } from "../../Context";
 import { Representation } from "molstar/lib/mol-repr/representation";
 import { EmptyLoci, Loci } from "molstar/lib/mol-model/loci";
@@ -17,9 +17,11 @@ import { MarkerAction } from "molstar/lib/mol-util/marker-action";
 import { Colors, Enum } from "../../../StaticData";
 import { Color } from "molstar/lib/mol-util/color";
 import { debounce } from "lodash";
-import { ApiService } from "../../../MoleAPIService";
-import { JobStatus } from "../../../DataProxy";
+import { ApiService, CompInfo } from "../../../MoleAPIService";
+import { ComputationInfo, JobStatus } from "../../../DataProxy";
 import { SelectionHelper } from "../../CommonUtils/Selection";
+import { TwoDProtsBridge } from "../../CommonUtils/TwoDProtsBridge";
+import { TunnelsId } from "../../CommonUtils/TunnelsId";
 
 declare function $(p: any): any;
 
@@ -110,10 +112,26 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
     componentWillMount() {
         let params = getParameters();
         if (params === null || params.submitId === 0) {
-            this.setState({ currentSubmitId: -1 })
-            showDefaultVisuals(-1, this.props.submissions).then(() => {
-                this.saveChannelsElems();
-            })
+            if (params?.computationId) {
+                ComputationInfo.DataProvider.get(params.computationId, ((compId: string, info: CompInfo) => {
+                    if (info.PdbId === "") { // from file
+                        this.setState({ currentSubmitId: -2 });
+                        showDefaultVisuals(-2, this.props.submissions).then(() => {
+                            this.saveChannelsElems();
+                        })
+                    } else {
+                        this.setState({ currentSubmitId: -1 })
+                        showDefaultVisuals(-1, this.props.submissions).then(() => {
+                            this.saveChannelsElems();
+                        })
+                    }
+                }))
+            } else {
+                this.setState({ currentSubmitId: -1 })
+                showDefaultVisuals(-1, this.props.submissions).then(() => {
+                    this.saveChannelsElems();
+                })
+            }
         } else {
             this.setState({ currentSubmitId: params.submitId })
             showDefaultVisuals(params.submitId, this.props.submissions).then(() => {
@@ -129,12 +147,13 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
                 let dataObj = JSON.parse(data) as MoleData;
                 if (dataObj !== undefined && dataObj.Channels !== undefined) {
                     const submissions = this.state.submissions;
-                    const guidData = generateGuidAll(dataObj.Channels)
+                    let guidData = TunnelsId.generateGuidAll(dataObj.Channels)
+                    guidData = TunnelsId.generateIdAll(guidData, this.props.computationId, newSubmitId.toString())
                     TunnelName.reload({ Channels: guidData }, newSubmitId.toString());
                     Tunnels.addChannels(newSubmitId.toString(), guidData);
                     submissions.set(newSubmitId, guidData);
                     Tunnels.invokeOnTunnelsLoaded();
-                    const channelElems = this.createChannelElems(dataObj.Channels, newSubmitId)
+                    const channelElems = this.createChannelElems(guidData, newSubmitId)
                     const currentSumbissionElems = this.state.submissionsElems;
                     currentSumbissionElems.set(newSubmitId, channelElems);
                     await showDefaultVisualsNewSubmission(guidData, newSubmitId.toString());
@@ -231,7 +250,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
                     <div className="accordion-item">
                         <h2 className="accordion-header">
                             <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target={`#submission-${submitId}`} aria-expanded={submitId === this.state.currentSubmitId ? true : false} aria-controls={`submission-${submitId}`}>
-                                {submitId === -1 ? 'ChannelsDB' : `Submission-${submitId}`}
+                                {submitId === -1 ? 'ChannelsDB' : submitId === -2 ? 'FromFile' : `Submission-${submitId}`}
                             </button>
                         </h2>
                         <div id={`submission-${submitId}`} className={`accordion-collapse collapse ${submitId === this.state.currentSubmitId ? 'show' : ''}`}>
@@ -291,8 +310,6 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
                 this.props.toggle([this.props.element], !this.props.element.__isVisible, undefined, undefined, this.props.submissionId)
                     .then(() => this.forceUpdate()).catch(() => this.forceUpdate())
             }
-            if (this.props.element.__isVisible) LastVisibleChannels.set(this.props.element)
-            else LastVisibleChannels.remove(this.props.element)
         });
     }
 
@@ -304,6 +321,35 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
             context.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci: this.props.element.__loci } as Representation.Loci)
         else
             context.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci: EmptyLoci } as Representation.Loci)
+
+        const svgElement = document.getElementById('svgContainer');
+        const elementId = TwoDProtsBridge.getFromIdTable(this.props.element.Id)
+        const element = document.getElementById(`${elementId}`);
+        if (isOn) {
+            if (svgElement && element) {
+                const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${elementId}`)}`);
+                if (targetElement) {
+                    targetElement.dataset.hoverOriginalFill = targetElement.style.fill || '';
+                    targetElement.dataset.hoverOriginalOpacity = targetElement.style.opacity || '';
+                    targetElement.style.fill = '#FF00FF';
+                    targetElement.style.stroke = '#FF00FF';
+                    targetElement.style.opacity = '1';
+                }
+            }
+        } else {
+            if (svgElement && element) {
+                const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${elementId}`)}`);
+                if (targetElement) {
+                    const originalFill = targetElement.dataset.hoverOriginalFill || '';
+                    const originalOpacity = targetElement.dataset.hoverOriginalOpacity || '';
+                    targetElement.style.fill = originalFill;
+                    targetElement.style.stroke = originalFill;
+                    targetElement.style.opacity = originalOpacity;
+                    delete targetElement.dataset.hoverOriginalFill;
+                    delete targetElement.dataset.hoverOriginalOpacity;
+                }
+            }
+        }
     }
 
     private toggleAnnotations(e: any) {
@@ -368,10 +414,6 @@ export class Channels extends React.Component<{ channels: any[], header: string,
                         .then(() => this.setState({ isBusy: false })).catch(() => this.setState({ isBusy: false }));
                 }
             })
-        for (let element of this.props.channels) {
-            if (element.__isVisible) LastVisibleChannels.set(element)
-            else LastVisibleChannels.remove(element)
-        }
     }
 
     private isDisabled() {
@@ -413,32 +455,23 @@ export class Channel extends React.Component<{ channel: any, channelsDB: boolean
         let name = TunnelName.get(c.GUID); // cache.set(channel.GUID, `${channel.Type[0]}${channel.Id}C${channel.Cavity}`);
         let namePart = (name === void 0) ? '' : ` (${name})`;
 
-        let annotations = ChannelsDBData.getChannelAnnotationsImmediate(c.Id);
+        let annotationId = TunnelsId.getAnnotationId(c.Id);
+        let annotations = annotationId ? ChannelsDBData.getChannelAnnotationsImmediate(annotationId) : null;
         if (annotations !== null && annotations !== void 0) {
             let annotation = annotations[0];
-            return <Renderable annotations={annotations} submissionId={this.props.submissionId} channelsDB={this.props.channelsDB} label={<span><b><a href="javascript:void(0)" onClick={this.selectChannel.bind(this, true)}>{annotation.name}</a></b><ColorPicker tunnel={this.props.channel} />, Length: <b>{len} Å</b></span>} element={c} toggle={showChannelVisuals} />
+            return <Renderable annotations={annotations} submissionId={this.props.submissionId} channelsDB={this.props.channelsDB} label={<span><b><a href="javascript:void(0)" onClick={this.selectChannel.bind(this, true)}>{annotation.name}{namePart}</a></b><ColorPicker tunnel={this.props.channel} />, Length: <b>{len} Å</b></span>} element={c} toggle={showChannelVisuals} />
         }
         else {
-            return <Renderable channelsDB={this.props.channelsDB} submissionId={this.props.submissionId} label={<span><b><a href="javascript:void(0)" onClick={this.selectChannel.bind(this, true)}>{c.Type}{namePart}</a></b><ColorPicker tunnel={this.props.channel} />, Length: <b>{`${len | 0} Å`}</b></span>} element={c} toggle={(ch: Tunnel[] & TunnelMetaInfo[], v: boolean, repaint?: boolean, channelsDB?: boolean, submissionId?: string) => {
+            return <Renderable channelsDB={this.props.channelsDB} submissionId={this.props.submissionId} label={<span><b><a href="javascript:void(0)" onClick={this.selectChannel.bind(this, true)}>{c.Type}{namePart}</a></b><ColorPicker tunnel={this.props.channel} />, Length: <b>{len} Å</b></span>} element={c} toggle={(ch: Tunnel[] & TunnelMetaInfo[], v: boolean, repaint?: boolean, channelsDB?: boolean, submissionId?: string) => {
                 if (submissionId) {
                     return showChannelVisuals(ch, v, undefined, channelsDB, submissionId)
-                        .then(res => {
-                            // this.props.channel = ch[0];
-                            for (let element of ch) {
-                                if (element.__isVisible) LastVisibleChannels.set(element)
-                                else LastVisibleChannels.remove(element)
-                            }
+                        .then(() => {
                             this.forceUpdate();
                         })
 
                 }
                 return showChannelVisuals(ch, v)
-                    .then(res => {
-                        // this.props.channel = ch[0];
-                        for (let element of ch) {
-                            if (element.__isVisible) LastVisibleChannels.set(element)
-                            else LastVisibleChannels.remove(element)
-                        }
+                    .then(() => {
                         this.forceUpdate();
                     })
             }} />
@@ -500,6 +533,7 @@ export class ColorPicker extends React.Component<{ tunnel: Tunnel & TunnelMetaIn
         if (this.state.color && this.state.color !== this.props.tunnel.__color) {
             this.props.tunnel.__color = this.state.color;
             showChannelVisuals([this.props.tunnel], (this.props.tunnel as any).__isVisible, true);
+            TwoDProtsBridge.invokeOnResidueSelectHandlers(this.props.tunnel);
         }
 
     }

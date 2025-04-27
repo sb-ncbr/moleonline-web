@@ -1,7 +1,9 @@
 type Rows = {
     "annotation": string[],
     "channel": string[],
+    "properties": string[],
     "layer": string[],
+    "layer_weighted_properties": string[],
     "residue": string[],
     "layer_residue": string[],
     "hetResidue": string[],
@@ -40,6 +42,21 @@ _sb_ncbr_channel.software # MOLE, Caver
 _sb_ncbr_channel.auto # bool
 _sb_ncbr_channel.cavity`,
 
+        "properties": `loop_
+_sb_ncbr_channel_props.channel_id
+_sb_ncbr_channel_props.charge
+_sb_ncbr_channel_props.hydropathy
+_sb_ncbr_channel_props.hydrophobicity
+_sb_ncbr_channel_props.mutability
+_sb_ncbr_channel_props.numNegatives
+_sb_ncbr_channel_props.numPositives
+_sb_ncbr_channel_props.polarity
+_sb_ncbr_channel_props.logD
+_sb_ncbr_channel_props.logP
+_sb_ncbr_channel_props.logS
+_sb_ncbr_channel_props.ionizable
+_sb_ncbr_channel_props.bRadius`,
+
         "layer": `loop_
 _sb_ncbr_channel_layer.id
 _sb_ncbr_channel_layer.channel_id
@@ -57,6 +74,16 @@ _sb_ncbr_channel_layer.hydrophobicity
 _sb_ncbr_channel_layer.hydropathy
 _sb_ncbr_channel_layer.polarity
 _sb_ncbr_channel_layer.mutability`,
+
+        "layer_weighted_properties": `loop_
+_sb_ncbr_channel_layer_props.channel_id  
+_sb_ncbr_channel_layer_props.hydropathy
+_sb_ncbr_channel_layer_props.hydrophobicity
+_sb_ncbr_channel_layer_props.mutability
+_sb_ncbr_channel_layer_props.polarity
+_sb_ncbr_channel_layer_props.logD
+_sb_ncbr_channel_layer_props.logP
+_sb_ncbr_channel_layer_props.logS`,
 
         "residue": `loop_
 _sb_ncbr_channel_residue.id
@@ -96,11 +123,13 @@ _sb_ncbr_channel_profile.charge`,
         return "No data loaded. Possibly because of refresh.";
     }
 
-    const file_id = name //.split(" ")[1]
+    // const file_id = name //.split(" ")[1]
     const rows: Rows = {
         "annotation": [],
         "channel": [],
+        "properties": [],
         "layer": [],
+        "layer_weighted_properties": [],
         "residue": [],
         "layer_residue": [],
         "hetResidue": [],
@@ -126,12 +155,23 @@ _sb_ncbr_channel_profile.charge`,
 
             const layers = channel["Layers"];
             const hets = layers["HetResidues"];
+            const layerWeightedProps = layers["LayerWeightedProperties"];
+            // const residueFlow = layers["ResidueFlow"];
             const layersInfo = layers["LayersInfo"];
+            const properties = channel["Properties"];
             for (const het of hets) {
                 const split_het = het.split(" ");
                 const hetId = rows.hetResidue.length + 1;
                 rows.hetResidue.push(`${hetId} ${channelId} ${split_het[0]} ${split_het[1]} ${split_het[2]} ${split_het.length > 3 ? "True" : "False"} `)
             }
+
+
+            // for (const res of residueFlow) {
+            //     const split_res = res.split(" ");
+            //     const 
+            // }
+            rows.properties.push(`${channelId} ${properties.Charge} ${properties.Hydropathy} ${properties.Hydrophobicity} ${properties.Mutability} ${properties.NumNegatives} ${properties.NumPositives} ${properties.Polarity} ${properties.LogD ?? 'null'} ${properties.LogP ?? 'null'} ${properties.LogS ?? 'null'} ${properties.Ionizable ?? 'null'} ${properties.BRadius ?? 'null'}`)
+            rows.layer_weighted_properties.push(`${channelId} ${layerWeightedProps.Hydropathy} ${layerWeightedProps.Hydrophobicity} ${layerWeightedProps.Mutability} ${layerWeightedProps.Polarity} ${layerWeightedProps.LogD ?? 'null'} ${layerWeightedProps.LogP ?? 'null'} ${layerWeightedProps.logS ?? 'null'}`)
 
             for (const [order, layer] of layersInfo.entries()) {
                 const properties = layer["Properties"];
@@ -144,7 +184,11 @@ _sb_ncbr_channel_profile.charge`,
                 rows.layer.push(`${layerId} ${channelId} ${order + 1} ${roundItems([geometry["MinRadius"], geometry["MinFreeRadius"], geometry["StartDistance"], geometry["EndDistance"]])} ${localMinimum} ${bottleneck} ${properties["Charge"]} ${properties["NumPositives"]} ${properties["NumNegatives"]} ${properties["Hydrophobicity"]} ${properties["Hydropathy"]} ${properties["Polarity"]} ${properties["Mutability"]} `);
 
                 const residues = layer["Residues"];
-                for (const [flow, res] of residues.entries()) {
+
+                const flowIndicies = layer["FlowIndices"]
+                let flow = 0;
+
+                for (const res of residues) {
                     const split_res = res.split(" ");
                     const res_str = `${split_res[0]} ${split_res[1]} ${split_res[2]} `
                     let resIdx = rows.residue.findIndex(item => {
@@ -158,7 +202,8 @@ _sb_ncbr_channel_profile.charge`,
                     } else {
                         resIdx = resIdx + 1;
                     }
-                    rows.layer_residue.push(`${layerId} ${resIdx} ${flow + 1} ${split_res.length > 3 ? "True" : "False"} `)
+                    rows.layer_residue.push(`${layerId} ${resIdx} ${flowIndicies[flow]} ${split_res.length > 3 ? "True" : "False"} `);
+                    flow++;
                 }
             }
         }
@@ -174,8 +219,14 @@ ${rows.channel.join("\n")}
 ${headers.profile}
 ${rows.profile.join("\n")}
 
+${headers.properties}
+${rows.properties.join("\n")}
+
 ${headers.layer}
 ${rows.layer.join("\n")}
+
+${headers.layer_weighted_properties}
+${rows.layer_weighted_properties.join("\n")}
 
 ${headers.residue}
 ${rows.residue.join("\n")}
@@ -186,6 +237,5 @@ ${rows.layer_residue.join("\n")}
 ${headers.het_residue}
 ${rows.hetResidue.join("\n")}
             `
-
-    return `${file_id} \n${cif} `;
+    return `${cif} `;
 };
