@@ -300,4 +300,8 @@ export class ChannelsDBData {
                 .catch(err => rej(err));
         });
     }
+
+    public static getAnnotations() {
+        return this.channelAnnotationCache;
+    }
 }
