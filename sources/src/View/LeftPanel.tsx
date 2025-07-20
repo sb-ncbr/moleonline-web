@@ -217,6 +217,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                 </div>
                 <div id="left-panel-tabs" className="left-panel-tabs">
                     <ul className="nav nav-tabs flex-column" role="tablist">
+                        <li className="nav-item" title="Home"><a id="home-tab" className="nav-link left-panel-tab" href="/" role="tab"><i className="bi bi-house fs-5"></i></a></li>
                         <li className="nav-item"><a style={{ writingMode: "vertical-lr" }} className={`nav-link ${this.state.channelsData.size === 0 ? '' : 'active'} left-panel-tab`} id="ui-tab" data-bs-toggle="tab" data-bs-target="#ui" role="tab" aria-controls="ui" aria-selected="true">Channels</a></li>
                         <li className="nav-item"><a style={{ writingMode: "vertical-lr" }} className={`nav-link ${this.state.channelsData.size === 0 ? 'active' : ''} left-panel-tab`} id="controls-tab" data-bs-toggle="tab" data-bs-target="#controls" role="tab" aria-controls="controls" aria-selected="true">Compute</a></li>
                     </ul>
@@ -258,6 +259,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                 </div>
                 <div id="left-panel-tabs" className="left-panel-tabs">
                     <ul className="nav nav-tabs flex-column" role="tablist">
+                        <li className="nav-item" title="Home"><a id="home-tab" className="nav-link left-panel-tab" href="/" role="tab"><i className="bi bi-house fs-5"></i></a></li>
                         <li className="nav-item"><a style={{ writingMode: "vertical-lr" }} className="nav-link active left-panel-tab disabled" id="ui-tab" data-bs-toggle="tab" data-bs-target="#ui" role="tab" aria-controls="ui" aria-selected="true" aria-disabled="true">Channels</a></li>
                         <li className="nav-item"><a style={{ writingMode: "vertical-lr" }} className="nav-link left-panel-tab disabled" id="controls-tab" data-bs-toggle="tab" data-bs-target="#controls" role="tab" aria-controls="controls" aria-selected="true" aria-disabled="true">Compute</a></li>
                     </ul>
