@@ -137,7 +137,8 @@ _sb_ncbr_channel_profile.charge`,
     }
 
     for (const ann of data_json["Annotations"]) {
-        rows.annotation.push(`${ann["Id"]} "${ann["Name"]}" "${ann["Description"]}" "${ann["Reference"]}" ${ann["ReferenceType"]} `);
+        const annotationId = rows.annotation.length + 1;
+        rows.annotation.push(`${annotationId} ${ann["Id"]} "${ann["Name"]}" "${ann["Description"]}" "${ann["Reference"]}" ${ann["ReferenceType"]} `);
     }
 
     const methods = data_json["Channels"];

@@ -564,12 +564,8 @@ export class ColorPicker extends React.Component<{ tunnel: Tunnel & TunnelMetaIn
     }
 
     render() {
-        if (!this.props.tunnel.__isVisible) {
-            return <span />;
-        }
-
         let color = (this.props.tunnel.__color !== void 0) ? this.props.tunnel.__color : Colors.get(Enum.DefaultColor);
 
-        return <input className="color-picker" id={this.id} onChange={this.onRGB} type='color' value={Color.toHexStyle(color)} style={{ order: 4, flex: '1 1 auto', minWidth: '14px', width: '14px', height: '14px', padding: '0 0 0 0', background: 'none', border: 'none', cursor: 'pointer' }}></input>
+        return <input disabled={!this.props.tunnel.__isVisible} className="color-picker" id={this.id} onChange={this.onRGB} type='color' value={Color.toHexStyle(color)} style={{ order: 4, flex: '1 1 auto', minWidth: '14px', width: '14px', height: '14px', padding: '0 0 0 0', background: 'none', border: 'none', cursor: 'pointer' }}></input>
     }
 }

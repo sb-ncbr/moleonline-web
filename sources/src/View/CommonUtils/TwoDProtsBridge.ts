@@ -1,6 +1,10 @@
 import { ChannelsDBChannels, ExportTunnel, Profile, Tunnel, TunnelMetaInfo } from "../../DataInterface";
 import { Color } from "molstar/lib/mol-util/color";
-import murmurhash from 'murmurhash'; 
+import murmurhash from 'murmurhash';
+import { ChannelsDBData } from "../../Cache";
+import { ReferenceType, TunnelAnnotation } from "../../AnnotationToChannelsDBService";
+import { TunnelsId } from "./TunnelsId";
+
 
 interface TunnelColor {
     Color: string
@@ -77,7 +81,8 @@ export class TwoDProtsBridge {
     }
 
     public static generateTunnelsDataJson() {
-        //TODO Annotations
+        const annotations = ChannelsDBData.getAnnotations();
+        const annotationsList: TunnelAnnotation[]  = [];
         const allTunnels: ExportTunnel[] = [];
 
         for (const tunnel of Array.from(this.vizualizedChannels.values())) {
@@ -89,11 +94,26 @@ export class TwoDProtsBridge {
                 Properties: tunnel.Properties,
                 Profile: tunnel.Profile,
                 Layers: tunnel.Layers
-            })
+            });
+            const tunnelId = TunnelsId.getAnnotationId(tunnel.Id)
+            if (tunnelId) {
+                const ann = annotations.get(tunnelId);
+                if (ann) {
+                    ann.forEach(t_ann => {
+                        annotationsList.push({
+                            Id: t_ann.id,
+                            Name: t_ann.name,
+                            Reference: t_ann.link,
+                            Description: t_ann.description,
+                            ReferenceType: t_ann.reference as ReferenceType
+                        })
+                    });
+                }
+            }
         }
 
         const result = {
-            Annotations: [],
+            Annotations: annotationsList,
             Channels: {
                 MOLEonline_MOLE: allTunnels
             }
