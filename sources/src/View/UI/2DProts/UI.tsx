@@ -193,12 +193,23 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
 
         let svgTunnels = sortElements(Array.from(svgElement.querySelectorAll('g.tunnel')));
         let tunnels = LastVisibleChannels.get();
+        
+        svgTunnels = svgTunnels.filter(tunnel => {
+            const tunnelId = tunnel.getAttribute('id');
+            if (tunnelId)
+                return TwoDProtsBridge.getFromReversedIdTable(tunnelId) !== undefined;
+            return false;
+        });
 
         for (const tunnel of tunnels) {
-            const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${TwoDProtsBridge.getFromIdTable(tunnel.Id)}`)}`);
-            if (targetElement) {
-                targetElement.style.fill = Color.toHexStyle(tunnel.__color);
-                targetElement.style.stroke = Color.toHexStyle(tunnel.__color);
+            const tunnelId = TwoDProtsBridge.getFromIdTable(tunnel.Id);
+            if (tunnelId) {
+                const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${tunnelId}`)}`);
+                if (targetElement) {
+                    targetElement.style.fill = Color.toHexStyle(tunnel.__color);
+                    targetElement.style.stroke = Color.toHexStyle(tunnel.__color);
+                    targetElement.style.opacity = '0.9';
+                }
             }
         }
         
@@ -290,7 +301,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
 
             const tunnelElements = inlineSvg.querySelectorAll('.tunnel');
             tunnelElements.forEach(element => {
-                element.setAttribute('style', 'fill: black; stroke: black; opacity: 0.9');
+                element.setAttribute('style', 'fill: black; stroke: black; opacity: 0.0');
             });
 
             const serializer = new XMLSerializer();
