@@ -20,10 +20,9 @@ Our latest version of MOLEonline brings many notable improvements, including:
 To run the MOLEonline front end locally, you need to have a docker installed. The app listens on port 8080 unless specified otherwise by setting the environment variable MOLEONLINE_PORT. The complete run is as simple as:
 
 ```bash
-$ git clone https://github.com/sb-ncbr/moleonline-web
-$ cd moleonline-web
-$ docker compose -f docker/docker-compose.yaml build
-$ docker compose -f docker/docker-compose.yaml up
+git clone https://github.com/sb-ncbr/moleonline-web
+cd moleonline-web
+docker compose -f docker/docker-compose.yaml up --build devel
 # Alternatively, when using a different port, use:
 # MOLEONLINE_PORT=8888 docker compose -f docker/docker-compose.yaml up
 ```
@@ -34,22 +33,22 @@ For production, you need to have a certbot installed with let's encrypt certific
 
 ```bash
 # 0. Clone the repository into /home/ubuntu/moleonline-web
-$ git clone https://github.com/sb-ncbr/moleonline-web
+git clone https://github.com/sb-ncbr/moleonline-web
 
 # 1. Install certbot and issue the certificates
 # - Follow certbot instructions
 # - Use moleonline.biodata.ceitec.cz domain first, then moleonline.cz
-$ sudo snap install certbot
-$ sudo certbot certonly --standalone
+sudo snap install certbot
+sudo certbot certonly --standalone
 
 # 2. Setup certificates renewal cron job
-$ cp /home/ubuntu/moleonline-web/docker/renew_certificates.sh /usr/local/bin
-$ chmod +x /usr/local/bin/renew_certificates.sh
-$ ln -s /usr/local/bin/renew_certificates.sh /etc/cron.weekly/renew_certificates.sh
+cp /home/ubuntu/moleonline-web/docker/renew_certificates.sh /usr/local/bin
+chmod +x /usr/local/bin/renew_certificates.sh
+ln -s /usr/local/bin/renew_certificates.sh /etc/cron.weekly/renew_certificates.sh
 
 # 3. Build and run the application
 # - Application assumes the certificates stored on the host in /etc/letsencrypt/live/moleonline.biodata.ceitec.cz directory
-$ cd /home/ubuntu/moleonline-web
-$ docker compose -f docker/docker-compose.yaml -f docker/docker-compose.production.yaml build
-$ docker compose -f docker/docker-compose.yaml -f docker/docker-compose.production.yaml up
+cd /home/ubuntu/moleonline-web
+docker compose -f docker/docker-compose.yaml -f docker/docker-compose.production.yaml build
+docker compose -f docker/docker-compose.yaml -f docker/docker-compose.production.yaml up
 ```
