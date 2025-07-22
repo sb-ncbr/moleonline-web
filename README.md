@@ -24,7 +24,7 @@ git clone https://github.com/sb-ncbr/moleonline-web
 cd moleonline-web
 docker compose -f docker/docker-compose.yaml up --build devel
 # Alternatively, when using a different port, use:
-# MOLEONLINE_DEVEL_PORT=8888 docker compose -f docker/docker-compose.yaml up --build devel
+# MOLEONLINE_PORT=8888 docker compose -f docker/docker-compose.yaml up
 ```
 
 ### Production
@@ -49,5 +49,6 @@ ln -s /usr/local/bin/renew_certificates.sh /etc/cron.weekly/renew_certificates.s
 # 3. Build and run the application
 # - Application assumes the certificates stored on the host in /etc/letsencrypt/live/moleonline.biodata.ceitec.cz directory
 cd /home/ubuntu/moleonline-web
-docker compose -f docker/docker-compose.yaml up --build production
+docker compose -f docker/docker-compose.yaml -f docker/docker-compose.production.yaml build
+docker compose -f docker/docker-compose.yaml -f docker/docker-compose.production.yaml up
 ```

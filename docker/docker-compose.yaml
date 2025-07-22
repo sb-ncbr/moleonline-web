@@ -1,28 +1,17 @@
 name: moleonline-web
-services:
-    production:
-        build:
-            context: ..
-            dockerfile: ./docker/Dockerfile
-        restart: unless-stopped
-        ports:
-            - "80:8080"
-            - "443:8443"
-        volumes:
-            - ./nginx.production.conf:/etc/nginx/nginx.conf:ro
-            - /etc/letsencrypt/live/moleonline.biodata.ceitec.cz/fullchain.pem:/etc/fullchain.pem:ro
-            - /etc/letsencrypt/live/moleonline.biodata.ceitec.cz/privkey.pem:/etc/privkey.pem:ro
 
-    devel:
+services:
+    moleonline-web:
         build:
             context: ..
             dockerfile: ./docker/Dockerfile
         restart: unless-stopped
+        container_name: moleonline-web
         ports:
-            - "${MOLEONLINE_DEVEL_PORT:-8080}:8080"
+            - "${MOLEONLINE_PORT:-8080}:8080"
         volumes:
             - ./nginx.devel.conf:/etc/nginx/nginx.conf:ro
         logging:
-            #driver: journald
+            driver: journald
             options:
                 tag: channelsdb-web
