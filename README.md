@@ -1,9 +1,9 @@
 
 # MOLEonline
 
-MOLEonline web interface provides direct access to MOLE functionality and enables on-line and easy-to-use interactive channel analysis.
+MOLEonline web interface provides direct access to MOLE functionality and enables online and easy-to-use interactive channel analysis.
 
-MOLE 2.5 is a universal toolkit for rapid and fully automated location and characterization of channels, tunnels and pores in (bio)macromolecular structures, e.g., proteins, RNA, DNA and biomacromolecular assemblies.
+MOLE 2.5 is a universal toolkit for rapid and fully automated location and characterisation of channels, tunnels and pores in (bio)macromolecular structures, e.g., proteins, RNA, DNA and biomacromolecular assemblies.
 
 Our latest version of MOLEonline brings many notable improvements, including:
 
@@ -17,19 +17,19 @@ Our latest version of MOLEonline brings many notable improvements, including:
 
 ### Devel
 
-To run the MOLEonline front end locally, you need to have a docker installed. The app listens on port 8080 unless specified otherwise by setting the environment variable MOLEONLINE_PORT. The complete run is as simple as:
+To run the MOLEonline front end locally, you need to have Docker installed. The app listens on port 8080 unless specified otherwise by setting the environment variable MOLEONLINE_PORT. The complete run is as simple as:
 
 ```bash
 git clone https://github.com/sb-ncbr/moleonline-web
 cd moleonline-web
-docker compose -f docker/docker-compose.yaml up --build devel
+docker compose -f docker/docker-compose.yaml up --build
 # Alternatively, when using a different port, use:
 # MOLEONLINE_PORT=8888 docker compose -f docker/docker-compose.yaml up
 ```
 
 ### Production
 
-For production, you need to have a certbot installed with let's encrypt certificates (using [certbot](https://certbot.eff.org/instructions?ws=other&os=snap)) for both `moleonline.cz` and `moleonline.biodata.ceitec.cz` domains. Assumming running the Ubuntu 24.04 LTS, use the following commands to run the application:
+For production, you need to have a certbot installed with Let's Encrypt certificates (using [certbot](https://certbot.eff.org/instructions?ws=other&os=snap)) for both `moleonline.cz` and `moleonline.biodata.ceitec.cz` domains. Assuming running Ubuntu 24.04 LTS, use the following commands to run the application:
 
 ```bash
 # 0. Clone the repository into /home/ubuntu/moleonline-web
