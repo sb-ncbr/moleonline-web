@@ -9,7 +9,7 @@ module.exports = [
             MOLEonline_Init: './sources/src/Init/App.tsx',
         },
         output: {
-            filename: '[name]-Core.js?version=R1.1.9.1',
+            filename: '[name]-Core.js?version=R1.1.9.2',
             path: path.resolve(__dirname, 'dist/'),
         },
         devtool: 'source-map',

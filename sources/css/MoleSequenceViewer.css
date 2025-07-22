@@ -124,7 +124,7 @@ textarea {
   height: 24px;
   width: 100%;
   margin-bottom: 1px;
-  background: #e0ddd4;
+  background: rgb(224.2548780488, 220.637804878, 211.5951219512);
   text-align: left;
 }
 .msp-sequence-select > span {
@@ -144,7 +144,7 @@ textarea {
   height: 24px;
   line-height: 24px;
   background-size: 6px 8px;
-  background-color: #e0ddd4;
+  background-color: rgb(224.2548780488, 220.637804878, 211.5951219512);
 }
 
 .msp-sequence-wrapper {
@@ -218,13 +218,13 @@ textarea {
   color: rgb(51, 43, 31);
 }
 .msp-sequence-wrapper .msp-sequence-missing {
-  color: #9c835f;
+  color: rgb(155.6743902439, 131.2548780488, 94.6256097561);
 }
 
 .msp-form-control, .msp-control-row select, .msp-control-row button, .msp-control-row input[type=text], .msp-btn {
   display: block;
   width: 100%;
-  background: #f3f2ee;
+  background: rgb(243.2865853659, 241.9085365854, 238.4634146341);
   border: none;
   padding: 0 10px;
   line-height: 30px;
@@ -237,25 +237,25 @@ textarea {
   background-image: none;
 }
 .msp-form-control::-moz-placeholder, .msp-control-row select::-moz-placeholder, .msp-control-row button::-moz-placeholder, .msp-control-row input[type=text]::-moz-placeholder, .msp-btn::-moz-placeholder {
-  color: #9c835f;
+  color: rgb(155.6743902439, 131.2548780488, 94.6256097561);
   opacity: 1;
 }
 .msp-form-control:-ms-input-placeholder, .msp-control-row select:-ms-input-placeholder, .msp-control-row button:-ms-input-placeholder, .msp-control-row input[type=text]:-ms-input-placeholder, .msp-btn:-ms-input-placeholder {
-  color: #9c835f;
+  color: rgb(155.6743902439, 131.2548780488, 94.6256097561);
 }
 .msp-form-control::-webkit-input-placeholder, .msp-control-row select::-webkit-input-placeholder, .msp-control-row button::-webkit-input-placeholder, .msp-control-row input[type=text]::-webkit-input-placeholder, .msp-btn::-webkit-input-placeholder {
-  color: #9c835f;
+  color: rgb(155.6743902439, 131.2548780488, 94.6256097561);
 }
 .msp-form-control:hover, .msp-control-row select:hover, .msp-control-row button:hover, .msp-control-row input[type=text]:hover, .msp-btn:hover {
   color: rgb(174, 93, 4);
-  background-color: #e9e6e0;
+  background-color: rgb(232.7134146341, 230.0914634146, 223.5365853659);
   border: none;
   outline-offset: -1px !important;
-  outline: 1px solid #c9c3b3 !important;
+  outline: 1px solid rgb(200.993902439, 194.6402439024, 178.756097561) !important;
 }
 .msp-form-control:active, .msp-control-row select:active, .msp-control-row button:active, .msp-control-row input[type=text]:active, .msp-btn:active, .msp-form-control:focus, .msp-control-row select:focus, .msp-control-row button:focus, .msp-control-row input[type=text]:focus, .msp-btn:focus {
   color: rgb(51, 43, 31);
-  background-color: #f3f2ee;
+  background-color: rgb(243.2865853659, 241.9085365854, 238.4634146341);
   border: none;
   outline-offset: 0;
   outline: none;
@@ -329,13 +329,13 @@ textarea {
 }
 .msp-btn-icon:hover {
   color: rgb(174, 93, 4);
-  background-color: #e9e6e0;
+  background-color: rgb(232.7134146341, 230.0914634146, 223.5365853659);
   border: none;
   outline-offset: -1px !important;
-  outline: 1px solid #c9c3b3 !important;
+  outline: 1px solid rgb(200.993902439, 194.6402439024, 178.756097561) !important;
 }
 .msp-btn-icon[disabled], .msp-btn-icon[disabled]:hover, .msp-btn-icon[disabled]:active {
-  color: #9c835f;
+  color: rgb(155.6743902439, 131.2548780488, 94.6256097561);
 }
 
 .msp-btn-icon-small {
@@ -348,13 +348,13 @@ textarea {
 }
 .msp-btn-icon-small:hover {
   color: rgb(174, 93, 4);
-  background-color: #e9e6e0;
+  background-color: rgb(232.7134146341, 230.0914634146, 223.5365853659);
   border: none;
   outline-offset: -1px !important;
-  outline: 1px solid #c9c3b3 !important;
+  outline: 1px solid rgb(200.993902439, 194.6402439024, 178.756097561) !important;
 }
 .msp-btn-icon-small[disabled], .msp-btn-icon-small[disabled]:hover, .msp-btn-icon-small[disabled]:active {
-  color: #9c835f;
+  color: rgb(155.6743902439, 131.2548780488, 94.6256097561);
 }
 
 .msp-btn-link {
@@ -395,7 +395,7 @@ textarea {
 }
 
 .msp-btn-link-toggle-off, .msp-btn-link-toggle-off:active, .msp-btn-link-toggle-off:focus {
-  color: #9c835f !important;
+  color: rgb(155.6743902439, 131.2548780488, 94.6256097561) !important;
 }
 
 .msp-btn-link-toggle-off:hover, .msp-btn-link-toggle-on:hover {
@@ -404,47 +404,47 @@ textarea {
 
 .msp-btn-action, .msp-btn-action:active, .msp-btn-action:focus {
   color: rgb(51, 43, 31);
-  background: #f3f2ee;
+  background: rgb(243.2865853659, 241.9085365854, 238.4634146341);
 }
 
 .msp-btn-action:hover {
   color: rgb(174, 93, 4);
-  background: #f9f8f6;
+  background: rgb(248.5731707317, 247.8170731707, 245.9268292683);
 }
 
 .msp-btn-action[disabled], .msp-btn-action[disabled]:hover,
 .msp-btn-action[disabled]:active, .msp-btn-action[disabled]:focus {
-  color: #362e21;
+  color: rgb(54.1719512195, 45.6743902439, 32.9280487805);
 }
 
 .msp-btn-commit-on, .msp-btn-commit-on:active, .msp-btn-commit-on:focus {
   color: rgb(151, 65, 2);
-  background: #f2f1ed;
+  background: rgb(242.2292682927, 240.7268292683, 236.9707317073);
 }
 
 .msp-btn-commit-on:hover {
   color: rgb(174, 93, 4);
-  background: #f8f7f4;
+  background: rgb(247.5158536585, 246.6353658537, 244.4341463415);
 }
 
 .msp-btn-commit-on[disabled], .msp-btn-commit-on[disabled]:hover,
 .msp-btn-commit-on[disabled]:active, .msp-btn-commit-on[disabled]:focus {
-  color: #9c4302;
+  color: rgb(156.0333333333, 67.1666666667, 2.0666666667);
 }
 
 .msp-btn-commit-off, .msp-btn-commit-off:active, .msp-btn-commit-off:focus {
   color: rgb(51, 43, 31);
-  background: #f6f5f3;
+  background: rgb(246.4585365854, 245.4536585366, 242.9414634146);
 }
 
 .msp-btn-commit-off:hover {
   color: rgb(174, 93, 4);
-  background: #fcfbfa;
+  background: rgb(251.7451219512, 251.362195122, 250.4048780488);
 }
 
 .msp-btn-commit-off[disabled], .msp-btn-commit-off[disabled]:hover,
 .msp-btn-commit-off[disabled]:active, .msp-btn-commit-off[disabled]:focus {
-  color: #362e21;
+  color: rgb(54.1719512195, 45.6743902439, 32.9280487805);
 }
 
 .msp-btn-remove:hover {
@@ -452,7 +452,7 @@ textarea {
 }
 
 .msp-btn-commit-on:hover {
-  color: #fc6c03;
+  color: rgb(251.6666666667, 108.3333333333, 3.3333333333);
 }
 
 .msp-btn-action {
@@ -502,7 +502,7 @@ textarea.msp-form-control, textarea.msp-btn {
 
 select.msp-form-control, .msp-control-row select, select.msp-btn {
   background: none;
-  background-color: #f3f2ee;
+  background-color: rgb(243.2865853659, 241.9085365854, 238.4634146341);
   background-size: 8px 12px;
   background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAUCAMAAACzvE1FAAAADFBMVEUzMzMzMzMzMzMzMzMKAG/3AAAAA3RSTlMAf4C/aSLHAAAAPElEQVR42q3NMQ4AIAgEQTn//2cLdRKppSGzBYwzVXvznNWs8C58CiussPJj8h6NwgorrKRdTvuV9v16Afn0AYFOB7aYAAAAAElFTkSuQmCC);
   background-repeat: no-repeat;
@@ -547,7 +547,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
   width: 120px;
   text-align: right;
   padding: 0 10px;
-  color: #63533c;
+  color: rgb(98.5792682927, 83.1158536585, 59.9207317073);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -575,7 +575,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
   bottom: 0;
 }
 .msp-control-row > div {
-  background: #f3f2ee;
+  background: rgb(243.2865853659, 241.9085365854, 238.4634146341);
 }
 .msp-control-row > .msp-flex-row, .msp-control-row > .msp-state-image-row {
   background: rgb(238, 236, 231);
@@ -606,24 +606,24 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
   margin-right: 6px;
 }
 .msp-toggle-button > div > button:hover {
-  border-color: #e9e6e0 !important;
+  border-color: rgb(232.7134146341, 230.0914634146, 223.5365853659) !important;
   border: none;
   outline-offset: -1px !important;
-  outline: 1px solid #c9c3b3 !important;
+  outline: 1px solid rgb(200.993902439, 194.6402439024, 178.756097561) !important;
 }
 
 .msp-toggle-color-picker button {
-  border: 10px solid #f3f2ee !important;
+  border: 10px solid rgb(243.2865853659, 241.9085365854, 238.4634146341) !important;
   margin: 0;
   text-align: center;
   padding-right: 10px;
   padding-left: 10px;
 }
 .msp-toggle-color-picker button:hover {
-  border-color: #e9e6e0 !important;
+  border-color: rgb(232.7134146341, 230.0914634146, 223.5365853659) !important;
   border: none;
   outline-offset: -1px !important;
-  outline: 1px solid #c9c3b3 !important;
+  outline: 1px solid rgb(200.993902439, 194.6402439024, 178.756097561) !important;
 }
 .msp-toggle-color-picker .msp-color-picker {
   position: absolute;
@@ -651,7 +651,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
 .msp-accent-offset {
   padding-left: 1px;
   margin-left: 8px;
-  border-left: 2px solid #e98b39;
+  border-left: 2px solid rgb(232.5914634146, 139.3719512195, 56.9085365854);
 }
 
 .msp-control-group-wrapper {
@@ -669,7 +669,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
   line-height: 32px !important;
   font-size: 85% !important;
   background: rgb(238, 236, 231) !important;
-  color: #63533c;
+  color: rgb(98.5792682927, 83.1158536585, 59.9207317073);
 }
 .msp-control-group-header .msp-icon {
   height: 24px !important;
@@ -680,7 +680,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
   line-height: 21.3333333333px;
   font-size: 70%;
   background: rgb(238, 236, 231);
-  color: #63533c;
+  color: rgb(98.5792682927, 83.1158536585, 59.9207317073);
 }
 
 .msp-control-current {
@@ -688,7 +688,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
 }
 
 .msp-control-group-footer {
-  background: #e3e0d8;
+  background: rgb(227.4268292683, 224.1829268293, 216.0731707317);
   height: 5px;
   font-size: 1px;
   margin-top: 1px;
@@ -740,7 +740,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
 .msp-row-text > div {
   line-height: 32px;
   text-align: center;
-  color: #63533c;
+  color: rgb(98.5792682927, 83.1158536585, 59.9207317073);
 }
 
 .msp-help span {
@@ -760,7 +760,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
 .msp-help-text > div {
   padding: 5px 10px;
   text-align: left;
-  color: #63533c;
+  color: rgb(98.5792682927, 83.1158536585, 59.9207317073);
 }
 
 .msp-help-description {
@@ -822,7 +822,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
   padding: 3px;
   margin: 1px 0;
   width: 100%;
-  background: #f3f2ee;
+  background: rgb(243.2865853659, 241.9085365854, 238.4634146341);
   text-align: center;
 }
 .msp-copy-image-wrapper img {
@@ -836,7 +836,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
   border: none;
   width: 100%;
   height: 100%;
-  background: #f3f2ee;
+  background: rgb(243.2865853659, 241.9085365854, 238.4634146341);
   padding: 5px 10px;
   resize: none;
   font-size: 12px;
@@ -863,7 +863,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
   width: 120px;
   text-align: right;
   padding: 3px 10px;
-  color: #63533c;
+  color: rgb(98.5792682927, 83.1158536585, 59.9207317073);
   display: table-cell;
   font-weight: bold;
   -webkit-user-select: none; /* Chrome/Safari */
@@ -875,7 +875,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
   cursor: default;
 }
 .msp-help-row > div {
-  background: #f3f2ee;
+  background: rgb(243.2865853659, 241.9085365854, 238.4634146341);
   position: relative;
   padding: 3px 10px;
   display: table-cell;
@@ -897,7 +897,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
 }
 
 .msp-description:not(:first-child) {
-  border-top: 1px solid #e0ddd4;
+  border-top: 1px solid rgb(224.2548780488, 220.637804878, 211.5951219512);
 }
 
 .msp-color-picker input {
@@ -951,17 +951,17 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
 }
 
 .msp-combined-color-button {
-  border: 4px solid #f3f2ee !important;
+  border: 4px solid rgb(243.2865853659, 241.9085365854, 238.4634146341) !important;
   margin: 0;
   text-align: center;
   padding-right: 10px;
   padding-left: 10px;
 }
 .msp-combined-color-button:hover {
-  border-color: #e9e6e0 !important;
+  border-color: rgb(232.7134146341, 230.0914634146, 223.5365853659) !important;
   border: none;
   outline-offset: -1px !important;
-  outline: 1px solid #c9c3b3 !important;
+  outline: 1px solid rgb(200.993902439, 194.6402439024, 178.756097561) !important;
 }
 
 .msp-combined-color-swatch {
@@ -972,7 +972,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
 }
 .msp-combined-color-swatch .msp-btn:hover, .msp-combined-color-swatch .msp-control-row button:hover, .msp-control-row .msp-combined-color-swatch button:hover {
   outline-offset: -1px !important;
-  outline: 1px solid #c9c3b3 !important;
+  outline: 1px solid rgb(200.993902439, 194.6402439024, 178.756097561) !important;
 }
 
 .msp-action-select {
@@ -982,7 +982,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
   padding-left: 42px;
 }
 .msp-action-select option:first-child {
-  color: #63533c;
+  color: rgb(98.5792682927, 83.1158536585, 59.9207317073);
 }
 .msp-action-select > .msp-icon {
   display: block;
@@ -1021,7 +1021,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
   position: absolute;
   width: 6px;
   height: 6px;
-  background: #e98b39;
+  background: rgb(232.5914634146, 139.3719512195, 56.9085365854);
   border-radius: 3px;
   right: 6px;
   bottom: 6px;
@@ -1065,7 +1065,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
 }
 
 .msp-25-lower-contrast-text {
-  color: #826e4f;
+  color: rgb(130.2987804878, 109.8597560976, 79.2012195122);
 }
 
 .msp-expandable-group-color-stripe {
@@ -1155,7 +1155,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
 }
 .msp-state-list > li > button:first-child {
   text-align: left;
-  border-left: 10px solid #d5d0c3 !important;
+  border-left: 10px solid rgb(212.6243902439, 207.6390243902, 195.1756097561) !important;
 }
 .msp-state-list > li > div {
   position: absolute;
@@ -1198,7 +1198,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
   border-left-style: solid;
 }
 .msp-tree-row .msp-btn-tree-label > small {
-  color: #726046;
+  color: rgb(114.4390243902, 96.487804878, 69.5609756098);
 }
 
 .msp-tree-updates-wrapper .msp-control-group-header:last-child {
@@ -1215,7 +1215,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
   line-height: 32px;
   float: left;
   margin-right: 10px;
-  background-color: #f3f2ee;
+  background-color: rgb(243.2865853659, 241.9085365854, 238.4634146341);
 }
 .msp-viewport-top-left-controls .msp-traj-controls > span {
   color: rgb(51, 43, 31);
@@ -1230,7 +1230,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
   margin-right: 10px;
 }
 .msp-viewport-top-left-controls .msp-state-snapshot-viewport-controls > button {
-  background-color: #f3f2ee;
+  background-color: rgb(243.2865853659, 241.9085365854, 238.4634146341);
 }
 .msp-viewport-top-left-controls .msp-state-snapshot-viewport-controls > select {
   display: inline-block;
@@ -1256,7 +1256,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
   right: 0 !important;
   left: auto !important;
   margin-top: 10px;
-  background: #e0ddd4;
+  background: rgb(224.2548780488, 220.637804878, 211.5951219512);
 }
 .msp-viewport-top-left-controls .msp-animation-viewport-controls .msp-animation-viewport-controls-select .msp-control-row:first-child {
   margin-top: 0;
@@ -1271,7 +1271,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
   position: absolute;
   width: 100%;
   top: 32px;
-  background: #e0ddd4;
+  background: rgb(224.2548780488, 220.637804878, 211.5951219512);
 }
 .msp-selection-viewport-controls > .msp-flex-row .msp-btn, .msp-selection-viewport-controls > .msp-state-image-row .msp-btn, .msp-selection-viewport-controls > .msp-flex-row .msp-control-row button, .msp-control-row .msp-selection-viewport-controls > .msp-flex-row button, .msp-selection-viewport-controls > .msp-state-image-row .msp-control-row button, .msp-control-row .msp-selection-viewport-controls > .msp-state-image-row button {
   padding: 0 5px;
@@ -1279,7 +1279,7 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
 .msp-selection-viewport-controls select.msp-form-control, .msp-selection-viewport-controls select.msp-btn, .msp-selection-viewport-controls .msp-control-row select, .msp-control-row .msp-selection-viewport-controls select {
   padding: 0 5px;
   text-align: center;
-  background: #f3f2ee;
+  background: rgb(243.2865853659, 241.9085365854, 238.4634146341);
   flex: 0 0 80px;
   text-overflow: ellipsis;
 }
@@ -1381,128 +1381,128 @@ select.msp-form-control:-moz-focusring, .msp-control-row select:-moz-focusring, 
 }
 
 .msp-type-class-Group {
-  border-left-color: #e98b39;
+  border-left-color: rgb(232.5914634146, 139.3719512195, 56.9085365854);
 }
 
 .msp-type-class-Data {
-  border-left-color: #bfc8c9;
+  border-left-color: rgb(190.5846153846, 200.3076923077, 200.9153846154);
 }
 
 .msp-type-class-Object {
-  border-left-color: #54d98c;
+  border-left-color: rgb(84.456, 216.544, 140.468);
 }
 
 .msp-type-class-Representation3D {
-  border-left-color: #4aa3df;
+  border-left-color: rgb(73.6589958159, 162.989539749, 222.8410041841);
 }
 
 .msp-type-class-Behavior {
-  border-left-color: #b07cc6;
+  border-left-color: rgb(176.3389121339, 124.4225941423, 197.5774058577);
 }
 
 .msp-accent-color-cyan {
-  color: #bfc8c9;
+  color: rgb(190.5846153846, 200.3076923077, 200.9153846154);
 }
 
 .msp-accent-bg-cyan {
-  background: #bfc8c9;
+  background: rgb(190.5846153846, 200.3076923077, 200.9153846154);
 }
 
 .msp-transform-header-brand-cyan {
-  border-bottom: 1px solid #bfc8c9;
+  border-bottom: 1px solid rgb(190.5846153846, 200.3076923077, 200.9153846154);
 }
 .msp-transform-header-brand-cyan:active, .msp-transform-header-brand-cyan:focus {
-  border-bottom: 1px solid #bfc8c9;
+  border-bottom: 1px solid rgb(190.5846153846, 200.3076923077, 200.9153846154);
 }
 
 .msp-accent-color-red {
-  color: #ef8b80;
+  color: rgb(239.3835616438, 138.5273972603, 128.1164383562);
 }
 
 .msp-accent-bg-red {
-  background: #ef8b80;
+  background: rgb(239.3835616438, 138.5273972603, 128.1164383562);
 }
 
 .msp-transform-header-brand-red {
-  border-bottom: 1px solid #ef8b80;
+  border-bottom: 1px solid rgb(239.3835616438, 138.5273972603, 128.1164383562);
 }
 .msp-transform-header-brand-red:active, .msp-transform-header-brand-red:focus {
-  border-bottom: 1px solid #ef8b80;
+  border-bottom: 1px solid rgb(239.3835616438, 138.5273972603, 128.1164383562);
 }
 
 .msp-accent-color-gray {
-  color: #46637f;
+  color: rgb(70.1643835616, 98.5, 126.8356164384);
 }
 
 .msp-accent-bg-gray {
-  background: #46637f;
+  background: rgb(70.1643835616, 98.5, 126.8356164384);
 }
 
 .msp-transform-header-brand-gray {
-  border-bottom: 1px solid #46637f;
+  border-bottom: 1px solid rgb(70.1643835616, 98.5, 126.8356164384);
 }
 .msp-transform-header-brand-gray:active, .msp-transform-header-brand-gray:focus {
-  border-bottom: 1px solid #46637f;
+  border-bottom: 1px solid rgb(70.1643835616, 98.5, 126.8356164384);
 }
 
 .msp-accent-color-green {
-  color: #54d98c;
+  color: rgb(84.456, 216.544, 140.468);
 }
 
 .msp-accent-bg-green {
-  background: #54d98c;
+  background: rgb(84.456, 216.544, 140.468);
 }
 
 .msp-transform-header-brand-green {
-  border-bottom: 1px solid #54d98c;
+  border-bottom: 1px solid rgb(84.456, 216.544, 140.468);
 }
 .msp-transform-header-brand-green:active, .msp-transform-header-brand-green:focus {
-  border-bottom: 1px solid #54d98c;
+  border-bottom: 1px solid rgb(84.456, 216.544, 140.468);
 }
 
 .msp-accent-color-purple {
-  color: #b07cc6;
+  color: rgb(176.3389121339, 124.4225941423, 197.5774058577);
 }
 
 .msp-accent-bg-purple {
-  background: #b07cc6;
+  background: rgb(176.3389121339, 124.4225941423, 197.5774058577);
 }
 
 .msp-transform-header-brand-purple {
-  border-bottom: 1px solid #b07cc6;
+  border-bottom: 1px solid rgb(176.3389121339, 124.4225941423, 197.5774058577);
 }
 .msp-transform-header-brand-purple:active, .msp-transform-header-brand-purple:focus {
-  border-bottom: 1px solid #b07cc6;
+  border-bottom: 1px solid rgb(176.3389121339, 124.4225941423, 197.5774058577);
 }
 
 .msp-accent-color-blue {
-  color: #4aa3df;
+  color: rgb(73.6589958159, 162.989539749, 222.8410041841);
 }
 
 .msp-accent-bg-blue {
-  background: #4aa3df;
+  background: rgb(73.6589958159, 162.989539749, 222.8410041841);
 }
 
 .msp-transform-header-brand-blue {
-  border-bottom: 1px solid #4aa3df;
+  border-bottom: 1px solid rgb(73.6589958159, 162.989539749, 222.8410041841);
 }
 .msp-transform-header-brand-blue:active, .msp-transform-header-brand-blue:focus {
-  border-bottom: 1px solid #4aa3df;
+  border-bottom: 1px solid rgb(73.6589958159, 162.989539749, 222.8410041841);
 }
 
 .msp-accent-color-orange {
-  color: #e98b39;
+  color: rgb(232.5914634146, 139.3719512195, 56.9085365854);
 }
 
 .msp-accent-bg-orange {
-  background: #e98b39;
+  background: rgb(232.5914634146, 139.3719512195, 56.9085365854);
 }
 
 .msp-transform-header-brand-orange {
-  border-bottom: 1px solid #e98b39;
+  border-bottom: 1px solid rgb(232.5914634146, 139.3719512195, 56.9085365854);
 }
 .msp-transform-header-brand-orange:active, .msp-transform-header-brand-orange:focus {
-  border-bottom: 1px solid #e98b39;
+  border-bottom: 1px solid rgb(232.5914634146, 139.3719512195, 56.9085365854);
 }
 
 .msp-volume-channel-inline-controls > :first-child {

@@ -22,7 +22,7 @@ a:hover {
 .msp-slider-base-rail {
   position: absolute;
   width: 100%;
-  background-color: rgb(224, 221, 212);
+  background-color: rgb(224.2548780488, 220.637804878, 211.5951219512);
   height: 4px;
   border-radius: 2px;
 }
@@ -42,7 +42,7 @@ a:hover {
   cursor: pointer;
   border-radius: 50%;
   background-color: rgb(51, 43, 31);
-  border: 4px solid rgb(224, 221, 212);
+  border: 4px solid rgb(224.2548780488, 220.637804878, 211.5951219512);
 }
 .msp-slider-base-handle:hover {
   background-color: rgb(174, 93, 4);
