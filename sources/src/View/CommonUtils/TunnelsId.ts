@@ -1,6 +1,7 @@
 import { UUID } from "molstar/lib/mol-util";
-import { ChannelsDBChannels, ChannelsDBData, Tunnel } from "../../DataInterface";
+import { ChannelsDBChannels, ChannelsDBData, Tunnel, TunnelMetaInfo } from "../../DataInterface";
 import { ChannelAnnotation } from "../../ChannelsDBAPIService";
+import { ColorGenerator } from "molstar/lib/extensions/meshes/mesh-utils";
 
 export class TunnelsId {
     private static annotationTunnelsIdTable: Map<string, string> = new Map();
@@ -21,6 +22,7 @@ export class TunnelsId {
 
                 tunnelsArray.forEach(tunnel => {
                     tunnel.GUID = UUID.create22();
+                    (tunnel as Tunnel&TunnelMetaInfo).__color = ColorGenerator.next().value;
                     idx++;
                 });
             }
