@@ -238,7 +238,7 @@ class DGBody extends React.Component<State, {}> {
             return <DGNoDataInfoRow columnsCount={DGTABLE_COLS_COUNT} infoText={NO_DATA_MESSAGE} />;
         }
 
-        let layerData = this.getPropertiesData(this.props.layerIds);
+        let layerData = this.props.data[this.props.layerIds[0]].Properties;
         let rows = [];
 
         let charge = (layerData === null) ? 'N/A' : `${roundToDecimal(layerData.Charge, 2).toString()} (+${roundToDecimal(layerData.NumPositives, 2).toString()}/-${roundToDecimal(layerData.NumNegatives, 2).toString()})`;
