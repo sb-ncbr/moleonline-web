@@ -59,7 +59,7 @@ _sb_ncbr_channel_props.bRadius`,
 
         "layer": `loop_
 _sb_ncbr_channel_layer.channel_id
-_sb_ncbr_channel_layer.order # order in channel
+_sb_ncbr_channel_layer.order
 _sb_ncbr_channel_layer.min_radius
 _sb_ncbr_channel_layer.min_free_radius
 _sb_ncbr_channel_layer.start_distance
