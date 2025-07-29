@@ -155,9 +155,7 @@ function parseChannels(category: any, atomSiteResiudes: Map<string, { name: stri
     parseChannelProperties(channels, category.sb_ncbr_channel_props); // ✔️ 
     parseLayerWeightedProperties(channels, category.sb_ncbr_channel_layer_props); // ✖️ missing logP, logD, logS. But have no idea why they put it there.
     parseProfiles(channels, category.sb_ncbr_channel_profile); // ✔️
-    console.log(channels);
     const residues = parseChannelResidues(category.sb_ncbr_channel_residue, atomSiteResiudes); // ✔️ 
-    console.log("RESIDUEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEES2:", residues);
     const layerResidues = parseLayerResidues(category.sb_ncbr_channel_layer_residue, residues); // ✔️
     parseHetResidues(channels, category.sb_ncbr_channel_het_residue);// ✔️ But they somehow left it in the schema, without any mention.
     parseResidueFlow(channels, category.sb_ncbr_channel_layer, layerResidues); // ✔️ 
@@ -433,7 +431,6 @@ function parseCifToChannelsDBData(blocks: CifBlock[]): ChannelsDBData {
 
     const annotations = parseAnnotations(tunnelsBlock.categories.sb_ncbr_channel_annotation);
     const residuesNames = parseAtomSite(atomSiteBlock.categories);
-    console.log("RESIDUEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEES", residuesNames);
     const channels = parseChannels(tunnelsBlock.categories, residuesNames);
 
     return {
@@ -461,16 +458,13 @@ function parseCifToChannelsDBData(blocks: CifBlock[]): ChannelsDBData {
 
 
 export async function loadCifTunnels(url: string) {
-    console.log("LoadingTunnels: ");
     try {
         const response = await fetch(url);
         if (response.ok) {
             const data = await response.text();
             const x = await parseCifText(data).run();
             if (!x.isError) {
-                console.log(x.result);
                 const r = parseCifToChannelsDBData(x.result.blocks as any[]);
-                console.log(r);
                 return r;
                 // console.log(x.result.blocks[1].categories.sb_ncbr_channel_residue.getField("name"));
             }
