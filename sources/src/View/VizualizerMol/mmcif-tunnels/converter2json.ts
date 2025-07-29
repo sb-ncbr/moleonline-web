@@ -386,7 +386,7 @@ function parseLayers(channels: Map<string, Tunnel>, layersCategory: any, residue
 
     const layers: Layers[] = [];
     for (let i = 0; i < rowCount; i++) {
-        const layerId = ids.str(i);
+        const layerId = (i + 1).toString();
         let channel = channels.get(channelIds.str(i));
         let layerResidues = residues.get(layerId);
         if (channel) {
