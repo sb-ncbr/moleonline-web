@@ -19,7 +19,7 @@ interface VizualizedTunnel {
 
 export class TwoDProtsBridge {
     private static pdbId: string = '';
-    private static vizualizedChannels: Map<string, Tunnel & TunnelMetaInfo> = new Map();
+    private static allChannels: Map<string, Tunnel & TunnelMetaInfo> = new Map();
     private static onColorTunnelChanges: { handler: (channel: Tunnel & TunnelMetaInfo) => void }[];
     private static moleIdTable: Map<string, string> = new Map();
 
@@ -37,17 +37,6 @@ export class TwoDProtsBridge {
 
         for (let h of this.onColorTunnelChanges) {
             h.handler(channel);
-        }
-    }
-
-
-    public static addChannel(tunnel: Tunnel & TunnelMetaInfo) {
-        this.vizualizedChannels.set(tunnel.__id, tunnel);
-    }
-
-    public static removeChannel(id: string) {
-        if (this.vizualizedChannels.has(id)) {
-            this.vizualizedChannels.delete(id);
         }
     }
 
@@ -78,48 +67,6 @@ export class TwoDProtsBridge {
         })
         this.initializeIdTable(convertIdTunnels)
         return channels;
-    }
-
-    public static generateTunnelsDataJson() {
-        const annotations = ChannelsDBData.getAnnotations();
-        const annotationsList: TunnelAnnotation[]  = [];
-        const allTunnels: ExportTunnel[] = [];
-
-        for (const tunnel of Array.from(this.vizualizedChannels.values())) {
-            allTunnels.push({
-                Type: tunnel.Type,
-                Id: tunnel.Id,
-                Cavity: tunnel.Cavity,
-                Auto: tunnel.Auto,
-                Properties: tunnel.Properties,
-                Profile: tunnel.Profile,
-                Layers: tunnel.Layers
-            });
-            const tunnelId = TunnelsId.getAnnotationId(tunnel.Id)
-            if (tunnelId) {
-                const ann = annotations.get(tunnelId);
-                if (ann) {
-                    ann.forEach(t_ann => {
-                        annotationsList.push({
-                            Id: t_ann.id,
-                            Name: t_ann.name,
-                            Reference: t_ann.link,
-                            Description: t_ann.description,
-                            ReferenceType: t_ann.reference as ReferenceType
-                        })
-                    });
-                }
-            }
-        }
-
-        const result = {
-            Annotations: annotationsList,
-            Channels: {
-                MOLEonline_MOLE: allTunnels
-            }
-        }
-
-        return result;
     }
 
     private static hashToNumber(input: string): number {

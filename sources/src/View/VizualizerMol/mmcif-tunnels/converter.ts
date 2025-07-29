@@ -58,7 +58,6 @@ _sb_ncbr_channel_props.ionizable
 _sb_ncbr_channel_props.bRadius`,
 
         "layer": `loop_
-_sb_ncbr_channel_layer.id
 _sb_ncbr_channel_layer.channel_id
 _sb_ncbr_channel_layer.order # order in channel
 _sb_ncbr_channel_layer.min_radius
@@ -86,16 +85,17 @@ _sb_ncbr_channel_layer_props.logP
 _sb_ncbr_channel_layer_props.logS`,
 
         "residue": `loop_
-_sb_ncbr_channel_residue.id
-_sb_ncbr_channel_residue.name
-_sb_ncbr_channel_residue.sequence_number # order
-_sb_ncbr_channel_residue.chain_id # A, B`,
+_sb_ncbr_channel_residue.channel_id
+_sb_ncbr_channel_residue.order
+_sb_ncbr_channel_residue.backbone
+_sb_ncbr_channel_residue.chain_id
+_sb_ncbr_channel_residue.sequence_number`,
 
         "layer_residue": `loop_
 _sb_ncbr_channel_layer_residue.layer_id
-_sb_ncbr_channel_layer_residue.residue_id
-_sb_ncbr_channel_layer_residue.flow
-_sb_ncbr_channel_layer_residue.backbone # bool`,
+_sb_ncbr_channel_layer_residue.channel_id
+_sb_ncbr_channel_layer_residue.order
+_sb_ncbr_channel_layer_residue.residue_id`,
 
         "het_residue": `loop_
 _sb_ncbr_channel_het_residue.id
@@ -103,10 +103,9 @@ _sb_ncbr_channel_het_residue.channel_id
 _sb_ncbr_channel_het_residue.name
 _sb_ncbr_channel_het_residue.sequence_number
 _sb_ncbr_channel_het_residue.chain_id
-_sb_ncbr_channel_het_residue.bottleneck # bool`,
+_sb_ncbr_channel_het_residue.bottleneck`,
 
         "profile": `loop_
-_sb_ncbr_channel_profile.id
 _sb_ncbr_channel_profile.channel_id
 _sb_ncbr_channel_profile.radius
 _sb_ncbr_channel_profile.free_radius
@@ -123,7 +122,6 @@ _sb_ncbr_channel_profile.charge`,
         return "No data loaded. Possibly because of refresh.";
     }
 
-    // const file_id = name //.split(" ")[1]
     const rows: Rows = {
         "annotation": [],
         "channel": [],
@@ -151,7 +149,7 @@ _sb_ncbr_channel_profile.charge`,
 
             const profiles: [] = channel["Profile"];
             for (const profile of profiles) {
-                rows.profile.push(`${rows.profile.length + 1} ${channelId} ${roundItems([profile["Radius"], profile["FreeRadius"], profile["Distance"], profile["T"], profile["X"], profile["Y"], profile["Z"]])} ${profile["Charge"]} `);
+                rows.profile.push(`${channelId} ${roundItems([profile["Radius"], profile["FreeRadius"], profile["Distance"], profile["T"], profile["X"], profile["Y"], profile["Z"]])} ${profile["Charge"]} `);
             }
 
             const layers = channel["Layers"];
@@ -166,13 +164,8 @@ _sb_ncbr_channel_profile.charge`,
                 rows.hetResidue.push(`${hetId} ${channelId} ${split_het[0]} ${split_het[1]} ${split_het[2]} ${split_het.length > 3 ? "True" : "False"} `)
             }
 
-
-            // for (const res of residueFlow) {
-            //     const split_res = res.split(" ");
-            //     const 
-            // }
-            rows.properties.push(`${channelId} ${properties.Charge} ${properties.Hydropathy} ${properties.Hydrophobicity} ${properties.Mutability} ${properties.NumNegatives} ${properties.NumPositives} ${properties.Polarity} ${properties.LogD ?? 'null'} ${properties.LogP ?? 'null'} ${properties.LogS ?? 'null'} ${properties.Ionizable ?? 'null'} ${properties.BRadius ?? 'null'}`)
-            rows.layer_weighted_properties.push(`${channelId} ${layerWeightedProps.Hydropathy} ${layerWeightedProps.Hydrophobicity} ${layerWeightedProps.Mutability} ${layerWeightedProps.Polarity} ${layerWeightedProps.LogD ?? 'null'} ${layerWeightedProps.LogP ?? 'null'} ${layerWeightedProps.logS ?? 'null'}`)
+            rows.properties.push(`${channelId} ${properties.Charge} ${properties.Hydropathy} ${properties.Hydrophobicity} ${properties.Mutability} ${properties.NumNegatives} ${properties.NumPositives} ${properties.Polarity} ${properties.LogD ?? '?'} ${properties.LogP ?? '?'} ${properties.LogS ?? '?'} ${properties.Ionizable ?? '?'} ${properties.BRadius ?? '?'}`)
+            rows.layer_weighted_properties.push(`${channelId} ${layerWeightedProps.Hydropathy} ${layerWeightedProps.Hydrophobicity} ${layerWeightedProps.Mutability} ${layerWeightedProps.Polarity} ${layerWeightedProps.LogD ?? '?'} ${layerWeightedProps.LogP ?? '?'} ${layerWeightedProps.logS ?? '?'}`)
 
             for (const [order, layer] of layersInfo.entries()) {
                 const properties = layer["Properties"];
@@ -182,7 +175,7 @@ _sb_ncbr_channel_profile.charge`,
                 const bottleneck = "Bottleneck" in geometry ? `${capitalize(geometry["Bottleneck"].toString())}` : "False";
                 const layerId = rows.layer.length + 1;
 
-                rows.layer.push(`${layerId} ${channelId} ${order + 1} ${roundItems([geometry["MinRadius"], geometry["MinFreeRadius"], geometry["StartDistance"], geometry["EndDistance"]])} ${localMinimum} ${bottleneck} ${properties["Charge"]} ${properties["NumPositives"]} ${properties["NumNegatives"]} ${properties["Hydrophobicity"]} ${properties["Hydropathy"]} ${properties["Polarity"]} ${properties["Mutability"]} `);
+                rows.layer.push(`${channelId} ${order + 1} ${roundItems([geometry["MinRadius"], geometry["MinFreeRadius"], geometry["StartDistance"], geometry["EndDistance"]])} ${localMinimum} ${bottleneck} ${properties["Charge"]} ${properties["NumPositives"]} ${properties["NumNegatives"]} ${properties["Hydrophobicity"]} ${properties["Hydropathy"]} ${properties["Polarity"]} ${properties["Mutability"]} `);
 
                 const residues = layer["Residues"];
 
@@ -191,7 +184,7 @@ _sb_ncbr_channel_profile.charge`,
 
                 for (const res of residues) {
                     const split_res = res.split(" ");
-                    const res_str = `${split_res[0]} ${split_res[1]} ${split_res[2]} `
+                    const res_str = `${split_res[2]} ${split_res[1]} `
                     let resIdx = rows.residue.findIndex(item => {
                         const no_id_item = item.split(" ").slice(1).join(" ");
                         return no_id_item === res_str;
@@ -199,43 +192,44 @@ _sb_ncbr_channel_profile.charge`,
 
                     if (resIdx === -1) {
                         resIdx = rows.residue.length + 1;
-                        rows.residue.push(`${resIdx} ${res_str} `);
+                        rows.residue.push(`${channelId} ${resIdx} ${split_res.length > 3 ? "True" : "False"} ${res_str} `);
+                        rows.layer_residue.push(`${layerId} ${channelId} ${flowIndicies[flow]} ${resIdx} `);
                     } else {
                         resIdx = resIdx + 1;
                     }
-                    rows.layer_residue.push(`${layerId} ${resIdx} ${flowIndicies[flow]} ${split_res.length > 3 ? "True" : "False"} `);
                     flow++;
                 }
             }
         }
     }
+    
 
     const cif = `
-${headers.annotation}
+${rows.annotation && headers.annotation}
 ${rows.annotation.join("\n")}
 
-${headers.channel}
+${rows.channel && headers.channel}
 ${rows.channel.join("\n")}
 
-${headers.profile}
+${rows.profile && headers.profile}
 ${rows.profile.join("\n")}
 
-${headers.properties}
+${rows.properties && headers.properties}
 ${rows.properties.join("\n")}
 
-${headers.layer}
+${rows.layer && headers.layer}
 ${rows.layer.join("\n")}
 
-${headers.layer_weighted_properties}
+${rows.layer_weighted_properties && headers.layer_weighted_properties}
 ${rows.layer_weighted_properties.join("\n")}
 
-${headers.residue}
+${rows.residue && headers.residue}
 ${rows.residue.join("\n")}
 
-${headers.layer_residue}
+${rows.layer_residue && headers.layer_residue}
 ${rows.layer_residue.join("\n")}
 
-${headers.het_residue}
+${rows.hetResidue && headers.het_residue}
 ${rows.hetResidue.join("\n")}
             `
     return `${cif} `;

@@ -96,7 +96,7 @@ class DownloadResultsMenu extends React.Component<{}, DownloadResultsMenuState> 
         }
 
         const cifText = await response.text();
-        const tunnelData = TwoDProtsBridge.generateTunnelsDataJson();
+        const tunnelData = Tunnels.generateTunnelsDataJson();
         const tunnelDataStr = JSON.stringify(tunnelData);
         const parsedString = JSON2CIF("data_tunnels", tunnelDataStr);
 

@@ -884,7 +884,7 @@ async function showChannelDefaultVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
         const [loci, ref] = await context.renderTunnel(channel);
         channel.__ref = ref;
         channel.__loci = loci as Shape.Loci;
-        TwoDProtsBridge.addChannel(channel);
+        Tunnels.addChannel(channel);
     }
 
     return Promise.resolve().then(() => {
@@ -906,7 +906,7 @@ export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
         if (!!channel.__isVisible === visible && !forceRepaint) continue;
 
         if (forceRepaint !== void 0 && forceRepaint) {
-            TwoDProtsBridge.removeChannel(channel.__id);
+            Tunnels.removeChannel(channel.__id);
             await PluginCommands.State.RemoveObject(context.plugin, { state: context.plugin.state.data, ref: channel.__ref });
         }
 
@@ -939,7 +939,7 @@ export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
         }
 
         if (!visible) {
-            TwoDProtsBridge.removeChannel(channel.__id);
+            Tunnels.removeChannel(channel.__id);
             await PluginCommands.State.RemoveObject(context.plugin, { state: context.plugin.state.data, ref: channel.__ref });
             LayerColors.invokeOnChannelRemoved(channel.__ref);
             LastVisibleChannels.remove(channel);
@@ -950,7 +950,7 @@ export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
             const [loci, ref] = await context.renderTunnel(channel);
             channel.__ref = ref;
             channel.__loci = loci as Shape.Loci;
-            TwoDProtsBridge.addChannel(channel);
+            Tunnels.addChannel(channel);
             LastVisibleChannels.set(channel);
         }
     }
