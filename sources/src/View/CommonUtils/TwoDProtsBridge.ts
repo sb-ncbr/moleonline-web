@@ -22,6 +22,8 @@ export class TwoDProtsBridge {
     private static vizualizedChannels: Map<string, Tunnel & TunnelMetaInfo> = new Map();
     private static onColorTunnelChanges: { handler: (channel: Tunnel & TunnelMetaInfo) => void }[];
     private static moleIdTable: Map<string, string> = new Map();
+    private static reversedMoleIdTable: Map<string, string> = new Map();
+
 
     public static attachOnColorTunnelChangeHandler(handler: (channel: Tunnel & TunnelMetaInfo) => void) {
         if (this.onColorTunnelChanges === void 0) {
@@ -141,16 +143,22 @@ export class TwoDProtsBridge {
 
     private static initializeIdTable(tunnels: Map<string, VizualizedTunnel>) {
         this.moleIdTable = new Map();
+        this.reversedMoleIdTable = new Map();
 
         Array.from(tunnels.keys()).forEach(key => {
             const tunnel = tunnels.get(key);
             if (tunnel) {
                 this.moleIdTable.set(key, tunnel.Id);
+                this.reversedMoleIdTable.set(tunnel.Id, key);
             }
         })
     }
 
     public static getFromIdTable(id: string) {
         return this.moleIdTable.get(id);
+    }
+
+    public static getFromReversedIdTable(id: string) {
+        return this.reversedMoleIdTable.get(id);
     }
 }
