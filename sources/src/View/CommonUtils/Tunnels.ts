@@ -24,8 +24,9 @@ export class Tunnels {
     }
 
     public static generateTunnelsDataJson() {
-            //TODO Annotations
-            const annotations = ChannelsDBData.getAnnotations();
+            let annotations = ChannelsDBData.getAnnotations();
+            if (annotations.size === 0)
+                annotations = ChannelsDBData.getFileLoadedAnnotations();
             const annotationsList: TunnelAnnotation[] = [];
             const allTunnels: ExportTunnel[] = [];
     
@@ -49,7 +50,8 @@ export class Tunnels {
                                 Name: t_ann.name,
                                 Reference: t_ann.link,
                                 Description: t_ann.description,
-                                ReferenceType: t_ann.reference as ReferenceType
+                                ReferenceType: t_ann.reference as ReferenceType,
+                                ChannelId: tunnel.Id,
                             })
                         })
                     }
@@ -68,7 +70,7 @@ export class Tunnels {
 
     public static setChannelsDB(channels: ChannelsDBChannels) {
         this.loadedChannelsDB = channels;
-        TwoDProtsBridge.addTunnels(channels);
+        // TwoDProtsBridge.addTunnels(channels);
     }
 
     public static getChannelsDB() {
@@ -129,7 +131,7 @@ export class Tunnels {
     public static addChannels(submitId: string, channels: ChannelsDBChannels) {
         this.loadedChannels.set(submitId, channels);
         console.log(channels);
-        TwoDProtsBridge.addTunnels(channels);
+        // TwoDProtsBridge.addTunnels(channels);
     }
 
     public static getChannels() {

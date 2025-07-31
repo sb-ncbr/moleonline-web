@@ -24,9 +24,8 @@ const capitalize = (str: string | boolean) => {
     return `${asStr.charAt(0).toUpperCase()}${asStr.slice(1)}`;
 };
 
-export const JSON2CIF = (name: string, data: string) => {
-    const headers = {
-        "annotation": `loop_
+const headers = {
+    "annotation": `loop_
 _sb_ncbr_channel_annotation.id
 _sb_ncbr_channel_annotation.channel_id
 _sb_ncbr_channel_annotation.name
@@ -34,7 +33,7 @@ _sb_ncbr_channel_annotation.description
 _sb_ncbr_channel_annotation.reference
 _sb_ncbr_channel_annotation.reference_type`,
 
-        "channel": `loop_
+    "channel": `loop_
 _sb_ncbr_channel.id
 _sb_ncbr_channel.type # Path, Pore, etc
 _sb_ncbr_channel.method # CSATunnel, etc
@@ -42,7 +41,7 @@ _sb_ncbr_channel.software # MOLE, Caver
 _sb_ncbr_channel.auto # bool
 _sb_ncbr_channel.cavity`,
 
-        "properties": `loop_
+    "properties": `loop_
 _sb_ncbr_channel_props.channel_id
 _sb_ncbr_channel_props.charge
 _sb_ncbr_channel_props.hydropathy
@@ -57,7 +56,7 @@ _sb_ncbr_channel_props.logS
 _sb_ncbr_channel_props.ionizable
 _sb_ncbr_channel_props.bRadius`,
 
-        "layer": `loop_
+    "layer": `loop_
 _sb_ncbr_channel_layer.channel_id
 _sb_ncbr_channel_layer.order
 _sb_ncbr_channel_layer.min_radius
@@ -74,7 +73,7 @@ _sb_ncbr_channel_layer.hydropathy
 _sb_ncbr_channel_layer.polarity
 _sb_ncbr_channel_layer.mutability`,
 
-        "layer_weighted_properties": `loop_
+    "layer_weighted_properties": `loop_
 _sb_ncbr_channel_layer_props.channel_id  
 _sb_ncbr_channel_layer_props.hydropathy
 _sb_ncbr_channel_layer_props.hydrophobicity
@@ -84,20 +83,20 @@ _sb_ncbr_channel_layer_props.logD
 _sb_ncbr_channel_layer_props.logP
 _sb_ncbr_channel_layer_props.logS`,
 
-        "residue": `loop_
+    "residue": `loop_
 _sb_ncbr_channel_residue.channel_id
 _sb_ncbr_channel_residue.order
 _sb_ncbr_channel_residue.backbone
 _sb_ncbr_channel_residue.chain_id
 _sb_ncbr_channel_residue.sequence_number`,
 
-        "layer_residue": `loop_
+    "layer_residue": `loop_
 _sb_ncbr_channel_layer_residue.layer_id
 _sb_ncbr_channel_layer_residue.channel_id
 _sb_ncbr_channel_layer_residue.order
 _sb_ncbr_channel_layer_residue.residue_id`,
 
-        "het_residue": `loop_
+    "het_residue": `loop_
 _sb_ncbr_channel_het_residue.id
 _sb_ncbr_channel_het_residue.channel_id
 _sb_ncbr_channel_het_residue.name
@@ -105,7 +104,7 @@ _sb_ncbr_channel_het_residue.sequence_number
 _sb_ncbr_channel_het_residue.chain_id
 _sb_ncbr_channel_het_residue.bottleneck`,
 
-        "profile": `loop_
+    "profile": `loop_
 _sb_ncbr_channel_profile.channel_id
 _sb_ncbr_channel_profile.radius
 _sb_ncbr_channel_profile.free_radius
@@ -115,8 +114,9 @@ _sb_ncbr_channel_profile.x
 _sb_ncbr_channel_profile.y
 _sb_ncbr_channel_profile.z
 _sb_ncbr_channel_profile.charge`,
-    }
+}
 
+export const JSON2CIF = (name: string, data: string) => {
     const data_json = JSON.parse(data);
     if (!data_json) {
         return "No data loaded. Possibly because of refresh.";
@@ -136,7 +136,7 @@ _sb_ncbr_channel_profile.charge`,
 
     for (const ann of data_json["Annotations"]) {
         const annotationId = rows.annotation.length + 1;
-        rows.annotation.push(`${annotationId} ${ann["Id"]} "${ann["Name"]}" "${ann["Description"]}" "${ann["Reference"]}" ${ann["ReferenceType"]} `);
+        rows.annotation.push(`${ann["Id"]} ${ann["ChannelId"] ? ann["ChannelId"] : '?'} "${ann["Name"]}" "${ann["Description"]}" "${ann["Reference"]}" ${ann["ReferenceType"]} `);
     }
 
     const methods = data_json["Channels"];
@@ -202,35 +202,112 @@ _sb_ncbr_channel_profile.charge`,
             }
         }
     }
-    
+
 
     const cif = `
-${rows.annotation && headers.annotation}
-${rows.annotation.join("\n")}
+${rows.annotation.length > 0 ? headers.annotation : ''}
+${rows.annotation.length > 0 ? rows.annotation.join("\n") : ''}
 
-${rows.channel && headers.channel}
-${rows.channel.join("\n")}
+${rows.channel.length > 0 ? headers.channel : ''}
+${rows.channel.length > 0 ? rows.channel.join("\n") : ''}
 
-${rows.profile && headers.profile}
-${rows.profile.join("\n")}
+${rows.profile.length > 0 ? headers.profile : ''}
+${rows.profile.length > 0 ? rows.profile.join("\n") : ''}
 
-${rows.properties && headers.properties}
-${rows.properties.join("\n")}
+${rows.properties.length > 0 ? headers.properties : ''}
+${rows.properties.length > 0 ? rows.properties.join("\n") : ''}
 
-${rows.layer && headers.layer}
-${rows.layer.join("\n")}
+${rows.layer.length > 0 ? headers.layer : ''}
+${rows.layer.length > 0 ? rows.layer.join("\n") : ''}
 
-${rows.layer_weighted_properties && headers.layer_weighted_properties}
-${rows.layer_weighted_properties.join("\n")}
+${rows.layer_weighted_properties.length > 0 ? headers.layer_weighted_properties : ''}
+${rows.layer_weighted_properties.length > 0 ? rows.layer_weighted_properties.join("\n") : ''}
 
-${rows.residue && headers.residue}
-${rows.residue.join("\n")}
+${rows.residue.length > 0 ? headers.residue : ''}
+${rows.residue.length > 0 ? rows.residue.join("\n") : ''}
 
-${rows.layer_residue && headers.layer_residue}
-${rows.layer_residue.join("\n")}
+${rows.layer_residue.length > 0 ? headers.layer_residue : ''}
+${rows.layer_residue.length > 0 ? rows.layer_residue.join("\n") : ''}
 
-${rows.hetResidue && headers.het_residue}
-${rows.hetResidue.join("\n")}
+${rows.hetResidue.length > 0 ? headers.het_residue : ''}
+${rows.hetResidue.length > 0 ? rows.hetResidue.join("\n") : ''}
             `
     return `${cif} `;
 };
+
+export function cleanCifContent(cif: string): string {
+  const lines = cif.split(/\r?\n/);
+  const result: string[] = [];
+
+  let inLoop = false;
+  let loopHeaders: string[] = [];
+  let loopLines: string[] = [];
+  let keepLoop = true;
+  let loopType: "audit_conform" | "sbncbr" | null = null;
+
+  const flushLoop = () => {
+    if (!inLoop) return;
+
+    if (loopType === "audit_conform") {
+      const filteredLines = loopLines.filter(
+        line => !line.trim().startsWith("mmcif_tunnels_v10.dic")
+      );
+      if (filteredLines.length > 0) {
+        result.push("loop_", ...loopHeaders, ...filteredLines);
+      }
+    } else if (loopType === "sbncbr") {
+      // Skip this loop entirely
+    } else if (keepLoop) {
+      result.push("loop_", ...loopHeaders, ...loopLines);
+    }
+
+    // Reset state
+    inLoop = false;
+    loopHeaders = [];
+    loopLines = [];
+    keepLoop = true;
+    loopType = null;
+  };
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    if (trimmed === "loop_") {
+      flushLoop();
+      inLoop = true;
+      continue;
+    }
+
+    if (inLoop) {
+      if (trimmed.startsWith("_")) {
+        loopHeaders.push(line);
+        if (trimmed.startsWith("_sb_ncbr_channel")) {
+          loopType = "sbncbr";
+          keepLoop = false;
+        }
+        if (trimmed.startsWith("_audit_conform.")) {
+          loopType = "audit_conform";
+        }
+      } else if (
+        trimmed === "" ||
+        trimmed.startsWith("data_") ||
+        trimmed.startsWith("loop_") ||
+        trimmed.startsWith("#") ||
+        trimmed.startsWith("_")
+      ) {
+        flushLoop();
+        result.push(line);
+      } else {
+        loopLines.push(line);
+      }
+    } else {
+      result.push(line);
+    }
+  }
+
+  flushLoop(); // Final cleanup
+
+  const cleaned = result.map(line => line.trimEnd()).filter(line => line !== "");
+  return cleaned.join("\n") + "\n";
+}
+

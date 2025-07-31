@@ -122,9 +122,9 @@ export class LastVisibleChannels {
 }
 
 export class ChannelsDBData {
-    private static channelAnnotationCache: Map<string, ChannelAnnotation[]>;
+    private static channelAnnotationCache: Map<string, ChannelAnnotation[]> = new Map();
+    private static fileChannelAnnotationCache: Map<string, ChannelAnnotation[]> = new Map();
     private static channelDataCache: ChannelsDBChannels;
-    private static liningResiduesCache: string[];
     private static residueAnnotationCache: Map<string, ResidueAnnotation[]>;
 
     public static reload(pdbid: string) {
@@ -134,7 +134,6 @@ export class ChannelsDBData {
         channelsData.then(val => {
             this.channelAnnotationCache = val.channelsAnnotations;
             this.channelDataCache = val.channelsData;
-            this.liningResiduesCache = val.liningResidues;
         });
 
         proteinData.then(val => {
@@ -159,36 +158,22 @@ export class ChannelsDBData {
     }
 
     public static isCached() {
-        return this.channelAnnotationCache !== void 0
+        return (this.channelAnnotationCache !== void 0
             && this.channelDataCache !== void 0
-            && this.liningResiduesCache !== void 0
-            && this.residueAnnotationCache !== void 0;
-    }
-
-    public static getChannelAnnotations(pdbid: string, channelId: string) {
-
-        if (this.isCached()) {
-            return Promise.resolve(this.channelAnnotationCache.get(channelId));
-        }
-
-        return new Promise<ChannelAnnotation[] | undefined>((res, rej) => {
-            this.reload(pdbid)
-                .then(val => {
-                    res(this.channelAnnotationCache.get(channelId));
-                })
-                .catch(err => rej(err));
-        });
+            && this.residueAnnotationCache !== void 0);
     }
 
     public static getChannelAnnotationsImmediate(channelId: string) {
-        if (!this.isCached()) {
+        if (!this.isCached() && this.fileChannelAnnotationCache === void 0) {
             return null;
         }
 
         let annotations = this.channelAnnotationCache.get(channelId);
 
         if (annotations === void 0) {
-            return null;
+            annotations = this.fileChannelAnnotationCache.get(channelId);
+            if (annotations === void 0)
+                return null;
         }
 
         return annotations;
@@ -224,21 +209,6 @@ export class ChannelsDBData {
         });
     }
 
-    public static getResidueAnnotations(pdbid: string, seqNumberAndChain: string) {
-
-        if (this.isCached()) {
-            return Promise.resolve(this.residueAnnotationCache.get(seqNumberAndChain));
-        }
-
-        return new Promise<ResidueAnnotation[] | undefined>((res, rej) => {
-            this.reload(pdbid)
-                .then(val => {
-                    res(this.residueAnnotationCache.get(seqNumberAndChain));
-                })
-                .catch(err => rej(err));
-        });
-    }
-
     public static getResidueAnnotationsImmediate(seqNumberAndChain: string) {
 
         if (!this.isCached()) {
@@ -251,21 +221,6 @@ export class ChannelsDBData {
         }
 
         return annotations;
-    }
-
-    public static getResiduesAnnotations(pdbid: string) {
-
-        if (this.isCached()) {
-            return Promise.resolve(this.residueAnnotationCache);
-        }
-
-        return new Promise<Map<string, ResidueAnnotation[]>>((res, rej) => {
-            this.reload(pdbid)
-                .then(val => {
-                    res(this.residueAnnotationCache);
-                })
-                .catch(err => rej(err));
-        });
     }
 
     public static getResiduesAnnotationsImmediate() {
@@ -281,27 +236,27 @@ export class ChannelsDBData {
         return <Map<string, ResidueAnnotation[]>>annotations;
     }
 
-    public static getLiningResidues(pdbid: string) {
-
-        if (this.isCached()) {
-            return Promise.resolve(this.liningResiduesCache.slice());
-        }
-
-        return new Promise<string[] | undefined>((res, rej) => {
-            this.reload(pdbid)
-                .then(val => {
-                    if (this.liningResiduesCache === void 0) {
-                        res(void 0);
-                    }
-                    else {
-                        res(this.liningResiduesCache.slice());
-                    }
-                })
-                .catch(err => rej(err));
-        });
-    }
-
     public static getAnnotations() {
         return this.channelAnnotationCache;
+    }
+
+    public static setFileLoadedAnnotations(annotations: ChannelAnnotation[]) {
+        const fileAnnotations: Map<string, ChannelAnnotation[]> = new Map();
+        annotations.forEach((a) => {
+            if (!fileAnnotations.get(a.channelId!))  {
+                fileAnnotations.set(a.channelId!, []);
+            }
+            const tmp = fileAnnotations.get(a.channelId!);
+            if (tmp) {
+                tmp.push(a)
+                fileAnnotations.set(a.channelId!, tmp)
+            }
+        });
+
+        this.fileChannelAnnotationCache = fileAnnotations;
+    }
+
+    public static getFileLoadedAnnotations() {
+        return this.fileChannelAnnotationCache;
     }
 }
