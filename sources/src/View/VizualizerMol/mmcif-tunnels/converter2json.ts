@@ -1,6 +1,8 @@
 import { CifBlock, CifCategory } from "molstar/lib/mol-io/reader/cif";
 import { parseCifText } from "molstar/lib/mol-io/reader/cif/text/parser";
 import { Layers, Tunnel } from "../../../DataInterface";
+import { ChannelsDBData as ChannelsDBCache } from "../../../Cache";
+import { ChannelAnnotation } from "../../../ChannelsDBAPIService";
 
 interface Residue {
     Order: string;
@@ -49,7 +51,7 @@ interface ChannelsDBData {
         AlphaFillTunnels_MOLE: Tunnel[];
         AlphaFillTunnels_Caver: Tunnel[];
     };
-    Annotations: Annotation[];
+    Annotations: ChannelAnnotation[];
 }
 
 function getTunnelsBlock(blocks: any[]): any {
@@ -60,22 +62,24 @@ function getAtomSiteBlock(blocks: any[]): any {
     return blocks.find(block => block.categoryNames.includes("atom_site"));
 }
 
-function parseAnnotations(category: any): Annotation[] {
+function parseAnnotations(category: any): ChannelAnnotation[] {
     const rowCount = category.rowCount;
     const ids = category.getField("id");
+    const channelIds = category.getField("channel_id");
     const names = category.getField("name");
     const descriptions = category.getField("description");
     const references = category.getField("reference");
     const referenceTypes = category.getField("reference_type");
 
-    const annotations: Annotation[] = [];
+    const annotations: ChannelAnnotation[] = [];
     for (let i = 0; i < rowCount; i++) {
         annotations.push({
-            Id: ids.str(i),
-            Name: names.str(i),
-            Description: descriptions.str(i),
-            Reference: references.str(i),
-            ReferenceType: referenceTypes.str(i),
+            id: ids.str(i),
+            channelId: channelIds.str(i),
+            name: names.str(i),
+            description: descriptions.str(i),
+            link: references.str(i),
+            reference: referenceTypes.str(i),
         });
     }
     return annotations;
@@ -152,13 +156,13 @@ function parseChannels(category: any, atomSiteResiudes: Map<string, { name: stri
         channels.set(ids.str(i), channel);
     }
 
-    parseChannelProperties(channels, category.sb_ncbr_channel_props); // ✔️ 
-    parseLayerWeightedProperties(channels, category.sb_ncbr_channel_layer_props); // ✖️ missing logP, logD, logS. But have no idea why they put it there.
-    parseProfiles(channels, category.sb_ncbr_channel_profile); // ✔️
-    const residues = parseChannelResidues(category.sb_ncbr_channel_residue, atomSiteResiudes); // ✔️ 
-    const layerResidues = parseLayerResidues(category.sb_ncbr_channel_layer_residue, residues); // ✔️
-    parseHetResidues(channels, category.sb_ncbr_channel_het_residue);// ✔️ But they somehow left it in the schema, without any mention.
-    parseResidueFlow(channels, category.sb_ncbr_channel_layer, layerResidues); // ✔️ 
+    parseChannelProperties(channels, category.sb_ncbr_channel_props);
+    parseLayerWeightedProperties(channels, category.sb_ncbr_channel_layer_props);
+    parseProfiles(channels, category.sb_ncbr_channel_profile);
+    const residues = parseChannelResidues(category.sb_ncbr_channel_residue, atomSiteResiudes);
+    const layerResidues = parseLayerResidues(category.sb_ncbr_channel_layer_residue, residues);
+    parseHetResidues(channels, category.sb_ncbr_channel_het_residue);
+    parseResidueFlow(channels, category.sb_ncbr_channel_layer, layerResidues);
     parseLayers(channels, category.sb_ncbr_channel_layer, layerResidues);
     return Array.from(channels.values());
 }
@@ -429,9 +433,14 @@ function parseCifToChannelsDBData(blocks: CifBlock[]): ChannelsDBData {
     const atomSiteBlock = getAtomSiteBlock(blocks);
     if (!tunnelsBlock) throw new Error("No tunnels block found.");
 
-    const annotations = parseAnnotations(tunnelsBlock.categories.sb_ncbr_channel_annotation);
+    let annotations: ChannelAnnotation[] = [];
+    if (tunnelsBlock.categories.sb_ncbr_channel_annotation)
+        annotations = parseAnnotations(tunnelsBlock.categories.sb_ncbr_channel_annotation);
+        ChannelsDBCache.setFileLoadedAnnotations(annotations);
     const residuesNames = parseAtomSite(atomSiteBlock.categories);
-    const channels = parseChannels(tunnelsBlock.categories, residuesNames);
+    let channels: Tunnel[] = [];
+    if (tunnelsBlock.categories)
+        channels = parseChannels(tunnelsBlock.categories, residuesNames);
 
     return {
         Channels: {

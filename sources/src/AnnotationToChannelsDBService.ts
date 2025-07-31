@@ -19,6 +19,7 @@ export type ReferenceType = "DOI" | "Pubmed" | "";
 
 export interface TunnelAnnotation {
     Id: string,
+    ChannelId?: string,
     Name: string,
     Description: string,
     Reference: string,

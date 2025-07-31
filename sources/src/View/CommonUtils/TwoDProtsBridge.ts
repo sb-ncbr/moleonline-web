@@ -54,7 +54,7 @@ export class TwoDProtsBridge {
         const convertIdTunnels: Map<string, VizualizedTunnel> = new Map();
         let id = 0;
 
-        this.vizualizedChannels.forEach(tunnel => {
+        this.allChannels.forEach(tunnel => {
             const t = {
                 Id: id.toString(),
                 Type: tunnel.Type,

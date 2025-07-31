@@ -1,17 +1,6 @@
 import React from "react";
 import { Context } from "./Context";
-import { Viewer } from "./MolViewer/UI";
-import { SequenceViewer } from "./UI/SequenceViewer/newUI";
-import { QuickHelp } from "./UI/QuickHelp/UI";
-import { LayerVizualizer } from "./UI/LayerVizualizer/UI";
-import { AglomeredParameters } from "./UI/AglomeredParameters/UI";
-import { LayersVizualizerSettings, Vizualizer } from "./LayerVizualizer/Vizualizer";
-import { Instances } from "../Bridge";
-import { LayerProperties } from "./UI/LayerProperties/UI";
-import { LayerResidues } from "./UI/LayerResidues/UI";
-import { LiningResidues } from "./UI/LiningResidues/UI";
-import { ChannelParameters } from "./UI/ChannelParameters/UI";
-import { doAfterCollapseActivated, leftPanelTabs } from "./CommonUtils/Tabs";
+import { leftPanelTabs } from "./CommonUtils/Tabs";
 import { PluginControl } from "./UI/PluginControl/UI";
 import { ChannelsControl } from "./UI/PluginControl/ChannelsUI";
 import { PluginReactContext } from "molstar/lib/mol-plugin-ui/base";
@@ -86,14 +75,16 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                     const o = SbNcbrTunnelsPropertyProvider.isApplicable(model!);
 
                     const data = await loadCifTunnels(`https://api.mole.upol.cz/Data/${computationId}?submitId=0&format=molecule`);
-                    console.log(data);
                     if (data) {
                         const dataObj = { Channels: data.Channels } as MoleData;
                         let guidData = TunnelsId.generateGuidAll(dataObj.Channels);
-                        TunnelsId.generateIdAll(guidData, computationId, 'file');
-                        TunnelName.reload({ Channels: guidData }, '-2');
-                        Tunnels.addChannels('-2', guidData);
-                        channels.set(-2, guidData);
+                        ChannelsDBDataCache.setFileLoadedAnnotations(data.Annotations);
+                        const annotations = ChannelsDBDataCache.getFileLoadedAnnotations();
+                        const completeChannelsDbData = TunnelsId.generateIdAllWithAnnotations(annotations, guidData, compId, 'file');
+                        Tunnels.setChannelsDB(completeChannelsDbData);
+                        TunnelName.reload({ Channels: completeChannelsDbData }, '-2');
+                        Tunnels.addChannels('-2', completeChannelsDbData);
+                        channels.set(-2, completeChannelsDbData);
                     }
                     Tunnels.invokeOnTunnelsLoaded();
                     this.setState({ channelsData: channels, isLoadingChannels: false })

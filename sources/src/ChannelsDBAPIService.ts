@@ -9,6 +9,7 @@ export interface ResidueAnnotation {
 };
 export interface ChannelAnnotation {
     id: string,
+    channelId?: string,
     name: string,
     description: string,
     reference: string,
