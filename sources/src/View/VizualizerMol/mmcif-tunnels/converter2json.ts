@@ -121,12 +121,11 @@ function parseChannels(category: any, atomSiteResiudes: Map<string, { name: stri
             Type: types.str(i),
             // Method: methods.str(i),
             // Software: software.str(i),
-            Auto: autos.int(i) === 1,
+            Auto: autos.str(i) === 'YES',
             Cavity: cavities.float(i),
             Profile: [],
             Layers: {
                 ResidueFlow: [],
-                HetResidues: [],
                 LayerWeightedProperties: {
                     Hydrophobicity: 0,
                     Hydropathy: 0,
@@ -157,11 +156,10 @@ function parseChannels(category: any, atomSiteResiudes: Map<string, { name: stri
     }
 
     parseChannelProperties(channels, category.sb_ncbr_channel_props);
-    parseLayerWeightedProperties(channels, category.sb_ncbr_channel_layer_props);
+    parseLayerWeightedProperties(channels, category.sb_ncbr_channel_layer_weighted_props);
     parseProfiles(channels, category.sb_ncbr_channel_profile);
     const residues = parseChannelResidues(category.sb_ncbr_channel_residue, atomSiteResiudes);
     const layerResidues = parseLayerResidues(category.sb_ncbr_channel_layer_residue, residues);
-    parseHetResidues(channels, category.sb_ncbr_channel_het_residue);
     parseResidueFlow(channels, category.sb_ncbr_channel_layer, layerResidues);
     parseLayers(channels, category.sb_ncbr_channel_layer, layerResidues);
     return Array.from(channels.values());
@@ -277,7 +275,7 @@ function parseChannelResidues(category: any, resiudes: Map<string, { name: strin
             Name: residue ? residue.name : '',
             SequenceNumber: sequenceNumbers.int(i),
             ChainId: chainIds.str(i),
-            Backbone: backbones.str(i) === 'True',
+            Backbone: backbones.str(i) === 'YES',
         });
     }
     return residues;
@@ -288,7 +286,6 @@ function parseLayerResidues(category: any, channelResidues: Map<string, Residue>
     const layerIds = category.getField("layer_id");
     const resiudeIds = category.getField("residue_id");
     const flows = category.getField("order");
-    const channelIds = category.getField("channel_id");
 
     const layerResidues: Map<string, { residues: string[], flowIndicies: string[] }> = new Map();
     let currentLayerId = layerIds.str(0);
@@ -349,24 +346,6 @@ function parseResidueFlow(channels: Map<string, Tunnel>, layersCategory: any, re
     }
 }
 
-function parseHetResidues(channels: Map<string, Tunnel>, hetResiduesCategory: any) {
-    let rowCount = hetResiduesCategory.rowCount;
-    const ids = hetResiduesCategory.getField("id");
-    const channelIds = hetResiduesCategory.getField("channel_id");
-    const names = hetResiduesCategory.getField("name");
-    const seqNumbers = hetResiduesCategory.getField("sequence_number");
-    const chainIds = hetResiduesCategory.getField("chain_id");
-    const bottleneck = hetResiduesCategory.getField("bottleneck");
-
-    for (let i = 0; i < rowCount; i++) {
-        const channel = channels.get(channelIds.str(i));
-        if (channel) {
-            channel.Layers.HetResidues.push(`${names.str(i)} ${seqNumbers.str(i)} ${chainIds.str(i)}${bottleneck.str(i) === "True" ? " Bottleneck" : ""}`);
-        }
-    }
-
-}
-
 function parseLayers(channels: Map<string, Tunnel>, layersCategory: any, residues: Map<string, {
     residues: string[];
     flowIndicies: string[];
@@ -388,9 +367,8 @@ function parseLayers(channels: Map<string, Tunnel>, layersCategory: any, residue
     const polarity = layersCategory.getField("polarity");
     const mutability = layersCategory.getField("mutability");
 
-    const layers: Layers[] = [];
     for (let i = 0; i < rowCount; i++) {
-        const layerId = (i + 1).toString();
+        const layerId = ids.str(i);
         let channel = channels.get(channelIds.str(i));
         let layerResidues = residues.get(layerId);
         if (channel) {
@@ -401,9 +379,9 @@ function parseLayers(channels: Map<string, Tunnel>, layersCategory: any, residue
                     MinFreeRadius: minFreeRadius.float(i),
                     StartDistance: startDistance.float(i),
                     EndDistance: endDistance.float(i),
-                    LocalMinimum: localMinimum.str(i) === "True",
-                    Bottleneck: bottleneck.str(i) === "True",
-                    bottleneck: bottleneck.str(i) === "True"
+                    LocalMinimum: localMinimum.str(i) === "YES",
+                    Bottleneck: bottleneck.str(i) === "YES",
+                    bottleneck: bottleneck.str(i) === "YES"
                 },
                 Residues: layerResidues ? layerResidues.residues : [],
                 FlowIndices: layerResidues ? layerResidues.flowIndicies : [],

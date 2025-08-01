@@ -25,7 +25,6 @@ export interface LayersInfo {
 };
 export interface Layers {
     ResidueFlow: string[],
-    HetResidues: any[], //Not Used
     LayerWeightedProperties: Layerweightedproperties
     LayersInfo: LayersInfo[]
 };
