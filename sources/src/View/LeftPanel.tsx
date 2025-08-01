@@ -20,6 +20,8 @@ import { loadCifTunnels } from "./VizualizerMol/mmcif-tunnels/converter2json";
 import { TunnelsId } from "./CommonUtils/TunnelsId";
 import { ChannelAnnotation } from "../ChannelsDBAPIService";
 import WaveLoader from "./CommonUtils/WaveLoader";
+import { LoadingStatusDisplay } from "./CommonUtils/LoadingInfo/LoadingStatusDisplay";
+import { LoadingStatus } from "./CommonUtils/LoadingInfo/LoadingStatus";
 
 declare function $(p: any): any;
 
@@ -29,6 +31,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
     private currentProteinId: string;
 
     componentDidMount() {
+        LoadingStatus.setTotalSteps(6);
         leftPanelTabs();
         let params = getParameters();
         let channelsDB = false;
@@ -59,9 +62,11 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
     }
 
     loadChannels() {
+        LoadingStatus.log('Loading channels from current session...', 3);
         let params = getParameters();
         if (params === null) {
             this.setState({ isLoading: false, error: `Sorry. Given url is not valid.` });
+            LoadingStatus.clear(); 
             return;
         }
         this.setState({ compId: params.computationId })
@@ -70,11 +75,12 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
 
         ComputationInfo.DataProvider.get(computationId, ((compId: string, info: CompInfo) => {
             (async () => {
+                LoadingStatus.log('Processing data from current session...', 4);
                 if (info.PdbId === '') {
                     const context = Context.getInstance();
                     const model = context.model;
                     const o = SbNcbrTunnelsPropertyProvider.isApplicable(model!);
-
+                    LoadingStatus.log('Parsing data from current session...', 5);
                     const data = await loadCifTunnels(`https://api.mole.upol.cz/Data/${computationId}?submitId=0&format=molecule`);
                     if (data) {
                         const dataObj = { Channels: data.Channels } as MoleData;
@@ -88,6 +94,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                         channels.set(-2, completeChannelsDbData);
                     }
                     Tunnels.invokeOnTunnelsLoaded();
+                    LoadingStatus.log('Finalizing…', 6);
                     this.setState({ channelsData: channels, isLoadingChannels: false })
                     return;
                 }
@@ -114,6 +121,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                     }
                 }
                 Tunnels.invokeOnTunnelsLoaded();
+                LoadingStatus.log('Finalizing…', 6);
                 this.setState({ channelsData: channels, isLoadingChannels: false })
             }).catch(async error => {
                 if (info.Submissions.length === 0) {
@@ -136,9 +144,11 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                     }
                     Tunnels.invokeOnTunnelsLoaded();
                     this.setState({ channelsData: channels, isLoadingChannels: false })
+                    LoadingStatus.log('Finalizing…', 6);
                 } catch (error) {
                     this.setState({isLoadingChannels: false, error })
                 }
+                LoadingStatus.clear();
             });
         }).bind(this))
     }
@@ -146,9 +156,10 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
     load(channelsDB: boolean) {
         const plugin = Context.getInstance().plugin;
         this.setState({ isLoading: true, error: void 0 });
-        console.log("ChannelsDB: " + channelsDB)
+         LoadingStatus.log('Loading channels from ChannelsDB...', 1);
         loadData(channelsDB)
             .then(data => {
+                LoadingStatus.log('Processing data from ChannelsDB...', 2);
                 console.log("AFTER LOAD DATA");
                 if (CommonOptions.DEBUG_MODE)
                     console.log("loading done ok");
@@ -222,7 +233,11 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
             let controls: any[] = [];
 
             if (this.state.isLoading || this.state.isLoadingChannels) {
-                controls.push(<WaveLoader/>);
+                controls.push(
+                    <div>
+                        <WaveLoader/>
+                        <LoadingStatusDisplay />
+                    </div>);
             } else {
                 if (this.state.error) {
                     let error = this.state.error as string | undefined;

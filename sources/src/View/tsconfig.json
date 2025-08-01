@@ -66,6 +66,8 @@
     "CommonUtils/LayerColors.ts",
     "CommonUtils/TwoDProtsBridge.ts",
     "CommonUtils/WaveLoader.tsx",
+    "CommonUtils/LoadingInfo/LoadingStatus.ts",
+    "CommonUtils/LoadingInfo/LoadingStatusDisplay.tsx",
 
     //Annotation data provider
     /*"../AnnotationDataProvider.ts", */
