@@ -16,6 +16,7 @@ import { loadData, showCavityVisuals, showChannelVisuals, showMembraneVisuals, s
 import { Context } from "../../Context";
 import { StateSelection } from "molstar/lib/mol-state";
 import { Subscription } from "rxjs";
+import WaveLoader from "../../CommonUtils/WaveLoader";
 
 declare function $(p: any): any;
 
@@ -126,7 +127,7 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
             let controls: any[] = [];
 
             if (this.state.isLoading) {
-                controls.push(<h1>Loading...</h1>);
+                controls.push(<WaveLoader/>);
             } else {
                 if (this.state.error) {
                     let error = this.state.error as string | undefined;
