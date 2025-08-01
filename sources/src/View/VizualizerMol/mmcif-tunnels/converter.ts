@@ -6,7 +6,6 @@ type Rows = {
     "layer_weighted_properties": string[],
     "residue": string[],
     "layer_residue": string[],
-    "hetResidue": string[],
     "profile": string[]
 }
 const roundItems = (values: string[]) => {
@@ -35,10 +34,10 @@ _sb_ncbr_channel_annotation.reference_type`,
 
     "channel": `loop_
 _sb_ncbr_channel.id
-_sb_ncbr_channel.type # Path, Pore, etc
-_sb_ncbr_channel.method # CSATunnel, etc
-_sb_ncbr_channel.software # MOLE, Caver
-_sb_ncbr_channel.auto # bool
+_sb_ncbr_channel.type
+_sb_ncbr_channel.method
+_sb_ncbr_channel.software
+_sb_ncbr_channel.auto
 _sb_ncbr_channel.cavity`,
 
     "properties": `loop_
@@ -63,8 +62,8 @@ _sb_ncbr_channel_layer.min_radius
 _sb_ncbr_channel_layer.min_free_radius
 _sb_ncbr_channel_layer.start_distance
 _sb_ncbr_channel_layer.end_distance
-_sb_ncbr_channel_layer.local_minimum # bool
-_sb_ncbr_channel_layer.bottleneck # bool
+_sb_ncbr_channel_layer.local_minimum
+_sb_ncbr_channel_layer.bottleneck
 _sb_ncbr_channel_layer.charge
 _sb_ncbr_channel_layer.numPositives
 _sb_ncbr_channel_layer.numNegatives
@@ -74,14 +73,14 @@ _sb_ncbr_channel_layer.polarity
 _sb_ncbr_channel_layer.mutability`,
 
     "layer_weighted_properties": `loop_
-_sb_ncbr_channel_layer_props.channel_id  
-_sb_ncbr_channel_layer_props.hydropathy
-_sb_ncbr_channel_layer_props.hydrophobicity
-_sb_ncbr_channel_layer_props.mutability
-_sb_ncbr_channel_layer_props.polarity
-_sb_ncbr_channel_layer_props.logD
-_sb_ncbr_channel_layer_props.logP
-_sb_ncbr_channel_layer_props.logS`,
+_sb_ncbr_channel_layer_weighted_props.channel_id  
+_sb_ncbr_channel_layer_weighted_props.hydropathy
+_sb_ncbr_channel_layer_weighted_props.hydrophobicity
+_sb_ncbr_channel_layer_weighted_props.mutability
+_sb_ncbr_channel_layer_weighted_props.polarity
+_sb_ncbr_channel_layer_weighted_props.logD
+_sb_ncbr_channel_layer_weighted_props.logP
+_sb_ncbr_channel_layer_weighted_props.logS`,
 
     "residue": `loop_
 _sb_ncbr_channel_residue.channel_id
@@ -95,14 +94,6 @@ _sb_ncbr_channel_layer_residue.layer_id
 _sb_ncbr_channel_layer_residue.channel_id
 _sb_ncbr_channel_layer_residue.order
 _sb_ncbr_channel_layer_residue.residue_id`,
-
-    "het_residue": `loop_
-_sb_ncbr_channel_het_residue.id
-_sb_ncbr_channel_het_residue.channel_id
-_sb_ncbr_channel_het_residue.name
-_sb_ncbr_channel_het_residue.sequence_number
-_sb_ncbr_channel_het_residue.chain_id
-_sb_ncbr_channel_het_residue.bottleneck`,
 
     "profile": `loop_
 _sb_ncbr_channel_profile.channel_id
@@ -130,7 +121,6 @@ export const JSON2CIF = (name: string, data: string) => {
         "layer_weighted_properties": [],
         "residue": [],
         "layer_residue": [],
-        "hetResidue": [],
         "profile": []
     }
 
@@ -145,7 +135,7 @@ export const JSON2CIF = (name: string, data: string) => {
         for (const channel of channels) {
             const channelId = channel["Id"]
             const [method_name, software] = method.split("_");
-            rows.channel.push(`${channelId} ${channel["Type"].replace(/\s/g, "_")} ${method_name} ${software} ${capitalize(channel["Auto"])} ${channel["Cavity"]} `);
+            rows.channel.push(`${channelId} ${channel["Type"].replace(/\s/g, "_")} ${method_name} ${software} ${capitalize(channel["Auto"]) === 'True' ? 'YES' : 'NO'} ${channel["Cavity"]} `);
 
             const profiles: [] = channel["Profile"];
             for (const profile of profiles) {
@@ -153,16 +143,10 @@ export const JSON2CIF = (name: string, data: string) => {
             }
 
             const layers = channel["Layers"];
-            const hets = layers["HetResidues"];
             const layerWeightedProps = layers["LayerWeightedProperties"];
             // const residueFlow = layers["ResidueFlow"];
             const layersInfo = layers["LayersInfo"];
             const properties = channel["Properties"];
-            for (const het of hets) {
-                const split_het = het.split(" ");
-                const hetId = rows.hetResidue.length + 1;
-                rows.hetResidue.push(`${hetId} ${channelId} ${split_het[0]} ${split_het[1]} ${split_het[2]} ${split_het.length > 3 ? "True" : "False"} `)
-            }
 
             rows.properties.push(`${channelId} ${properties.Charge} ${properties.Hydropathy} ${properties.Hydrophobicity} ${properties.Mutability} ${properties.NumNegatives} ${properties.NumPositives} ${properties.Polarity} ${properties.LogD ?? '?'} ${properties.LogP ?? '?'} ${properties.LogS ?? '?'} ${properties.Ionizable ?? '?'} ${properties.BRadius ?? '?'}`)
             rows.layer_weighted_properties.push(`${channelId} ${layerWeightedProps.Hydropathy} ${layerWeightedProps.Hydrophobicity} ${layerWeightedProps.Mutability} ${layerWeightedProps.Polarity} ${layerWeightedProps.LogD ?? '?'} ${layerWeightedProps.LogP ?? '?'} ${layerWeightedProps.logS ?? '?'}`)
@@ -171,8 +155,8 @@ export const JSON2CIF = (name: string, data: string) => {
                 const properties = layer["Properties"];
                 const geometry = layer["LayerGeometry"]
 
-                const localMinimum = "LocalMinimum" in geometry ? `${capitalize(geometry["LocalMinimum"].toString())}` : "False";
-                const bottleneck = "Bottleneck" in geometry ? `${capitalize(geometry["Bottleneck"].toString())}` : "False";
+                const localMinimum = "LocalMinimum" in geometry ? `${capitalize(geometry["LocalMinimum"].toString()) === 'True' ? 'YES' : 'NO'}` : "NO";
+                const bottleneck = "Bottleneck" in geometry ? `${capitalize(geometry["Bottleneck"].toString()) === 'True' ? 'YES' : 'NO'}` : "NO";
                 const layerId = rows.layer.length + 1;
 
                 rows.layer.push(`${channelId} ${order + 1} ${roundItems([geometry["MinRadius"], geometry["MinFreeRadius"], geometry["StartDistance"], geometry["EndDistance"]])} ${localMinimum} ${bottleneck} ${properties["Charge"]} ${properties["NumPositives"]} ${properties["NumNegatives"]} ${properties["Hydrophobicity"]} ${properties["Hydropathy"]} ${properties["Polarity"]} ${properties["Mutability"]} `);
@@ -192,7 +176,7 @@ export const JSON2CIF = (name: string, data: string) => {
 
                     if (resIdx === -1) {
                         resIdx = rows.residue.length + 1;
-                        rows.residue.push(`${channelId} ${resIdx} ${split_res.length > 3 ? "True" : "False"} ${res_str} `);
+                        rows.residue.push(`${channelId} ${resIdx} ${split_res.length > 3 ? "YES" : "NO"} ${res_str} `);
                         rows.layer_residue.push(`${layerId} ${channelId} ${flowIndicies[flow]} ${resIdx} `);
                     } else {
                         resIdx = resIdx + 1;
@@ -228,9 +212,6 @@ ${rows.residue.length > 0 ? rows.residue.join("\n") : ''}
 
 ${rows.layer_residue.length > 0 ? headers.layer_residue : ''}
 ${rows.layer_residue.length > 0 ? rows.layer_residue.join("\n") : ''}
-
-${rows.hetResidue.length > 0 ? headers.het_residue : ''}
-${rows.hetResidue.length > 0 ? rows.hetResidue.join("\n") : ''}
             `
     return `${cif} `;
 };
