@@ -3,8 +3,8 @@
  */
 
 import React from "react";
-import { Events, Instances } from "../../../Bridge";
-import { ChannelsDBChannels, MoleData, Tunnel, Membrane as MembraneObject, Point, ChannelSourceData, TunnelMetaInfo } from "../../../DataInterface";
+import { Events } from "../../../Bridge";
+import { MoleData, Tunnel, Membrane as MembraneObject, Point, ChannelSourceData, TunnelMetaInfo } from "../../../DataInterface";
 import { LightResidueInfo, SelectionHelper, StringPoint } from "../../CommonUtils/Selection";
 import { Residues } from "../../CommonUtils/Residues";
 import { Tunnels } from "../../CommonUtils/Tunnels";
@@ -17,6 +17,7 @@ import { Context } from "../../Context";
 import { StateSelection } from "molstar/lib/mol-state";
 import { Subscription } from "rxjs";
 import WaveLoader from "../../CommonUtils/WaveLoader";
+import { LoadingStatusDisplay } from "../../CommonUtils/LoadingInfo/LoadingStatusDisplay";
 
 declare function $(p: any): any;
 
@@ -127,7 +128,11 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
             let controls: any[] = [];
 
             if (this.state.isLoading) {
-                controls.push(<WaveLoader/>);
+                controls.push(
+                    <div>
+                        <WaveLoader />
+                        <LoadingStatusDisplay />
+                    </div>);
             } else {
                 if (this.state.error) {
                     let error = this.state.error as string | undefined;
