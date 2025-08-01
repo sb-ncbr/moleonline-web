@@ -884,7 +884,6 @@ async function showChannelDefaultVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
         const [loci, ref] = await context.renderTunnel(channel);
         channel.__ref = ref;
         channel.__loci = loci as Shape.Loci;
-        Tunnels.addChannel(channel);
     }
 
     return Promise.resolve().then(() => {
@@ -906,22 +905,7 @@ export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
         if (!!channel.__isVisible === visible && !forceRepaint) continue;
 
         if (forceRepaint !== void 0 && forceRepaint) {
-            Tunnels.removeChannel(channel.__id);
             await PluginCommands.State.RemoveObject(context.plugin, { state: context.plugin.state.data, ref: channel.__ref });
-        }
-
-        const svgElement = document.getElementById('svgContainer');
-        const elementId = TwoDProtsBridge.getFromIdTable(channel.Id)
-        const element = document.getElementById(`${elementId}`)
-        if (svgElement && element) {
-            const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${elementId}`)}`);
-            if (targetElement) {
-                if (visible) {
-                    targetElement.removeAttribute("display");
-                } else {
-                    targetElement.setAttribute("display", "none");
-                }
-            }
         }
 
         channel.__isVisible = visible;
@@ -939,7 +923,6 @@ export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
         }
 
         if (!visible) {
-            Tunnels.removeChannel(channel.__id);
             await PluginCommands.State.RemoveObject(context.plugin, { state: context.plugin.state.data, ref: channel.__ref });
             LayerColors.invokeOnChannelRemoved(channel.__ref);
             LastVisibleChannels.remove(channel);
@@ -950,8 +933,24 @@ export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
             const [loci, ref] = await context.renderTunnel(channel);
             channel.__ref = ref;
             channel.__loci = loci as Shape.Loci;
-            Tunnels.addChannel(channel);
             LastVisibleChannels.set(channel);
+        }
+
+        const svgElement = document.getElementById('svgContainer');
+        const elementId = TwoDProtsBridge.getFromIdTable(channel.Id)
+        const element = document.getElementById(`${elementId}`)
+        if (svgElement && element) {
+            const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${elementId}`)}`);
+            if (targetElement) {
+                if (visible) {
+                    targetElement.removeAttribute("display");
+                    targetElement.setAttribute('style', `fill: ${Color.toHexStyle(channel.__color)}; stroke: ${Color.toHexStyle(channel.__color)}; opacity: 1`);
+                    targetElement.dataset.selectOriginalFill = Color.toHexStyle(channel.__color); 
+                    targetElement.dataset.hoverOriginalFill = Color.toHexStyle(channel.__color);
+                } else {
+                    targetElement.setAttribute("display", "none");
+                }
+            }
         }
     }
 

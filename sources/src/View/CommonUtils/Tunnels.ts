@@ -1,5 +1,5 @@
 import { ReferenceType, TunnelAnnotation } from "../../AnnotationToChannelsDBService";
-import { ChannelsDBData, TunnelName } from "../../Cache";
+import { ChannelsDBData, LastVisibleChannels, TunnelName } from "../../Cache";
 import { roundToDecimal } from "../../Common/Util/Numbers";
 import { ChannelsDBChannels, ExportTunnel, Tunnel, TunnelMetaInfo } from "../../DataInterface";
 import { TunnelsId } from "./TunnelsId";
@@ -11,17 +11,6 @@ export class Tunnels {
     private static onTunnelsLoaded: { handler: () => void }[];
     private static onTunnelsCollect: { handler: (submitId: number) => void }[];
     private static onTunnelsHide: { handler: () => void }[];
-    private static vizualizedChannels: Map<string, (Tunnel&TunnelMetaInfo)> = new Map();
-
-    public static addChannel(tunnel: Tunnel & TunnelMetaInfo) {
-        this.vizualizedChannels.set(tunnel.__id, tunnel);
-    }
-
-    public static removeChannel(id: string) {
-        if (this.vizualizedChannels.has(id)) {
-            this.vizualizedChannels.delete(id);
-        }
-    }
 
     public static generateTunnelsDataJson() {
             let annotations = ChannelsDBData.getAnnotations();
@@ -30,7 +19,7 @@ export class Tunnels {
             const annotationsList: TunnelAnnotation[] = [];
             const allTunnels: ExportTunnel[] = [];
     
-            for (const tunnel of Array.from(this.vizualizedChannels.values())) {
+            for (const tunnel of LastVisibleChannels.get()) {
                 allTunnels.push({
                     Type: tunnel.Type,
                     Id: tunnel.Id,
@@ -70,7 +59,7 @@ export class Tunnels {
 
     public static setChannelsDB(channels: ChannelsDBChannels) {
         this.loadedChannelsDB = channels;
-        // TwoDProtsBridge.addTunnels(channels);
+        TwoDProtsBridge.addTunnels(channels);
     }
 
     public static getChannelsDB() {
@@ -130,8 +119,7 @@ export class Tunnels {
 
     public static addChannels(submitId: string, channels: ChannelsDBChannels) {
         this.loadedChannels.set(submitId, channels);
-        console.log(channels);
-        // TwoDProtsBridge.addTunnels(channels);
+        TwoDProtsBridge.addTunnels(channels);
     }
 
     public static getChannels() {
