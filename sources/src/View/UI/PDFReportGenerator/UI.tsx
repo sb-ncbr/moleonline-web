@@ -51,7 +51,7 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
             }
             let originalVisibleChannels = LastVisibleChannels.get();
             showChannelVisuals(originalVisibleChannels as (Tunnel[] & TunnelMetaInfo[]), false).then(() => {
-                this.generateReport();
+                this.generateReport(originalVisibleChannels as (Tunnel[] & TunnelMetaInfo[]));
             })
         });
     }
@@ -456,7 +456,7 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
         return template;
     }
 
-    private generateReport() {
+    private generateReport(originalVisibleChannels: (Tunnel & TunnelMetaInfo)[]) {
         let urlParams = getParameters();
         if (urlParams === null) {
             console.log("URL parameters cannot be parsed!");
@@ -498,7 +498,6 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
         }
 
         configParamsPromise.then((val) => {
-            let originalVisibleChannels = LastVisibleChannels.get();
             Service.getPDFReportTemplateData().then(template => {
                 PDFReportGenerator.templateCache = template;
                 if (this.state.data === null) {
