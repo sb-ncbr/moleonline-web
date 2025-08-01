@@ -65,6 +65,7 @@
     "CommonUtils/Validators.ts",
     "CommonUtils/LayerColors.ts",
     "CommonUtils/TwoDProtsBridge.ts",
+    "CommonUtils/WaveLoader.tsx",
 
     //Annotation data provider
     /*"../AnnotationDataProvider.ts", */

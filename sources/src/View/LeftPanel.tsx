@@ -19,6 +19,7 @@ import { SbNcbrTunnelsPropertyProvider } from "./VizualizerMol/tunnels-extension
 import { loadCifTunnels } from "./VizualizerMol/mmcif-tunnels/converter2json";
 import { TunnelsId } from "./CommonUtils/TunnelsId";
 import { ChannelAnnotation } from "../ChannelsDBAPIService";
+import WaveLoader from "./CommonUtils/WaveLoader";
 
 declare function $(p: any): any;
 
@@ -221,7 +222,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
             let controls: any[] = [];
 
             if (this.state.isLoading || this.state.isLoadingChannels) {
-                controls.push(<h1>Loading...</h1>);
+                controls.push(<WaveLoader/>);
             } else {
                 if (this.state.error) {
                     let error = this.state.error as string | undefined;
