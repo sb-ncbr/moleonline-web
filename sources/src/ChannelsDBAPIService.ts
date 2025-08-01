@@ -1,6 +1,7 @@
 import { AnnotationObject, Annotations, ChannelsDBChannels, ChannelsDBData, Tunnel } from "./DataInterface";
 import { Fetching } from "./FetchingIf";
 import { CommonOptions, DataSources } from "../config/common";
+import { UUID } from "molstar/lib/mol-util";
 
 export interface ResidueAnnotation {
     text: string,
@@ -109,7 +110,7 @@ export class ApiService {
             }
             list.push(
                 {
-                    id: item.Id,
+                    id: UUID.create22(),
                     name: item.Name,
                     description: item.Description,
                     reference: item.Reference,
