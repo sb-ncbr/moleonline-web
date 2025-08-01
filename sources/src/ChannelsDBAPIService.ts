@@ -13,7 +13,8 @@ export interface ChannelAnnotation {
     name: string,
     description: string,
     reference: string,
-    link: string
+    refernceType: string,
+    link?: string
 };
 export interface ProteinAnnotation {
     function: string,
@@ -112,6 +113,7 @@ export class ApiService {
                     name: item.Name,
                     description: item.Description,
                     reference: item.Reference,
+                    refernceType: item.ReferenceType,
                     link: this.createLink(item.ReferenceType, item.Reference)
                 }
             );
@@ -157,7 +159,7 @@ export class ApiService {
 
     //PUBMEDID vs UniProtId ??? PUBMED není v JSONU vůbec přítomné
     //link pro uniprot používá adresu http://www.uniprot.org/uniprot/
-    private static createLink(type: string, reference: string): string {
+    public static createLink(type: string, reference: string): string {
         if (type === "DOI") {
             return `https://doi.org/${reference}`;
         }

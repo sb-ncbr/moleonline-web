@@ -37,9 +37,9 @@ export class Tunnels {
                             annotationsList.push({
                                 Id: t_ann.id,
                                 Name: t_ann.name,
-                                Reference: t_ann.link,
+                                Reference: t_ann.reference,
                                 Description: t_ann.description,
-                                ReferenceType: t_ann.reference as ReferenceType,
+                                ReferenceType: t_ann.refernceType as ReferenceType,
                                 ChannelId: tunnel.Id,
                             })
                         })

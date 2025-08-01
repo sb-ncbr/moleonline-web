@@ -2,7 +2,8 @@ import { CifBlock, CifCategory } from "molstar/lib/mol-io/reader/cif";
 import { parseCifText } from "molstar/lib/mol-io/reader/cif/text/parser";
 import { Layers, Tunnel } from "../../../DataInterface";
 import { ChannelsDBData as ChannelsDBCache } from "../../../Cache";
-import { ChannelAnnotation } from "../../../ChannelsDBAPIService";
+import { ChannelAnnotation, ApiService } from "../../../ChannelsDBAPIService";
+
 
 interface Residue {
     Order: string;
@@ -78,8 +79,9 @@ function parseAnnotations(category: any): ChannelAnnotation[] {
             channelId: channelIds.str(i),
             name: names.str(i),
             description: descriptions.str(i),
-            link: references.str(i),
-            reference: referenceTypes.str(i),
+            reference: references.str(i),
+            refernceType: referenceTypes.str(i),
+            link: ApiService.createLink(referenceTypes.str(i), references.str(i)),
         });
     }
     return annotations;
