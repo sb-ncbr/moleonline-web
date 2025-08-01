@@ -1,10 +1,5 @@
-import { ChannelsDBChannels, ExportTunnel, Profile, Tunnel, TunnelMetaInfo } from "../../DataInterface";
-import { Color } from "molstar/lib/mol-util/color";
+import { ChannelsDBChannels, Profile, Tunnel, TunnelMetaInfo } from "../../DataInterface";
 import murmurhash from 'murmurhash';
-import { ChannelsDBData } from "../../Cache";
-import { ReferenceType, TunnelAnnotation } from "../../AnnotationToChannelsDBService";
-import { TunnelsId } from "./TunnelsId";
-
 
 interface TunnelColor {
     Color: string
@@ -49,8 +44,8 @@ export class TwoDProtsBridge {
         return this.pdbId;
     }
 
-    public static getVizualizedChannels(): (Tunnel&TunnelColor)[] {
-        const channels: (Tunnel&TunnelColor)[] = [];
+    public static getVizualizedChannels(): (Tunnel & TunnelColor)[] {
+        const channels: (Tunnel & TunnelColor)[] = [];
         const convertIdTunnels: Map<string, VizualizedTunnel> = new Map();
         let id = 0;
 
@@ -61,7 +56,7 @@ export class TwoDProtsBridge {
                 Profile: tunnel.Profile,
                 Color: "black" //Color.toHexString(tunnel.__color)
             }
-            channels.push(t as (Tunnel&TunnelColor));
+            channels.push(t as (Tunnel & TunnelColor));
             convertIdTunnels.set(tunnel.Id, t);
             id++;
         })
@@ -70,7 +65,7 @@ export class TwoDProtsBridge {
     }
 
     private static hashToNumber(input: string): number {
-        return murmurhash.v3(input) >>> 0; 
+        return murmurhash.v3(input) >>> 0;
     }
 
     public static convertMoleId(id: string) {
@@ -79,7 +74,7 @@ export class TwoDProtsBridge {
         const submissionId = id_parts[1];
         const tunnelId = id_parts[2];
 
-        const compNum = this.hashToNumber(compId); 
+        const compNum = this.hashToNumber(compId);
         const subNum = parseInt(submissionId, 10);
         const tunnelNum = parseInt(tunnelId, 10);
 
@@ -99,5 +94,11 @@ export class TwoDProtsBridge {
 
     public static getFromIdTable(id: string) {
         return this.moleIdTable.get(id);
+    }
+
+    public static addTunnels(tunnels: ChannelsDBChannels) {
+        Object.entries(tunnels).forEach(([_, tunnelArray]) => {
+            (tunnelArray as Tunnel[]).forEach(tunnel => this.allChannels.set(tunnel.Id, tunnel as (Tunnel&TunnelMetaInfo)))
+        });
     }
 }
