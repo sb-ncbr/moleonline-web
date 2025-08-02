@@ -291,7 +291,7 @@ function residuesToPoints(residueOrigins: CSAResidues): string {
     let points: Point[] = [];
 
     for (let origin of residueOrigins) {
-        let centerOfMass = Residues.getCenterOfMassOld(origin);
+        let centerOfMass = Residues.getCenterOfMass(origin);
         if (centerOfMass === null) {
             continue;
         }
