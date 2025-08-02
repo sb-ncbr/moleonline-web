@@ -10,7 +10,7 @@ import { Events } from "../Bridge";
 import { CommonOptions } from "../../config/common";
 import { addCaverTag, loadData } from "./State";
 import { StateSelection } from "molstar/lib/mol-state";
-import { ChannelsDBChannels, ChannelsDBData, MoleData } from "../DataInterface";
+import { ChannelsDBChannels, MoleData } from "../DataInterface";
 import { ComputationInfo } from "../DataProxy";
 import { ApiService, CompInfo } from "../MoleAPIService";
 import { ChannelsDBData as ChannelsDBDataCache, TunnelName } from "../Cache"
@@ -25,21 +25,18 @@ import { LoadingStatus } from "./CommonUtils/LoadingInfo/LoadingStatus";
 
 declare function $(p: any): any;
 
-export class LeftPanel extends React.Component<{ context: Context }, { isLoading?: boolean, error?: string, data?: any, isWaitingForData?: boolean, channelsData: Map<number, ChannelsDBChannels>, compId: string, isLoadingChannels: boolean }> {
-    state = { isLoading: false, isLoadingChannels: false, data: void 0, error: void 0, channelsData: new Map(), compId: "" };
-
-    private currentProteinId: string;
+export class LeftPanel extends React.Component<{ context: Context }, { isLoading?: boolean, error?: string, data?: any, isWaitingForData?: boolean, channelsData: Map<number, ChannelsDBChannels>, compId: string, isLoadingChannels: boolean, channelsDB: boolean }> {
+    state = { isLoading: false, isLoadingChannels: false, data: void 0, error: void 0, channelsData: new Map(), compId: "", channelsDB: false };
 
     componentDidMount() {
         LoadingStatus.setTotalSteps(6);
         leftPanelTabs();
         let params = getParameters();
-        let channelsDB = false;
         if (params !== null) {
-            channelsDB = params.isChannelsDB;
+            this.setState({ channelsDB: params.isChannelsDB })
         }
         this.setState({ isLoading: true, isLoadingChannels: true, error: void 0 });
-        this.load(channelsDB);
+        this.load(this.state.channelsDB);
         this.loadChannels();
         $(window).on("contentResize", this.onContentResize.bind(this));
 
@@ -47,7 +44,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
             this.forceUpdate();
         }).bind(this));
 
-        Events.subscribeToggleLoadingScreen(({message, visible}) => {
+        Events.subscribeToggleLoadingScreen(({ message, visible }) => {
             if (!visible) {
                 const uiTabsElement = document.querySelector('#ui-tab');
                 if (uiTabsElement) {
@@ -62,11 +59,11 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
     }
 
     loadChannels() {
-        LoadingStatus.log('Loading channels from current session...', 3);
+        LoadingStatus.log('Loading channels from current session...');
         let params = getParameters();
         if (params === null) {
             this.setState({ isLoading: false, error: `Sorry. Given url is not valid.` });
-            LoadingStatus.clear(); 
+            LoadingStatus.clear();
             return;
         }
         this.setState({ compId: params.computationId })
@@ -74,13 +71,13 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
         const channels: Map<number, ChannelsDBChannels> = new Map();
 
         ComputationInfo.DataProvider.get(computationId, ((compId: string, info: CompInfo) => {
-            (async () => {
-                LoadingStatus.log('Processing data from current session...', 4);
-                if (info.PdbId === '') {
+            LoadingStatus.log('Processing data from current session...');
+            if (info.PdbId === '') {
+                (async () => {
                     const context = Context.getInstance();
                     const model = context.model;
                     const o = SbNcbrTunnelsPropertyProvider.isApplicable(model!);
-                    LoadingStatus.log('Parsing data from current session...', 5);
+                    LoadingStatus.log('Parsing data from current session...');
                     const data = await loadCifTunnels(`https://api.mole.upol.cz/Data/${computationId}?submitId=0&format=molecule`);
                     if (data) {
                         const dataObj = { Channels: data.Channels } as MoleData;
@@ -94,59 +91,72 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                         channels.set(-2, completeChannelsDbData);
                     }
                     Tunnels.invokeOnTunnelsLoaded();
-                    LoadingStatus.log('Finalizing…', 6);
+                    LoadingStatus.log('Finalizing…');
                     this.setState({ channelsData: channels, isLoadingChannels: false })
-                    return;
-                }
-            })();
+                })().catch(error => {
+                    Events.invokeNotifyMessage({
+                        messageType: "Danger",
+                        message: 'Could not fetch data from ChannelsDB'
+                    })
+                });
+                return;
+            }
             ChannelsDBDataCache.getChannelsData(info.PdbId).then(async channelsDbData => {
                 const annotations: Map<string, ChannelAnnotation[]> = await ChannelsDBDataCache.getChannelsAnnotations(info.PdbId);
                 const guidChannelsDbData = TunnelsId.generateGuidAll(channelsDbData);
                 let completeChannelsDbData = addCaverTag(guidChannelsDbData);
                 completeChannelsDbData = TunnelsId.generateIdAllWithAnnotations(annotations, completeChannelsDbData, compId, 'channelsDb');
                 Tunnels.setChannelsDB(completeChannelsDbData);
-                TunnelName.reload({Channels: completeChannelsDbData}, '-1');
+                TunnelName.reload({ Channels: completeChannelsDbData }, '-1');
                 channels.set(-1, completeChannelsDbData);
                 for (const submission of info.Submissions) {
                     const submitId = Number(submission.SubmitId);
-    
+
                     const data = await ApiService.getChannelsData(compId, submitId)
                     let dataObj = JSON.parse(data) as MoleData;
                     if (dataObj !== undefined && dataObj.Channels !== undefined) {
                         let guidData = TunnelsId.generateGuidAll(dataObj.Channels);
                         guidData = TunnelsId.generateIdAll(guidData, computationId, submitId.toString())
-                        TunnelName.reload({Channels: guidData}, submitId.toString())
+                        TunnelName.reload({ Channels: guidData }, submitId.toString())
                         Tunnels.addChannels(submitId.toString(), guidData);
                         channels.set(submitId, guidData);
                     }
                 }
                 Tunnels.invokeOnTunnelsLoaded();
-                LoadingStatus.log('Finalizing…', 6);
+                LoadingStatus.log('Finalizing…');
                 this.setState({ channelsData: channels, isLoadingChannels: false })
             }).catch(async error => {
                 if (info.Submissions.length === 0) {
-                    this.setState({isLoadingChannels: false, error })
+                    this.setState({ isLoadingChannels: false, error })
+                    Events.invokeNotifyMessage({
+                        messageType: "Danger",
+                        message: 'Could not fetch data from ChannelsDB'
+                    })
                     return;
                 }
                 try {
                     for (const submission of info.Submissions) {
                         const submitId = Number(submission.SubmitId);
-        
+
                         const data = await ApiService.getChannelsData(compId, submitId)
                         let dataObj = JSON.parse(data) as MoleData;
                         if (dataObj !== undefined && dataObj.Channels !== undefined) {
                             let guidData = TunnelsId.generateGuidAll(dataObj.Channels)
                             guidData = TunnelsId.generateIdAll(guidData, computationId, submitId.toString())
-                            TunnelName.reload({Channels: guidData}, submitId.toString())
+                            TunnelName.reload({ Channels: guidData }, submitId.toString())
                             Tunnels.addChannels(submitId.toString(), guidData);
                             channels.set(submitId, guidData);
                         }
                     }
                     Tunnels.invokeOnTunnelsLoaded();
                     this.setState({ channelsData: channels, isLoadingChannels: false })
-                    LoadingStatus.log('Finalizing…', 6);
+                    LoadingStatus.log('Finalizing…');
                 } catch (error) {
-                    this.setState({isLoadingChannels: false, error })
+                    this.setState({ isLoadingChannels: false, error })
+                    Events.invokeNotifyMessage({
+                        messageType: "Danger",
+                        message: 'Could not fetch data from MoleAPI'
+                    })
                 }
                 LoadingStatus.clear();
             });
@@ -156,10 +166,10 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
     load(channelsDB: boolean) {
         const plugin = Context.getInstance().plugin;
         this.setState({ isLoading: true, error: void 0 });
-         LoadingStatus.log('Loading channels from ChannelsDB...', 1);
+        LoadingStatus.log('Loading channels from ChannelsDB...');
         loadData(channelsDB)
             .then(data => {
-                LoadingStatus.log('Processing data from ChannelsDB...', 2);
+                LoadingStatus.log('Processing data from ChannelsDB...');
                 console.log("AFTER LOAD DATA");
                 if (CommonOptions.DEBUG_MODE)
                     console.log("loading done ok");
@@ -202,16 +212,20 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                 }
 
                 this.setState({ isLoading: false, error: errMessage, data: void 0 });
+                Events.invokeNotifyMessage({
+                    messageType: "Danger",
+                    message: 'Application was unable to load data. Please try again later.'
+                })
             });
     }
 
 
     render() {
-        if (!this.state.isLoading && !this.state.isLoadingChannels) {
+        if (!this.state.isLoading && !this.state.isLoadingChannels && !this.state.error) {
             return <div className="d-flex flex-column h-100">
                 <div className="tab-content">
                     <div id="ui" className={`toggled tab-pane ${this.state.channelsData.size === 0 ? '' : 'show active'}`} role="tabpanel">
-                        <ChannelsControl computationId={this.state.compId} submissions={this.state.channelsData} />
+                        <ChannelsControl computationId={this.state.compId} submissions={this.state.channelsData} reload={() => this.load(this.state.channelsDB)}/>
                     </div>
                     <div id="controls" className={`bottom toggled tab-pane flex flex-column ${this.state.channelsData.size === 0 ? 'show active' : ''}`} role="tabpanel">
                         <PluginControl data={this.state.data} />
@@ -225,7 +239,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                         <li className="nav-item"><a style={{ writingMode: "vertical-lr" }} className={`nav-link ${this.state.channelsData.size === 0 ? 'active' : ''} left-panel-tab`} id="controls-tab" data-bs-toggle="tab" data-bs-target="#controls" role="tab" aria-controls="controls" aria-selected="true">Compute</a></li>
                     </ul>
                     <div id="left-panel-toggle-minimize" className="vertical-toggler">
-                    <span className="bi bi-arrows-expand-vertical"/>
+                        <span className="bi bi-arrows-expand-vertical" />
                     </div>
                 </div>
             </div>
@@ -235,7 +249,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
             if (this.state.isLoading || this.state.isLoadingChannels) {
                 controls.push(
                     <div>
-                        <WaveLoader/>
+                        <WaveLoader />
                         <LoadingStatusDisplay />
                     </div>);
             } else {

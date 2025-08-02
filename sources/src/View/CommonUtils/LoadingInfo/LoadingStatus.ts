@@ -11,9 +11,9 @@ export class LoadingStatus {
     this.notify();
   }
 
-  public static log(message: string, step: number) {
+  public static log(message: string) {
     this.currentMessage = message;
-    this.currentStep = step;
+    this.currentStep += 1;
     this.notify();
   }
 
