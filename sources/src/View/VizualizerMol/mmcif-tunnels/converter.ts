@@ -231,7 +231,7 @@ export function cleanCifContent(cif: string): string {
 
     if (loopType === "audit_conform") {
       const filteredLines = loopLines.filter(
-        line => !line.trim().startsWith("mmcif_tunnels_v10.dic")
+        line => !line.trim().startsWith("mmcif_tunnels.dic")
       );
       if (filteredLines.length > 0) {
         result.push("loop_", ...loopHeaders, ...filteredLines);
