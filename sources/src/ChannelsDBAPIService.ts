@@ -14,7 +14,7 @@ export interface ChannelAnnotation {
     name: string,
     description: string,
     reference: string,
-    refernceType: string,
+    referenceType: string,
     link?: string
 };
 export interface ProteinAnnotation {
@@ -114,7 +114,7 @@ export class ApiService {
                     name: item.Name,
                     description: item.Description,
                     reference: item.Reference,
-                    refernceType: item.ReferenceType,
+                    referenceType: item.ReferenceType,
                     link: this.createLink(item.ReferenceType, item.Reference)
                 }
             );
