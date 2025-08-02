@@ -80,7 +80,7 @@ function parseAnnotations(category: any): ChannelAnnotation[] {
             name: names.str(i),
             description: descriptions.str(i),
             reference: references.str(i),
-            refernceType: referenceTypes.str(i),
+            referenceType: referenceTypes.str(i),
             link: ApiService.createLink(referenceTypes.str(i), references.str(i)),
         });
     }
@@ -107,7 +107,7 @@ function parseAtomSite(category: any): Map<string, { name: string, seq_id: strin
     return residues;
 }
 
-function parseChannels(category: any, atomSiteResiudes: Map<string, { name: string, seq_id: string, chain: string }>): Tunnel[] {
+function parseChannels(category: any, atomSiteResidues: Map<string, { name: string, seq_id: string, chain: string }>): Tunnel[] {
     const rowCount = category.sb_ncbr_channel.rowCount;
     const ids = category.sb_ncbr_channel.getField("id");
     const types = category.sb_ncbr_channel.getField("type");
@@ -160,7 +160,7 @@ function parseChannels(category: any, atomSiteResiudes: Map<string, { name: stri
     parseChannelProperties(channels, category.sb_ncbr_channel_props);
     parseLayerWeightedProperties(channels, category.sb_ncbr_channel_layer_weighted_props);
     parseProfiles(channels, category.sb_ncbr_channel_profile);
-    const residues = parseChannelResidues(category.sb_ncbr_channel_residue, atomSiteResiudes);
+    const residues = parseChannelResidues(category.sb_ncbr_channel_residue, atomSiteResidues);
     const layerResidues = parseLayerResidues(category.sb_ncbr_channel_layer_residue, residues);
     parseResidueFlow(channels, category.sb_ncbr_channel_layer, layerResidues);
     parseLayers(channels, category.sb_ncbr_channel_layer, layerResidues);
@@ -286,7 +286,7 @@ function parseChannelResidues(category: any, resiudes: Map<string, { name: strin
 function parseLayerResidues(category: any, channelResidues: Map<string, Residue>): Map<string, { residues: string[], flowIndicies: string[] }> {
     const rowCount = category.rowCount;
     const layerIds = category.getField("layer_id");
-    const resiudeIds = category.getField("residue_id");
+    const residueIds = category.getField("residue_id");
     const flows = category.getField("order");
 
     const layerResidues: Map<string, { residues: string[], flowIndicies: string[] }> = new Map();
@@ -304,8 +304,8 @@ function parseLayerResidues(category: any, channelResidues: Map<string, Residue>
             residues = [];
             flowIndicies = [];
         }
-        const r = resiudeIds.str(i);
-        const res = channelResidues.get(resiudeIds.str(i));
+        const r = residueIds.str(i);
+        const res = channelResidues.get(residueIds.str(i));
         if (res) {
             residues.push(`${res.Name} ${res.SequenceNumber} ${res.ChainId}${res.Backbone ? " Backbone" : ""}`);
         }

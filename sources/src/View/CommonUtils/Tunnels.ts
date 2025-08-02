@@ -39,7 +39,7 @@ export class Tunnels {
                                 Name: t_ann.name,
                                 Reference: t_ann.reference,
                                 Description: t_ann.description,
-                                ReferenceType: t_ann.refernceType as ReferenceType,
+                                ReferenceType: t_ann.referenceType as ReferenceType,
                                 ChannelId: tunnel.Id,
                             })
                         })
