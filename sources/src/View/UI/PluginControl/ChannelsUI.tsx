@@ -25,7 +25,7 @@ import { TunnelsId } from "../../CommonUtils/TunnelsId";
 
 declare function $(p: any): any;
 
-type ChannelsControlProps = { computationId: string, submissions: Map<number, ChannelsDBChannels> }
+type ChannelsControlProps = { computationId: string, submissions: Map<number, ChannelsDBChannels>, reload: () => void }
 type ChannelsControlState = {
     isLoading?: boolean,
     error?: string,
@@ -239,6 +239,10 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
                         Channels
                     </div>
                     <div className="no-channels-data">There are no channels available...</div>
+                    <div className="d-flex flex-row align-items-center gap-3 fs-6">
+                        Try reloading
+                        <button className="reload-data btn btn-primary" onClick={() => this.props.reload()}>Reload Data</button>
+                    </div>
                 </div>
             </div>;
         }

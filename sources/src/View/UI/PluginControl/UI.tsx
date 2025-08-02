@@ -31,13 +31,6 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
         this.setState({ data: this.props.data })
         $(window).on("contentResize", this.onContentResize.bind(this));
 
-        let params = getParameters();
-        let channelsDB = false;
-        if (params !== null) {
-            channelsDB = params.isChannelsDB;
-        }
-        this.load(channelsDB);
-
         Events.subscribeChangeSubmitId((submitId) => {
             try {
                 this.load(submitId === -1);
