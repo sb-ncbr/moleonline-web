@@ -170,7 +170,6 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
         loadData(channelsDB)
             .then(data => {
                 LoadingStatus.log('Processing data from ChannelsDB...');
-                console.log("AFTER LOAD DATA");
                 if (CommonOptions.DEBUG_MODE)
                     console.log("loading done ok");
                 let entities = plugin.state.data.select(StateSelection.first('mole-data'))[0];
@@ -248,7 +247,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
 
             if (this.state.isLoading || this.state.isLoadingChannels) {
                 controls.push(
-                    <div>
+                    <div key={'loader'}>
                         <WaveLoader />
                         <LoadingStatusDisplay />
                     </div>);
@@ -257,7 +256,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                     let error = this.state.error as string | undefined;
                     let errorMessage: string = (error === void 0) ? "" : error;
                     controls.push(
-                        <div className="error-message">
+                        <div key={'error'} className="error-message">
                             <div>
                                 <b>Data for specified protein are not available.</b>
                             </div>
@@ -271,7 +270,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                 if (params !== null) {
                     channelsDB = params.isChannelsDB;
                 }
-                controls.push(<button className="reload-data btn btn-primary" onClick={() => this.load(channelsDB)}>Reload Data</button>);
+                controls.push(<button key={'reload'} className="reload-data btn btn-primary" onClick={() => this.load(channelsDB)}>Reload Data</button>);
             }
 
             return <div className="d-flex flex-column h-100">
@@ -280,9 +279,9 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                 </div>
                 <div id="left-panel-tabs" className="left-panel-tabs">
                     <ul className="nav nav-tabs flex-column" role="tablist">
-                        <li className="nav-item" title="Home"><a id="home-tab" className="nav-link left-panel-tab" href="/" role="tab"><i className="bi bi-house fs-5"></i></a></li>
-                        <li className="nav-item"><a style={{ writingMode: "vertical-lr" }} className="nav-link active left-panel-tab disabled" id="ui-tab" data-bs-toggle="tab" data-bs-target="#ui" role="tab" aria-controls="ui" aria-selected="true" aria-disabled="true">Channels</a></li>
-                        <li className="nav-item"><a style={{ writingMode: "vertical-lr" }} className="nav-link left-panel-tab disabled" id="controls-tab" data-bs-toggle="tab" data-bs-target="#controls" role="tab" aria-controls="controls" aria-selected="true" aria-disabled="true">Compute</a></li>
+                        <li key={'home'} className="nav-item" title="Home"><a id="home-tab" className="nav-link left-panel-tab" href="/" role="tab"><i className="bi bi-house fs-5"></i></a></li>
+                        <li key={'channels'} className="nav-item"><a style={{ writingMode: "vertical-lr" }} className="nav-link active left-panel-tab disabled" id="ui-tab" data-bs-toggle="tab" data-bs-target="#ui" role="tab" aria-controls="ui" aria-selected="true" aria-disabled="true">Channels</a></li>
+                        <li key={'compute'} className="nav-item"><a style={{ writingMode: "vertical-lr" }} className="nav-link left-panel-tab disabled" id="controls-tab" data-bs-toggle="tab" data-bs-target="#controls" role="tab" aria-controls="controls" aria-selected="true" aria-disabled="true">Compute</a></li>
                     </ul>
                 </div>
             </div>;

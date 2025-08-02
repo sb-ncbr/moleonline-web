@@ -18,7 +18,7 @@ export class TabbedContainer extends React.Component<TabbedContainerProps, {}> {
         let rv: JSX.Element[] = [];
         for (let idx = 0; idx < this.props.header.length; idx++) {
             let header = this.props.header[idx];
-            rv.push(<li className={(idx === this.props.activeTab) ? "nav-item active" : "nav-item"}><a id={`${this.props.namespace}${idx + 1}-tab`} className={(idx === this.props.activeTab) ? "nav-link active" : "nav-link"} aria-current="page" data-bs-toggle="tab" href={`#${this.props.namespace}${idx + 1}`} onClick={(() => {
+            rv.push(<li key={idx} className={(idx === this.props.activeTab) ? "nav-item active" : "nav-item"}><a id={`${this.props.namespace}${idx + 1}-tab`} className={(idx === this.props.activeTab) ? "nav-link active" : "nav-link"} aria-current="page" data-bs-toggle="tab" href={`#${this.props.namespace}${idx + 1}`} onClick={(() => {
                 window.setTimeout(() => {
                     if (this.props.onChange !== void 0) {
                         this.props.onChange(idx);
@@ -34,7 +34,7 @@ export class TabbedContainer extends React.Component<TabbedContainerProps, {}> {
         for (let idx = 0; idx < this.props.tabContents.length; idx++) {
             let contents = this.props.tabContents[idx];
             rv.push(
-                <div id={`${this.props.namespace}${idx + 1}`} className={`tab-pane ${(idx === this.props.activeTab) ? " show active" : ""}`} /*style={{display: (idx === this.props.activeTab) ? "block" : "none"}}*/ role="tabpanel" aria-labelledby={`${this.props.namespace}${idx + 1}-tab`}>
+                <div key={`${this.props.namespace}${idx + 1}`} id={`${this.props.namespace}${idx + 1}`} className={`tab-pane ${(idx === this.props.activeTab) ? " show active" : ""}`} /*style={{display: (idx === this.props.activeTab) ? "block" : "none"}}*/ role="tabpanel" aria-labelledby={`${this.props.namespace}${idx + 1}-tab`}>
                     {contents}
                 </div>
             );

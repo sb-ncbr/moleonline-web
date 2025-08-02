@@ -27,18 +27,6 @@ export function doAfterTabActivated(tabbedElementId: string, tabId: string, call
     var checker = function () {
         let link = getTabLinkById(tabbedElementId, tabId);
         let href = link.attr("href");
-        console.log(link.parent());
-        console.log(link.parent().attr("class"));
-        console.log(link.parent().attr("class").indexOf("active"));
-        console.log(link.attr("class"));
-        console.log(link.attr("class").indexOf("active"));
-        console.log($(href).css("display"));
-        // if (link.parent().attr("class").indexOf("active") >= 0 && $(href).css("display") !== "none") {
-        //     callback();
-        // }
-        // else {
-        //     window.setTimeout(checker, 10);
-        // }
         if (link.attr("class").indexOf("active") >= 0 && $(href).css("display") !== "none") {
             callback();
         }
@@ -57,12 +45,6 @@ export function doAfterCollapseActivated() {
     
         const bottomPanel = $("#bottom-pannel");
         const sequenceViewer = $("#sequence-viewer");
-
-        // if (bottomPanel.attr("class").indexOf("show") >= 0) {
-        //     sequenceViewer[0].style.height = "21vh";
-        // } else {
-        //     sequenceViewer[0].style.height = "17vh";
-        // }
     
         const bottomPanelHeight = bottomPanel.attr("class").indexOf("show") >= 0 ? bottomPanel.height() : 0;
         const sequenceViewerHeight = sequenceViewer.attr("class").indexOf("show") >= 0 ? sequenceViewer.height() : 21;

@@ -313,7 +313,6 @@ function createCSAOriginsData(computationId: string) {
         DataProxyCSAResidues.DataProvider.get(computationId, (compId, info) => {
             try {
                 let originsData: string = residuesToPoints(info);
-                console.log(originsData);
                 const update = Context.getInstance().plugin.build();
                 update
                     .toRoot()
@@ -403,8 +402,6 @@ function generateGuidMole(moleData: MoleData) {
 
 async function downloadMembraneData(computationId: string) {
     // await removeMembraneData();
-    console.log("MEMBRNE");
-    console.log(Context.getInstance().plugin)
     return new Promise<any>((res, rej) => {
         ApiService.getMembraneData(computationId).then((data) => {
             const update = Context.getInstance().plugin.build();
@@ -419,17 +416,6 @@ async function downloadMembraneData(computationId: string) {
                 .catch((err) => {
                     rej(err);
                 });
-            // let membrane = plugin.createTransform().add(plugin.root, Transformer.Data.FromData, { data: JSON.stringify(data), id: 'Membrane' }, { isHidden: true, ref: 'membrane-object' })
-            //     .then(Transformer.Data.ParseJson, { id: 'MembraneObjects' }, { ref: 'membrane-data', isHidden: true });
-            // plugin.applyTransform(membrane)
-            //     .then(() => {
-            //         let membraneData = plugin.context.select('membrane-data')[0] as Bootstrap.Entity.Data.Json;
-            //         showMembraneVisuals(plugin, membraneData.props.data, true).then((val) => {
-            //             res();
-            //         }).catch((err) => {
-            //             rej(err);
-            //         });
-            //     });
         }).catch(err => {
             console.log("Membrane data not available!");
             console.log(err);
@@ -459,7 +445,6 @@ export async function downloadChannelsData(computationId: string, submitId: numb
                         // TunnelName.reload(data_);
                         Tunnels.invokeOnTunnelsCollect(submitId);
                         // Events.invokeChannelDataLoaded(data_); //TODO check handlers that are attached to it
-                        console.log(Context.getInstance().plugin.state.data.select(StateSelection.first('mole-data')));
                         //TODO same with the same one here
                         // showDefaultVisuals(data_.Channels)
                         //     .then(() => {
@@ -492,7 +477,6 @@ async function downloadChannelsDBData(computationId: string) {
                             if (Object.keys(s.data).length === 0) {
                                 rej('Data not available.');
                             } else {
-                                console.log(s.data);
                                 let data_ = s.data as ChannelsDBData;
                                 data_.Channels = TunnelsId.generateGuidAll(data_.Channels);
                                 data_.Channels = TunnelsId.generateIdAll(data_.Channels, computationId, 'channelsDb');
@@ -572,18 +556,7 @@ export function loadData(channelsDB: boolean) {
             if (CommonOptions.DEBUG_MODE)
                 console.log("Watcher iteration");
             let plugin = Instances.getPlugin();
-            // let proteinLoaded = existsRefInTree(plugin.root, 'protein-data');
             let proteinLoaded = context.plugin.state.data.tree.children.has('protein-data')
-            /*
-            "Initializing"| OK
-            "Initialized"| OK
-            "FailedInitialization"| OK
-            "Running"| OK
-            "Finished"| OK
-            "Error"| OK
-            "Deleted"| OK
-            "Aborted"; OK
-            */
             if (status.Status === "Initializing" || status.Status === "Running") {
                 //Do Nothing
                 if (CommonOptions.DEBUG_MODE)
@@ -607,19 +580,6 @@ export function loadData(channelsDB: boolean) {
 
     return Promise.all(promises);
 }
-
-// function existsRefInTree(root: Bootstrap.Entity.Any, ref: string) {
-//     if (root.ref === ref) {
-//         return true;
-//     }
-//     for (let c of root.children) {
-//         if (existsRefInTree(c, ref)) {
-//             return true;
-//         }
-//     }
-
-//     return false;
-// }
 
 function acquireData(computationId: string, submitId: number, res: any, rej: any, protein: boolean, channels: boolean, channelsDB: boolean) {
     let promises: any[] = [];
@@ -728,15 +688,6 @@ function createSurface(mesh: any) {
     let m = Mesh.create(mesh.Vertices, mesh.Triangles, normals, groups, mesh.Vertices.length, mesh.Triangles.length);
 
     return m;
-
-    // let surface = <Core.Geometry.Surface>{
-    //     vertices: mesh.Vertices,
-    //     vertexCount: (mesh.Vertices.length / 3) | 0,
-    //     triangleIndices: new Uint32Array(mesh.Triangles),
-    //     triangleCount: (mesh.Triangles.length / 3) | 0,
-    // };
-
-    // return surface;
 }
 
 function createTriangleSurface(mesh: any) {
@@ -772,16 +723,6 @@ function createTriangleSurface(mesh: any) {
     let m = Mesh.create(vertices, triangleIndices, normals, groups, vertices.length, triangleIndices.length);
 
     return m;
-
-    // const surface = <Core.Geometry.Surface>{
-    //     vertices,
-    //     vertexCount,
-    //     triangleIndices,
-    //     triangleCount,
-    //     annotation
-    // };
-
-    // return surface;
 }
 
 function getSurfaceColorByType(type: string) {
@@ -829,25 +770,6 @@ async function showSurfaceVisuals(elements: any[], visible: boolean, type: strin
             needsApply = true;
         }
     }
-
-    // if (needsApply) {
-    //     return new Promise<any>((res, rej) => {
-    //         plugin.applyTransform(t).then(() => {
-    //             for (let element of elements) {
-    //                 element.__isBusy = false;
-    //             }
-    //             res();
-    //         }).catch(e => rej(e));
-    //     });
-    // }
-    // else {
-    //     return new Promise<any>((res, rej) => {
-    //         for (let element of elements) {
-    //             element.__isBusy = false;
-    //         }
-    //         res();
-    //     });
-    // }
     for (let element of elements) {
         element.__isBusy = false;
     }
@@ -995,17 +917,6 @@ export async function showChannelPropertyColorVisuals(channel: Tunnel & TunnelMe
     });
 }
 
-// function createOriginsSurface(origins: any): Promise<Core.Geometry.Surface> {
-//     if (origins.__surface) return Promise.resolve(origins.__surface);
-
-//     let s = Visualization.Primitive.Builder.create();
-//     let id = 0;
-//     for (let p of origins.Points) {
-//         s.add({ type: 'Sphere', id: id++, radius: 1.69, center: [p.X, p.Y, p.Z] });
-//     }
-//     return s.buildSurface().run();
-// }
-
 function getOriginColorByType(origins: any) {
     switch (origins.Type as string) {
         case 'Computed': return Colors.get(Enum.ComputedOrigin);
@@ -1014,14 +925,6 @@ function getOriginColorByType(origins: any) {
     }
 }
 
-
-// function createMembraneSurface(membranePoints: any): Promise<Core.Geometry.Surface> {
-//     let s = Visualization.Primitive.Builder.create();
-//     for (let p of membranePoints as DataInterface.MembranePoint[]) {
-//         s.add({ type: 'Sphere', id: 0, radius: 0.25, center: [p.Position.X, p.Position.Y, p.Position.Z] });
-//     }
-//     return s.buildSurface().run();
-// }
 export async function showMembraneVisuals(membraneData: Membrane[], visible: boolean): Promise<any> {
     let membranes = [];
     const context = Context.getInstance();
@@ -1040,92 +943,6 @@ export async function showMembraneVisuals(membraneData: Membrane[], visible: boo
         }
 
     }
-
-    // let blue: MembranePoint[] = [];
-    // let red: MembranePoint[] = [];
-
-    // let blueId = "";
-    // let redId = "";
-    // for (let membrane of membraneData) {
-    //     let membraneDataAny = membrane as any;
-
-    //     if (!!membraneDataAny.__isVisible === visible) return Promise.resolve();
-
-    //     membraneDataAny.__isVisible = visible;
-    //     if (!visible) {
-    //         if (membraneDataAny.__id !== void 0) {
-    //             plugin.command(Bootstrap.Command.Tree.RemoveNode, membraneDataAny.__id);
-    //             membraneDataAny.__id = void 0;
-    //         }
-    //         membraneDataAny.__isBusy = false;
-    //         continue;
-    //     }
-
-    //     if (membrane.Side === "N") {
-    //         if (blueId === "") {
-    //             if (!membraneDataAny.__id) {
-    //                 blueId = UUID.create22();
-    //             }
-    //             membraneDataAny.__id = blueId;
-    //         }
-    //         blue.push(membrane);
-    //         (blue as any).__isBusy = true;
-    //     }
-    //     else {
-    //         if (redId === "") {
-    //             if (!membraneDataAny.__id) {
-    //                 redId = UUID.create22();
-    //             }
-    //             membraneDataAny.__id = redId;
-    //         }
-    //         })
-    //         red.push(membrane);
-    //         (red as any).__isBusy = true;
-    //     }
-    // }
-
-    // if (blue.length > 0) {
-    //     promises.push(
-    //         new Promise<any>((res, rej) => {
-    //             createMembraneSurface(blue).then(surface => {
-    //                 let t = plugin.createTransform()
-    //                     .add('membrane-data', CreateSurface, {
-    //                         label: 'Membrane Blue',
-    //                         tag: <SurfaceTag>{ kind: 'Origins', element: membraneData },
-    //                         surface,
-    //                         isInteractive: false,
-    //                         color: ColorScheme.Colors.get(Enum.MembraneBlue) as Visualization.Color
-    //                     }, { ref: (blue[0] as any).__id, isHidden: true });
-
-    //                 plugin.applyTransform(t).then(() => {
-    //                     (blue as any).__isBusy = false;
-    //                     res();
-    //                 }).catch(err => rej(err));
-    //             }).catch(err => rej(err))
-    //         })
-    //     );
-    // }
-
-    // if (red.length > 0) {
-    //     promises.push(
-    //         new Promise<any>((res, rej) => {
-    //             createMembraneSurface(red).then(surface => {
-    //                 let t = plugin.createTransform()
-    //                     .add('membrane-data', CreateSurface, {
-    //                         label: 'Membrane Red',
-    //                         tag: <SurfaceTag>{ kind: 'Origins', element: membraneData },
-    //                         surface,
-    //                         isInteractive: false,
-    //                         color: ColorScheme.Colors.get(ColorScheme.Enum.MembraneRed) as Visualization.Color
-    //                     }, { ref: (red[0] as any).__id, isHidden: true });
-
-    //                 plugin.applyTransform(t).then(() => {
-    //                     (red as any).__isBusy = false;
-    //                     res();
-    //                 }).catch(rej);
-    //             }).catch(rej)
-    //     );
-    // }
 
     return Promise.resolve().then(() => {
         for (let membrane of membranes) {

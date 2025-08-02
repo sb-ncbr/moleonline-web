@@ -4,21 +4,6 @@ import { ParamDefinition as PD } from 'molstar/lib/mol-util/param-definition';
 import { LayersInfo } from "../../../DataInterface";
 import { Property } from "./property-color";
 
-// export const TunnelPropertyColorShapeParams = {
-//     webgl: PD.Value<WebGLContext | null>(null),
-//     colorTheme: PD.Color(Color(0xff0000)),
-//     visual: PD.MappedStatic(
-//         'mesh',
-//         {
-//             mesh: PD.Group({ resolution: PD.Numeric(2) }),
-//             spheres: PD.Group({ resolution: PD.Numeric(2) })
-//         }
-//     ),
-//     samplingRate: PD.Numeric(1, { min: 0.05, max: 1, step: 0.05 }),
-//     showRadii: PD.Boolean(false),
-//     colorInterval: PD.Value<ColorInterval>(new ColorInterval([]), { isHidden: true })
-// };
-
 export const TunnelPropertyColorShapeParams = {
     webgl: PD.Value<WebGLContext | null>(null),
     colorTheme: PD.MappedStatic(

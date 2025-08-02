@@ -1,5 +1,5 @@
 import { UUID } from "molstar/lib/mol-util";
-import { ChannelsDBChannels, ChannelsDBData, Tunnel, TunnelMetaInfo } from "../../DataInterface";
+import { ChannelsDBChannels, Tunnel, TunnelMetaInfo } from "../../DataInterface";
 import { ChannelAnnotation } from "../../ChannelsDBAPIService";
 import { ColorGenerator } from "molstar/lib/extensions/meshes/mesh-utils";
 

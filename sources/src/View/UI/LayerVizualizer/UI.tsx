@@ -1,15 +1,8 @@
-
-// import Event = LiteMol.Bootstrap.Event;
-// import Transformer = LiteMol.Bootstrap.Entity.Transformer;
-// import Visualization = LiteMol.Bootstrap.Visualization;
-// import Tabs = CommonUtils.Tabs;
-
 import React from "react";
 import { ColorBoundsMode, RadiusProperty, Vizualizer } from "../../LayerVizualizer/Vizualizer";
 import { convertLayersToLayerData, LayerData, TunnelMetaInfo, Tunnel as DataTunnel } from "../../../DataInterface";
 import { SelectionHelper } from "../../CommonUtils/Selection";
 import { activateTab, doAfterTabActivated } from "../../CommonUtils/Tabs";
-import { Events } from "../../../Bridge";
 import { Bundle, TooltipText } from "../../../StaticData";
 import { triggerDownload } from "../../CommonUtils/Misc";
 import { Tunnel } from "../../LayerVizualizer/Backend";
@@ -19,12 +12,11 @@ import { Context } from "../../Context";
 import { LayerColors } from "../../CommonUtils/LayerColors";
 import { showChannelPropertyColorVisuals, showChannelVisuals } from "../../State";
 import { ColorBound, Property } from "../../VizualizerMol/color-tunnels/property-color";
-import { Shape, ShapeGroup } from "molstar/lib/mol-model/shape";
+import { ShapeGroup } from "molstar/lib/mol-model/shape";
 import { OrderedSet } from 'molstar/lib/mol-data/int'
 import { EmptyLoci, Loci } from "molstar/lib/mol-model/loci";
 import { MarkerAction } from "molstar/lib/mol-util/marker-action";
 import { Representation } from "molstar/lib/mol-repr/representation";
-import { isInChannelsDBMode } from "../../../Common/Util/Router";
 
 declare function $(p: any): any;
 
@@ -226,18 +218,6 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
                 }
             }
         })
-        // Events.subscribeChangeSubmitId(() => {
-        //     let state = this.state;
-        //     state.data = [];
-        //     state.hasData = false;
-        //     state.isDOMReady = false;
-        //     state.currentTunnelRef = "";
-        //     state.isLayerSelected = false;
-        //     this.setState(state);
-        //     setTimeout(function () {
-        //         $(window).trigger('contentResize');
-        //     }, 1);
-        // });
 
         $(window).on("lvContentResize", (() => {
             this.forceUpdate();
@@ -466,15 +446,17 @@ class ColorBySwitch extends React.Component<{ state: State, coloringProperty: st
     private generateColorMenu() {
 
         let rv = [];
+        let index = 0;
         for (let prop in this.props.state.data[0].Properties) {
             rv.push(
-                <ColorMenuItem propertyName={prop} isCustom={this.props.isCustom} {...this.props.state} />
+                <ColorMenuItem key={index} propertyName={prop} isCustom={this.props.isCustom} {...this.props.state} />
             );
+            index++;
         }
 
         if (this.props.state.channel && this.props.state.channel.__channelsDB === undefined) {
             rv.push(
-                <ColorMenuItem propertyName={'BRadius'} isCustom={this.props.isCustom} {...this.props.state} />
+                <ColorMenuItem key={'b-radius'} propertyName={'BRadius'} isCustom={this.props.isCustom} {...this.props.state} />
             );
         }
 
@@ -495,15 +477,15 @@ class RadiusSwitch extends React.Component<{ state: State, radiusProperty: Radiu
     private generateRadiusSwitch() {
         let properties = ["MinRadius", "MinFreeRadius"];
         let rv = [];
-        for (let prop of properties) {
+        for (let [index, prop] of properties.entries()) {
             rv.push(
-                <RadiusMenuItem propertyName={prop} isCustom={this.props.isCustom} {...this.props.state} />
+                <RadiusMenuItem key={index} propertyName={prop} isCustom={this.props.isCustom} {...this.props.state} />
             );
         }
 
         if (this.props.state.channel && this.props.state.channel.__channelsDB === undefined) {
             rv.push(
-                <RadiusMenuItem propertyName={"MinBRadius"} isCustom={this.props.isCustom} {...this.props.state} />
+                <RadiusMenuItem key={'min-b-radius'} propertyName={"MinBRadius"} isCustom={this.props.isCustom} {...this.props.state} />
             );
         }
 
@@ -667,9 +649,9 @@ class CommonButtonArea extends React.Component<State, {}> {
     private generateColorBoundsSwitch() {
         let properties = ["Min/max", "Absolute"];
         let rv = [];
-        for (let prop of properties) {
+        for (let [index, prop] of properties.entries()) {
             rv.push(
-                <ColorBoundsMenuItem mode={prop} {...this.props} />
+                <ColorBoundsMenuItem key={index} mode={prop} {...this.props} />
             );
         }
 
@@ -726,9 +708,9 @@ class ExportButton extends React.Component<{ instanceId: number }, {}> {
     private generateItems() {
         let rv = [] as JSX.Element[];
         let supportedExportTypes = ["PNG", "SVG"/*,"PDF"*/];
-        for (let type of supportedExportTypes) {
+        for (let [index, type] of supportedExportTypes.entries()) {
             rv.push(
-                <ExportTypeButton instanceId={this.props.instanceId} exportType={type} />
+                <ExportTypeButton key={index} instanceId={this.props.instanceId} exportType={type} />
             );
         }
 
@@ -870,34 +852,6 @@ class InteractionMap extends React.Component<State, InteractionMapState> {
         LayerColors.setSelectChannelLiningResidues(false);
         //TODO: maybe SelectionHelper.highlightSelectedChannel(this.props.controller);
     }
-
-    // private async displayLayerResidues3DEventHandler(layerIdxs: number[], instance: Vizualizer) {
-    //     let state = this.props.app.state;
-    //     state.layerIds = layerIdxs;
-    //     state.isLayerSelected = state.layerIds.length > 0;
-
-    //     this.props.app.setState(state);
-    //     if (instance.getSelectedLayer().length === 0) {
-    //         this.resetFocusToTunnel();
-    //         await SelectionHelper.clearSelection();
-    //     }
-    //     if (state.layerIds.length === 0) {
-    //         this.resetFocusToTunnel();
-    //         await SelectionHelper.clearSelection();
-    //     }
-
-    //     instance.selectLayers(state.layerIds);
-    //     for (let layerIdx of state.layerIds) {
-    //         $(window).trigger('layerTriggered', layerIdx);
-    //     }
-    //     if (state.layerIds.length > 0) {
-    //         await this.showLayerResidues3DAndFocus(state.layerIds);
-    //     }
-    //     $(window).trigger('layerSelected', { layerIds: state.layerIds.slice() });
-    //     $(window).trigger('resize');
-
-    //     //TODO: maybe SelectionHelper.highlightSelectedChannel(this.props.controller);
-    // }
 
     private getTunnelScale(tunnel: Tunnel | null): TunnelScale {
         let xScale = 0;
@@ -1044,24 +998,6 @@ class InteractionMap extends React.Component<State, InteractionMapState> {
         let s = this.state;
         s.touchMode = true;
         this.setState(s);
-    }
-
-    private handleTouchStart(e: React.TouchEvent<HTMLAreaElement>) {
-        /*
-        let targetElement = (e.target as HTMLElement);
-        if(!targetElement.hasAttribute("data-layeridx")){
-            return;
-        }
-
-        let layerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
-        let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
-        let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
-
-        let selectedLayers = instance.getSelectedLayer();
-        if(selectedLayers.length > 0){
-            this.displayLayerResidues3DEventHandler([], instance);
-        }   
-        */
     }
 
     private handleMove(startLayerIdx: number, endLayerIdx: number, instance: Vizualizer) {
@@ -1234,7 +1170,7 @@ class InteractionMap extends React.Component<State, InteractionMapState> {
         if (this.props.isDOMReady) {
             let hitboxesCoords = this.generatePhysicalHitboxesCoords();
             for (let i = 0; i < hitboxesCoords.length; i++) {
-                areas.push(<area shape="rect"
+                areas.push(<area key={i} shape="rect"
                     coords={hitboxesCoords[i].coords.valueOf()}
                     data-layeridx={String(hitboxesCoords[i].layerIdx.valueOf())}
                     data-instanceidx={String(this.props.instanceId)}

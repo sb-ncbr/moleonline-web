@@ -12,16 +12,16 @@ import { getParameters, isInChannelsDBMode } from "../../../Common/Util/Router";
 import { showChannelVisuals, showDefaultVisuals, showDefaultVisualsNewSubmission } from "../../State";
 import { Context } from "../../Context";
 import { Representation } from "molstar/lib/mol-repr/representation";
-import { EmptyLoci, Loci } from "molstar/lib/mol-model/loci";
-import { MarkerAction } from "molstar/lib/mol-util/marker-action";
+import { EmptyLoci } from "molstar/lib/mol-model/loci";
 import { Colors, Enum } from "../../../StaticData";
 import { Color } from "molstar/lib/mol-util/color";
 import { debounce } from "lodash";
 import { ApiService, CompInfo } from "../../../MoleAPIService";
-import { ComputationInfo, JobStatus } from "../../../DataProxy";
+import { ComputationInfo } from "../../../DataProxy";
 import { SelectionHelper } from "../../CommonUtils/Selection";
 import { TwoDProtsBridge } from "../../CommonUtils/TwoDProtsBridge";
 import { TunnelsId } from "../../CommonUtils/TunnelsId";
+import { CommonOptions } from "../../../../config/common";
 
 declare function $(p: any): any;
 
@@ -94,7 +94,8 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
         const container = document.querySelector(containerId);
     
         if (!container) {
-            console.error(`Container with id "${containerId}" not found.`);
+            if (CommonOptions.DEBUG_MODE)
+                console.error(`Container with id "${containerId}" not found.`);
             return;
         }
         
@@ -109,7 +110,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
         }
     }
     
-    componentWillMount() {
+    initializeSubmissionData() {
         let params = getParameters();
         if (params === null || params.submitId === 0) {
             if (params?.computationId) {
@@ -141,6 +142,8 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
     }
 
     componentDidMount() {
+        this.initializeSubmissionData();
+
         Events.subscribeSubmitDone(async (newSubmitId) => {
             if (!this.state.submissions.has(newSubmitId)) {
                 const data = await ApiService.getChannelsData(this.props.computationId, newSubmitId)
@@ -210,7 +213,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
         channels.forEach((val, key, map) => {
             if (val.length > 0) {
                 channelsControls.push(
-                    <Channels channels={val} header={key.valueOf()} channelsDB={submitId === -1} submissionId={submitId === -1 ? 'ChannelsDB' : submitId.toString()} hide={this.state.hideAll} />
+                    <Channels key={key.toString()} channels={val} header={key.valueOf()} channelsDB={submitId === -1} submissionId={submitId === -1 ? 'ChannelsDB' : submitId.toString()} hide={this.state.hideAll} />
                 );
             }
         });
@@ -251,7 +254,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
             let currentChannels = this.state.submissionsElems.get(submitId);
             if (currentChannels) {
                 submissionsControls.push(
-                    <div className="accordion-item">
+                    <div key={submitId} className="accordion-item">
                         <h2 className="accordion-header">
                             <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target={`#submission-${submitId}`} aria-expanded={submitId === this.state.currentSubmitId ? true : false} aria-controls={`submission-${submitId}`}>
                                 {submitId === -1 ? 'ChannelsDB' : submitId === -2 ? 'FromFile' : `Submission-${submitId}`}
@@ -320,7 +323,6 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
     private highlight(isOn: boolean) {
         // this.props.plugin.command(Bootstrap.Command.Entity.Highlight, { entities: this.props.plugin.context.select(this.props.element.__id), isOn }); //TODO
         const context = Context.getInstance();
-        console.log(this.props.element.__loci);
         if (isOn && this.props.element.__isVisible)
             context.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci: this.props.element.__loci } as Representation.Loci)
         else
@@ -362,8 +364,8 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
 
     private getAnnotationToggler() {
         return [(this.state.isAnnotationsVisible)
-            ? <span className="hand bi bi-chevron-up" title="Hide list annotations for this channel" onClick={this.toggleAnnotations.bind(this)} />
-            : <span className="hand bi bi-chevron-down" title="Show all annotations available for this channel" onClick={this.toggleAnnotations.bind(this)} />];
+            ? <span key={'hide'} className="hand bi bi-chevron-up" title="Hide list annotations for this channel" onClick={this.toggleAnnotations.bind(this)} />
+            : <span key={'show'} className="hand bi bi-chevron-down" title="Show all annotations available for this channel" onClick={this.toggleAnnotations.bind(this)} />];
     }
 
     private getAnnotationsElements() {
@@ -374,13 +376,13 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
             return [];
         }
         let elements: JSX.Element[] = [];
-        for (let annotation of this.props.annotations) {
+        for (let [index, annotation] of this.props.annotations.entries()) {
             let reference = <i>(No reference provided)</i>;
             if (annotation.reference !== "") {
                 reference = <a target="#" href={annotation.link}>{annotation.reference} <span className="bi-box-arrow-up-right" /></a>;
             }
             elements.push(
-                <div className="annotation-line">
+                <div key={index} className="annotation-line">
                     <span className="bullet" /> <b>{annotation.name}</b>, {reference}
                 </div>
             );
@@ -393,7 +395,7 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
         if (isInChannelsDBMode()) {
             emptyToggler = <span className="disabled bi bi-chevron-down" title="No annotations available for this channel" onClick={this.toggleAnnotations.bind(this)} />
         }
-        return <div className="ui-label">
+        return <div key={this.props.element.Id} className="ui-label">
             <input type='checkbox' checked={!!this.props.element.__isVisible} onChange={() => this.toggle()} disabled={!!this.props.element.__isBusy} />
             <label className="ui-label-element" onMouseEnter={() => this.highlight(true)} onMouseLeave={() => this.highlight(false)} >
                 {(this.props.annotations !== void 0 && this.props.annotations.length > 0) ? this.getAnnotationToggler() : emptyToggler} {this.props.label}
@@ -463,10 +465,10 @@ export class Channel extends React.Component<{ channel: any, channelsDB: boolean
         let annotations = annotationId ? ChannelsDBData.getChannelAnnotationsImmediate(annotationId) : null;
         if (annotations !== null && annotations !== void 0) {
             let annotation = annotations[0];
-            return <Renderable annotations={annotations} submissionId={this.props.submissionId} channelsDB={this.props.channelsDB} label={<span><b><a href="javascript:void(0)" onClick={this.selectChannel.bind(this, true)}>{annotation.name}{namePart}</a></b><ColorPicker tunnel={this.props.channel} />, Length: <b>{len} Å</b></span>} element={c} toggle={showChannelVisuals} />
+            return <Renderable annotations={annotations} submissionId={this.props.submissionId} channelsDB={this.props.channelsDB} label={<span><b><a href="#" onClick={(e) => {e.preventDefault(); this.selectChannel.bind(this, true)}}>{annotation.name}{namePart}</a></b><ColorPicker tunnel={this.props.channel} />, Length: <b>{len} Å</b></span>} element={c} toggle={showChannelVisuals} />
         }
         else {
-            return <Renderable channelsDB={this.props.channelsDB} submissionId={this.props.submissionId} label={<span><b><a href="javascript:void(0)" onClick={this.selectChannel.bind(this, true)}>{c.Type}{namePart}</a></b><ColorPicker tunnel={this.props.channel} />, Length: <b>{len} Å</b></span>} element={c} toggle={(ch: Tunnel[] & TunnelMetaInfo[], v: boolean, repaint?: boolean, channelsDB?: boolean, submissionId?: string) => {
+            return <Renderable channelsDB={this.props.channelsDB} submissionId={this.props.submissionId} label={<span><b><a href="#" onClick={(e) => {e.preventDefault(); this.selectChannel.bind(this, true)}}>{c.Type}{namePart}</a></b><ColorPicker tunnel={this.props.channel} />, Length: <b>{len} Å</b></span>} element={c} toggle={(ch: Tunnel[] & TunnelMetaInfo[], v: boolean, repaint?: boolean, channelsDB?: boolean, submissionId?: string) => {
                 if (submissionId) {
                     return showChannelVisuals(ch, v, undefined, channelsDB, submissionId)
                         .then(() => {
@@ -481,36 +483,6 @@ export class Channel extends React.Component<{ channel: any, channelsDB: boolean
             }} />
         }
     }
-
-    // private selectChannel(updateUI?: boolean) {
-    //     const channel = this.props.channel as (Tunnel & TunnelMetaInfo)
-    //     const loci = { loci: channel.__loci } as Representation.Loci<Loci>
-    //     Context.getInstance().plugin.canvas3d?.mark(loci, MarkerAction.Select);
-
-    //     // plugin.command(Bootstrap.Command.Entity.Focus, plugin.context.select(channelRef));
-    //     // plugin.command(LiteMol.Bootstrap.Event.Visual.VisualSelectElement, Bootstrap.Interactivity.Info.selection(entity, [0]));
-
-    //     // if (updateUI === void 0) {
-    //     //     updateUI = true;
-    //     // }
-    //     // let entity = this.props.state.plugin.context.select(this.props.channel.__id)[0];
-    //     // if (entity === void 0 || entity.ref === "undefined") {
-    //     //     State.showChannelVisuals(this.props.state.plugin, [this.props.channel], true).then(() => {
-    //     //         if (updateUI) {
-    //     //             let state = this.state;
-    //     //             state.isVisible = true;
-    //     //             this.setState(state);
-    //     //         }
-    //     //         this.selectChannel(updateUI);
-    //     //     });
-    //     //     return;
-    //     // }
-    //     // let channelRef = entity.ref;
-    //     // let plugin = this.props.state.plugin;
-
-    //     // plugin.command(Bootstrap.Command.Entity.Focus, plugin.context.select(channelRef));
-    //     // plugin.command(LiteMol.Bootstrap.Event.Visual.VisualSelectElement, Bootstrap.Interactivity.Info.selection(entity, [0]));
-    // }
 
     private selectChannel(preserveSelection?: boolean) {
         const channel = this.props.channel as (Tunnel & TunnelMetaInfo)

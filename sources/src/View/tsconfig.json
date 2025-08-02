@@ -155,7 +155,6 @@
     //Main UI
     "Behaviour.ts",
     "State.ts",
-    "Spec.ts",
     "UI/PluginControl/UI.tsx",
     "UI/PluginControl/ChannelsUI.tsx",
 
@@ -171,7 +170,7 @@
     "MolViewer/UI.tsx",
     "UI/SequenceViewer/MoleSequence.tsx",
     "UI/SequenceViewer/MoleSequenceView.tsx",
-    "UI/SequenceViewer/newUI.tsx",
+    "UI/SequenceViewer/UI.tsx",
     "VizualizerMol/color-tunnels/algorithm.ts",
     "VizualizerMol/color-tunnels/data-model.ts",
     "VizualizerMol/color-tunnels/property-color.ts",

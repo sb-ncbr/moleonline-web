@@ -14,15 +14,16 @@ export class SimpleComboBox extends React.Component<{ id: string, items: { label
 
         let items = [];
         let idx = 0;
+        const defaultValue = this.props.items?.[selectedIdx]?.value;
         for (let item of this.props.items) {
             items.push(
-                <option value={item.value} selected={(idx === selectedIdx)}>{item.label}</option>
+                <option key={idx} value={item.value}>{item.label}</option>
             );
             idx++;
         }
 
         return (
-            <select id={this.props.id} style={{minWidth: "50px"}} className={classNames} onChange={this.props.onSelectedChange}>
+            <select id={this.props.id} defaultValue={defaultValue} style={{minWidth: "50px"}} className={classNames} onChange={this.props.onSelectedChange}>
                 {items}
             </select>
         );

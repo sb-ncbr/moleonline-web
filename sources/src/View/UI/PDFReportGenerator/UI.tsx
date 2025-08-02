@@ -1,5 +1,5 @@
 import React from "react";
-import { ChannelsDBChannels, ChannelsDBData, MoleData, Tunnel, TunnelMetaInfo } from "../../../DataInterface";
+import { ChannelsDBData, MoleData, Tunnel, TunnelMetaInfo } from "../../../DataInterface";
 import { CompInfo, MoleConfig, PoresConfig, Submission } from "../../../MoleAPIService";
 import { PDFTemplate, Service } from "../../../TemplateService";
 import { Events, Instances } from "../../../Bridge";
@@ -141,20 +141,6 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
                     };
                     waitToResolve();
                 })
-                // LiteMol.Example.Channels.State.showChannelVisuals(plugin, allChannels as any, false).then(() => {
-                //     Events.invokeChannelSelect(channel.Id);
-
-                //     let waitToResolve = () => {
-                //         window.setTimeout(() => {
-                //             if (SelectionHelper.getSelectedChannelId() == channel.Id) {
-                //                 window.setTimeout(() => { res() }, 100);
-                //                 return;
-                //             }
-                //             waitToResolve();
-                //         }, 20);
-                //     };
-                //     waitToResolve();
-                // })
             } catch (err) {
                 rej(err);
             }
@@ -638,8 +624,6 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
 
                                 window.onafterprint = afterPrint;
 
-                                // let plugin = Instances.getPlugin();
-
                                 showChannelVisuals(channels as (Tunnel[] & TunnelMetaInfo[]), false).then(() => {
                                     showChannelVisuals(originalVisibleChannels as (Tunnel[] & TunnelMetaInfo[]), true).then(() => {
                                         SelectionHelper.resetScene();
@@ -649,15 +633,6 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
                                         window.print();
                                     })
                                 })
-
-                                // LiteMol.Example.Channels.State.showChannelVisuals(plugin, channels as any, false).then(() => {
-                                //     LiteMol.Example.Channels.State.showChannelVisuals(plugin, originalVisibleChannels as any, true).then(() => {
-                                //         SelectionHelper.resetScene(plugin);
-                                //         SelectionHelper.clearSelection(plugin);
-                                //         SelectionHelper.forceInvokeOnChannelDeselectHandlers();
-                                //         window.print();
-                                //     });
-                                // });
                             });
                         }
                         return;

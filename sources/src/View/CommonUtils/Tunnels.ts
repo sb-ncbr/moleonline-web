@@ -1,7 +1,7 @@
 import { ReferenceType, TunnelAnnotation } from "../../AnnotationToChannelsDBService";
 import { ChannelsDBData, LastVisibleChannels, TunnelName } from "../../Cache";
 import { roundToDecimal } from "../../Common/Util/Numbers";
-import { ChannelsDBChannels, ExportTunnel, Tunnel, TunnelMetaInfo } from "../../DataInterface";
+import { ChannelsDBChannels, ExportTunnel, Tunnel } from "../../DataInterface";
 import { TunnelsId } from "./TunnelsId";
 import { TwoDProtsBridge } from "./TwoDProtsBridge";
 
