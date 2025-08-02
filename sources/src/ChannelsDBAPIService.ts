@@ -1,7 +1,10 @@
 import { AnnotationObject, Annotations, ChannelsDBChannels, ChannelsDBData, Tunnel } from "./DataInterface";
 import { Fetching } from "./FetchingIf";
 import { CommonOptions, DataSources } from "../config/common";
-import { UUID } from "molstar/lib/mol-util";
+import { customAlphabet } from 'nanoid';
+
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const nanoidAlphaNum = customAlphabet(ALPHABET, 10);
 
 export interface ResidueAnnotation {
     text: string,
@@ -110,7 +113,7 @@ export class ApiService {
             }
             list.push(
                 {
-                    id: UUID.create22(),
+                    id: nanoidAlphaNum(),
                     name: item.Name,
                     description: item.Description,
                     reference: item.Reference,
