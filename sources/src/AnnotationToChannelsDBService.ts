@@ -15,10 +15,11 @@ export interface AnnotationData {
     ResidueAnnotations: ResidueAnnotation[]
 }
 
-export type ReferenceType = "DOI" | "Pubmed" | "";
+export type ReferenceType = "DOI" | "Pubmed" | "UniProt" | "";
 
 export interface TunnelAnnotation {
     Id: string,
+    ChannelId?: string,
     Name: string,
     Description: string,
     Reference: string,

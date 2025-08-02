@@ -73,8 +73,8 @@ function sortElements(elements: Element[]) {
     });
 }
 
-export class TwoDProts extends React.Component<{}, { isComputing: boolean, error?: any, jobId: string, canceled: boolean, modifiedSVG: string, selectedTunnel: string }> {
-    state = { isComputing: false, error: void 0, jobId: "", canceled: false, modifiedSVG: "", selectedTunnel: "" };
+export class TwoDProts extends React.Component<{}, { isComputing: boolean, error?: any, info?: any, jobId: string, canceled: boolean, modifiedSVG: string, selectedTunnel: string }> {
+    state = { isComputing: false, error: void 0, info: void 0, jobId: "", canceled: false, modifiedSVG: "", selectedTunnel: "" };
     private svgContainerRef = React.createRef<HTMLDivElement>();
 
     private onChannelSelect = (channel: Tunnel & TunnelMetaInfo) => {
@@ -137,6 +137,10 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
             }
         })
         TwoDProtsBridge.attachOnColorTunnelChangeHandler(this.onChannelColorChanged.bind(this))
+        Events.subscribeSubmitDone(() => {
+            if (document.getElementById('svgContainer')?.querySelector('svg'))
+                this.setState({ info: <div className="text-info fs-5">{'New tunnels were added. Please recompute to update 2DProts.'}</div> })
+        })
     }
 
     private getLastErrorMessage(message: string): string {
@@ -164,11 +168,11 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
     }
 
     private addSvgClickListeners(elements: Element[]) {
-        const tunnels = LastVisibleChannels.get();
         elements.forEach((element) => {
             const elementId = element.getAttribute('id');
             if (elementId) {
                 element.addEventListener('click', () => {
+                    const tunnels = LastVisibleChannels.get();
                     const filteredTunnels = tunnels.filter((t) => TwoDProtsBridge.getFromIdTable(t.Id) === elementId);
                     if (filteredTunnels.length > 0) {
                         const tunnel = filteredTunnels[0];
@@ -199,6 +203,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
             if (targetElement) {
                 targetElement.style.fill = Color.toHexStyle(tunnel.__color);
                 targetElement.style.stroke = Color.toHexStyle(tunnel.__color);
+                targetElement.removeAttribute("display");
             }
         }
         
@@ -207,7 +212,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
     }
 
     private async startComputation() {
-        this.setState({canceled: false});
+        this.setState({ canceled: false, info: void 0 });
         let params = getParameters();
         if (params === null) {
             this.setState({ isComputing: false, jobId: '', error: `Cannot get structure url` });
@@ -290,7 +295,8 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
 
             const tunnelElements = inlineSvg.querySelectorAll('.tunnel');
             tunnelElements.forEach(element => {
-                element.setAttribute('style', 'fill: black; stroke: black; opacity: 0.9');
+                // element.setAttribute('style', 'fill: black; stroke: black');
+                element.setAttribute("display", "none");
             });
 
             const serializer = new XMLSerializer();
@@ -375,6 +381,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
                     </div>
             }
             {this.state.error ?? <></>}
+            {this.state.info ?? <></>}
         </div>
     }
 }

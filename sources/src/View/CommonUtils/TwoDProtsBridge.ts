@@ -1,10 +1,5 @@
-import { ChannelsDBChannels, ExportTunnel, Profile, Tunnel, TunnelMetaInfo } from "../../DataInterface";
-import { Color } from "molstar/lib/mol-util/color";
+import { ChannelsDBChannels, Profile, Tunnel, TunnelMetaInfo } from "../../DataInterface";
 import murmurhash from 'murmurhash';
-import { ChannelsDBData } from "../../Cache";
-import { ReferenceType, TunnelAnnotation } from "../../AnnotationToChannelsDBService";
-import { TunnelsId } from "./TunnelsId";
-
 
 interface TunnelColor {
     Color: string
@@ -19,7 +14,7 @@ interface VizualizedTunnel {
 
 export class TwoDProtsBridge {
     private static pdbId: string = '';
-    private static vizualizedChannels: Map<string, Tunnel & TunnelMetaInfo> = new Map();
+    private static allChannels: Map<string, Tunnel & TunnelMetaInfo> = new Map();
     private static onColorTunnelChanges: { handler: (channel: Tunnel & TunnelMetaInfo) => void }[];
     private static moleIdTable: Map<string, string> = new Map();
 
@@ -40,17 +35,6 @@ export class TwoDProtsBridge {
         }
     }
 
-
-    public static addChannel(tunnel: Tunnel & TunnelMetaInfo) {
-        this.vizualizedChannels.set(tunnel.__id, tunnel);
-    }
-
-    public static removeChannel(id: string) {
-        if (this.vizualizedChannels.has(id)) {
-            this.vizualizedChannels.delete(id);
-        }
-    }
-
     public static setPdbId(pdbId: string) {
         this.pdbId = pdbId;
     }
@@ -60,19 +44,19 @@ export class TwoDProtsBridge {
         return this.pdbId;
     }
 
-    public static getVizualizedChannels(): (Tunnel&TunnelColor)[] {
-        const channels: (Tunnel&TunnelColor)[] = [];
+    public static getVizualizedChannels(): (Tunnel & TunnelColor)[] {
+        const channels: (Tunnel & TunnelColor)[] = [];
         const convertIdTunnels: Map<string, VizualizedTunnel> = new Map();
         let id = 0;
 
-        this.vizualizedChannels.forEach(tunnel => {
+        this.allChannels.forEach(tunnel => {
             const t = {
                 Id: id.toString(),
                 Type: tunnel.Type,
                 Profile: tunnel.Profile,
                 Color: "black" //Color.toHexString(tunnel.__color)
             }
-            channels.push(t as (Tunnel&TunnelColor));
+            channels.push(t as (Tunnel & TunnelColor));
             convertIdTunnels.set(tunnel.Id, t);
             id++;
         })
@@ -80,50 +64,8 @@ export class TwoDProtsBridge {
         return channels;
     }
 
-    public static generateTunnelsDataJson() {
-        const annotations = ChannelsDBData.getAnnotations();
-        const annotationsList: TunnelAnnotation[]  = [];
-        const allTunnels: ExportTunnel[] = [];
-
-        for (const tunnel of Array.from(this.vizualizedChannels.values())) {
-            allTunnels.push({
-                Type: tunnel.Type,
-                Id: tunnel.Id,
-                Cavity: tunnel.Cavity,
-                Auto: tunnel.Auto,
-                Properties: tunnel.Properties,
-                Profile: tunnel.Profile,
-                Layers: tunnel.Layers
-            });
-            const tunnelId = TunnelsId.getAnnotationId(tunnel.Id)
-            if (tunnelId) {
-                const ann = annotations.get(tunnelId);
-                if (ann) {
-                    ann.forEach(t_ann => {
-                        annotationsList.push({
-                            Id: t_ann.id,
-                            Name: t_ann.name,
-                            Reference: t_ann.link,
-                            Description: t_ann.description,
-                            ReferenceType: t_ann.reference as ReferenceType
-                        })
-                    });
-                }
-            }
-        }
-
-        const result = {
-            Annotations: annotationsList,
-            Channels: {
-                MOLEonline_MOLE: allTunnels
-            }
-        }
-
-        return result;
-    }
-
     private static hashToNumber(input: string): number {
-        return murmurhash.v3(input) >>> 0; 
+        return murmurhash.v3(input) >>> 0;
     }
 
     public static convertMoleId(id: string) {
@@ -132,7 +74,7 @@ export class TwoDProtsBridge {
         const submissionId = id_parts[1];
         const tunnelId = id_parts[2];
 
-        const compNum = this.hashToNumber(compId); 
+        const compNum = this.hashToNumber(compId);
         const subNum = parseInt(submissionId, 10);
         const tunnelNum = parseInt(tunnelId, 10);
 
@@ -152,5 +94,11 @@ export class TwoDProtsBridge {
 
     public static getFromIdTable(id: string) {
         return this.moleIdTable.get(id);
+    }
+
+    public static addTunnels(tunnels: ChannelsDBChannels) {
+        Object.entries(tunnels).forEach(([_, tunnelArray]) => {
+            (tunnelArray as Tunnel[]).forEach(tunnel => this.allChannels.set(tunnel.Id, tunnel as (Tunnel&TunnelMetaInfo)))
+        });
     }
 }

@@ -1,9 +1,9 @@
 // import Bundle = MoleOnlineWebUI.StaticData.Bundle;
 
 import React from "react";
-import { Events as BridgeEvents, Instances } from "../../../Bridge"
+import { Events as BridgeEvents } from "../../../Bridge"
 import { ComputationInfo } from "../../../DataProxy";
-import { 
+import {
     AnnotationData,
     TunnelAnnotation as AnnotationToChannelsDBService_TunnelAnnotation,
     ResidueAnnotation as AnnotationToChannelsDBService_ResidueAnnotation,
@@ -14,7 +14,7 @@ import {
 import { Bundle } from "../../../StaticData";
 import { ChannelsDBData, MoleChannels, MoleData, Tunnel } from "../../../DataInterface";
 import { Tunnels } from "../../CommonUtils/Tunnels";
-import { fakeRedirect, getParameters } from "../../../Common/Util/Router";
+import { getParameters } from "../../../Common/Util/Router";
 import { CommonOptions } from "../../../../config/common";
 
 declare function $(p: any, p1?: any): any;
@@ -56,7 +56,7 @@ export class Annotate extends React.Component<{}, AppState> {
         let computationId = this.state.computationId;
         let submitId = this.state.submitId;
         if (computationId === void 0 || submitId === void 0) {
-            return <div className="annotate"/>
+            return <div className="annotate" />
         }
 
         return <div className="annotate">
@@ -150,28 +150,10 @@ class DropDownMenu extends React.Component<{ app: Annotate, canAnnotate: boolean
                 if (this.state.pdbid !== null) {
                     let channelsDBLink = `${CommonOptions.CHANNELSDB_LINK_DETAIL_URL}/${this.state.pdbid}`;
                     items.push(
-                        <BootstrapDropDownMenuItem linkText="Open in ChannelsDB" link={channelsDBLink} targetBlank={true} />
+                        <BootstrapDropDownMenuItem key={'channelsDBitem'} linkText="Open in ChannelsDB" link={channelsDBLink} targetBlank={true} />
                     );
                 }
-                // items.push(
-                //     <BootstrapDropDownMenuItem linkText="Vizualize" onClick={() => {
-                //         fakeRedirect(computationId, "ChannelsDB");
-                //         // LiteMol.Example.Channels.State.removeChannelsData(Instances.getPlugin());
-                //         BridgeEvents.invokeChangeSubmitId(-1);
-                //     }} />
-                // );
             }
-            // if (this.props.canAnnotate) {
-            //     items.push(
-            //         <BootstrapDropDownMenuItem linkText="Annotate" onClick={() => {
-            //             let s = this.props.app.state;
-            //             // s.annotationFormVisible = !s.annotationFormVisible;
-            //             this.props.app.setState({
-            //                 annotationFormVisible: !s.annotationFormVisible
-            //             });
-            //         }} />
-            //     );
-            // }
         }
 
         return <BootstrapDropDownMenuButton items={items} />
@@ -239,8 +221,8 @@ class AnnotateForm extends React.Component<AnnotateFormProps, AnnotateFormState>
         this.setState(s);
     }
 
-    componentWillReceiveProps(newProps: AnnotateFormProps) {
-        if (this.props.visible != newProps.visible) {
+    componentDidUpdate(prevProps: AnnotateFormProps) {
+        if (prevProps.visible !== this.props.visible) {
             this.resetData();
         }
     }
@@ -413,7 +395,7 @@ class AnnotateForm extends React.Component<AnnotateFormProps, AnnotateFormState>
         this.props.visible ? this.showTabs(false) : this.showTabs(true);
         return <div>
             <div className={`annotate-form-fade ${(this.props.visible) ? "visible" : ''}`}></div>
-            <div className={`annotate-form`} style={{visibility: this.props.visible ? 'visible' : 'collapse'}}>
+            <div className={`annotate-form`} style={{ visibility: this.props.visible ? 'visible' : 'collapse' }}>
                 {infoMsg}
                 {errorMsg}
                 <div className="scroll-container">
@@ -967,13 +949,13 @@ class Combobox extends React.Component<ComboboxProps, ComboboxState> {
         return false;
     }
 
-    componentWillReceiveProps(nextProps: ComboboxProps) {
-        if (this.props.value !== nextProps.value) {
-            this.reportCurrentValueChange(nextProps.value);
-        } else if (this.itemsChanged(nextProps.items)) {
+    componentDidUpdate(prevProps: ComboboxProps) {
+        if (prevProps.value !== this.props.value) {
+            this.reportCurrentValueChange(this.props.value);
+        } else if (this.itemsChanged(this.props.items) && !this.itemsChanged(prevProps.items)) {
             let value = "";
-            if (nextProps.items.length > 0) {
-                value = nextProps.items[0].value;
+            if (this.props.items.length > 0) {
+                value = this.props.items[0].value;
             }
             this.reportCurrentValueChange(value);
         }

@@ -251,28 +251,6 @@ function getColor(value: number, property: Property, settings: ColorPaletteFunct
         color = Color.interpolate(minColor, maxColorMiddle, 0.5);
         // color = interpolate(minColor, maxColorMiddle, 0.5);
     }
-
-    // var rgb: RGBColor;
-
-    // if (value < (minVal + maxVal) / 2) {
-    //     rgb = ChannelDbPlugin.Palette.interpolate(minVal, toRGB(minColor), middle, toRGB(maxColorMiddle), value);
-    // }
-    // else {
-    //     rgb = ChannelDbPlugin.Palette.interpolate(middle, toRGB(minColorMiddle), maxVal, toRGB(maxColor), value);
-    // }
-
-    // if (skipMiddle && settings.centerAbsolute) {
-    //     throw new Error("Cannot config absolute center and skip center at once! Forbidden configuration -> skipMiddle=true && centerAbsolute=true");
-    // }
-    // if (skipMiddle && !settings.centerAbsolute) {
-    //     rgb = ChannelDbPlugin.Palette.interpolate(minVal, toRGB(minColor), maxVal, toRGB(maxColor), value);
-    // }
-
-    // if (minVal === maxVal) {
-    //     rgb = ChannelDbPlugin.Palette.interpolate(0, toRGB(minColor), 1, toRGB(maxColorMiddle), 0.5);
-    // }
-
-    // return Color.fromRgb(rgb.r, rgb.g, rgb.b);
     return color;
 }
 
@@ -371,10 +349,7 @@ export function colorTunnelGradient(property: Property, groupId: number, dist: n
         if (currentColorStop < (dist / totalLength)) {
             return Color(0xFFFFFF);
         }
-        // console.log(Color.toHexStyle(color));
-        console.log(`%c Color: ${Color.toRgb(color)}`, `background: ${Color.toHexStyle(color)}`);
         return color;
-        // return LayerColors.colorArray[groupId];
     }
     return DefaultColor;
 }
@@ -389,17 +364,6 @@ export function getLayerGroupId(dist: number, layers: LayersInfo[]) {
     }
     return -1;
 }
-
-// export function getLayerGroupId(dist: number, layers: LayersInfo[]) {
-//     const length = layers[layers.length - 1].LayerGeometry.EndDistance;
-//     if (dist === 1) return layers.length - 1;
-//     for (let i = 0; i < layers.length; i++) {
-//         if (dist >= layers[i].LayerGeometry.StartDistance && dist < layers[i].LayerGeometry.EndDistance) {
-//             return i;
-//         }
-//     }
-//     return -1;
-// }
 
 export function colorByDistance(property: Property, dist: number,
     colorOptions: {

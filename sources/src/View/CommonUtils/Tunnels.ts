@@ -1,6 +1,9 @@
-import { TunnelName } from "../../Cache";
+import { ReferenceType, TunnelAnnotation } from "../../AnnotationToChannelsDBService";
+import { ChannelsDBData, LastVisibleChannels, TunnelName } from "../../Cache";
 import { roundToDecimal } from "../../Common/Util/Numbers";
 import { ChannelsDBChannels, ExportTunnel, Tunnel } from "../../DataInterface";
+import { TunnelsId } from "./TunnelsId";
+import { TwoDProtsBridge } from "./TwoDProtsBridge";
 
 export class Tunnels {
     private static loadedChannels: Map<string, ChannelsDBChannels> = new Map();
@@ -9,8 +12,54 @@ export class Tunnels {
     private static onTunnelsCollect: { handler: (submitId: number) => void }[];
     private static onTunnelsHide: { handler: () => void }[];
 
+    public static generateTunnelsDataJson() {
+            let annotations = ChannelsDBData.getAnnotations();
+            if (annotations.size === 0)
+                annotations = ChannelsDBData.getFileLoadedAnnotations();
+            const annotationsList: TunnelAnnotation[] = [];
+            const allTunnels: ExportTunnel[] = [];
+    
+            for (const tunnel of LastVisibleChannels.get()) {
+                allTunnels.push({
+                    Type: tunnel.Type,
+                    Id: tunnel.Id,
+                    Cavity: tunnel.Cavity,
+                    Auto: tunnel.Auto,
+                    Properties: tunnel.Properties,
+                    Profile: tunnel.Profile,
+                    Layers: tunnel.Layers
+                })
+                const tunnelId = TunnelsId.getAnnotationId(tunnel.Id)
+                if (tunnelId) {
+                    const ann = annotations.get(tunnelId);
+                    if (ann) {
+                        ann.forEach(t_ann => {
+                            annotationsList.push({
+                                Id: t_ann.id,
+                                Name: t_ann.name,
+                                Reference: t_ann.reference,
+                                Description: t_ann.description,
+                                ReferenceType: t_ann.referenceType as ReferenceType,
+                                ChannelId: tunnel.Id,
+                            })
+                        })
+                    }
+                }
+            }
+    
+            const result = {
+                Annotations: annotationsList,
+                Channels: {
+                    MOLEonline_MOLE: allTunnels
+                }
+            }
+    
+            return result;
+        }
+
     public static setChannelsDB(channels: ChannelsDBChannels) {
         this.loadedChannelsDB = channels;
+        TwoDProtsBridge.addTunnels(channels);
     }
 
     public static getChannelsDB() {
@@ -70,6 +119,7 @@ export class Tunnels {
 
     public static addChannels(submitId: string, channels: ChannelsDBChannels) {
         this.loadedChannels.set(submitId, channels);
+        TwoDProtsBridge.addTunnels(channels);
     }
 
     public static getChannels() {

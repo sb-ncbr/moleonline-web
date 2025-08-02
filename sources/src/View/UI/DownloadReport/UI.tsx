@@ -3,8 +3,7 @@ import { Events } from "../../../Bridge";
 import { getParameters } from "../../../Common/Util/Router";
 import { DataSources } from "../../../../config/common";
 import { Tunnels } from "../../CommonUtils/Tunnels";
-import { JSON2CIF } from "../../VizualizerMol/mmcif-tunnels/converter";
-import { TwoDProtsBridge } from "../../CommonUtils/TwoDProtsBridge";
+import { cleanCifContent, JSON2CIF } from "../../VizualizerMol/mmcif-tunnels/converter";
 
 export class DownloadReport extends React.Component<{}, {}> {
 
@@ -95,12 +94,36 @@ class DownloadResultsMenu extends React.Component<{}, DownloadResultsMenuState> 
             return;
         }
 
-        const cifText = await response.text();
-        const tunnelData = TwoDProtsBridge.generateTunnelsDataJson();
+        let cifText = await response.text();
+        // cifText = removeLoopsFromMMCIF(cifText);
+        cifText = cleanCifContent(cifText);
+        const tunnelData = Tunnels.generateTunnelsDataJson();
         const tunnelDataStr = JSON.stringify(tunnelData);
         const parsedString = JSON2CIF("data_tunnels", tunnelDataStr);
+        let updatedCifText = '';
+        if (parsedString.trim() !== '') {
+            const auditLine = `mmcif_tunnels.dic 1.0 https://sb-ncbr.github.io/tunnels-schema/schemas/mmcif_tunnels_v10.dic`;
 
-        const fullCifContent = `${cifText}\n${parsedString}`
+            if (!cifText.includes("_audit_conform")) {
+                const auditBlock = `
+loop_
+_audit_conform.dict_name
+_audit_conform.dict_version
+_audit_conform.dict_location
+${auditLine}
+    `.trim();
+    
+                updatedCifText = `${cifText}\n\n${auditBlock}`;
+            } else {
+                updatedCifText = cifText.replace(/(loop_\s*_audit_conform[\s\S]*?)(?=(\n[^_]|$))/m, (match) => {
+                    return `${match.trim()}\n${auditLine}`;
+                });
+            }
+        } else {
+            updatedCifText = cifText;
+        }
+
+        const fullCifContent = `${updatedCifText}\n${parsedString}`;
 
         const blob = new Blob([fullCifContent], { type: "text/plain" });
 
@@ -123,33 +146,33 @@ class DownloadResultsMenu extends React.Component<{}, DownloadResultsMenuState> 
 
         if (computationId !== void 0) {
             items.push(
-                <BootstrapDropDownMenuItem linkText="mmCIF" /*link={`${linkBase}&format=molecule`}*/ targetBlank={true} onClick={() => {
+                <BootstrapDropDownMenuItem key={'mmcif'} linkText="mmCIF" /*link={`${linkBase}&format=molecule`}*/ targetBlank={true} onClick={() => {
                     this.generateMoleculeContent();
                 }} />
             );
             if (this.state.submitId > 0) {
                 items.push(
-                    <BootstrapDropDownMenuItem linkText="PyMol" link={`${linkBase}&format=pymol`} targetBlank={true}  />
+                    <BootstrapDropDownMenuItem key={'pymol'} linkText="PyMol" link={`${linkBase}&format=pymol`} targetBlank={true} />
                 );
                 items.push(
-                    <BootstrapDropDownMenuItem linkText="VMD" link={`${linkBase}&format=vmd`} targetBlank={true} />
+                    <BootstrapDropDownMenuItem key={'vmd'} linkText="VMD" link={`${linkBase}&format=vmd`} targetBlank={true} />
                 );
                 items.push(
-                    <BootstrapDropDownMenuItem linkText="PDB" link={`${linkBase}&format=pdb`} targetBlank={true} />
+                    <BootstrapDropDownMenuItem key={'pdb'} linkText="PDB" link={`${linkBase}&format=pdb`} targetBlank={true} />
                 );
                 items.push(
-                    <BootstrapDropDownMenuItem linkText="Chimera" link={`${linkBase}&format=chimera`} targetBlank={true} />
+                    <BootstrapDropDownMenuItem key={'chimera'} linkText="Chimera" link={`${linkBase}&format=chimera`} targetBlank={true} />
                 );
                 items.push(
-                    <BootstrapDropDownMenuItem linkText="JSON" link={`${linkBase}`} targetBlank={true} />
+                    <BootstrapDropDownMenuItem key={'json'} linkText="JSON" link={`${linkBase}`} targetBlank={true} />
                 );
                 items.push(
-                    <BootstrapDropDownMenuItem linkText="Results" link={`${linkBase}&format=report`} targetBlank={true} />
+                    <BootstrapDropDownMenuItem key={'results'} linkText="Results" link={`${linkBase}&format=report`} targetBlank={true} />
                 );
             }
             if (this.state.submitId !== 0) {
                 items.push(
-                    <BootstrapDropDownMenuItem linkText="PDF report" onClick={() => {
+                    <BootstrapDropDownMenuItem key={'pdf-report'} linkText="PDF report" onClick={() => {
                         Events.invokeRunPDFReport();
                     }} />
                 );

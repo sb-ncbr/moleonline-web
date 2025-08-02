@@ -1,9 +1,6 @@
-// import DGComponents = Datagrid.Components;
-
 import React from "react";
 import { LayersInfo } from "../../../DataInterface";
 import { SelectionHelper } from "../../CommonUtils/Selection";
-import { Events } from "../../../Bridge";
 import { DGElementRow, DGNoDataInfoRow, DGRowEmpty } from "../Common/Datagrid/Components";
 import { ResidueAnnotation } from "../../../ChannelsDBAPIService";
 import { Residues } from "../../CommonUtils/Residues";
@@ -21,7 +18,7 @@ interface State {
     selectionOn: boolean
 };
 
-export class LayerResidues extends React.Component<{ }, State> {
+export class LayerResidues extends React.Component<{}, State> {
 
     state: State = {
         data: null,
@@ -43,12 +40,6 @@ export class LayerResidues extends React.Component<{ }, State> {
             state.data = data.LayersInfo;
             this.setState(state);
         });
-        // Events.subscribeChangeSubmitId(() => {
-        //     let state = this.state;
-        //     state.layerIds = [];
-        //     state.data = null;
-        //     this.setState(state);
-        // });
 
         $(window).on('layerTriggered', this.layerTriggerHandler.bind(this));
         $(window).on('layerSelected', this.layerSelectedHandler.bind(this));
@@ -110,8 +101,10 @@ class DGNoData extends React.Component<State, {}> {
             </div>
             <div className="body">
                 <table>
-                    <DGNoDataInfoRow columnsCount={DGTABLE_COLS_COUNT} infoText={NO_DATA_MESSAGE} />
-                    <DGRowEmpty columnsCount={DGTABLE_COLS_COUNT} />
+                    <tbody>
+                        <DGNoDataInfoRow columnsCount={DGTABLE_COLS_COUNT} infoText={NO_DATA_MESSAGE} />
+                        <DGRowEmpty columnsCount={DGTABLE_COLS_COUNT} />
+                    </tbody>
                 </table>
             </div>
         </div>);
@@ -135,11 +128,13 @@ class DGHead extends React.Component<State, {}> {
     render() {
         return (
             <table>
-                <tr>
-                    <th title="Residue" className="col col-1">
-                        Residue
-                    </th>
-                </tr>
+                <thead>
+                    <tr>
+                        <th title="Residue" className="col col-1">
+                            Residue
+                        </th>
+                    </tr>
+                </thead>
             </table>
         );
     };
@@ -159,7 +154,7 @@ class DGBody extends React.Component<State, {}> {
         if (annotation.reference === "") {
             return (annotation.text !== void 0 && annotation.text !== null) ? <span>{annotation.text}</span> : <span className="no-annotation" />;
         }
-        return <a target="_blank" href={annotation.link} dangerouslySetInnerHTML={{ __html: annotation.text }}></a>
+        return <a key={annotation.link} target="_blank" href={annotation.link} dangerouslySetInnerHTML={{ __html: annotation.text }}></a>
     }
 
     private generateSpannedRows(residue: string, annotations: ResidueAnnotation[]) {
@@ -168,11 +163,11 @@ class DGBody extends React.Component<State, {}> {
         let residueNameEl = residue;
 
         let first = true;
-        for (let annotation of annotations) {
+        for (let [index, annotation] of annotations.entries()) {
             if (first === true) {
                 first = false;
                 trs.push(
-                    <tr title={(this.isBackbone(residue) ? residue : "")} className={(this.isBackbone(residue) ? "help" : "")}>
+                    <tr key={index} title={(this.isBackbone(residue) ? residue : "")} className={(this.isBackbone(residue) ? "help" : "")}>
                         <td className={`col col-1`} rowSpan={(annotations.length > 1) ? annotations.length : void 0}>
                             {residueNameEl}
                         </td>
@@ -184,7 +179,7 @@ class DGBody extends React.Component<State, {}> {
             }
             else {
                 trs.push(
-                    <tr>
+                    <tr key={index}>
                         <td className={`col col-2`} >
                             {this.getAnnotationLinkOrText(annotation)}
                         </td>
@@ -226,7 +221,7 @@ class DGBody extends React.Component<State, {}> {
             let residueInfo = Residues.parseResidues([residue], true);
             let columns = [];
             columns.push(
-                (this.isBackbone(residue)) ? <span>{residue}</span> : <strong>{residue}</strong>
+                (this.isBackbone(residue)) ? <span key={residue}>{residue}</span> : <strong key={residue}>{residue}</strong>
             );
             let seqNumberAndChain = `${residueInfo[0].authSeqNumber} ${residueInfo[0].chain.authAsymId}`;
             let annotations = ChannelsDBData.getResidueAnnotationsImmediate(seqNumberAndChain);
@@ -239,17 +234,17 @@ class DGBody extends React.Component<State, {}> {
                         this.getAnnotationLinkOrText(annotations[0])
                     );
                     rows.push(
-                        <DGElementRow columns={columns} columnsCount={columnCount} title={[(this.isBackbone(residue) ? residue : ""), ""]} trClass={(this.isBackbone(residue) ? "help" : "")} />
+                        <DGElementRow key={residue} columns={columns} columnsCount={columnCount} title={[(this.isBackbone(residue) ? residue : ""), ""]} trClass={(this.isBackbone(residue) ? "help" : "")} />
                     );
                 }
             }
             else {
                 rows.push(
-                    <DGElementRow columns={columns} columnsCount={columnCount} title={[(this.isBackbone(residue) ? residue : ""), ""]} trClass={(this.isBackbone(residue) ? "help" : "")} />
+                    <DGElementRow key={residue} columns={columns} columnsCount={columnCount} title={[(this.isBackbone(residue) ? residue : ""), ""]} trClass={(this.isBackbone(residue) ? "help" : "")} />
                 );
             }
         }
-        rows.push(<DGRowEmpty columnsCount={columnCount} />);
+        rows.push(<DGRowEmpty key={'empty'} columnsCount={columnCount} />);
 
         return rows;
     }
@@ -259,7 +254,9 @@ class DGBody extends React.Component<State, {}> {
 
         return (
             <table>
-                {rows}
+                <tbody>
+                    {rows}
+                </tbody>
             </table>
         );
     };

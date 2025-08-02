@@ -37,13 +37,13 @@ export class DGRow extends React.Component<{ columns: string[], columnsCount?: n
 
         if (forceHtml) {
             tds.push(
-                <td title={title[i]} className={`col col-${i + 1} ${tdClass}`} dangerouslySetInnerHTML={html}>
+                <td key={i} title={title[i]} className={`col col-${i + 1} ${tdClass}`} dangerouslySetInnerHTML={html}>
                 </td>
             );
         }
         else {
             tds.push(
-                <td title={title[i]} className={`col col-${i + 1}`} >
+                <td key={i} title={title[i]} className={`col col-${i + 1}`} >
                     {columns[i]}
                 </td>
             );
@@ -61,13 +61,13 @@ export class DGRow extends React.Component<{ columns: string[], columnsCount?: n
         let colSpan = 1 + (columnsCount - columns.length);
         if (forceHtml) {
             tds.push(
-                <td title={title[i]} className={`col col-${i + 1} ${tdClass}`} colSpan={colSpan} dangerouslySetInnerHTML={html}>
+                <td key={i} title={title[i]} className={`col col-${i + 1} ${tdClass}`} colSpan={colSpan} dangerouslySetInnerHTML={html}>
                 </td>
             );
         }
         else {
             tds.push(
-                <td title={title[i]} className={`col col-${i + 1} ${tdClass}`} colSpan={colSpan}>
+                <td key={i} title={title[i]} className={`col col-${i + 1} ${tdClass}`} colSpan={colSpan}>
                     {columns[i]}
                 </td>
             );
@@ -129,7 +129,7 @@ export class DGElementRow extends React.Component<{ columns: JSX.Element[], colu
         for (let i = 0; i < columns.length; i++) {
             if (i === columns.length - 1 && columns.length !== columnsCount) {
                 tds.push(
-                    <td title={title[i]} className={`col col-${i + 1} ${tdClass}`} colSpan={colSpan}>
+                    <td key={i} title={title[i]} className={`col col-${i + 1} ${tdClass}`} colSpan={colSpan}>
                         {columns[i]}
                     </td>
                 );
@@ -137,7 +137,7 @@ export class DGElementRow extends React.Component<{ columns: JSX.Element[], colu
             }
 
             tds.push(
-                <td title={title[i]} className={`col col-${i + 1} ${tdClass}`}>
+                <td key={i} title={title[i]} className={`col col-${i + 1} ${tdClass}`}>
                     {columns[i]}
                 </td>
             );

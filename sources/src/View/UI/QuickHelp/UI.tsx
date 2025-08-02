@@ -79,7 +79,7 @@ export class QuickHelp extends React.Component<{}, State> {
         let hints: JSX.Element[] = [];
 
         if (!this.state.hasSubmissions) { //has no submissions
-            hints.push(<div>
+            hints.push(<div key={'start'}>
                 <b>How to start? Try this:</b>
                 <ul>
                     <li>For automatic start just press Submit button</li>
@@ -107,7 +107,7 @@ export class QuickHelp extends React.Component<{}, State> {
         }
         else { //has submissions
             if (this.state.hasChannels) { //has submissions and channels were computed
-                hints.push(<div>
+                hints.push(<div key={'channel-visibility'}>
                     <b>To see channel results:</b>
                     <ul>
                         <li>
@@ -131,7 +131,7 @@ export class QuickHelp extends React.Component<{}, State> {
                     </ul>
                 </div>);
             } else {  //has submissions and channels were not computed
-                hints.push(<div>
+                hints.push(<div key={'no-channels'}>
                     <b>No channels were computed – Tips:</b>
                     <ul>
                         <li>Switch on the box - <b>Ignore HETATMs</b> (discard all the heteroatom from the channel computation).</li>
@@ -152,7 +152,7 @@ export class QuickHelp extends React.Component<{}, State> {
                 </div>);
             }
         }
-        hints.push(<div>
+        hints.push(<div key={'information'}>
             For more information see <a target="blank" href="https://github.com/sb-ncbr/moleonline-web/wiki">documentation page</a>.
         </div>);
         return <div>

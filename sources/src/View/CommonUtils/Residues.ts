@@ -1,11 +1,11 @@
-import { getChainOptions, getModelEntityOptions, getOperatorOptions, getSequenceWrapper, getStructureOptions } from "molstar/lib/mol-plugin-ui/sequence";
+import { getStructureOptions } from "molstar/lib/mol-plugin-ui/sequence";
 import { Instances } from "../../Bridge";
 import { MoleConfigResidue } from "../../MoleAPIService";
 import { Context } from "../Context";
-import { PluginStateObject, PluginStateObject as PSO } from 'molstar/lib/mol-plugin-state/objects';
-import { StructureElement, Unit, Queries, StructureSelection, StructureQuery, StructureProperties } from "molstar/lib/mol-model/structure";
+import { PluginStateObject } from 'molstar/lib/mol-plugin-state/objects';
+import { StructureElement, StructureSelection, StructureQuery, StructureProperties } from "molstar/lib/mol-model/structure";
 import { Loci } from "molstar/lib/mol-model/loci";
-import { atoms, residues } from 'molstar/lib/mol-model/structure/query/queries/generators';
+import { atoms } from 'molstar/lib/mol-model/structure/query/queries/generators';
 
 interface RType { chain: { authAsymId: string }, authSeqNumber: number, operatorName: string, isHet: boolean, loci: Loci | undefined, name?: string, backbone?: boolean };
 export interface Point {
@@ -24,48 +24,6 @@ export class Residues {
 
         this.cache = new Map<number, string>();
     }
-
-    // private static getNameDirect(residueSeqNumber: number, plugin: Controller) {
-    //     if (plugin.context.select('polymer-visual')[0].props !== void 0) {
-    //         let props = plugin.context.select('polymer-visual')[0].props as any;
-    //         if (props.model === void 0 || props.model.model === void 0) {
-    //             return "";
-    //         }
-    //         let model = props.model.model as Model;
-    //         let params = LiteMol.Core.Structure.Query.residuesById(residueSeqNumber).compile()(
-    //             LiteMol.Core.Structure.Query.Context.ofStructure(
-    //                 model
-    //             )
-    //         );
-
-    //         let fragment = params.fragments[0];
-    //         let residueInd = fragment.residueIndices[0];
-    //         let residueData = params.context.structure.data.residues;
-
-    //         let resIdx = residueData.indices[residueInd];
-
-    //         let name = residueData.name[resIdx];
-
-    //         return name;
-    //     }
-    //     return "";
-    // }
-
-    // public static getName(residueSeqNumber: number): string {
-    //     this.initCache();
-    //     if (this.cache.has(residueSeqNumber)) {
-    //         let name = this.cache.get(residueSeqNumber);
-    //         if (name === void 0) {
-    //             return "";
-    //         }
-    //         return name;
-    //     }
-
-    //     let name = this.getNameDirect(residueSeqNumber, plugin);
-    //     this.cache.set(residueSeqNumber, name);
-
-    //     return name;
-    // }
 
     public static sort(residues: string[], groupFunction?: (residues: RType[]) => RType[][], hasName?: boolean, includeBackbone?: boolean) {
 

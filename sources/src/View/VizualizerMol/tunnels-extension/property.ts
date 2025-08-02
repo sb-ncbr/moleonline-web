@@ -47,13 +47,9 @@ const PropertyKey = 'sb-ncbr-tunnels-property-data';
 function getData(model: Model): CustomProperty.Data<SbNcbrTunnelsData | undefined> {
     let data: CustomProperty.Data<SbNcbrTunnelsData | undefined>;
 
-    console.log('opaa');
-
     if (!SbNcbrTunnelsPropertyProvider.isApplicable(model)) {
         data = { value: undefined };
-        console.log('if');
     } else {
-        console.log('else');
         const annotations = parseAnnotations(model);
         const tunnels = parseChannels(model);
 
@@ -72,8 +68,6 @@ function getData(model: Model): CustomProperty.Data<SbNcbrTunnelsData | undefine
                 params,
             }
         };
-
-        console.log(data);
     }
 
     model._staticPropertyData[PropertyKey] = data;
@@ -355,7 +349,6 @@ function parseChannels(model: Model): Map<string, Tunnel> {
 export function hasTunnelsPropertyProvider(model: Model): boolean {
     if (!model || !MmcifFormat.is(model.sourceData)) return false;
     const { categories } = model.sourceData.data.frame;
-    console.log(model.sourceData.data);
     return (
         'sb_ncbr_channel_annotation' in categories &&
         'sb_ncbr_channel' in categories &&

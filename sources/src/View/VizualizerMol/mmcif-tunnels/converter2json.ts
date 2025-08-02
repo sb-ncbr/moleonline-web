@@ -1,12 +1,17 @@
 import { CifBlock, CifCategory } from "molstar/lib/mol-io/reader/cif";
 import { parseCifText } from "molstar/lib/mol-io/reader/cif/text/parser";
 import { Layers, Tunnel } from "../../../DataInterface";
+import { ChannelsDBData as ChannelsDBCache } from "../../../Cache";
+import { ChannelAnnotation, ApiService } from "../../../ChannelsDBAPIService";
+
 
 interface Residue {
-    Id: string;
+    Order: string;
+    ChannelId: string;
     Name: string;
     SequenceNumber: number;
     ChainId: string;
+    Backbone: boolean;
 }
 
 interface Profile {
@@ -47,35 +52,62 @@ interface ChannelsDBData {
         AlphaFillTunnels_MOLE: Tunnel[];
         AlphaFillTunnels_Caver: Tunnel[];
     };
-    Annotations: Annotation[];
+    Annotations: ChannelAnnotation[];
 }
 
 function getTunnelsBlock(blocks: any[]): any {
     return blocks.find(block => block.categoryNames.includes("sb_ncbr_channel"));
 }
 
-function parseAnnotations(category: any): Annotation[] {
+function getAtomSiteBlock(blocks: any[]): any {
+    return blocks.find(block => block.categoryNames.includes("atom_site"));
+}
+
+function parseAnnotations(category: any): ChannelAnnotation[] {
     const rowCount = category.rowCount;
     const ids = category.getField("id");
+    const channelIds = category.getField("channel_id");
     const names = category.getField("name");
     const descriptions = category.getField("description");
     const references = category.getField("reference");
     const referenceTypes = category.getField("reference_type");
 
-    const annotations: Annotation[] = [];
+    const annotations: ChannelAnnotation[] = [];
     for (let i = 0; i < rowCount; i++) {
         annotations.push({
-            Id: ids.str(i),
-            Name: names.str(i),
-            Description: descriptions.str(i),
-            Reference: references.str(i),
-            ReferenceType: referenceTypes.str(i),
+            id: ids.str(i),
+            channelId: channelIds.str(i),
+            name: names.str(i),
+            description: descriptions.str(i),
+            reference: references.str(i),
+            referenceType: referenceTypes.str(i),
+            link: ApiService.createLink(referenceTypes.str(i), references.str(i)),
         });
     }
     return annotations;
 }
 
-function parseChannels(category: any): Tunnel[] {
+function parseAtomSite(category: any): Map<string, { name: string, seq_id: string, chain: string }> {
+    const rowCount = category.atom_site.rowCount;
+    const names = category.atom_site.getField("auth_comp_id");
+    const seqIds = category.atom_site.getField("auth_seq_id");
+    const chains = category.atom_site.getField("label_asym_id");
+
+    let residues: Map<string, { name: string, seq_id: string, chain: string }> = new Map();
+    for (let i = 0; i < rowCount; i++) {
+        let residue = {
+            name: names.str(i),
+            seq_id: seqIds.str(i),
+            chain: chains.str(i)
+        }
+        const key = `${chains.str(i)}|${seqIds.str(i)}`;
+        residues.set(key, residue);
+        // residues.set(seqIds.str(i), residue);
+    }
+    return residues;
+}
+
+function parseChannels(category: any, atomSiteResidues: Map<string, { name: string, seq_id: string, chain: string }>): Tunnel[] {
     const rowCount = category.sb_ncbr_channel.rowCount;
     const ids = category.sb_ncbr_channel.getField("id");
     const types = category.sb_ncbr_channel.getField("type");
@@ -91,12 +123,11 @@ function parseChannels(category: any): Tunnel[] {
             Type: types.str(i),
             // Method: methods.str(i),
             // Software: software.str(i),
-            Auto: autos.int(i) === 1,
+            Auto: autos.str(i) === 'YES',
             Cavity: cavities.float(i),
             Profile: [],
             Layers: {
                 ResidueFlow: [],
-                HetResidues: [],
                 LayerWeightedProperties: {
                     Hydrophobicity: 0,
                     Hydropathy: 0,
@@ -127,11 +158,10 @@ function parseChannels(category: any): Tunnel[] {
     }
 
     parseChannelProperties(channels, category.sb_ncbr_channel_props);
-    parseLayerWeightedProperties(channels, category.sb_ncbr_channel_layer_props);
+    parseLayerWeightedProperties(channels, category.sb_ncbr_channel_layer_weighted_props);
     parseProfiles(channels, category.sb_ncbr_channel_profile);
-    const residues = parseChannelResidues(category.sb_ncbr_channel_residue);
+    const residues = parseChannelResidues(category.sb_ncbr_channel_residue, atomSiteResidues);
     const layerResidues = parseLayerResidues(category.sb_ncbr_channel_layer_residue, residues);
-    parseHetResidues(channels, category.sb_ncbr_channel_het_residue);
     parseResidueFlow(channels, category.sb_ncbr_channel_layer, layerResidues);
     parseLayers(channels, category.sb_ncbr_channel_layer, layerResidues);
     return Array.from(channels.values());
@@ -185,11 +215,11 @@ function parseChannelProperties(channels: Map<string, Tunnel>, category: any) {
                 Hydropathy: hydropathies.float(i),
                 Mutability: mutabilities.float(i),
                 Polarity: polarities.float(i),
-                Ionizable: ionizable.str(i) === 'null' ? 0 : ionizable.float(i),
-                LogP: logP.str(i) === 'null' ? 0 : logP.float(i),
-                LogD: logD.str(i) === 'null' ? 0 : logD.float(i),
-                LogS: logS.str(i) === 'null' ? 0 : logS.float(i),
-                BRadius: bRadius.str(i) === 'null' ? 0 : bRadius.float(i)
+                Ionizable: ionizable.str(i) === '?' ? undefined : ionizable.float(i),
+                LogP: logP.str(i) === '?' ? undefined : logP.float(i),
+                LogD: logD.str(i) === '?' ? undefined : logD.float(i),
+                LogS: logS.str(i) === '?' ? undefined : logS.float(i),
+                BRadius: bRadius.str(i) === '?' ? undefined : bRadius.float(i)
 
             }
         }
@@ -226,21 +256,28 @@ function parseProfiles(channels: Map<string, Tunnel>, category: any) {
     }
 }
 
-function parseChannelResidues(category: any): Map<string, Residue> {
+function parseChannelResidues(category: any, resiudes: Map<string, { name: string, seq_id: string, chain: string }>): Map<string, Residue> {
     const rowCount = category.rowCount;
-    const ids = category.getField("id")
-    const names = category.getField("name");
+    const channelIds = category.getField("channel_id");
+    const orders = category.getField("order");
     const sequenceNumbers = category.getField("sequence_number");
     const chainIds = category.getField("chain_id");
+    const backbones = category.getField("backbone");
 
     const residues: Map<string, Residue> = new Map();
 
     for (let i = 0; i < rowCount; i++) {
-        residues.set(ids.str(i), {
-            Id: ids.str(i),
-            Name: names.str(i),
+        // const residue = resiudes.get(sequenceNumbers.str(i));
+        const key = `${chainIds.str(i)}|${sequenceNumbers.str(i)}`;
+        const residue = resiudes.get(key);
+
+        residues.set(orders.str(i), {
+            Order: orders.str(i),
+            ChannelId: channelIds.str(i),
+            Name: residue ? residue.name : '',
             SequenceNumber: sequenceNumbers.int(i),
             ChainId: chainIds.str(i),
+            Backbone: backbones.str(i) === 'YES',
         });
     }
     return residues;
@@ -249,9 +286,8 @@ function parseChannelResidues(category: any): Map<string, Residue> {
 function parseLayerResidues(category: any, channelResidues: Map<string, Residue>): Map<string, { residues: string[], flowIndicies: string[] }> {
     const rowCount = category.rowCount;
     const layerIds = category.getField("layer_id");
-    const resiudeIds = category.getField("residue_id");
-    const flows = category.getField("flow");
-    const backbones = category.getField("backbone");
+    const residueIds = category.getField("residue_id");
+    const flows = category.getField("order");
 
     const layerResidues: Map<string, { residues: string[], flowIndicies: string[] }> = new Map();
     let currentLayerId = layerIds.str(0);
@@ -268,9 +304,10 @@ function parseLayerResidues(category: any, channelResidues: Map<string, Residue>
             residues = [];
             flowIndicies = [];
         }
-        const res = channelResidues.get(resiudeIds.str(i));
+        const r = residueIds.str(i);
+        const res = channelResidues.get(residueIds.str(i));
         if (res) {
-            residues.push(`${res.Name} ${res.SequenceNumber} ${res.ChainId}${backbones.str(i) === "True" ? " Backbone" : ""}`);
+            residues.push(`${res.Name} ${res.SequenceNumber} ${res.ChainId}${res.Backbone ? " Backbone" : ""}`);
         }
         flowIndicies.push(flows.str(i));
     }
@@ -283,7 +320,7 @@ function parseResidueFlow(channels: Map<string, Tunnel>, layersCategory: any, re
     flowIndicies: string[];
 }>) {
     let rowCount = layersCategory.rowCount;
-    const ids = layersCategory.getField("id");
+    const ids = layersCategory.getField("order");
     const channelIds = layersCategory.getField("channel_id");
 
     const residueFlows: Map<string, Set<string>> = new Map();
@@ -311,30 +348,12 @@ function parseResidueFlow(channels: Map<string, Tunnel>, layersCategory: any, re
     }
 }
 
-function parseHetResidues(channels: Map<string, Tunnel>, hetResiduesCategory: any) {
-    let rowCount = hetResiduesCategory.rowCount;
-    const ids = hetResiduesCategory.getField("id");
-    const channelIds = hetResiduesCategory.getField("channel_id");
-    const names = hetResiduesCategory.getField("name");
-    const seqNumbers = hetResiduesCategory.getField("sequence_number");
-    const chainIds = hetResiduesCategory.getField("chain_id");
-    const bottleneck = hetResiduesCategory.getField("bottleneck");
-
-    for (let i = 0; i < rowCount; i++) {
-        const channel = channels.get(channelIds.str(i));
-        if (channel) {
-            channel.Layers.HetResidues.push(`${names.str(i)} ${seqNumbers.str(i)} ${chainIds.str(i)}${bottleneck.str(i) === "True" ? " Bottleneck" : ""}`);
-        }
-    }
-
-}
-
 function parseLayers(channels: Map<string, Tunnel>, layersCategory: any, residues: Map<string, {
     residues: string[];
     flowIndicies: string[];
 }>) {
     let rowCount = layersCategory.rowCount;
-    const ids = layersCategory.getField("id");
+    const ids = layersCategory.getField("order");
     const channelIds = layersCategory.getField("channel_id");
     const minRadius = layersCategory.getField("min_radius");
     const minFreeRadius = layersCategory.getField("min_free_radius");
@@ -350,7 +369,6 @@ function parseLayers(channels: Map<string, Tunnel>, layersCategory: any, residue
     const polarity = layersCategory.getField("polarity");
     const mutability = layersCategory.getField("mutability");
 
-    const layers: Layers[] = [];
     for (let i = 0; i < rowCount; i++) {
         const layerId = ids.str(i);
         let channel = channels.get(channelIds.str(i));
@@ -363,9 +381,9 @@ function parseLayers(channels: Map<string, Tunnel>, layersCategory: any, residue
                     MinFreeRadius: minFreeRadius.float(i),
                     StartDistance: startDistance.float(i),
                     EndDistance: endDistance.float(i),
-                    LocalMinimum: localMinimum.str(i) === "True",
-                    Bottleneck: bottleneck.str(i) === "True",
-                    bottleneck: bottleneck.str(i) === "True"
+                    LocalMinimum: localMinimum.str(i) === "YES",
+                    Bottleneck: bottleneck.str(i) === "YES",
+                    bottleneck: bottleneck.str(i) === "YES"
                 },
                 Residues: layerResidues ? layerResidues.residues : [],
                 FlowIndices: layerResidues ? layerResidues.flowIndicies : [],
@@ -392,10 +410,17 @@ function parseLayers(channels: Map<string, Tunnel>, layersCategory: any, residue
 
 function parseCifToChannelsDBData(blocks: CifBlock[]): ChannelsDBData {
     const tunnelsBlock = getTunnelsBlock(blocks);
+    const atomSiteBlock = getAtomSiteBlock(blocks);
     if (!tunnelsBlock) throw new Error("No tunnels block found.");
 
-    const annotations = parseAnnotations(tunnelsBlock.categories.sb_ncbr_channel_annotation);
-    const channels = parseChannels(tunnelsBlock.categories);
+    let annotations: ChannelAnnotation[] = [];
+    if (tunnelsBlock.categories.sb_ncbr_channel_annotation)
+        annotations = parseAnnotations(tunnelsBlock.categories.sb_ncbr_channel_annotation);
+        ChannelsDBCache.setFileLoadedAnnotations(annotations);
+    const residuesNames = parseAtomSite(atomSiteBlock.categories);
+    let channels: Tunnel[] = [];
+    if (tunnelsBlock.categories)
+        channels = parseChannels(tunnelsBlock.categories, residuesNames);
 
     return {
         Channels: {
@@ -422,18 +447,14 @@ function parseCifToChannelsDBData(blocks: CifBlock[]): ChannelsDBData {
 
 
 export async function loadCifTunnels(url: string) {
-    console.log("LoadingTunnels: ");
     try {
         const response = await fetch(url);
         if (response.ok) {
             const data = await response.text();
             const x = await parseCifText(data).run();
             if (!x.isError) {
-                console.log(x.result);
                 const r = parseCifToChannelsDBData(x.result.blocks as any[]);
-                console.log(r);
                 return r;
-                // console.log(x.result.blocks[1].categories.sb_ncbr_channel_residue.getField("name"));
             }
         } else {
             console.error('Fetch failed with status:', response.status);

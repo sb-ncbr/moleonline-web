@@ -1,6 +1,10 @@
 import { AnnotationObject, Annotations, ChannelsDBChannels, ChannelsDBData, Tunnel } from "./DataInterface";
 import { Fetching } from "./FetchingIf";
 import { CommonOptions, DataSources } from "../config/common";
+import { customAlphabet } from 'nanoid';
+
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const nanoidAlphaNum = customAlphabet(ALPHABET, 10);
 
 export interface ResidueAnnotation {
     text: string,
@@ -9,10 +13,12 @@ export interface ResidueAnnotation {
 };
 export interface ChannelAnnotation {
     id: string,
+    channelId?: string,
     name: string,
     description: string,
     reference: string,
-    link: string
+    referenceType: string,
+    link?: string
 };
 export interface ProteinAnnotation {
     function: string,
@@ -107,10 +113,11 @@ export class ApiService {
             }
             list.push(
                 {
-                    id: item.Id,
+                    id: nanoidAlphaNum(),
                     name: item.Name,
                     description: item.Description,
                     reference: item.Reference,
+                    referenceType: item.ReferenceType,
                     link: this.createLink(item.ReferenceType, item.Reference)
                 }
             );
@@ -156,7 +163,7 @@ export class ApiService {
 
     //PUBMEDID vs UniProtId ??? PUBMED není v JSONU vůbec přítomné
     //link pro uniprot používá adresu http://www.uniprot.org/uniprot/
-    private static createLink(type: string, reference: string): string {
+    public static createLink(type: string, reference: string): string {
         if (type === "DOI") {
             return `https://doi.org/${reference}`;
         }
@@ -167,7 +174,8 @@ export class ApiService {
             return `https://europepmc.org/abstract/MED/${reference}`;
         }
         else {
-            console.log(`Unknown reference type ${type} for reference ${reference}`);
+            if (CommonOptions.DEBUG_MODE)
+                console.log(`Unknown reference type ${type} for reference ${reference}`);
             return `#unknown-reference-type`;
         }
     }

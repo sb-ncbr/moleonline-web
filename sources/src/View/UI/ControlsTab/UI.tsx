@@ -2,7 +2,6 @@ import React from "react";
 import { PdbIdSign } from "../PdbIdSign/UI";
 import { Annotate } from "../Annotate/UI";
 import { DownloadReport } from "../DownloadReport/UI";
-import { Help } from "../Help/UI";
 
 export class ControlsTab extends React.Component<{}, {}> {
     componentDidMount() {
@@ -15,7 +14,6 @@ export class ControlsTab extends React.Component<{}, {}> {
             <PdbIdSign />
             <Annotate/>
             <DownloadReport />
-            {/* <Help /> */}
         </>
     }
 

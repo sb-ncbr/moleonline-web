@@ -1,13 +1,10 @@
-// import DGComponents = Datagrid.Components;
-
 import React from "react";
 import { LightResidueInfo, SelectionHelper } from "../../CommonUtils/Selection";
 import { Residues } from "../../CommonUtils/Residues";
-import { Events } from "../../../Bridge";
 import { DGElementRow, DGNoDataInfoRow, DGRowEmpty } from "../Common/Datagrid/Components";
 import { ResidueAnnotation } from "../../../ChannelsDBAPIService";
 import { ChannelsDBData } from "../../../Cache";
-import { Structure, StructureProperties, StructureQuery, StructureSelection } from "molstar/lib/mol-model/structure";
+import { StructureProperties, StructureQuery, StructureSelection } from "molstar/lib/mol-model/structure";
 import { Context } from "../../Context";
 import { getStructureOptions } from "../SequenceViewer/MoleSequenceView";
 import { PluginStateObject } from "molstar/lib/mol-plugin-state/objects";
@@ -23,7 +20,7 @@ interface State {
     app: LiningResidues,
 };
 
-export class LiningResidues extends React.Component<{ }, State> {
+export class LiningResidues extends React.Component<{}, State> {
 
     state: State = {
         data: null,
@@ -47,12 +44,6 @@ export class LiningResidues extends React.Component<{ }, State> {
             state.data = null;
             this.setState(state);
         });
-
-        // Events.subscribeChangeSubmitId(() => {
-        //     let state = this.state;
-        //     state.data = null;
-        //     this.setState(state);
-        // });
     }
 
     componentWillUnmount() {
@@ -154,8 +145,10 @@ class DGNoData extends React.Component<State, {}> {
             </div>
             <div className="body">
                 <table>
-                    <DGNoDataInfoRow columnsCount={DGTABLE_COLS_COUNT} infoText={NO_DATA_MESSAGE} />
-                    <DGRowEmpty columnsCount={DGTABLE_COLS_COUNT} />
+                    <tbody>
+                        <DGNoDataInfoRow columnsCount={DGTABLE_COLS_COUNT} infoText={NO_DATA_MESSAGE} />
+                        <DGRowEmpty columnsCount={DGTABLE_COLS_COUNT} />
+                    </tbody>
                 </table>
             </div>
         </div>);
@@ -179,14 +172,16 @@ class DGHead extends React.Component<State, {}> {
     render() {
         return (
             <table>
-                <tr>
-                    <th title="Residue" className="col col-1">
-                        Residue
-                    </th>
-                    <th>
-                        <Controls {...this.props} />
-                    </th>
-                </tr>
+                <thead>
+                    <tr>
+                        <th title="Residue" className="col col-1">
+                            Residue
+                        </th>
+                        <th>
+                            <Controls {...this.props} />
+                        </th>
+                    </tr>
+                </thead>
             </table>
         );
     };
@@ -249,11 +244,11 @@ class DGBody extends React.Component<State, {}> {
         let residueNameEl = this.getSelect3DLink(residue);
 
         let first = true;
-        for (let annotation of annotations) {
+        for (let [index, annotation] of annotations.entries()) {
             if (first === true) {
                 first = false;
                 trs.push(
-                    <tr title={(this.isBackbone(residue) ? residue : "")} className={(this.isBackbone(residue) ? "help" : "")}>
+                    <tr key={index} title={(this.isBackbone(residue) ? residue : "")} className={(this.isBackbone(residue) ? "help" : "")}>
                         <td className={`col col-1`} rowSpan={(annotations.length > 1) ? annotations.length : void 0}>
                             {residueNameEl}
                         </td>
@@ -265,7 +260,7 @@ class DGBody extends React.Component<State, {}> {
             }
             else {
                 trs.push(
-                    <tr>
+                    <tr key={index}>
                         <td className={`col col-2`} >
                             {this.getAnnotationLinkOrText(annotation)}
                         </td>
@@ -283,7 +278,7 @@ class DGBody extends React.Component<State, {}> {
         }
 
         let rows: JSX.Element[] = [];
-        for (let residue of this.props.data) {
+        for (let [index, residue] of this.props.data.entries()) {
             let residueId = residue.split(" ").slice(1, 3).join(" ");
             let residueInfo = Residues.parseResidues([residue], true);
 
@@ -304,17 +299,17 @@ class DGBody extends React.Component<State, {}> {
                 }
                 else {
                     rows.push(
-                        <DGElementRow columnsCount={columnsCount} columns={[this.getSelect3DLink(residue), this.getAnnotationLinkOrText(annotations[0])]} title={[(this.isBackbone(residue) ? residue : "")]} trClass={trClass} />
+                        <DGElementRow key={index} columnsCount={columnsCount} columns={[this.getSelect3DLink(residue), this.getAnnotationLinkOrText(annotations[0])]} title={[(this.isBackbone(residue) ? residue : "")]} trClass={trClass} />
                     )
                 }
             }
             else {
                 rows.push(
-                    <DGElementRow columnsCount={columnsCount} columns={[this.getSelect3DLink(residue)]} title={[(this.isBackbone(residue) ? residue : "")]} trClass={trClass} />
+                    <DGElementRow key={index} columnsCount={columnsCount} columns={[this.getSelect3DLink(residue)]} title={[(this.isBackbone(residue) ? residue : "")]} trClass={trClass} />
                 );
             }
         }
-        rows.push(<DGRowEmpty columnsCount={columnsCount} />);
+        rows.push(<DGRowEmpty key={'empty'} columnsCount={columnsCount} />);
 
         return rows;
     }
@@ -324,7 +319,9 @@ class DGBody extends React.Component<State, {}> {
 
         return (
             <table>
-                {rows}
+                <tbody>
+                    {rows}
+                </tbody>
             </table>
         );
     };

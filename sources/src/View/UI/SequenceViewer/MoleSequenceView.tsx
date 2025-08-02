@@ -13,7 +13,6 @@ import { Structure, StructureElement, StructureProperties as SP, Unit } from 'mo
 import { SequenceWrapper } from 'molstar/lib/mol-plugin-ui/sequence/wrapper';
 import { PolymerSequenceWrapper } from 'molstar/lib/mol-plugin-ui/sequence/polymer';
 import { MarkerAction } from 'molstar/lib/mol-util/marker-action';
-import { PureSelectControl } from 'molstar/lib/mol-plugin-ui/controls/parameters';
 import { ParamDefinition as PD } from 'molstar/lib/mol-util/param-definition';
 import { HeteroSequenceWrapper } from 'molstar/lib/mol-plugin-ui/sequence/hetero';
 import { State, StateSelection } from 'molstar/lib/mol-state';
@@ -405,20 +404,6 @@ export class MoleSequenceView extends PluginUIComponent<{ defaultMode?: Sequence
         const sequenceWrappers = this.getSequenceWrappers(params);
 
         return <div className='msp-sequence'>
-            {/* <div className='msp-sequence-select'>
-                <Icon svg={HelpOutlineSvg} style={{ cursor: 'help', position: 'absolute', right: 0, top: 0 }}
-                    title='This shows a single sequence. Use the controls to show a different sequence.' />
-
-                <span>Sequence of</span>
-                <PureSelectControl title={`[Structure] ${PD.optionLabel(params.structure, values.structure)}`} param={params.structure} name='structure' value={values.structure} onChange={this.setParamProps} />
-                <PureSelectControl title={`[Mode]`} param={SequenceViewModeParam} name='mode' value={values.mode} onChange={this.setParamProps} />
-                {values.mode === 'single' && <PureSelectControl title={`[Entity] ${PD.optionLabel(params.entity, values.entity)}`} param={params.entity} name='entity' value={values.entity} onChange={this.setParamProps} />}
-                {values.mode === 'single' && <PureSelectControl title={`[Chain] ${PD.optionLabel(params.chain, values.chain)}`} param={params.chain} name='chain' value={values.chain} onChange={this.setParamProps} />}
-                {params.operator.options.length > 1 && <>
-                    <PureSelectControl title={`[Instance] ${PD.optionLabel(params.operator, values.operator)}`} param={params.operator} name='operator' value={values.operator} onChange={this.setParamProps} />
-                </>}
-            </div> */}
-
             <NonEmptySequenceWrapper>
                 {sequenceWrappers.map((s, i) => {
                     const elem = typeof s.wrapper === 'string'

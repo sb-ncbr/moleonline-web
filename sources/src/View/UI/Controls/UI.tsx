@@ -1,8 +1,3 @@
-// import TunnelUtils = CommonUtils.Tunnels;
-// import Provider = MoleOnlineWebUI.DataProxy.ComputationInfo.DataProvider;
-// import Service = MoleOnlineWebUI.Service.MoleAPI;
-// import TooltipText = MoleOnlineWebUI.StaticData.TooltipText;
-
 import React from "react";
 import { Events as BridgeEvents, CopyParametersParams, Events, Instances } from "../../../Bridge";
 import { Events as FormEvents } from "../../CommonUtils/FormEvents";
@@ -747,15 +742,17 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
     state: SubmissionsState = { computationInfo: null, loading: true, channelsDBData: null }
     private hasKillable = false;
 
-    componentWillReceiveProps(nextProps: { computationInfo: CompInfo }) {
-        let compInfo = this.state.computationInfo;
-        if (compInfo !== null) {
-            if (deepEqual(compInfo, nextProps.computationInfo)) {
-                return;
-            }
+    componentDidUpdate(prevProps: { computationInfo: CompInfo }) {
+        if (
+            this.state.computationInfo !== null &&
+            deepEqual(prevProps.computationInfo, this.props.computationInfo)
+        ) {
+            return;
         }
-        this.prepareSubmissionData(nextProps.computationInfo);
+
+        this.prepareSubmissionData(this.props.computationInfo);
     }
+
 
     private changePoresSubmissionChainsFormat(computationInfo: CompInfo) {
         let submissions = computationInfo.Submissions.map((v, i, a) => {
@@ -787,7 +784,6 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
                 .then(() => {
                     ChannelsDBData.getChannelsData(computationInfo.PdbId)
                         .then(val => {
-                            console.log(val);
                             let s = this.state;
                             s.channelsDBData = val;
                             this.setState(s);
@@ -879,7 +875,7 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
 
             if (this.state.channelsDBData !== null) {
                 submissions.push(
-                    <ChannelsDBSubmission pdbid={this.state.computationInfo.PdbId} isSelected={isChannelsDBSelected} computationId={this.props.computationInfo.ComputationId} />
+                    <ChannelsDBSubmission key={'channelsDBsubmission'} pdbid={this.state.computationInfo.PdbId} isSelected={isChannelsDBSelected} computationId={this.props.computationInfo.ComputationId} />
                 );
             }
 
@@ -889,7 +885,7 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
                 let stat = s.Status;
 
                 submissions.push(
-                    <Submission data={s} currentSubmitId={submitId} computationId={this.props.computationInfo.ComputationId} status={(stat === void 0) ? "Unknown" : stat} onResubmit={this.props.onResubmit} onCopy={(submitId: number) => {
+                    <Submission key={s.SubmitId} data={s} currentSubmitId={submitId} computationId={this.props.computationInfo.ComputationId} status={(stat === void 0) ? "Unknown" : stat} onResubmit={this.props.onResubmit} onCopy={(submitId: number) => {
                         for (let submission of this.props.computationInfo.Submissions) {
                             if (submission.SubmitId.toString() === submitId.toString()) {
                                 BridgeEvents.invokeCopyParameters({
@@ -1145,21 +1141,6 @@ export class ChannelsDBSubmission extends React.Component<{ pdbid: string, compu
         let contents = <div className="panel-body">See <a target="_blank" href={link}>{link}</a> for more info.</div>
         return (
             <div className="panel panel-default">
-                {/* <div className="panel-heading">
-                    <a data-toggle="collapse" href={`#submit-data-ChannelsDB`} onClick={(e) => {
-                        if (e.currentTarget.attributes.getNamedItem('aria-expanded')!.value === 'true') {
-                            if (!this.props.isSelected) {
-                                changeSubmitId(this.props.computationId, -1);
-                            }
-                        }
-                    }}>
-                        <h4 className="panel-title">
-                            #ChannelsDB
-                        </h4>
-                        <div className="submission-state">
-                        </div>
-                    </a>
-                </div> */}
                 <div id={`submit-data-ChannelsDB`} className={`panel-collapse collapse${(isSelected) ? ' in' : ''}`}>
                     {contents}
                 </div>
@@ -1324,7 +1305,7 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
                     this.setState(s);
                 }).bind(this)} />
                 <form className="form-horizontal" id="submission-form" onSubmit={this.handleSubmit.bind(this)}>
-                    <ControlButtons submitId={this.state.submitId} computationInfo={this.state.data} isLoading={!this.state.canSubmit} setOpenControls={this.setOpenControls.bind(this)}/>
+                    <ControlButtons submitId={this.state.submitId} computationInfo={this.state.data} isLoading={!this.state.canSubmit} setOpenControls={this.setOpenControls.bind(this)} />
                 </form>
                 {/* <div id="right-panel-toggler" className="toggler glyphicon glyphicon-resize-vertical"></div> */}
             </div>
@@ -1366,11 +1347,11 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
         })
     }
 
-    componentWillReceiveProps(nextProps: ControlButtonsProps) {
-        let state = this.state;
-        state.submitId = nextProps.submitId;
-        this.setState(state);
+    componentDidUpdate(prevProps: ControlButtonsProps) {
+    if (prevProps.submitId !== this.props.submitId) {
+        this.setState({ submitId: this.props.submitId });
     }
+}
 
     private getSubmissions() {
         let submissions: ServiceSubmission[] = [];

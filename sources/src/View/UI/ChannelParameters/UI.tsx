@@ -2,7 +2,6 @@
 
 import React from "react";
 import { ChannelsDBChannels, Tunnel } from "../../../DataInterface";
-import { Events } from "../../../Bridge";
 import { Tunnels } from "../../CommonUtils/Tunnels";
 import { SelectionHelper } from "../../CommonUtils/Selection";
 import { DGElementRow, DGNoDataInfoRow, DGRowEmpty } from "../Common/Datagrid/Components";
@@ -20,7 +19,7 @@ interface State {
     app: ChannelParameters
 };
 
-export class ChannelParameters extends React.Component<{ }, State> {
+export class ChannelParameters extends React.Component<{}, State> {
 
     state: State = {
         data: null,
@@ -71,38 +70,8 @@ export class ChannelParameters extends React.Component<{ }, State> {
                     submissionsMap.set(submission === '-2' ? 'FromFile' : submission, concatDataChannels);
                 }
             }
-            this.setState({data: submissionsMap});
+            this.setState({ data: submissionsMap });
         })
-
-        // Events.subscribeChannelDataLoaded((data) => {
-        //     let toShow: Tunnel[] = [];
-
-        //     let channelsDbTunnels = data.Channels as ChannelsDBChannels;
-        //     let moleTunnels = data.Channels as MoleChannels;
-
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, moleTunnels.Tunnels);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, moleTunnels.Paths);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, moleTunnels.Pores);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, moleTunnels.MergedPores);
-
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.ReviewedChannels_MOLE);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.ReviewedChannels_Caver);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.CSATunnels_MOLE);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.CSATunnels_Caver);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.TransmembranePores_MOLE);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.TransmembranePores_Caver);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.CofactorTunnels_MOLE);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.CofactorTunnels_Caver);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.ProcognateTunnels_MOLE);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.ProcognateTunnels_Caver);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.AlphaFillTunnels_MOLE);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.AlphaFillTunnels_Caver);
-
-        //     let state = this.state;
-        //     state.data = toShow;
-        //     this.setState(state);
-        //     $(window).trigger("contentResize");
-        // });
         SelectionHelper.attachOnChannelSelectHandler((data, channelId, submissionId) => {
             if (channelId === void 0 || submissionId === void 0) {
                 return;
@@ -121,12 +90,6 @@ export class ChannelParameters extends React.Component<{ }, State> {
             state.currentTunnel = null;
             this.setState(state);
         });
-
-        // Events.subscribeChangeSubmitId(() => {
-        //     let state = this.state;
-        //     state.currentTunnel = null;
-        //     this.setState(state);
-        // });
     }
 
     componentWillUnmount() {
@@ -155,8 +118,10 @@ class DGNoData extends React.Component<State, {}> {
             </div>
             <div className="body">
                 <table>
-                    <DGNoDataInfoRow columnsCount={DGTABLE_COLS_COUNT} infoText={NO_DATA_MESSAGE} />
-                    <DGRowEmpty columnsCount={DGTABLE_COLS_COUNT} />
+                    <tbody>
+                        <DGNoDataInfoRow columnsCount={DGTABLE_COLS_COUNT} infoText={NO_DATA_MESSAGE} />
+                        <DGRowEmpty columnsCount={DGTABLE_COLS_COUNT} />
+                    </tbody>
                 </table>
             </div>
         </div>);
@@ -180,14 +145,16 @@ class DGHead extends React.Component<State, {}> {
     render() {
         return (
             <table>
-                <tr>
-                    <th title="Property" className="col col-1">
-                        Property
-                    </th>
-                    <th title="Value" className="col col-2">
-                        Value
-                    </th>
-                </tr>
+                <thead>
+                    <tr>
+                        <th title="Property" className="col col-1">
+                            Property
+                        </th>
+                        <th title="Value" className="col col-2">
+                            Value
+                        </th>
+                    </tr>
+                </thead>
             </table>
         );
     };
@@ -253,43 +220,43 @@ class DGBody extends React.Component<State, {}> {
                             ];
                             //Length
                             rows.push(
-                                <DGElementRow columnsCount={columnsCount} columns={length} />
+                                <DGElementRow key={'length'} columnsCount={columnsCount} columns={length} />
                             )
                             //Bottleneck
                             rows.push(
-                                <DGElementRow columnsCount={columnsCount} columns={bottleneck} />
+                                <DGElementRow key={'bottleneck'} columnsCount={columnsCount} columns={bottleneck} />
                             )
                             //Hydropathy
                             rows.push(
-                                <DGElementRow columnsCount={columnsCount} columns={hydropathy} />
+                                <DGElementRow key={'hydropathy'} columnsCount={columnsCount} columns={hydropathy} />
                             )
                             //Charge
                             rows.push(
-                                <DGElementRow columnsCount={columnsCount} columns={charge} />
+                                <DGElementRow key={'charge'} columnsCount={columnsCount} columns={charge} />
                             )
                             //Polarity
                             rows.push(
-                                <DGElementRow columnsCount={columnsCount} columns={polarity} />
+                                <DGElementRow key={'polarity'} columnsCount={columnsCount} columns={polarity} />
                             )
                             //Mutability
                             rows.push(
-                                <DGElementRow columnsCount={columnsCount} columns={mutability} />
+                                <DGElementRow key={'mutability'} columnsCount={columnsCount} columns={mutability} />
                             )
                             //LogP
                             rows.push(
-                                <DGElementRow columnsCount={columnsCount} columns={logP} />
+                                <DGElementRow key={'logP'} columnsCount={columnsCount} columns={logP} />
                             )
                             //LogD
                             rows.push(
-                                <DGElementRow columnsCount={columnsCount} columns={logD} />
+                                <DGElementRow key={'logD'} columnsCount={columnsCount} columns={logD} />
                             )
                             //LogS
                             rows.push(
-                                <DGElementRow columnsCount={columnsCount} columns={logS} />
+                                <DGElementRow key={'logS'} columnsCount={columnsCount} columns={logS} />
                             )
                             //Ionizable
                             rows.push(
-                                <DGElementRow columnsCount={columnsCount} columns={ionizable} />
+                                <DGElementRow key={'ionizable'} columnsCount={columnsCount} columns={ionizable} />
                             )
                         }
                     }
@@ -297,7 +264,7 @@ class DGBody extends React.Component<State, {}> {
             }
         }
 
-        rows.push(<DGRowEmpty columnsCount={columnsCount} />);
+        rows.push(<DGRowEmpty key={'empty'} columnsCount={columnsCount} />);
 
         return rows;
     }
@@ -307,7 +274,9 @@ class DGBody extends React.Component<State, {}> {
 
         return (
             <table>
-                {rows}
+                <tbody>
+                    {rows}
+                </tbody>
             </table>
         );
     };

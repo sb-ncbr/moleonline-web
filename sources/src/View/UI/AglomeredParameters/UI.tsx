@@ -49,34 +49,6 @@ export class AglomeredParameters extends React.Component<{}, State> {
     }
 
     componentDidMount() {
-        // Events.subscribeChannelDataLoaded((data) => {
-        //     let toShow: Tunnel[] = [];
-        //     let channelsDbTunnels = data.Channels as ChannelsDBChannels;
-        //     let moleTunnels = data.Channels as MoleChannels;
-
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, moleTunnels.Tunnels);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, moleTunnels.Paths);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, moleTunnels.Pores);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, moleTunnels.MergedPores);
-
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.ReviewedChannels_MOLE);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.ReviewedChannels_Caver);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.CSATunnels_MOLE);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.CSATunnels_Caver);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.TransmembranePores_MOLE);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.TransmembranePores_Caver);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.CofactorTunnels_MOLE);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.CofactorTunnels_Caver);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.ProcognateTunnels_MOLE);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.ProcognateTunnels_Caver);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.AlphaFillTunnels_MOLE);
-        //     toShow = Tunnels.concatTunnelsSafe(toShow, channelsDbTunnels.AlphaFillTunnels_Caver);
-
-        //     let state = this.state;
-        //     state.data = toShow;
-        //     this.setState(state);
-        //     $(window).trigger("contentResize");
-        // });
         Tunnels.attachOnTunnelsLoaded(() => {
             const submissionsMap: Map<string, Tunnel[]> = new Map();
             const channelsDB = Tunnels.getChannelsDB();
@@ -92,15 +64,8 @@ export class AglomeredParameters extends React.Component<{}, State> {
                     submissionsMap.set(submission === '-2' ? 'FromFile' : submission, concatDataChannels);
                 }
             }
-            this.setState({data: submissionsMap});
+            this.setState({ data: submissionsMap });
         })
-        
-        //TODO
-        // $(window).on("contentResize", this.forceUpdate());
-
-        // $(window).on("resize", (() => {
-        //     this.forceUpdate();
-        // }).bind(this));
 
         this.forceUpdate();
     }
@@ -138,44 +103,46 @@ class DGHead extends React.Component<State, {}> {
     render() {
         return (
             <table>
-                <tr>
-                    <th title={Tooltips.get("Submission")} className="col col-1 ATable-header-identifier init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
-                        Submission
-                    </th>
-                    <th title={Tooltips.get("Name")} className="col col-2 ATable-header-identifier init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
-                        Name
-                    </th>
-                    <th title={Tooltips.get("Length")} className="col col-3 ATable-header-length init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
-                        <span className="bi bi-arrows-expand" /> <span className="ATable-label">Length</span>
-                    </th>
-                    <th title={Tooltips.get("Bottleneck")} className="col col-4 ATable-header-bottleneck init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
-                        <span className="icon bottleneck" /> <span className="ATable-label">Bottleneck</span>
-                    </th>
-                    <th title={Tooltips.get("agl-Hydropathy")} className="col col-5 ATable-header-hydropathy init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
-                        <span className="bi bi-droplet" /> <span className="ATable-label">Hydropathy</span>
-                    </th>
-                    <th title={Tooltips.get("agl-Charge")} className="col col-6 ATable-header-charge init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
-                        <span className="bi bi-lightning" /> <span className="ATable-label">Charge</span>
-                    </th>
-                    <th title={Tooltips.get("agl-Polarity")} className="col col-7 ATable-header-polarity init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
-                        <span className="bi bi-plus" /> <span className="ATable-label">Polarity</span>
-                    </th>
-                    <th title={Tooltips.get("agl-Mutability")} className="col col-8 ATable-header-mutability init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
-                        <span className="bi bi-scissors" /> <span className="ATable-label">Mutability</span>
-                    </th>
-                    <th title={Tooltips.get("agl-LogP")} className="col col-9 ATable-header-logp init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
-                        <span className="icon logp" /> <span className="ATable-label">LogP</span>
-                    </th>
-                    <th title={Tooltips.get("agl-LogD")} className="col col-10 ATable-header-logd init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
-                        <span className="icon logd" /> <span className="ATable-label">LogD</span>
-                    </th>
-                    <th title={Tooltips.get("agl-LogS")} className="col col-11 ATable-header-logs init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
-                        <span className="icon logs" /> <span className="ATable-label">LogS</span>
-                    </th>
-                    <th title={Tooltips.get("agl-Ionizable")} className="col col-12 ATable-header-ionizable init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
-                        <span className="icon ionizable" /> <span className="ATable-label">Ionizable</span>
-                    </th>
-                </tr>
+                <thead>
+                    <tr>
+                        <th title={Tooltips.get("Submission")} className="col col-1 ATable-header-identifier init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                            Submission
+                        </th>
+                        <th title={Tooltips.get("Name")} className="col col-2 ATable-header-identifier init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                            Name
+                        </th>
+                        <th title={Tooltips.get("Length")} className="col col-3 ATable-header-length init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                            <span className="bi bi-arrows-expand" /> <span className="ATable-label">Length</span>
+                        </th>
+                        <th title={Tooltips.get("Bottleneck")} className="col col-4 ATable-header-bottleneck init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                            <span className="icon bottleneck" /> <span className="ATable-label">Bottleneck</span>
+                        </th>
+                        <th title={Tooltips.get("agl-Hydropathy")} className="col col-5 ATable-header-hydropathy init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                            <span className="bi bi-droplet" /> <span className="ATable-label">Hydropathy</span>
+                        </th>
+                        <th title={Tooltips.get("agl-Charge")} className="col col-6 ATable-header-charge init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                            <span className="bi bi-lightning" /> <span className="ATable-label">Charge</span>
+                        </th>
+                        <th title={Tooltips.get("agl-Polarity")} className="col col-7 ATable-header-polarity init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                            <span className="bi bi-plus" /> <span className="ATable-label">Polarity</span>
+                        </th>
+                        <th title={Tooltips.get("agl-Mutability")} className="col col-8 ATable-header-mutability init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                            <span className="bi bi-scissors" /> <span className="ATable-label">Mutability</span>
+                        </th>
+                        <th title={Tooltips.get("agl-LogP")} className="col col-9 ATable-header-logp init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                            <span className="icon logp" /> <span className="ATable-label">LogP</span>
+                        </th>
+                        <th title={Tooltips.get("agl-LogD")} className="col col-10 ATable-header-logd init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                            <span className="icon logd" /> <span className="ATable-label">LogD</span>
+                        </th>
+                        <th title={Tooltips.get("agl-LogS")} className="col col-11 ATable-header-logs init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                            <span className="icon logs" /> <span className="ATable-label">LogS</span>
+                        </th>
+                        <th title={Tooltips.get("agl-Ionizable")} className="col col-12 ATable-header-ionizable init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                            <span className="icon ionizable" /> <span className="ATable-label">Ionizable</span>
+                        </th>
+                    </tr>
+                </thead>
             </table>
         );
     };
@@ -187,7 +154,7 @@ class DGBody extends React.Component<State, {}> {
         let rows = [];
         if (this.props.data === null || this.props.data.size === 0) {
             rows.push(
-                <tr><td colSpan={DGTABLE_COLS_COUNT} >There are no data to be displayed...</td></tr>
+                <tr key={'no-data'}><td colSpan={DGTABLE_COLS_COUNT} >There are no data to be displayed...</td></tr>
             );
         }
 
@@ -197,14 +164,14 @@ class DGBody extends React.Component<State, {}> {
                 if (tunnels) {
                     for (let tunnel of tunnels) {
                         rows.push(
-                            <DGRow tunnel={tunnel} submissionId={submission} app={this.props.app} />
+                            <DGRow key={tunnel.Id} tunnel={tunnel} submissionId={submission} app={this.props.app} />
                         );
                     }
                 }
             }
         }
 
-        rows.push(<DGRowEmpty columnsCount={DGTABLE_COLS_COUNT} />);
+        rows.push(<DGRowEmpty key={'empty'} columnsCount={DGTABLE_COLS_COUNT} />);
 
         return rows;
     }
@@ -214,7 +181,9 @@ class DGBody extends React.Component<State, {}> {
 
         return (
             <table>
-                {rows}
+                <tbody>
+                    {rows}
+                </tbody>
             </table>
         );
     };

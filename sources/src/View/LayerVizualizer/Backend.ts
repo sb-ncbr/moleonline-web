@@ -671,18 +671,8 @@ export class Tunnel extends ContextAwareObject {
                 const r = parseInt(rgbValues[1], 10);
                 const g = parseInt(rgbValues[2], 10);
                 const b = parseInt(rgbValues[3], 10);
-                // intervals.push({
-                //     min: layer.start / length,
-                //     max: layer.end / length,
-                //     color: Color(Color.fromRgb(r, g, b))
-                // })
                 colors.push(Color(Color.fromRgb(r, g, b)));
             } else {
-                // intervals.push({
-                //     min: layer.start / length,
-                //     max: layer.end / length,
-                //     color: Color(Enum.DefaultColor)
-                // })
                 colors.push(Color(Enum.DefaultColor));
             }
         }
