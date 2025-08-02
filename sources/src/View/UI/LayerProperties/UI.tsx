@@ -269,16 +269,16 @@ class DGBody extends React.Component<State, {}> {
             <DGElementRow columns={[<span><span className="icon bottleneck black properties-icon" />{(this.props.layerIds.length > 1) ? "Bottleneck" : "Radius"}</span>, <span>{roundToDecimal(bottleneck, 1)}</span>]} />
         );
         rows.push(
-            <DGElementRow columns={[<span><span className="icon logp black properties-icon" />{"LogP"}</span>, <span>{(layerData !== null && layerData.LogP !== null && layerData.LogP !== void 0) ? roundToDecimal(layerData.LogP, 2) : 'N/A'}</span>]} />
+            <DGElementRow columns={[<span><span className="icon logp black properties-icon" />{"LogP"}</span>, <span>{(layerData && layerData.LogP) ? roundToDecimal(layerData.LogP, 2) : 'N/A'}</span>]} />
         );
         rows.push(
-            <DGElementRow columns={[<span><span className="icon logd black properties-icon" />{"LogD"}</span>, <span>{(layerData !== null && layerData.LogD !== null && layerData.LogD !== void 0) ? roundToDecimal(layerData.LogD, 2) : 'N/A'}</span>]} />
+            <DGElementRow columns={[<span><span className="icon logd black properties-icon" />{"LogD"}</span>, <span>{(layerData && layerData.LogD) ? roundToDecimal(layerData.LogD, 2) : 'N/A'}</span>]} />
         );
         rows.push(
-            <DGElementRow columns={[<span><span className="icon logs black properties-icon" />{"LogS"}</span>, <span>{(layerData !== null && layerData.LogS !== null && layerData.LogS !== void 0) ? roundToDecimal(layerData.LogS, 2) : 'N/A'}</span>]} />
+            <DGElementRow columns={[<span><span className="icon logs black properties-icon" />{"LogS"}</span>, <span>{(layerData && layerData.LogS) ? roundToDecimal(layerData.LogS, 2) : 'N/A'}</span>]} />
         );
         rows.push(
-            <DGElementRow columns={[<span><span className="icon ionizable black properties-icon" />{"Ionizable"}</span>, <span>{(layerData !== null && layerData.Ionizable !== null && layerData.Ionizable !== void 0) ? roundToDecimal(layerData.Ionizable, 2) : 'N/A'}</span>]} />
+            <DGElementRow columns={[<span><span className="icon ionizable black properties-icon" />{"Ionizable"}</span>, <span>{(layerData && layerData.Ionizable) ? roundToDecimal(layerData.Ionizable, 2) : 'N/A'}</span>]} />
         );
         rows.push(
             <DGElementRow columns={[<span><span className="glyphicon glyphicon-resize-horizontal properties-icon" />{"Length"}</span>, <span>{roundToDecimal(length, 1).toString()}</span>]} />
