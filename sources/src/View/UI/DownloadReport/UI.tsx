@@ -103,7 +103,7 @@ class DownloadResultsMenu extends React.Component<{}, DownloadResultsMenuState> 
         const parsedString = JSON2CIF("data_tunnels", tunnelDataStr);
         let updatedCifText = '';
         if (parsedString.trim() !== '') {
-            const auditLine = `mmcif_tunnels_v10.dic 1.0 https://sb-ncbr.github.io/tunnels-schema/schemas/mmcif_tunnels_v10.dic`;
+            const auditLine = `mmcif_tunnels.dic 1.0 https://sb-ncbr.github.io/tunnels-schema/schemas/mmcif_tunnels_v10.dic`;
 
             if (!cifText.includes("_audit_conform")) {
                 const auditBlock = `
