@@ -215,11 +215,11 @@ function parseChannelProperties(channels: Map<string, Tunnel>, category: any) {
                 Hydropathy: hydropathies.float(i),
                 Mutability: mutabilities.float(i),
                 Polarity: polarities.float(i),
-                Ionizable: ionizable.str(i) === '?' ? 0 : ionizable.float(i),
-                LogP: logP.str(i) === '?' ? 0 : logP.float(i),
-                LogD: logD.str(i) === '?' ? 0 : logD.float(i),
-                LogS: logS.str(i) === '?' ? 0 : logS.float(i),
-                BRadius: bRadius.str(i) === '?' ? 0 : bRadius.float(i)
+                Ionizable: ionizable.str(i) === '?' ? undefined : ionizable.float(i),
+                LogP: logP.str(i) === '?' ? undefined : logP.float(i),
+                LogD: logD.str(i) === '?' ? undefined : logD.float(i),
+                LogS: logS.str(i) === '?' ? undefined : logS.float(i),
+                BRadius: bRadius.str(i) === '?' ? undefined : bRadius.float(i)
 
             }
         }
