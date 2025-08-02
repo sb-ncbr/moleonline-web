@@ -4,15 +4,15 @@
 
 import React from "react";
 import { Events } from "../../../Bridge";
-import { MoleData, Tunnel, Membrane as MembraneObject, Point, ChannelSourceData, TunnelMetaInfo } from "../../../DataInterface";
-import { LightResidueInfo, SelectionHelper, StringPoint } from "../../CommonUtils/Selection";
+import { MoleData, Tunnel, Membrane as MembraneObject, Point } from "../../../DataInterface";
+import { LightResidueInfo, SelectionHelper } from "../../CommonUtils/Selection";
 import { Residues } from "../../CommonUtils/Residues";
 import { Tunnels } from "../../CommonUtils/Tunnels";
-import { ChannelsDBData, TunnelName } from "../../../Cache";
+import { ChannelsDBData } from "../../../Cache";
 import { ChannelAnnotation } from "../../../ChannelsDBAPIService";
 import { getParameters, isInChannelsDBMode } from "../../../Common/Util/Router";
 import { CommonOptions } from "../../../../config/common";
-import { loadData, showCavityVisuals, showChannelVisuals, showMembraneVisuals, showOriginsSurface } from "../../State";
+import { loadData, showCavityVisuals, showMembraneVisuals, showOriginsSurface } from "../../State";
 import { Context } from "../../Context";
 import { StateSelection } from "molstar/lib/mol-state";
 import { Subscription } from "rxjs";
@@ -41,17 +41,6 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
             }
         });
 
-        // Events.subscribeOnSequneceViewerToggle((params) => {
-        //     if (params.minimized) {
-        //         $('#plugin').addClass("sv-minimized");
-        //     }
-        //     else {
-        //         $('#plugin').removeClass("sv-minimized");
-        //     }
-
-        //     $(window).trigger('contentResize');
-        // });
-
         $(window).on("resize", (() => {
             this.forceUpdate();
         }).bind(this));
@@ -59,18 +48,13 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
 
     private onContentResize(_: any) {
         this.forceUpdate();
-        // let prevState = this.props.plugin.context.layout.latestState;
-        // this.props.plugin.setLayoutState({ isExpanded: true });
-        // this.props.plugin.setLayoutState(prevState);
     }
 
     load(channelsDB: boolean) {
         const plugin = Context.getInstance().plugin;
         this.setState({ isLoading: true, error: void 0 });
-        console.log("ChannelsDB: " + channelsDB)
         loadData(channelsDB)
             .then(data => {
-                console.log("AFTER LOAD DATA");
                 if (CommonOptions.DEBUG_MODE)
                     console.log("loading done ok");
                 let entities = plugin.state.data.select(StateSelection.first('mole-data'))[0];
@@ -122,7 +106,7 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
 
             if (this.state.isLoading) {
                 controls.push(
-                    <div>
+                    <div key={'loader'}>
                         <WaveLoader />
                         <LoadingStatusDisplay />
                     </div>);
@@ -131,7 +115,7 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
                     let error = this.state.error as string | undefined;
                     let errorMessage: string = (error === void 0) ? "" : error;
                     controls.push(
-                        <div className="error-message">
+                        <div key={'error-message'} className="error-message">
                             <div>
                                 <b>Data for specified protein are not available.</b>
                             </div>
@@ -141,7 +125,7 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
                         </div>);
                 } else {
                     controls.push(
-                        <div className="error-message">
+                        <div key={'error-message'} className="error-message">
                             <div>
                                 <b>Data for specified protein are not available.</b>
                             </div>
@@ -152,7 +136,7 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
                 if (params !== null) {
                     channelsDB = params.isChannelsDB;
                 }
-                controls.push(<button className="reload-data btn btn-primary" onClick={() => this.load(channelsDB)}>Reload Data</button>);
+                controls.push(<button key={'reload'} className="reload-data btn btn-primary" onClick={() => this.load(channelsDB)}>Reload Data</button>);
             }
 
             return <div className="ui">{controls}</div>;
@@ -184,7 +168,7 @@ export class Data extends React.Component<State, {}> {
         cavities.forEach((val, key, map) => {
             if (val.length > 0) {
                 cavitiesControls.push(
-                    <Cavities cavities={val} state={this.props} header={key.valueOf()} />
+                    <Cavities key={key.toString()} cavities={val} state={this.props} header={key.valueOf()} />
                 );
             }
         });
@@ -193,19 +177,19 @@ export class Data extends React.Component<State, {}> {
         let originsControls: any[] = [];
         if (this.props.data.Origins) {
             if (this.props.data.Origins.User !== void 0)
-                originsControls.push(<Origins origins={this.props.data.Origins.User} {...this.props} label='User Specifed (optimized)' />);
+                originsControls.push(<Origins key={'User'} origins={this.props.data.Origins.User} {...this.props} label='User Specifed (optimized)' />);
             if (this.props.data.Origins.InputOrigins !== void 0)
-                originsControls.push(<Origins origins={this.props.data.Origins.InputOrigins} {...this.props} label='User Specifed' />);
+                originsControls.push(<Origins key={'InputOrigins'} origins={this.props.data.Origins.InputOrigins} {...this.props} label='User Specifed' />);
             if (this.props.data.Origins.Computed !== void 0)
-                originsControls.push(<Origins origins={this.props.data.Origins.Computed} {...this.props} label='Computed' />);
+                originsControls.push(<Origins key={'Computed'} origins={this.props.data.Origins.Computed} {...this.props} label='Computed' />);
             if (this.props.data.Origins.Databse !== void 0)
-                originsControls.push(<Origins origins={this.props.data.Origins.Database} {...this.props} label='Database' />);
+                originsControls.push(<Origins key={'Databse'} origins={this.props.data.Origins.Database} {...this.props} label='Database' />);
             if (this.props.data.Origins.InputExits !== void 0)
-                originsControls.push(<Origins origins={this.props.data.Origins.InputExits} {...this.props} label='Input Exits' />);
+                originsControls.push(<Origins key={'InputExits'} origins={this.props.data.Origins.InputExits} {...this.props} label='Input Exits' />);
             if (this.props.data.Origins.InputFoundExits !== void 0)
-                originsControls.push(<Origins origins={this.props.data.Origins.InputFoundExits} {...this.props} label='Input Found Exits' />);
+                originsControls.push(<Origins key={'InputFoundExits'} origins={this.props.data.Origins.InputFoundExits} {...this.props} label='Input Found Exits' />);
             if (this.props.data.Origins.CSAOrigins !== void 0)
-                originsControls.push(<Origins origins={this.props.data.Origins.CSAOrigins} {...this.props} label='CSA Origins' />);
+                originsControls.push(<Origins key={'CSAOrigins'} origins={this.props.data.Origins.CSAOrigins} {...this.props} label='CSA Origins' />);
         }
 
         let noOriginsData = <div className="no-channels-data">There are no origins available...</div>
@@ -218,9 +202,6 @@ export class Data extends React.Component<State, {}> {
             membrane = <Membrane membraneData={membraneData} label={"Membrane"} {...this.props} />
         }
 
-        // if (membraneData === undefined || membraneData.obj === undefined || membraneData.obj.data === undefined || Object.keys(membraneData.obj).length === 0)  {
-        //     membrane = <Membrane membraneData={membraneData} label={"Membrane"} {...this.props} />
-        // }
         return <div className="ui">
             <Selection {...this.props} />
 
@@ -253,7 +234,7 @@ export class Selection extends React.Component<State, { label?: string | JSX.Ele
     state = { label: void 0, tunnel: false }
 
     private observerChannels: Subscription | undefined = void 0;
-    componentWillMount() {
+    componentDidMount() {
         SelectionHelper.attachOnResidueSelectHandler(((r: LightResidueInfo[]) => {
             if (r.length === 0) {
                 this.setState({
@@ -275,15 +256,15 @@ export class Selection extends React.Component<State, { label?: string | JSX.Ele
             });
             let items = label.split('\n');
             let elements = [];
-            for (let e of items) {
+            for (let [index, e] of items.entries()) {
                 let lineParts = e.split('&nbsp;');
                 elements.push(
                     lineParts.length === 4 ?
-                        <div>
+                        <div key={index}>
                             {lineParts[0]}&nbsp;{lineParts[1]}&nbsp;{lineParts[2]}&nbsp;{lineParts[3]}
                         </div>
                         :
-                        <div>
+                        <div key={index}>
                             {lineParts[0]}&nbsp;{lineParts[1]}&nbsp;{lineParts[2]}
                         </div>
                 );
@@ -296,9 +277,9 @@ export class Selection extends React.Component<State, { label?: string | JSX.Ele
 
         SelectionHelper.attachOnPointBulkSelectHandler(((points: Point[]) => {
             let elements = [];
-            for (let e of points) {
+            for (let [index, e] of points.entries()) {
                 elements.push(
-                    <div>
+                    <div key={index}>
                         [{e.X.toFixed(2)},&nbsp;{e.Y.toFixed(2)},&nbsp;{e.Z.toFixed(2)}]
                     </div>
                 );
@@ -341,80 +322,11 @@ export class Selection extends React.Component<State, { label?: string | JSX.Ele
             this.setState({ label: void 0, tunnel: false })
         })
 
-        // this.observerChannels = Context.getInstance().plugin.behaviors.interaction.click.subscribe(async ({ current, button, modifiers, position }) => {
-        //     if (current.loci.kind === 'group-loci') {
-        //         if (current.repr && current.repr.params && typeof current.repr.params.tag === 'string' && current.repr.params.tag === "Tunnel") {
-        //             if (current.repr.params.tunnel !== null) {
-        //                 if (SelectionHelper.isSelectedAnyChannel()) {
-        //                     const c = current.repr.params.tunnel as unknown as Tunnel;
-        //                     let tunnelName = Tunnels.getName(c);
-        //                     let len = Tunnels.getLength(c);
-        //                     if (isInChannelsDBMode()) {
-        //                         let annotations = ChannelsDBData.getChannelAnnotationsImmediate(c.Id);
-        //                         if (annotations !== null && annotations.length > 0) {
-        //                             tunnelName = annotations[0].name;
-        //                         }
-        //                         $("#left-tabs li a[href='#left-tabs-1']")
-        //                             .text(`Channel profile (${tunnelName})`);
-        //                         this.setState({ label: <span><b>{tunnelName}</b>, {`Length: ${len} Å`}</span> });
-        //                     }
-        //                     else {
-        //                         $("#left-tabs li a[href='#left-tabs-1']")
-        //                             .text(`Channel profile (${tunnelName})`);
-        //                         let namePart = (tunnelName === void 0) ? '' : ` (${tunnelName})`;
-        //                         this.setState({ label: <span><b>{c.Type}{namePart}</b>, {`Length: ${len} Å`}</span> });
-        //                     }
-        //                 } else if (!SelectionHelper.isSelectedAny()) {
-        //                     $("#left-tabs li a[href='#left-tabs-1']")
-        //                         .text(`Channel profile`);
-        //                     this.setState({ label: void 0 })
-        //                 }
-        //             }
-        //         }
-        //     }
-        // });
-
         Events.subscribeChangeSubmitId(() => {
             if (!this.state.tunnel) {
                 this.setState({ label: void 0 })
             }
         })
-
-        // this.observerChannels = this.props.plugin.subscribe(Bootstrap.Event.Visual.VisualSelectElement, e => {
-        //     let eventData = e.data as ChannelEventInfo;
-        //     if (e.data !== void 0 && eventData.source !== void 0 && eventData.source.props !== void 0 && eventData.source.props.tag === void 0) {
-        //         return;
-        //     }
-
-        //     if (e.data && (eventData === void 0 || e.data.kind !== 0)) {
-        //         if (SelectionHelper.isSelectedAnyChannel()) {
-        //             let data = e.data as ChannelEventInfo;
-        //             let c = data.source.props.tag.element;
-        //             let tunnelName = Tunnels.getName(c);
-        //             let len = Tunnels.getLength(c);
-        //             if (isInChannelsDBMode()) {
-        //                 let annotations = ChannelsDBData.getChannelAnnotationsImmediate(c.Id);
-        //                 if (annotations !== null && annotations.length > 0) {
-        //                     tunnelName = annotations[0].name;
-        //                 }
-        //                 $("#left-tabs li a[href='#left-tabs-1']")
-        //                     .text(`Channel profile (${tunnelName})`);
-        //                 this.setState({ label: <span><b>{tunnelName}</b>, {`Length: ${len} Å`}</span> });
-        //             }
-        //             else {
-        //                 $("#left-tabs li a[href='#left-tabs-1']")
-        //                     .text(`Channel profile (${tunnelName})`);
-        //                 let namePart = (tunnelName === void 0) ? '' : ` (${tunnelName})`;
-        //                 this.setState({ label: <span><b>{c.Type}{namePart}</b>, {`Length: ${len} Å`}</span> });
-        //             }
-        //         }
-        //         else if (!SelectionHelper.isSelectedAny()) {
-        //             $("#left-tabs li a[href='#left-tabs-1']")
-        //                 .text(`Channel profile`);
-        //             this.setState({ label: void 0 })
-        //         }
-        //     }
-        // });
     }
 
     componentWillUnmount() {
@@ -494,13 +406,13 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, e
             return [];
         }
         let elements: JSX.Element[] = [];
-        for (let annotation of this.props.annotations) {
+        for (let [index, annotation] of this.props.annotations.entries()) {
             let reference = <i>(No reference provided)</i>;
             if (annotation.reference !== "") {
                 reference = <a target="_blank" href={annotation.link}>{annotation.reference} <span className="glyphicon glyphicon-new-window" /></a>;
             }
             elements.push(
-                <div className="annotation-line">
+                <div key={index} className="annotation-line">
                     <span className="bullet" /> <b>{annotation.name}</b>, {reference}
                 </div>
             );
@@ -552,7 +464,7 @@ export class Cavity extends React.Component<{ state: State, cavity: any }, { isV
 
     render() {
         let c = this.props.cavity;
-        return <div>
+        return <div key={c.Id}>
             <Renderable label={<span><b>{c.Id}</b>, Volume: <b>{`${c.Volume | 0} Å`}<sup>3</sup></b></span>} element={c} toggle={showCavityVisuals} {...this.props.state} />
         </div>
     }
@@ -597,13 +509,14 @@ export class Membrane extends React.Component<{ label: string | JSX.Element, mem
         this.toggle();
     }
 
-    componentWillReceiveProps(nextProps: any) {
-        if (nextProps.membraneData !== this.props.membraneData) {
+    componentDidUpdate(prevProps: any) {
+        if (prevProps.membraneData !== this.props.membraneData) {
             this.toggle();
-        } else {
+        } else if (CommonOptions.DEBUG_MODE) {
             console.log("Props are unchanged, skipping updates.");
         }
     }
+
 
     private toggle() {
         this.props.membraneData.__isBusy = true;

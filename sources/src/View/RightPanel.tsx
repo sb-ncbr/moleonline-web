@@ -1,7 +1,7 @@
 import React from "react";
 import { Context } from "./Context";
 import { Viewer } from "./MolViewer/UI";
-import { SequenceViewer } from "./UI/SequenceViewer/newUI";
+import { SequenceViewer } from "./UI/SequenceViewer/UI";
 import { QuickHelp } from "./UI/QuickHelp/UI";
 import { LayerVizualizer } from "./UI/LayerVizualizer/UI";
 import { AglomeredParameters } from "./UI/AglomeredParameters/UI";

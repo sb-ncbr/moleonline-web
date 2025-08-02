@@ -4,7 +4,7 @@ import { Layers, OriginsSourceData, ShapeSourceData, SurfaceSourceData, Tunnel, 
 import { MoleConfigResidue } from "../../MoleAPIService";
 import { Context } from "../Context";
 import { Point, Residues } from "./Residues";
-import { QueryHelper, QueryParam } from "../VizualizerMol/helpers";
+import { QueryParam } from "../VizualizerMol/helpers";
 import { Colors, Enum } from "../../StaticData";
 import { StructureElement, StructureProperties as Props } from "molstar/lib/mol-model/structure";
 import { Representation } from "molstar/lib/mol-repr/representation";
@@ -19,6 +19,7 @@ import { PluginStateObject } from "molstar/lib/mol-plugin-state/objects";
 import { StructureComponent } from "molstar/lib/mol-plugin-state/transforms/model";
 import { StructureRepresentation3D } from "molstar/lib/mol-plugin-state/transforms/representation";
 import { MarkerAction } from "molstar/lib/mol-util/marker-action";
+import { CommonOptions } from "../../../config/common";
 
 // import Transformer = LiteMol.Bootstrap.Entity.Transformer;
 //TODO Molstar
@@ -475,8 +476,6 @@ export class SelectionHelper {
      * @return True - residue selected | False - residue deselected
      */
     public static addResidueToSelection(seqNumber: number, chain: string, operator_name?: string, loci?: Loci, isHet?: boolean, residueName?: string): boolean {
-        console.log(seqNumber);
-        console.log(chain);
         let plugin = Instances.getPlugin();
         let residues = SelectionHelper.getSelectedResidues();
         let newSelection: LightResidueInfo[] = [];
@@ -700,60 +699,16 @@ export class SelectionHelper {
             this.selectedChannelRef = current.__ref;
             this.highlightSelectedChannel();
         }
-
-        // await context.visual.setColor({ select: { r: 255, g: 0, b: 255 } });
-        // context.plugin.canvas3d?.mark(loci, MarkerAction.Select);
-        // await context.visual.reset({ selectColor: true });
     }
 
     private static async createPointsSelectionVisual(points: Point[]) {
-        // let s = LiteMol.Visualization.Primitive.Builder.create();
         await this.clearSelectedPoints();
         await Context.getInstance().renderOrigin(points, Colors.get(Enum.SyntethicSelect), 'point-selection', 'Points', 'Selected Point');
-
-        // let id = 0;
-        // for (let p of points) {
-        //     s.add({ type: 'Sphere', id: id++, radius: 1.69, center: [Number(p.x), Number(p.y), Number(p.z)] });
-        // }
-
-        // let plugin = Instances.getPlugin();
-        // this.clearSelectedPoints();
-        // s.buildSurface().run().then(surface => {
-        //     let t = plugin.createTransform()
-        //         .add('mole-data', LiteMol.Example.Channels.State.CreateSurface, {
-        //             //label: 'Selected points (' + origins.Type + ')',
-        //             tag: <LiteMol.Example.Channels.State.SurfaceTag>{ kind: 'Points', element: points },
-        //             surface,
-        //             isInteractive: true,
-        //             color: LiteMolObjectsColorScheme.Colors.get(LiteMolObjectsColorScheme.Enum.SyntethicSelect) as LiteMol.Visualization.Color
-        //         }, { ref: "point-selection", isHidden: true });
-
-        //     plugin.applyTransform(t);
-        // })
     }
 
     private static async createTPointSelectionVisual(point: Point) {
         await this.clearSelectedTPoint();
         await Context.getInstance().renderOrigin([point], Colors.get(Enum.TPoint), 'point-selection-T', 'TPoint', 'TPoint');
-
-        // let s = LiteMol.Visualization.Primitive.Builder.create();
-        // let id = 0;
-        // s.add({ type: 'Sphere', id: id++, radius: 1.69, center: [point.X, point.Y, point.Z] });
-
-        // let plugin = Instances.getPlugin();
-        // this.clearSelectedTPoint();
-        // s.buildSurface().run().then(surface => {
-        //     let t = plugin.createTransform()
-        //         .add('mole-data', LiteMol.Example.Channels.State.CreateSurface, {
-        //             //label: 'Selected points (' + origins.Type + ')',
-        //             tag: <LiteMol.Example.Channels.State.SurfaceTag>{ kind: 'TPoint', element: point },
-        //             surface,
-        //             isInteractive: true,
-        //             color: LiteMolObjectsColorScheme.Colors.get(LiteMolObjectsColorScheme.Enum.TPoint) as LiteMol.Visualization.Color
-        //         }, { ref: "point-selection-T", isHidden: true });
-
-        //     plugin.applyTransform(t);
-        // })
     }
 
     public static async selectPoints(points: Point[]) {
@@ -805,8 +760,6 @@ export class SelectionHelper {
         })
 
         plugin.plugin.managers.structure.hierarchy.behaviors.selection.subscribe(x => {
-            console.log("Hierarchy selection");
-            console.log(x);
         })
 
     }
@@ -875,7 +828,6 @@ export class SelectionHelper {
                     const channel = current.repr.params.tunnel as unknown as (Tunnel & TunnelMetaInfo);
 
                     if ((this.selectedChannelRef !== void 0) && (this.selectedChannelRef === channel.__ref)) {
-                        //console.log("double clicked on tunel - deselecting");
                         await this.clearSelectionPrivate();
                         this.selectedChannelRef = void 0;
                         this.selectedChannelData = void 0;
@@ -883,10 +835,8 @@ export class SelectionHelper {
                         this.selectedChannelReprLoci = void 0;
                         this.selectedChannel = void 0;
                         this.invokeOnChannelDeselectHandlers();
-                        //return;
                     }
                     else {
-                        //console.log("Channel selected");
                         if (this.selectedChannelRef !== void 0 && this.selectedChannelRef !== channel.__ref) {
                             this.deselectTunnelByRef();
                         }
@@ -909,32 +859,11 @@ export class SelectionHelper {
             }
             this.interactionHandler(current);
         })
-
-        //Residue 3D OnClick
-        // plugin.subscribe(LiteMol.Bootstrap.Event.Molecule.ModelSelect, e => {
-        //     if (!!e.data) {
-        //         let r = e.data.residues[0];
-        //         SelectionHelper.addResidueToSelection(r.authSeqNumber, r.chain.authAsymId);
-        //     }
-        // });
-
-        // LiteMol.Example.Channels.Behaviour.initCavityBoundaryToggle(plugin);
-        // LiteMol.Example.Channels.Behaviour.createSelectEvent(plugin).subscribe(e => {
-        //     if ((e.kind === 'nothing') || (e.kind === 'molecule')) {
-        //         return
-        //     }
-        //     else if (e.kind === 'point') {
-        //         this.addPointToSelection({ x: `${e.data[0].toFixed(2)}`, y: `${e.data[1].toFixed(2)}`, z: `${e.data[2].toFixed(2)}` });
-        //     }
-        // });
-
-        // this.interactionEventStream = LiteMol.Bootstrap.Event.Visual.VisualSelectElement.getStream(plugin.context)
-        //     .subscribe(e => this.interactionHandler('select', e.data as ChannelEventInfo, plugin));
     }
 
-    // private static interactionHandler(type: string, i: ChannelEventInfo | undefined, plugin: LiteMol.Plugin.Controller) {
     private static async interactionHandler(ref: Representation.Loci<Loci>) {
-        console.log("SelectionHelper: Caught-SelectEvent");
+        if (CommonOptions.DEBUG_MODE)
+            console.log("SelectionHelper: Caught-SelectEvent");
 
         if (ref.loci.kind === "group-loci") {
             // TODO add tag to other object(Cavity, Surface), then check it and return if it is one of them
@@ -996,120 +925,10 @@ export class SelectionHelper {
             }
 
             if (this.selectedResidues !== void 0) {
-                //console.log("selected channel - clearing residues");
                 await this.clearSelectionPrivate();
                 // LiteMol.Bootstrap.Command.Tree.RemoveNode.dispatch(plugin.context, this.SELECTION_VISUAL_REF);
                 this.selectedResidues = void 0;
-                //return;
             }
-
-            // if ((this.selectedChannelRef !== void 0) && (this.selectedChannelRef === i.source.ref)) {
-            //     //console.log("double clicked on tunel - deselecting");
-            //     this.clearSelectionPrivate(plugin);
-            //     this.selectedChannelRef = void 0;
-            //     this.selectedChannelData = void 0;
-            //     this.selectedChannelId = void 0;
-            //     this.invokeOnChannelDeselectHandlers();
-            //     //return;
-            // }
-            // else {
-            //     //console.log("Channel selected");
-            //     if (this.selectedChannelRef !== void 0 && this.selectedChannelRef !== i.source.ref) {
-            //         deselectTunnelByRef(plugin, this.selectedChannelRef);
-            //     }
-            //     else {
-            //         //Trigger Sequence Viewer to deselect selected residues
-            //         this.clearSelection(plugin);
-            //     }
-            //     this.selectedChannelRef = i.source.ref;
-            //     this.selectedChannelData = i.source.props.tag.element.Layers;
-            //     this.selectedChannelId = i.source.props.tag.element.Id;
-            //     if (this.selectedChannelData !== void 0) {
-            //         selectTunnelByRef(plugin, this.selectedChannelRef);
-            //         this.clearAltSelection(plugin);
-            //         this.invokeOnChannelSelectHandlers(this.selectedChannelData, this.selectedChannelId);
-            //     }
-            //     //return;
         }
-
-        // if (!i || i.source == null || i.source.ref === void 0 || i.source.props === void 0 || i.source.props.tag === void 0) {
-        //     //console.log("SelectionHelper: Event incomplete - ignoring");
-        //     return;
-        // }
-
-        //Unsupported types
-        // if (i.source.props.tag.kind === "Cavity-inner" || i.source.props.tag.kind === "Cavity-boundary") {
-        //     return;
-        // }
-
-        // if (this.selectedPoints !== void 0) {
-        //     this.clearSelectionPrivate(plugin);
-        //     this.clearSelectedPoints();
-        // }
-
-        // if (this.selectedBulkResidues !== void 0) {
-        //     //console.log("selected channel - clearing residues");
-        //     this.clearSelectionPrivate(plugin);
-        //     LiteMol.Bootstrap.Command.Tree.RemoveNode.dispatch(plugin.context, this.SELECTION_VISUAL_REF);
-        //     this.selectedBulkResidues = void 0;
-        //     //return;
-        // }
-
-        // if ((this.selectedChannelRef !== void 0) && (this.selectedChannelRef === i.source.ref)) {
-        //     //console.log("double clicked on tunel - deselecting");
-        //     this.clearSelectionPrivate(plugin);
-        //     this.selectedChannelRef = void 0;
-        //     this.selectedChannelData = void 0;
-        //     this.selectedChannelId = void 0;
-        //     this.invokeOnChannelDeselectHandlers();
-        //     //return;
-        // }
-        // else {
-        //     //console.log("Channel selected");
-        //     if (this.selectedChannelRef !== void 0 && this.selectedChannelRef !== i.source.ref) {
-        //         deselectTunnelByRef(plugin, this.selectedChannelRef);
-        //     }
-        //     else {
-        //         //Trigger Sequence Viewer to deselect selected residues
-        //         this.clearSelection(plugin);
-        //     }
-        //     this.selectedChannelRef = i.source.ref;
-        //     this.selectedChannelData = i.source.props.tag.element.Layers;
-        //     this.selectedChannelId = i.source.props.tag.element.Id;
-        //     if (this.selectedChannelData !== void 0) {
-        //         selectTunnelByRef(plugin, this.selectedChannelRef);
-        //         this.clearAltSelection(plugin);
-        //         this.invokeOnChannelSelectHandlers(this.selectedChannelData, this.selectedChannelId);
-        //     }
-        //     //return;
     }
-
-    //console.log("SelectionHelper: SelectEvent from code - ignoring ");
 }
-
-// }
-
-// export function getIndices(v: LiteMol.Bootstrap.Entity.Visual.Any) {
-//     if ((v as any).props.model.surface === void 0) {
-//         return [] as number[];
-//     }
-//     return (v as any).props.model.surface.triangleIndices;
-// }
-
-// function selectTunnelByRef(plugin: LiteMol.Plugin.Controller, ref: string) {
-//     let entities = plugin.selectEntities(ref);
-//     let v = <any>entities[0] as LiteMol.Bootstrap.Entity.Visual.Any;
-//     if (LiteMol.Bootstrap.Entity.isVisual(entities[0]) && v.props.isSelectable) {
-//         v.props.model.applySelection(getIndices(v), LiteMol.Visualization.Selection.Action.Select);
-//     }
-// }
-
-// function deselectTunnelByRef(ref: string) {
-    
-//     //TODO
-//     // let entities = plugin.selectEntities(ref);
-//     // let v = <any>entities[0] as LiteMol.Bootstrap.Entity.Visual.Any;
-//     // if (LiteMol.Bootstrap.Entity.isVisual(entities[0]) && v.props.isSelectable) {
-//     //     v.props.model.applySelection(getIndices(v), LiteMol.Visualization.Selection.Action.RemoveSelect);
-//     // }
-// }

@@ -225,17 +225,13 @@ export class Context {
                 for (const unit of structure.units) {
                     if (unit.polymerElements.length) {
                         StructureElement.Location.set(l, structure, unit, unit.elements[0]);
-                        console.log(StructureProperties.entity.id(l));
-                        console.log(StructureProperties.unit.operator_name(l));
-                        console.log(StructureProperties.entity.key(l));
 
                         if (structure.getModelIndex(unit.model) !== parseInt(modelIdx)) continue;
                         if (StructureProperties.entity.id(l) !== entityId) continue;
-                        const entitySeq = unit.model.sequence.byEntityKey[StructureProperties.entity.key(l)];
-                        for (let i = 0; i < entitySeq.sequence.length; i++) {
-                            const x = entitySeq.sequence.seqId.value(i);
-                            console.log(x);
-                        }
+                        // const entitySeq = unit.model.sequence.byEntityKey[StructureProperties.entity.key(l)];
+                        // for (let i = 0; i < entitySeq.sequence.length; i++) {
+                        //     const x = entitySeq.sequence.seqId.value(i);
+                        // }
                     } else {
                         for (const [operatorKey, operator_name] of getOperatorOptions(structure, modelEntityId, chainGroupId)) {
                             const wrapper = getSequenceWrapper({
@@ -249,13 +245,13 @@ export class Context {
                                     const loci = wrapper.getLoci(i);
                                     if (loci.elements.length > 0) {
                                         const location = StructureElement.Loci.getFirstLocation(loci, StructureElement.Location.create(void 0));
-                                        if (location) {
-                                            console.log(StructureProperties.atom.label_atom_id(location));
-                                            console.log(StructureProperties.chain.auth_asym_id(location));
-                                            console.log(StructureProperties.unit.operator_name(location));
-                                            console.log(StructureProperties.residue.auth_seq_id(location));
-                                            console.log(wrapper.residueLabel(i));
-                                        }
+                                        // if (location) {
+                                        //     console.log(StructureProperties.atom.label_atom_id(location));
+                                        //     console.log(StructureProperties.chain.auth_asym_id(location));
+                                        //     console.log(StructureProperties.unit.operator_name(location));
+                                        //     console.log(StructureProperties.residue.auth_seq_id(location));
+                                        //     console.log(wrapper.residueLabel(i));
+                                        // }
                                     }
                                 }
                             }
@@ -265,36 +261,6 @@ export class Context {
                 }
             }
         }
-
-        // const structure = (this.plugin.state.data.select(StateSelection.first('het'))[0].obj as PluginStateObject.Molecule.Structure).data;
-        // // const x = this.plugin.state.data.select(StateSelection.first('het'))[0].obj?.data;
-        // console.log(structure.model.atomicHierarchy.residues.label_seq_id.toArray())
-
-        // for (const unit of structure.units) {
-        //     if (!unit.polymerElements.length && Unit.isAtomic(unit)) {
-        //         const sw = new HeteroSequenceWrapper({ structure, units: [unit]});
-        //         const loci = sw.getLoci(508);
-        //         // this.visual.setColor({ select: { r: 255, g: 112, b: 3 } });
-        //         // this.plugin.managers.interactivity.lociSelects.select({ loci });
-        //         // this.visual.reset({ selectColor: true });
-        //     }
-        // }
-        // if (!data) return;
-        // const params: QueryParam[] = [{
-        //     struct_asym_id: "A",
-        //     start_auth_residue_number: 508,
-        //     end_auth_residue_number: 508,
-        //     sideChain: true,
-        //     focus: false,
-        //     color: {
-        //         r: 255,
-        //         g: 0,
-        //         b: 255
-        //     },
-        //     operator_name: "ASM_1"
-        // }]
-        // const r = QueryHelper.getInteractivityLoci(params, data);
-        console.log("checkpoint");
         return;
     }
 
@@ -408,13 +374,6 @@ export class Context {
             this.assemblyRef = pivot.cell.transform.ref;
         };
 
-        console.log(this.plugin)
-        console.log(update);
-        console.log(structure);
-
-        // let parameters = getParameters();
-        // downloadChannelsData(parameters!.computationId, parameters!.submitId);
-
         this.visual.setDefaultColor({ r: 255, g: 0, b: 255 });
 
         return polymer;
@@ -500,7 +459,6 @@ export class Context {
 
         const providerRepr = moleObjectsNode
             .apply(SurfaceShapeProvider, { triangleIndices: triangles, vertices, colorTheme: color, solidForm: false, tag, label }, {tags: 'Surface'});
-        console.log(providerRepr.selector.data?.data);
         const repr = await providerRepr
             .apply(PickableRepresentation3D, { alpha: 0.65, emissive: 0.20, pickable: false }, { state: { /*isGhost: true*/ } })
             .commit();

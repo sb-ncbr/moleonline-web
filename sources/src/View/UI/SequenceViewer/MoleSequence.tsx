@@ -160,16 +160,6 @@ export class MoleSequence<P extends SequenceProps> extends PluginUIComponent<P> 
             }
         };
         this.click(loci, buttons, button, modifiers);
-        // if (loci) {
-        //     const location = StructureElement.Loci.getFirstLocation(loci, StructureElement.Location.create(void 0));
-        //     if (location) {
-        //         const sequenceNumber = StructureProperties.residue.auth_seq_id(location);
-        //         const chainName = StructureProperties.chain.auth_asym_id(location);
-        //         const operatorName = StructureProperties.unit.operator_name(location);
-        //         const resiudeName = StructureProperties.atom.label_comp_id(location);
-        //         SelectionHelper.addResidueToSelection(sequenceNumber, chainName, operatorName, undefined, resiudeName);
-        //     }
-        // }
         this.mouseDownLoci = loci;
     };
 

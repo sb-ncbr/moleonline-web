@@ -455,7 +455,6 @@ export async function loadCifTunnels(url: string) {
             if (!x.isError) {
                 const r = parseCifToChannelsDBData(x.result.blocks as any[]);
                 return r;
-                // console.log(x.result.blocks[1].categories.sb_ncbr_channel_residue.getField("name"));
             }
         } else {
             console.error('Fetch failed with status:', response.status);

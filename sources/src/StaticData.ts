@@ -146,13 +146,6 @@ export class Colors {
     private static shouldExcludeColor(colorIdx: number) {
         return !(this.excludedColors.indexOf(colorIdx) < 0);
     }
-    // public static getRandomUnused() {
-    //     // getPalette()
-    //     do {
-    //         this.colorIndex = (this.colorIndex + 1) % LiteMol.Visualization.Molecule.Colors.DefaultPallete.length;
-    //     } while (this.shouldExcludeColor(this.colorIndex));
-    //     return LiteMol.Visualization.Molecule.Colors.DefaultPallete[this.colorIndex];
-    // }
 }
 
 export enum Enum {

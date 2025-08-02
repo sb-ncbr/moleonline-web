@@ -8,7 +8,7 @@ import { DataProxyCofactors, DataProxyCSAResidues } from "../../../../DataProxy"
 import { Residues } from "../../../CommonUtils/Residues";
 import { validatePatternQuery } from "../../../CommonUtils/Validators";
 import { getParameters } from "../../../../Common/Util/Router";
-import { Button, ControlRow, TextInput, ToggleButton } from "molstar/lib/mol-plugin-ui/controls/common";
+import { Button } from "molstar/lib/mol-plugin-ui/controls/common";
 import { SelectControl, TextControl } from "molstar/lib/mol-plugin-ui/controls/parameters";
 import { ParamDefinition } from "molstar/lib/mol-util/param-definition";
 import { CheckSvg, CloseSvg } from "molstar/lib/mol-plugin-ui/controls/icons";
@@ -99,14 +99,6 @@ export class TextBox extends React.Component<TextBoxProps, TextBoxState> impleme
     }
 
     reset() {
-        // this.setState({
-        //     value: this.props.defaultValue,
-        //     control: <div />
-        // });
-        // this.setState({
-        //     value: this.props.defaultValue,
-        //     control: this.createControl()
-        // });
         this.setState({
             value: this.props.defaultValue,
             control: this.createControl({ ...this.props, defaultValue: this.props.defaultValue })
@@ -127,58 +119,10 @@ export class TextBox extends React.Component<TextBoxProps, TextBoxState> impleme
                 ValidationState.reset(this.props.validationGroup);
             }
         }} />
-
-        // return (<TextInput onChange={(v) => {
-        //     let s = this.state;
-        //     s.value = v;
-        //     this.setState(s);
-        //     if (this.props.onChange !== void 0) {
-        //         this.props.onChange(v);
-        //     }
-        //     if (this.props.validationGroup !== void 0) {
-        //         ValidationState.reset(this.props.validationGroup);
-        //     }
-        // }}
-        //     value={props.defaultValue}
-        //     placeholder={props.placeholder}
-        //     onBlur={() => {
-        //         //TODO
-        //         // TextBoxOnBlur(useRef(null), this.props.validate, this.props.validationGroup);
-        //         // e.preventDefault();
-        //     }}
-        // />)
-
-        // return LMControls.TextBox({
-        //     defaultValue: props.defaultValue,
-        //     placeholder: props.placeholder,
-        //     onBlur: (e) => {
-        //         TextBoxOnBlur(e, this.props.validate, this.props.validationGroup);
-        //         e.preventDefault();
-        //     },
-        //     onChange: (v) => {
-        //         let s = this.state;
-        //         s.value = v;
-        //         this.setState(s);
-        //         if (this.props.onChange !== void 0) {
-        //             this.props.onChange(v);
-        //         }
-        //         if (this.props.validationGroup !== void 0) {
-        //             ValidationState.reset(this.props.validationGroup);
-        //         }
-        //     },
-        //     onKeyPress: (e) => {
-        //     }
-        // })
     }
 
     render() {
         return this.state.control
-        // return <div className='lm-control-row lm-options-group' title={this.props.tooltip}>
-        //     <span>{this.props.label}</span>
-        //     <div>
-        //         {this.state.control}
-        //     </div>
-        // </div>
     }
 }
 
@@ -206,100 +150,6 @@ function TextBoxOnBlur(e: React.FormEvent<HTMLInputElement>, validateFn?: ((valu
                 Tooltips.destroy(element);
             }
         })
-    }
-}
-
-
-interface NumberBoxProps extends ControlValidationCommonProps {
-    label: string,
-    defaultValue: number,
-    max: number,
-    min: number,
-    step?: number,
-    placeholder?: string,
-    tooltip?: string,
-    onChange?: (value: string) => void
-    onMount?: (control: NumberBox) => void
-};
-interface NumberBoxState {
-    value: number
-}
-export class NumberBox extends React.Component<NumberBoxProps, NumberBoxState> implements FormControl {
-
-    state: NumberBoxState = { value: this.props.defaultValue };
-
-    componentDidMount() {
-        if (this.props.onMount) {
-            this.props.onMount(this);
-        }
-    }
-
-    reset() {
-        this.setState({
-            value: this.props.defaultValue,
-        });
-    }
-
-    render() {
-        return <></>
-        //TODO Molstar
-        // return <LMControls.Slider label={this.props.label} min={this.props.min} max={this.props.max} step={this.props.step} value={this.state.value} title={this.props.tooltip} onChange={(v: number) => {
-        //     let s = this.state;
-        //     s.value = v;
-        //     this.setState(s);
-        //     if (this.props.onChange !== void 0) {
-        //         this.props.onChange(String(v));
-        //     }
-        // }} />
-    }
-}
-
-interface CheckBoxProps extends ControlValidationCommonProps {
-    label: string,
-    defaultValue: boolean,
-    tooltip?: string,
-    onChange?: (value: boolean) => void,
-    onMount?: (control: CheckBox) => void
-};
-interface CheckBoxState { checked: boolean, control: JSX.Element }
-export class CheckBox extends React.Component<CheckBoxProps, CheckBoxState> implements FormControl {
-    // state: CheckBoxState = { checked: this.props.defaultValue, control: this.createControl() }
-
-
-    // componentDidMount() {
-    //     if (this.props.onMount) {
-    //         this.props.onMount(this);
-    //     }
-    // }
-
-    // reset() {
-    //     this.setState({
-    //         checked: this.props.defaultValue,
-    //         control: this.createControl()
-    //     });
-    // }
-
-    private createControl(currentValue?: boolean) {
-        // return <ToggleButton label={this.props.label} title={this.props.tooltip}/>
-        //TODO Molstar
-        // return LMControls.Toggle({
-        //     label: this.props.label,
-        //     title: this.props.tooltip,
-        //     onChange: (v: boolean) => {
-        //         let s = this.state;
-        //         s.checked = v;
-        //         s.control = this.createControl(v);
-        //         this.setState(s);
-        //         if (this.props.onChange !== void 0) {
-        //             this.props.onChange(v);
-        //         }
-        //     },
-        //     value: (currentValue !== void 0) ? currentValue : this.props.defaultValue
-        // })
-    }
-
-    render() {
-        return this.state.control;
     }
 }
 
@@ -346,11 +196,9 @@ export class ComboBox extends React.Component<ComboBoxProps, ComboBoxState> impl
         }
     }
 
-    componentWillReceiveProps(nextProps: ComboBoxProps) {
-        if (nextProps.selectedValue !== this.props.selectedValue) {
-            let s = this.state;
-            s.value = nextProps.selectedValue;
-            this.setState(s);
+    componentDidUpdate(prevProps: ComboBoxProps) {
+        if (prevProps.selectedValue !== this.props.selectedValue) {
+            this.setState({ value: this.props.selectedValue });
         }
     }
 
@@ -402,22 +250,16 @@ interface ControlGroupState {
 export class ControlGroup extends React.Component<ControlGroupProps, ControlGroupState> {
     state: ControlGroupState = { panel: /*this.createPanel((this.props.expanded) ? this.props.expanded : false)*/ undefined, expanded: (this.props.expanded) ? this.props.expanded : false };
 
-    private createPanel(expanded: boolean) {
-        // return new LMControls.Panel({
-        //     header: this.props.label,
-        //     title: this.props.tooltip,
-        //     isExpanded: expanded,
-        //     onExpand: this.onPanelExpand.bind(this),
-        //     //description:"description",
-        //     children: this.props.controls
-        // });
-    }
-
-    componentWillReceiveProps(nextProps: ControlGroupProps) {
-        if (nextProps.expanded !== void 0 && nextProps.expanded !== this.state.expanded) {
-            this.onPanelExpand(nextProps.expanded, true);
+    componentDidUpdate(prevProps: ControlGroupProps) {
+        if (
+            this.props.expanded !== undefined &&
+            this.props.expanded !== prevProps.expanded &&
+            this.props.expanded !== this.state.expanded
+        ) {
+            this.onPanelExpand(this.props.expanded, true);
         }
     }
+
 
     private onPanelExpand(e: boolean, supressOnChangeInvoke?: boolean) {
         let s = this.state;
@@ -520,8 +362,11 @@ export class StartingPointBox extends React.Component<StartingPointBoxProps, Sta
         });
     }
 
-    componentWillReceiveProps(nextProps: StartingPointBoxProps) {
-        if (this.props.defaultItems !== nextProps.defaultItems || this.props.defaultMode !== nextProps.defaultMode) {
+    componentDidUpdate(prevProps: StartingPointBoxProps) {
+        if (
+            prevProps.defaultItems !== this.props.defaultItems ||
+            prevProps.defaultMode !== this.props.defaultMode
+        ) {
             this.reset();
         }
     }
@@ -631,11 +476,6 @@ export class StartingPointBox extends React.Component<StartingPointBoxProps, Sta
                     this.setState({ mode: v.value });
                 }}
             />
-            {/* <ComboBox items={comboItems} label={this.props.label} selectedValue={this.state.mode} tooltip={this.props.tooltip} onChange={((v: UIPointType) => {
-                let s = this.state;
-                s.mode = v;
-                this.setState(s);
-            }).bind(this)} /> */}
             {control}
             <StartingPointResultsBox items={this.state.items} onRemove={this.remove.bind(this)} noDataText={this.props.noDataText} />
         </div>
@@ -692,10 +532,10 @@ export class StartingPointResultsBox extends React.Component<StartingPointResult
 
     render() {
         let rows = [];
-        for (let i of this.props.items) {
+        for (let [index, i] of this.props.items.entries()) {
             let boxClass = `starting-point-${i.uiType.replace(/\s/g, "-")}`;
             rows.push(
-                <div className="msp-control-row">
+                <div key={index} className="msp-control-row">
                     <span className="msp-control-row-label">{i.uiType}</span>
                     <div className="msp-control-row-ctrl">
                         <Button onClick={(e) => {
@@ -703,27 +543,12 @@ export class StartingPointResultsBox extends React.Component<StartingPointResult
                         }} children={[this.generateUIItem(i), <span className="glyphicon glyphicon-remove" />]} />
                     </div>
                 </div>
-
-                // <ControlRow label={i.uiType}>
-                //     <Button onClick={(e) => {
-                //         this.removeItem(i);
-                //     }} children={[this.generateUIItem(i), <span className="glyphicon glyphicon-remove" />]} />
-                // </ControlRow>
             )
-            // rows.push(<div className="lm-control-row">
-            //     <span className={boxClass}>{i.uiType}</span>
-            //     <div>
-            //         <LMControls.Button onClick={(e) => {
-            //             this.removeItem(i);
-            //         }} children={[this.generateUIItem(i), <span className="glyphicon glyphicon-remove" />]} />
-            //     </div>
-            // </div>
-            // );
         }
 
         if (rows.length === 0) {
             rows.push(
-                <div className="msp-control-row">
+                <div key={'no-data'} className="msp-control-row">
                     <span></span>
                     <div className="msp-control-row-ctrl">
                         <div className="empty" title={this.props.noDataText} >{this.props.noDataText}</div>
@@ -750,49 +575,6 @@ interface StartingPointCurrentSelectionBoxState {
 }
 export class StartingPointCurrentSelectionBox extends React.Component<StartingPointCurrentSelectionBoxProps, StartingPointCurrentSelectionBoxState> {
     render() {
-        //TODO Molstar
-        // let button = LMControls.CommitButton({
-        //     action: () => {
-        //         if (SelectionHelper.isSelectedAny() && !SelectionHelper.isSelectedAnyChannel()) {
-        //             if (this.props.onChange === void 0) {
-        //                 return;
-        //             }
-
-        //             let selectedResidues = SelectionHelper.getSelectedResidues();
-        //             let selectedPoints = SelectionHelper.getSelectedPoints();
-        //             if (selectedResidues.length > 0) {
-        //                 let newPointData: Residue[] = [];
-        //                 for (let r of selectedResidues) {
-        //                     newPointData.push(new Residue(
-        //                         r.info.authSeqNumber,
-        //                         r.info.chain.authAsymId)
-        //                     );
-        //                 }
-        //                 this.props.onChange([{
-        //                     type: "Residue",
-        //                     uiType: "Residue List",
-        //                     value: newPointData
-        //                 } as StartingPointResidue]);
-        //             }
-        //             else {
-        //                 let newPoints: StartingPointXYZ[] = [];
-        //                 for (let p of selectedPoints) {
-
-        //                     newPoints.push({
-        //                         type: "Point",
-        //                         uiType: "3D Point",
-        //                         value: new Point(p.X.toString(), p.Y.toString(), p.Z.toString())
-        //                     } as StartingPointXYZ);
-        //                 }
-        //                 this.props.onChange(newPoints);
-        //             }
-        //         }
-        //     },
-        //     isOn: true,
-        //     off: "",
-        //     on: "Add",
-        // });
-
         let button = <Button onClick={() => {
             if (SelectionHelper.isSelectedAny() && !SelectionHelper.isSelectedAnyChannel()) {
                 if (this.props.onChange === void 0) {
@@ -836,13 +618,6 @@ export class StartingPointCurrentSelectionBox extends React.Component<StartingPo
                 {button}
             </div>
         </div>
-
-        // return <div className='lm-control-row lm-options-group' title={this.props.tooltip}>
-        //     <span>{this.props.label}</span>
-        //     <div>
-        //         {button}
-        //     </div>
-        // </div>
     }
 }
 
@@ -922,30 +697,6 @@ export class StartingPointCofactorBox extends React.Component<StartingPointCofac
             this.setState({ selected: v })
         }} />
 
-        // let combo = <SelectControl name={this.props.label} param={ParamDefinition.Select(comboItems[0].getValue(), ParamDefinition.arrayToOptions(comboItems.map(i => i.getValue())))}
-        //     value={comboItems[0].getValue()}
-        //     onChange={(v) => {
-        //         this.setState({ selected: v.value })
-        //     }}
-        // />
-
-        //TODO Molstar
-        // let button = LMControls.CommitButton({
-        //     action: () => {
-        //         if (this.props.onChange !== void 0 && this.state.cofactors !== null && this.state.selected !== null) {
-        //             this.props.onChange([{
-        //                 type: "Query",
-        //                 uiType: "Cofactor",
-        //                 value: this.state.cofactors.get(this.state.selected),
-        //                 residue: this.state.selected
-        //             } as StartingPointQuery]);
-        //         }
-        //     },
-        //     isOn: true,
-        //     off: "",
-        //     on: "Add",
-        // });
-
         let button = <Button onClick={() => {
             if (this.props.onChange !== void 0 && this.state.cofactors !== null && this.state.selected !== null) {
                 this.props.onChange([{
@@ -965,12 +716,6 @@ export class StartingPointCofactorBox extends React.Component<StartingPointCofac
                     {button}
                 </div>
             </div>
-            {/* <div className='lm-control-row lm-options-group' title={this.props.tooltip}>
-                <span>{this.props.label}</span>
-                <div>
-                    {button}
-                </div>
-            </div> */}
         </div>
     }
 }
@@ -1004,35 +749,6 @@ export class StartingPointResidueListBox extends React.Component<StartingPointRe
     }
 
     render() {
-        //TODO Molstar
-        // let button = LMControls.CommitButton({
-        //     action: () => {
-        //         if (this.props.onChange !== void 0) {
-        //             let newPointData: Residue[] = [];
-        //             let residueList = parseResidues(this.state.value);
-        //             if (residueList.length === 0 || residueList.length !== this.state.value.split(",").length) {
-        //                 return;
-        //             }
-        //             for (let r of residueList) {
-        //                 newPointData.push(new Residue(
-        //                     r.SequenceNumber,
-        //                     r.Chain)
-        //                 );
-        //             }
-        //             this.props.onChange([{
-        //                 type: "Residue",
-        //                 uiType: "Residue List",
-        //                 value: newPointData,
-        //             } as StartingPointResidue]);
-
-        //             Events.invokeOnClear(this.onClearGroup);
-        //         }
-        //     },
-        //     isOn: true,
-        //     off: "",
-        //     on: "Add",
-        // });
-
         let button = <Button onClick={() => {
             if (this.props.onChange !== void 0) {
                 let newPointData: Residue[] = [];
@@ -1059,19 +775,13 @@ export class StartingPointResidueListBox extends React.Component<StartingPointRe
         return <div className="starting-point-control-container">
             <TextControl name="Residue list:" param={ParamDefinition.Text(this.state.value, { label: "Residue list:", placeholder: "A 52, B142,..." })} value={this.state.value} onChange={(v) => {
                 this.setState({ value: v.value })
-            }}/>
+            }} />
             <div className="msp-control-row">
                 <span>{this.props.label}</span>
                 <div className="msp-control-row-ctrl">
                     {button}
                 </div>
             </div>
-            {/* <div className='lm-control-row lm-options-group' title={this.props.tooltip}>
-                <span>{this.props.label}</span>
-                <div>
-                    {button}
-                </div>
-            </div> */}
         </div>
     }
 }
@@ -1103,31 +813,6 @@ export class StartingPoint3DPointBox extends React.Component<StartingPoint3DPoin
     }
 
     render() {
-
-        //TODO Molstar
-        // let button = LMControls.CommitButton({
-        //     action: () => {
-        //         if (this.props.onChange !== void 0) {
-        //             let newPointData: Residue[] = [];
-        //             let point = parsePoint(this.state.value);
-        //             if (point === void 0) {
-        //                 return;
-        //             }
-
-        //             this.props.onChange([{
-        //                 type: "Point",
-        //                 uiType: "3D Point",
-        //                 value: new Point(point.x, point.y, point.z),
-        //             } as StartingPointXYZ]);
-        //         }
-
-        //         Events.invokeOnClear(this.onClearGroup);
-        //     },
-        //     isOn: true,
-        //     off: "",
-        //     on: "Add",
-        // });
-
         let button = <Button onClick={() => {
             if (this.props.onChange !== void 0) {
                 let newPointData: Residue[] = [];
@@ -1156,23 +841,6 @@ export class StartingPoint3DPointBox extends React.Component<StartingPoint3DPoin
                     {button}
                 </div>
             </div>
-            {/* <TextBox defaultValue={this.state.value} label="3D Point:" placeholder="X, Y, Z" onChange={(val) => {
-                let s = this.state;
-                s.value = val;
-                this.setState(s);
-            }} onMount={(control) => {
-                Events.attachOnClearEventHandler(((formGroup: string) => {
-                    if (this.props.formGroup === formGroup || this.onClearGroup === formGroup) {
-                        window.setTimeout(() => control.reset());
-                    }
-                }).bind(control));
-            }} />*/}
-            {/* <div className='lm-control-row lm-options-group' title={this.props.tooltip}>
-                <span>{this.props.label}</span>
-                <div>
-                    {button}
-                </div>
-            </div> */}
         </div>
     }
 }
@@ -1299,24 +967,6 @@ export class StartingPointQueryBox extends React.Component<StartingPointQueryBox
     }
 
     render() {
-
-        //TODO Molstar
-        // let button = LMControls.CommitButton({
-        //     action: () => {
-        //         if (this.props.onChange !== void 0 && this.state.isValid && !this.state.validationInProgress) {
-        //             this.props.onChange([{
-        //                 type: "Query",
-        //                 uiType: "PatternQuery",
-        //                 value: this.state.value,
-        //                 residue: ""
-        //             } as StartingPointQuery]);
-        //         }
-        //     },
-        //     isOn: (this.state.isValid && !this.state.validationInProgress),
-        //     off: this.state.validationMessage,
-        //     on: "Add",
-        // });
-
         let button = <Button onClick={() => {
             if (this.props.onChange !== void 0 && this.state.isValid && !this.state.validationInProgress) {
                 this.props.onChange([{
@@ -1332,7 +982,7 @@ export class StartingPointQueryBox extends React.Component<StartingPointQueryBox
 
         return <div className="starting-point-control-container">
             <TextControl name="Query" param={ParamDefinition.Text(this.state.value, { label: "Query:", placeholder: "Residues('GOL')" })} value={this.state.value} onChange={(val) => {
-                this.setState({ 
+                this.setState({
                     value: val.value,
                     isValid: false,
                     validationInProgress: true,
@@ -1353,55 +1003,13 @@ export class StartingPointQueryBox extends React.Component<StartingPointQueryBox
                         validationMessage: "Validation API not available. Please try again later."
                     });
                 })
-            }}/>
+            }} />
             <div className="msp-control-row">
                 <span>{this.props.label}</span>
                 <div className="msp-control-row-ctrl">
                     {button}
                 </div>
             </div>
-            {/* <TextBox defaultValue={this.state.value} label="Query:" placeholder="Residues('GOL')" onChange={(val) => {
-                let s = this.state;
-                s.value = val;
-                s.isValid = false;
-                s.validationInProgress = true;
-                s.validationMessage = "Validation in progress... Please wait.";
-                this.setState(s);
-                validatePatternQuery(val).then((result) => {
-                    let s1 = this.state;
-                    s1.isValid = result.valid;
-                    s1.value = val;
-                    s1.validationInProgress = false;
-
-                    if (result.valid) {
-                        s1.validationMessage = "";
-
-                    }
-                    else {
-                        s1.validationMessage = (result.message !== void 0) ? result.message : "Unkown validation error...";
-                    }
-                    this.setState(s1);
-                }).catch((err) => {
-                    let s1 = this.state;
-                    s1.isValid = false;
-                    s1.value = val;
-                    s1.validationInProgress = false;
-                    s1.validationMessage = "Validation API not available. Please try again later.";
-                    this.setState(s1);
-                })
-            }} onMount={(control) => {
-                Events.attachOnClearEventHandler(((formGroup: string) => {
-                    if (this.props.formGroup === formGroup || this.onClearGroup === formGroup) {
-                        window.setTimeout(() => control.reset());
-                    }
-                }).bind(control));
-            }} /> */}
-            {/* <div className='lm-control-row lm-options-group' title={this.props.tooltip}>
-                <span>{this.props.label}</span>
-                <div>
-                    {button}
-                </div>
-            </div> */}
         </div>
     }
 }

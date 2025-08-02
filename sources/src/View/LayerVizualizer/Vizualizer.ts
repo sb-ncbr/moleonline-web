@@ -1,7 +1,6 @@
 import { roundToDecimal } from "../../Common/Util/Numbers";
 import { LayerData } from "../../DataInterface";
 import { Bundle } from "../../StaticData";
-import { LayerColors } from "../CommonUtils/LayerColors";
 import { isActive } from "../CommonUtils/Tabs";
 import { ArrowHeadLine, Axis, ColorMixer, ColorPaletteFunctionSettings, ContextAwareObject, CurlyBrackets, TextBox, Tunnel } from "./Backend";
 import { Paintable, Axis as AxisCompnent, Positionable } from "./Components";

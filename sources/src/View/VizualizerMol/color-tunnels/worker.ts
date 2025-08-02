@@ -17,8 +17,6 @@ self.onmessage = async (e) => {
 
     const props = e.data as CalcTunnelSurfaceProps;
 
-    console.log("IN THE WORKER");
-
     type AnglesTables = { cosTable: Float32Array, sinTable: Float32Array }
     function getAngleTables(probePositions: number): AnglesTables {
         let theta = 0.0;
@@ -167,7 +165,6 @@ self.onmessage = async (e) => {
             }
         }
         const end = performance.now();
-        console.log('projectPoints: ', end - start, 'ms');
     }
 
     function normalToLine(out: Vec3, p: Vec3) {
@@ -307,7 +304,6 @@ self.onmessage = async (e) => {
             }
         }
         const end = performance.now();
-        console.log('projectTorii: ', end - start, 'ms');
     }
 
     function findClosestPoint(target: Vec3, points: Map<Vec3, number>) {
@@ -348,7 +344,6 @@ self.onmessage = async (e) => {
         }
 
         const end = performance.now();
-        console.log('assignLayersToPoints: ', end - start, 'ms');
 
         return { mappedPoints };
     }

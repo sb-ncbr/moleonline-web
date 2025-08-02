@@ -174,7 +174,8 @@ export class ApiService {
             return `https://europepmc.org/abstract/MED/${reference}`;
         }
         else {
-            console.log(`Unknown reference type ${type} for reference ${reference}`);
+            if (CommonOptions.DEBUG_MODE)
+                console.log(`Unknown reference type ${type} for reference ${reference}`);
             return `#unknown-reference-type`;
         }
     }

@@ -1,10 +1,6 @@
-// import DGComponents = Datagrid.Components;
-// import WebChemistryCore = WebChemistry.Tunnels.Core;
-
 import React from "react";
 import { LayersInfo, Properties } from "../../../DataInterface";
 import { SelectionHelper } from "../../CommonUtils/Selection";
-import { Events } from "../../../Bridge";
 import { DGElementRow, DGNoDataInfoRow, DGRowEmpty } from "../Common/Datagrid/Components";
 import { PdbResidue, PhysicoChemicalPropertyCalculation, TunnelLayer } from "../../../PhysicoChemicalProperties";
 import { Residues } from "../../CommonUtils/Residues";
@@ -22,7 +18,7 @@ interface State {
     selectionOn: boolean
 };
 
-export class LayerProperties extends React.Component<{ }, State> {
+export class LayerProperties extends React.Component<{}, State> {
 
     state: State = {
         data: null,
@@ -46,14 +42,6 @@ export class LayerProperties extends React.Component<{ }, State> {
             state.selectionOn = false;
             this.setState(state);
         });
-
-        // Events.subscribeChangeSubmitId(() => {
-        //     let state = this.state;
-        //     state.layerIds = [];
-        //     state.data = null;
-        //     state.selectionOn = false;
-        //     this.setState(state);
-        // });
 
         $(window).on('layerTriggered', this.layerTriggerHandler.bind(this));
         $(window).on('layerSelected', this.layerSelectedHandler.bind(this));
@@ -115,8 +103,10 @@ class DGNoData extends React.Component<State, {}> {
             </div>
             <div className="body">
                 <table>
-                    <DGNoDataInfoRow columnsCount={DGTABLE_COLS_COUNT} infoText={NO_DATA_MESSAGE} />
-                    <DGRowEmpty columnsCount={DGTABLE_COLS_COUNT} />
+                    <tbody>
+                        <DGNoDataInfoRow columnsCount={DGTABLE_COLS_COUNT} infoText={NO_DATA_MESSAGE} />
+                        <DGRowEmpty columnsCount={DGTABLE_COLS_COUNT} />
+                    </tbody>
                 </table>
             </div>
         </div>);
@@ -140,14 +130,16 @@ class DGHead extends React.Component<State, {}> {
     render() {
         return (
             <table>
-                <tr>
-                    <th title="Property" className="col col-1">
-                        Property
-                    </th>
-                    <th title="Value" className="col col-2">
-                        Value
-                    </th>
-                </tr>
+                <thead>
+                    <tr>
+                        <th title="Property" className="col col-1">
+                            Property
+                        </th>
+                        <th title="Value" className="col col-2">
+                            Value
+                        </th>
+                    </tr>
+                </thead>
             </table>
         );
     };
@@ -251,39 +243,39 @@ class DGBody extends React.Component<State, {}> {
         let mutability = (layerData === null) ? 'N/A' : roundToDecimal(layerData.Mutability, 2).toString();
         let length = this.getLength(this.props.layerIds);
         rows.push(
-            <DGElementRow columns={[<span><span className="glyphicon glyphicon-tint properties-icon" />{"Hydropathy"}</span>, <span>{hydropathy}</span>]} />
+            <DGElementRow key={'hydropathy'} columns={[<span><span className="glyphicon glyphicon-tint properties-icon" />{"Hydropathy"}</span>, <span>{hydropathy}</span>]} />
         );
         rows.push(
-            <DGElementRow columns={[<span><span className="glyphicon glyphicon-plus properties-icon" />{"Polarity"}</span>, <span>{polarity}</span>]} />
+            <DGElementRow key={'polarity'} columns={[<span><span className="glyphicon glyphicon-plus properties-icon" />{"Polarity"}</span>, <span>{polarity}</span>]} />
         );
         rows.push(
-            <DGElementRow columns={[<span><span className="glyphicon glyphicon-tint properties-icon upside-down" />{"Hydrophobicity"}</span>, <span>{hydrophobicity}</span>]} />
+            <DGElementRow key={'hydrophobicity'} columns={[<span><span className="glyphicon glyphicon-tint properties-icon upside-down" />{"Hydrophobicity"}</span>, <span>{hydrophobicity}</span>]} />
         );
         rows.push(
-            <DGElementRow columns={[<span><span className="glyphicon glyphicon-scissors properties-icon" />{"Mutability"}</span>, <span>{mutability}</span>]} />
+            <DGElementRow key={'mutability'} columns={[<span><span className="glyphicon glyphicon-scissors properties-icon" />{"Mutability"}</span>, <span>{mutability}</span>]} />
         );
         rows.push(
-            <DGElementRow columns={[<span><span className="glyphicon glyphicon-flash properties-icon" />{"Charge"}</span>, <span>{charge}</span>]} />
+            <DGElementRow key={'charge'} columns={[<span><span className="glyphicon glyphicon-flash properties-icon" />{"Charge"}</span>, <span>{charge}</span>]} />
         );
         rows.push(
-            <DGElementRow columns={[<span><span className="icon bottleneck black properties-icon" />{(this.props.layerIds.length > 1) ? "Bottleneck" : "Radius"}</span>, <span>{roundToDecimal(bottleneck, 1)}</span>]} />
+            <DGElementRow key={'bottlenec'} columns={[<span><span className="icon bottleneck black properties-icon" />{(this.props.layerIds.length > 1) ? "Bottleneck" : "Radius"}</span>, <span>{roundToDecimal(bottleneck, 1)}</span>]} />
         );
         rows.push(
-            <DGElementRow columns={[<span><span className="icon logp black properties-icon" />{"LogP"}</span>, <span>{(layerData && layerData.LogP) ? roundToDecimal(layerData.LogP, 2) : 'N/A'}</span>]} />
+            <DGElementRow key={'logP'} columns={[<span><span className="icon logp black properties-icon" />{"LogP"}</span>, <span>{(layerData && layerData.LogP) ? roundToDecimal(layerData.LogP, 2) : 'N/A'}</span>]} />
         );
         rows.push(
-            <DGElementRow columns={[<span><span className="icon logd black properties-icon" />{"LogD"}</span>, <span>{(layerData && layerData.LogD) ? roundToDecimal(layerData.LogD, 2) : 'N/A'}</span>]} />
+            <DGElementRow key={'logD'} columns={[<span><span className="icon logd black properties-icon" />{"LogD"}</span>, <span>{(layerData && layerData.LogD) ? roundToDecimal(layerData.LogD, 2) : 'N/A'}</span>]} />
         );
         rows.push(
-            <DGElementRow columns={[<span><span className="icon logs black properties-icon" />{"LogS"}</span>, <span>{(layerData && layerData.LogS) ? roundToDecimal(layerData.LogS, 2) : 'N/A'}</span>]} />
+            <DGElementRow key={'logS'} columns={[<span><span className="icon logs black properties-icon" />{"LogS"}</span>, <span>{(layerData && layerData.LogS) ? roundToDecimal(layerData.LogS, 2) : 'N/A'}</span>]} />
         );
         rows.push(
-            <DGElementRow columns={[<span><span className="icon ionizable black properties-icon" />{"Ionizable"}</span>, <span>{(layerData && layerData.Ionizable) ? roundToDecimal(layerData.Ionizable, 2) : 'N/A'}</span>]} />
+            <DGElementRow key={'ionizable'} columns={[<span><span className="icon ionizable black properties-icon" />{"Ionizable"}</span>, <span>{(layerData && layerData.Ionizable) ? roundToDecimal(layerData.Ionizable, 2) : 'N/A'}</span>]} />
         );
         rows.push(
-            <DGElementRow columns={[<span><span className="glyphicon glyphicon-resize-horizontal properties-icon" />{"Length"}</span>, <span>{roundToDecimal(length, 1).toString()}</span>]} />
+            <DGElementRow key={'length'} columns={[<span><span className="glyphicon glyphicon-resize-horizontal properties-icon" />{"Length"}</span>, <span>{roundToDecimal(length, 1).toString()}</span>]} />
         );
-        rows.push(<DGRowEmpty columnsCount={DGTABLE_COLS_COUNT} />);
+        rows.push(<DGRowEmpty key={'empty'} columnsCount={DGTABLE_COLS_COUNT} />);
 
         return rows;
     }
@@ -293,7 +285,9 @@ class DGBody extends React.Component<State, {}> {
 
         return (
             <table>
-                {rows}
+                <tbody>
+                    {rows}
+                </tbody>
             </table>
         );
     };
@@ -305,7 +299,7 @@ class DGRow extends React.Component<{ columns: string[] }, {}> {
         let tds = [];
         for (let i = 0; i < columns.length; i++) {
             tds.push(
-                <td className={`col col-${i + 1}`}>
+                <td key={i} className={`col col-${i + 1}`}>
                     {columns[i]}
                 </td>
             );
