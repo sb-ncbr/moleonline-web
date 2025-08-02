@@ -338,6 +338,7 @@ export class Context {
 
 
     public async load(url: string, isBinary: boolean, assemblyId?: string | null) {
+        if (this.plugin.state.data.cells.has('protein-data')) return;
         let update = this.plugin.build();
         let structure;
         let model;
