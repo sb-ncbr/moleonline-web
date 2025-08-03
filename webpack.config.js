@@ -13,7 +13,7 @@ module.exports = (env, argv) => {
                 MOLEonline_Init: './sources/src/Init/App.tsx',
             },
             output: {
-                filename: '[name]-Core.js?version=R1.1.9.3',
+                filename: '[name]-Core.js?version=R1.1.9.4',
                 path: path.resolve(__dirname, 'dist/'),
             },
             devtool: isProd ? false : 'source-map',
