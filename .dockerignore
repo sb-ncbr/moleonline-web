@@ -1,3 +1,6 @@
 .git
+.idea
+.vscode
+build
 docker
 node_modules
