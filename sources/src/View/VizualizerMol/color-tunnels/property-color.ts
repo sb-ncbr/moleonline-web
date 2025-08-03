@@ -308,17 +308,10 @@ export function colorTunnelNew(property: Property, layer: LayersInfo, nextLayer:
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         if (ctx) {
             const pixelData = ctx.getImageData(x, 0, 1, 1).data;
-            const color = Color.fromRgb(pixelData[0], pixelData[1], pixelData[2]);
-            return color;
+            return Color.fromRgb(pixelData[0], pixelData[1], pixelData[2]);
         }
     }
     return DefaultColor;
-
-    const actualColorValue = nextLayer
-        ? ((distance - layer.LayerGeometry.StartDistance) / (layer.LayerGeometry.EndDistance - layer.LayerGeometry.StartDistance)) * (currentColorValue + nextColorValue)
-        : currentColorValue;
-    const color = getColor(actualColorValue, property, settings);
-    return color;
 }
 
 export function colorTunnelGradient(property: Property, groupId: number, dist: number,

@@ -568,7 +568,7 @@ export class Vizualizer {
         }
         this.__canvas = cnvs as HTMLCanvasElement;
 
-        var cntx = this.__canvas.getContext("2d");
+        var cntx = this.__canvas.getContext("2d", { willReadFrequently: true });
         if (cntx == null) {
             throw new Error("Cannot obtain 2D canvas context");
         }
