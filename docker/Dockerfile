@@ -1,4 +1,4 @@
-FROM node:20-slim AS build
+FROM node:24-slim AS build
 
 WORKDIR /build
 
@@ -10,7 +10,7 @@ COPY . ./
 
 RUN npm run build
 
-FROM nginx:1.26-alpine-slim
+FROM nginx:1.29-alpine-slim
 
 COPY --from=build /build/dist/ /var/www
 
