@@ -1,0 +1,17 @@
+name: Test Docker Compose Build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  docker-compose-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build services with Docker Compose
+        run: docker compose -f docker/docker-compose.yaml build
+
