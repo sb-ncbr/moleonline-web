@@ -1,6 +1,5 @@
 const gulp = require('gulp');
 const concat = require('gulp-concat');
-const beautify = require('gulp-beautify');
 const sass = require('gulp-sass')(require('sass'));
 
 const paths = {
@@ -23,11 +22,6 @@ gulp.task("merge-js", function() {
         "./sources/js/tabsConfig.js",
     ])
     .pipe(concat("scripts.js"))
-    .pipe(beautify({
-        indent_size: 2,
-        space_in_empty_paren: true,
-        preserve_newlines: true,
-    }))
     .pipe(gulp.dest("./sources/js"))
 })
 

@@ -1,4 +1,6 @@
+// webpack.config.js
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const path = require('path');
 
 module.exports = (env, argv) => {
@@ -17,6 +19,30 @@ module.exports = (env, argv) => {
                 path: path.resolve(__dirname, 'dist/'),
             },
             devtool: isProd ? false : 'source-map',
+
+            optimization: isProd
+            ? {
+                minimize: true,
+                minimizer: [
+                    new TerserPlugin({
+                        terserOptions: {
+                            ecma: 2017,
+                            compress: {
+                                ecma: 2017,
+                            },
+                            mangle: true,
+                            format: {
+                                comments: false,
+                            },
+                        },
+                        extractComments: false,
+                    }),
+                ],
+            }
+            : {
+                minimize: false,
+            },
+
             plugins: [
                 new CopyWebpackPlugin({
                     patterns: [
@@ -47,6 +73,10 @@ module.exports = (env, argv) => {
                             loader: 'ts-loader',
                             options: {
                                 transpileOnly: true,
+                                compilerOptions: {
+                                    target: 'es2017',
+                                    module: 'esnext',
+                                },
                             },
                         },
                         exclude: /node_modules/,
