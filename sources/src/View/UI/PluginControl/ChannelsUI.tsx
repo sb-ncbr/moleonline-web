@@ -137,11 +137,14 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
         }
     }
 
+    private unsubscribe: (() => void)[] = [];
+
     componentDidMount() {
         this.initializeSubmissionData();
 
-        Events.subscribeSubmitDone(async (newSubmitId) => {
-            if (!this.state.submissions.has(newSubmitId)) {
+        this.unsubscribe.push(Events.subscribeSubmitDone(async (newSubmitId, status) => {
+            // a failed or stopped submission has no channels to load
+            if (status === "Finished" && !this.state.submissions.has(newSubmitId)) {
                 const data = await ApiService.getChannelsData(this.props.computationId, newSubmitId)
                 let dataObj = JSON.parse(data) as MoleData;
                 if (dataObj !== undefined && dataObj.Channels !== undefined) {
@@ -164,16 +167,20 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
                 visible: false
             });
             this.handleTunnelsCollect(newSubmitId);
-        })
+        }));
 
-        Events.subscribeChangeSubmitId(this.handleTunnelsCollect.bind(this));
+        this.unsubscribe.push(Events.subscribeChangeSubmitId(this.handleTunnelsCollect.bind(this)));
 
         this.setState({ submissions: this.props.submissions })
-        $(window).on("contentResize", this.forceUpdate());
 
-        $(window).on("resize", (() => {
-            this.forceUpdate();
-        }).bind(this));
+        const onResize = () => this.forceUpdate();
+        $(window).on("resize", onResize);
+        this.unsubscribe.push(() => $(window).off("resize", onResize));
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe.forEach(u => u());
+        this.unsubscribe = [];
     }
 
     componentDidUpdate(prevProps: ChannelsControlProps, prevState: ChannelsControlState, snapshot?: any): void {

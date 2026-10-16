@@ -37,13 +37,17 @@ export class Controls extends React.Component<{}, State> {
         app: this
     };
 
+    private unsubscribe: (() => void)[] = [];
+
     componentDidMount() {
-        BridgeEvents.subscribeNewSubmit((submitId) => {
+        this.unsubscribe.push(BridgeEvents.subscribeNewSubmit((submitId) => {
             this.forceUpdate();
-        });
+        }));
     }
 
     componentWillUnmount() {
+        this.unsubscribe.forEach(u => u());
+        this.unsubscribe = [];
     }
 
     render() {
@@ -147,7 +151,7 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                                 let state = this.props.parent.state;
                                 state.canSubmit = true;
                                 this.props.parent.setState(state);
-                                BridgeEvents.invokeSubmitDone(result.SubmitId);
+                                BridgeEvents.invokeSubmitDone(result.SubmitId, status.Status);
                                 if (status.Status === "Error") {
                                     BridgeEvents.invokeNotifyMessage({
                                         messageType: "Danger",
@@ -931,6 +935,8 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
         openControls: false
     }
 
+    private unsubscribe: (() => void)[] = [];
+
     componentDidMount() {
         $("#right-panel-toggler").on("click", function () {
             $(".ui").toggleClass("toggled");
@@ -967,14 +973,14 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
             this.setState(state);
         }
 
-        BridgeEvents.subscribeChangeSubmitId((submitId) => {
+        this.unsubscribe.push(BridgeEvents.subscribeChangeSubmitId((submitId) => {
             let state = this.state;
             state.submitId = submitId;
             state.openControls = false;
             this.setState(state);
-        });
+        }));
 
-        ValidationState.attachOnStateChangeHandler(validationGroup, (prev, curr) => {
+        this.unsubscribe.push(ValidationState.attachOnStateChangeHandler(validationGroup, (prev, curr) => {
             let s = this.state;
             if (curr !== "VALID") {
                 $("#submission-form").find("input[type=submit]").attr("disabled", true);
@@ -984,7 +990,12 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
                 s.canSubmit = true;
             }
             this.setState(s);
-        });
+        }));
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe.forEach(u => u());
+        this.unsubscribe = [];
     }
 
     handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -1069,19 +1080,25 @@ interface ControlButtonsProps {
 
 export class ControlButtons extends React.Component<ControlButtonsProps, ControlButtonsState> {
     state: ControlButtonsState = { submitId: -1, hasKillable: false, canSubmit: true, submitLoading: false }
+    private unsubscribe: (() => void)[] = [];
 
     componentDidMount() {
         this.state.submitId = this.props.submitId;
-        BridgeEvents.subscribeChangeHasKillable((hasKillable) => {
+        this.unsubscribe.push(BridgeEvents.subscribeChangeHasKillable((hasKillable) => {
             let state = this.state;
             state.hasKillable = hasKillable;
             this.setState(state);
-        });
-        BridgeEvents.subscribeToggleLoadingScreen(({ message, visible }) => {
+        }));
+        this.unsubscribe.push(BridgeEvents.subscribeToggleLoadingScreen(({ message, visible }) => {
             let state = this.state;
             state.submitLoading = visible;
             this.setState(state);
-        })
+        }));
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe.forEach(u => u());
+        this.unsubscribe = [];
     }
 
     componentDidUpdate(prevProps: ControlButtonsProps) {

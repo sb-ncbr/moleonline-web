@@ -15,13 +15,20 @@ export class ValidationState {
 
     private static stateChangeHandlers: Map<string, ValidationStateChangeHandler[]> = new Map<string, ValidationStateChangeHandler[]>();
 
-    public static attachOnStateChangeHandler(validationGroup: string, handler: ValidationStateChangeHandler) {
+    // Returns a function that detaches the handler again
+    public static attachOnStateChangeHandler(validationGroup: string, handler: ValidationStateChangeHandler): () => void {
         let groupHandlers = this.stateChangeHandlers.get(validationGroup);
         if (groupHandlers === void 0) {
             groupHandlers = [];
         }
         groupHandlers.push(handler);
         this.stateChangeHandlers.set(validationGroup, groupHandlers);
+        return () => {
+            const idx = groupHandlers!.indexOf(handler);
+            if (idx !== -1) {
+                groupHandlers!.splice(idx, 1);
+            }
+        };
     }
 
     private static invokeOnStateChangeHandlers(validationGroup: string, oldState: ValidationStates, newState: ValidationStates) {

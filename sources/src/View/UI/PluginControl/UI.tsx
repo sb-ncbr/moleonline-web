@@ -25,11 +25,15 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
 
     state = { isLoading: false, data: void 0, error: void 0 };
 
+    private unsubscribe: (() => void)[] = [];
+
     componentDidMount() {
         this.setState({ data: this.props.data })
-        $(window).on("contentResize", this.onContentResize.bind(this));
+        const onContentResize = this.onContentResize.bind(this);
+        $(window).on("contentResize", onContentResize);
+        this.unsubscribe.push(() => $(window).off("contentResize", onContentResize));
 
-        Events.subscribeChangeSubmitId((submitId) => {
+        this.unsubscribe.push(Events.subscribeChangeSubmitId((submitId) => {
             try {
                 this.load(submitId === -1);
             } catch (ex) {
@@ -37,11 +41,16 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
                     console.log(ex);
                 this.setState({ isLoading: false, data: void 0, error: "Data not available" });
             }
-        });
+        }));
 
-        $(window).on("resize", (() => {
-            this.forceUpdate();
-        }).bind(this));
+        const onResize = () => this.forceUpdate();
+        $(window).on("resize", onResize);
+        this.unsubscribe.push(() => $(window).off("resize", onResize));
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe.forEach(u => u());
+        this.unsubscribe = [];
     }
 
     private onContentResize(_: any) {
