@@ -35,9 +35,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
         if (params !== null) {
             this.setState({ channelsDB: params.isChannelsDB })
         }
-        this.setState({ isLoading: true, isLoadingChannels: true, error: void 0 });
-        this.load(this.state.channelsDB);
-        this.loadChannels();
+        this.reload(this.state.channelsDB);
         $(window).on("contentResize", this.onContentResize.bind(this));
 
         $(window).on("resize", (() => {
@@ -52,6 +50,13 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                 }
             }
         })
+    }
+
+    // Runs both loads: structure/visual data and computation info with channels
+    private reload(channelsDB: boolean) {
+        this.setState({ isLoading: true, isLoadingChannels: true, error: void 0 });
+        this.load(channelsDB);
+        this.loadChannels();
     }
 
     private onContentResize(_: any) {
@@ -160,7 +165,10 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                 }
                 LoadingStatus.clear();
             });
-        }).bind(this))
+        }).bind(this), false, (compId: string, error: string) => {
+            this.setState({ isLoading: false, isLoadingChannels: false, error });
+            LoadingStatus.clear();
+        })
     }
 
     load(channelsDB: boolean) {
@@ -270,7 +278,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                 if (params !== null) {
                     channelsDB = params.isChannelsDB;
                 }
-                controls.push(<button key={'reload'} className="reload-data btn btn-primary" onClick={() => this.load(channelsDB)}>Reload Data</button>);
+                controls.push(<button key={'reload'} className="reload-data btn btn-primary" onClick={() => this.reload(channelsDB)}>Reload Data</button>);
             }
 
             return <div className="d-flex flex-column h-100">

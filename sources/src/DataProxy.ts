@@ -4,12 +4,15 @@ import {Tunnel} from "./DataInterface";
 
 export namespace ComputationInfo {
     type CompInfoHandler = (compId: string, info: CompInfo) => void;
+    type CompInfoErrorHandler = (compId: string, error: string) => void;
 
     export class DataProvider {
+        private static readonly MAX_RETRIES = 5;
         private static data: Map<string, CompInfo>;
         private static handlers: {
             compId: string,
             handler: CompInfoHandler,
+            onError?: CompInfoErrorHandler,
             stayForUpdate: boolean
         }[];
         private static pending: Map<string, boolean>;
@@ -57,24 +60,52 @@ export namespace ComputationInfo {
             this.handlers = hndlrs;
         }
 
+        private static runErrorHandlers(compId: string, error: string) {
+            if (this.handlers === void 0) {
+                return;
+            }
+
+            const failed = this.handlers.filter(h => h.compId === compId);
+            this.handlers = this.handlers.filter(h => h.compId !== compId || h.stayForUpdate);
+            for (let h of failed) {
+                h.onError?.(compId, error);
+            }
+        }
+
         private static requestData(compId: string) {
             if (this.hasPending(compId)) {
                 return;
             }
             this.setPending(compId, true);
+            this.fetchData(compId, 0);
+        }
+
+        // Stays pending for the whole retry sequence, so concurrent requests share it.
+        // Only failed requests are retried (with backoff); an "Error" status from the API is final,
+        // and exceptions thrown by handlers are not treated as request failures.
+        private static fetchData(compId: string, attempt: number) {
             ApiService.getComputationInfoList(compId).then((val) => {
                 this.setPending(compId, false);
                 if (CommonOptions.DEBUG_MODE)
                     console.log(val);
+                if (val === null) {
+                    this.runErrorHandlers(compId, `Computation '${compId}' does not exist.`);
+                    return;
+                }
                 this.setData(compId, val);
-            }).catch((err) => {
+            }, (err) => {
                 if (CommonOptions.DEBUG_MODE)
                     console.log(err);
-                window.setTimeout((() => { this.requestData(compId) }).bind(this), 100);
+                if (attempt < this.MAX_RETRIES) {
+                    window.setTimeout(() => this.fetchData(compId, attempt + 1), 500 * 2 ** attempt);
+                } else {
+                    this.setPending(compId, false);
+                    this.runErrorHandlers(compId, 'Could not load computation info from the MOLE API.');
+                }
             });
         }
 
-        private static attachHandler(compId: string, handler: CompInfoHandler, stayForUpdate: boolean) {
+        private static attachHandler(compId: string, handler: CompInfoHandler, stayForUpdate: boolean, onError?: CompInfoErrorHandler) {
             if (this.handlers === void 0) {
                 this.handlers = [];
             }
@@ -83,6 +114,7 @@ export namespace ComputationInfo {
                 {
                     compId,
                     handler,
+                    onError,
                     stayForUpdate
                 }
             );
@@ -92,7 +124,7 @@ export namespace ComputationInfo {
 
         //--
 
-        public static get(compId: string, handler: CompInfoHandler, onlyFresh?: boolean) {
+        public static get(compId: string, handler: CompInfoHandler, onlyFresh?: boolean, onError?: CompInfoErrorHandler) {
             if (this.data !== void 0 && !onlyFresh) {
                 let data = this.data.get(compId);
                 if (data !== void 0) {
@@ -101,7 +133,7 @@ export namespace ComputationInfo {
                 }
             }
 
-            this.attachHandler(compId, handler, false);
+            this.attachHandler(compId, handler, false, onError);
         }
 
         public static subscribe(compId: string, handler: CompInfoHandler, onlyFresh?: boolean) {
