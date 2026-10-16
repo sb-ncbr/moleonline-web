@@ -106,6 +106,13 @@ export class Context {
         });
     }
 
+    // Remembers the current colours as the ones visual.reset() restores, unless defaults are already set
+    private saveDefaultColorProps() {
+        if (!this.plugin.canvas3d || this.defaultRendererProps) return;
+        this.defaultRendererProps = { ...this.plugin.canvas3d.props.renderer };
+        this.defaultMarkingProps = { ...this.plugin.canvas3d.props.marking };
+    }
+
     public static getInstance(): Context {
         if (!Context.instance) {
             Context.instance = new Context(MySpec);
@@ -673,6 +680,7 @@ export class Context {
         setColor: async (param: { highlight?: ColorParams, select?: ColorParams }) => {
             if (!this.plugin.canvas3d) return;
             if (!param.highlight && !param.select) return;
+            this.saveDefaultColorProps();
             const renderer = { ...this.plugin.canvas3d.props.renderer };
             const marking = { ...this.plugin.canvas3d.props.marking };
             if (param.highlight) {
@@ -693,6 +701,8 @@ export class Context {
             const marking = { ...this.plugin.canvas3d.props.marking };
             renderer.selectColor = this.normalizeColor(color);
             marking.selectEdgeColor = Color.darken(this.normalizeColor(color), 1);
+            this.defaultRendererProps = { ...renderer };
+            this.defaultMarkingProps = { ...marking };
             this.isSelectedColorUpdated = true;
             await PluginCommands.Canvas3D.SetSettings(this.plugin, { settings: { renderer, marking } });
         },
@@ -708,7 +718,8 @@ export class Context {
             }
 
             if (params.highlightColor || params.selectColor) {
-                if (!this.plugin.canvas3d) return;
+                // No defaults saved means no colour was changed, so there is nothing to restore
+                if (!this.plugin.canvas3d || !this.defaultRendererProps || !this.defaultMarkingProps) return;
                 const renderer = { ...this.plugin.canvas3d.props.renderer };
                 const marking = { ...this.plugin.canvas3d.props.marking };
                 if (params.highlightColor) {
