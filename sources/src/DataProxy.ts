@@ -124,7 +124,7 @@ export namespace JobStatus {
         private static handlers: Map<String, OnStatusChangeHandler[]>
         private static errHandlers: Map<String, OnErrHandler[]>
         private static makeHash(computationId: string, submitId: number) {
-            return `${computationId}:${computationId}`;
+            return `${computationId}:${submitId}`;
         }
 
         private static registerErrHandler(computationId: string, submitId: number, handler: OnErrHandler) {

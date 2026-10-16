@@ -920,7 +920,7 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
                 <div className="panel panel-default">
                     <div className="panel-heading">
                         <h4 className="panel-title">
-                            No submissions data available.
+                            Submissions data loading...
                         </h4>
                     </div>
                 </div>
@@ -931,7 +931,7 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
                 <div className="panel panel-default">
                     <div className="panel-heading">
                         <h4 className="panel-title">
-                            Submissions data loading...
+                            No submissions data available.
                         </h4>
                     </div>
                 </div>
@@ -1122,7 +1122,6 @@ export class Submission extends React.Component<{ data: ServiceSubmission, compu
 
         link.click();
 
-        document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
     }
 }

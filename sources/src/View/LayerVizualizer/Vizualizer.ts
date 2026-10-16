@@ -372,7 +372,7 @@ export class Vizualizer {
         }
         this.absColorValueMin.set("Ionizable", 0);
         if (settings.colorMinValue !== void 0 && settings.colorMinValue.Ionizable !== void 0) {
-            this.absColorValueMin.set("LogS", settings.colorMinValue.Ionizable.valueOf());
+            this.absColorValueMin.set("Ionizable", settings.colorMinValue.Ionizable.valueOf());
         }
         this.absColorValueMin.set("BRadius", 0);
         if (settings.colorMinValue !== void 0 && settings.colorMinValue.BRadius !== void 0) {
