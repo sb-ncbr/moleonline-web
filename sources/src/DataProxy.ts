@@ -2,151 +2,95 @@ import { CommonOptions } from "../config/common";
 import { ApiService, CompInfo, InitResponse, CSAResidues, Cofactors } from "./MoleAPIService";
 import {Tunnel} from "./DataInterface";
 
-export namespace ComputationInfo {
-    type CompInfoHandler = (compId: string, info: CompInfo) => void;
-    type CompInfoErrorHandler = (compId: string, error: string) => void;
+type DataHandler<T> = (key: string, data: T) => void;
+type DataErrorHandler = (key: string, error: string) => void;
 
-    export class DataProvider {
-        private static readonly MAX_RETRIES = 5;
-        private static data: Map<string, CompInfo>;
-        private static handlers: {
-            compId: string,
-            handler: CompInfoHandler,
-            onError?: CompInfoErrorHandler,
-            stayForUpdate: boolean
-        }[];
-        private static pending: Map<string, boolean>;
+// Caches API data per key and notifies handlers once it arrives.
+// Concurrent requests for a key share one fetch; only failed requests are retried (with backoff),
+// a null result from `fetch` is a final error, and handler exceptions are not treated as request failures.
+class KeyedDataProvider<T> {
+    private static readonly MAX_RETRIES = 5;
+    private data = new Map<string, T>();
+    private handlers: { key: string, handler: DataHandler<T>, onError?: DataErrorHandler, stayForUpdate: boolean }[] = [];
+    private pending = new Set<string>();
 
-        //--
+    constructor(
+        private fetch: (key: string) => Promise<T | null>,
+        private notFoundMessage: (key: string) => string,
+        private failedMessage: string,
+    ) { }
 
-        private static hasPending(compId: string): boolean {
-            if (this.pending === void 0) {
-                return false;
-            }
-
-            let isPending = this.pending.get(compId);
-            return (isPending === void 0) ? false : isPending;
+    public get(key: string, handler: DataHandler<T>, onlyFresh?: boolean, onError?: DataErrorHandler) {
+        const data = this.data.get(key);
+        if (data !== void 0 && !onlyFresh) {
+            handler(key, data);
+            return;
         }
+        this.attachHandler(key, handler, false, onError);
+    }
 
-        private static setPending(compId: string, isPending: boolean) {
-            if (this.pending === void 0) {
-                this.pending = new Map<string, boolean>();
-            }
-            this.pending.set(compId, isPending);
+    public subscribe(key: string, handler: DataHandler<T>, onlyFresh?: boolean) {
+        const data = this.data.get(key);
+        if (data !== void 0 && !onlyFresh) {
+            handler(key, data);
         }
+        this.attachHandler(key, handler, true);
+    }
 
-        private static setData(compId: string, info: CompInfo) {
-            if (this.data === void 0) {
-                this.data = new Map<string, CompInfo>();
-            }
-            this.data.set(compId, info);
-            this.runHandlers(compId, info);
-        }
-
-        private static runHandlers(compId: string, info: CompInfo) {
-            if (this.handlers === void 0) {
-                return;
-            }
-
-            let hndlrs = [];
-            for (let h of this.handlers) {
-                if (h.compId === compId) {
-                    h.handler(compId, info);
-                }
-                if (h.stayForUpdate === true || h.compId !== compId) {
-                    hndlrs.push(h);
-                }
-            }
-            this.handlers = hndlrs;
-        }
-
-        private static runErrorHandlers(compId: string, error: string) {
-            if (this.handlers === void 0) {
-                return;
-            }
-
-            const failed = this.handlers.filter(h => h.compId === compId);
-            this.handlers = this.handlers.filter(h => h.compId !== compId || h.stayForUpdate);
-            for (let h of failed) {
-                h.onError?.(compId, error);
-            }
-        }
-
-        private static requestData(compId: string) {
-            if (this.hasPending(compId)) {
-                return;
-            }
-            this.setPending(compId, true);
-            this.fetchData(compId, 0);
-        }
-
-        // Stays pending for the whole retry sequence, so concurrent requests share it.
-        // Only failed requests are retried (with backoff); an "Error" status from the API is final,
-        // and exceptions thrown by handlers are not treated as request failures.
-        private static fetchData(compId: string, attempt: number) {
-            ApiService.getComputationInfoList(compId).then((val) => {
-                this.setPending(compId, false);
-                if (CommonOptions.DEBUG_MODE)
-                    console.log(val);
-                if (val === null) {
-                    this.runErrorHandlers(compId, `Computation '${compId}' does not exist.`);
-                    return;
-                }
-                this.setData(compId, val);
-            }, (err) => {
-                if (CommonOptions.DEBUG_MODE)
-                    console.log(err);
-                if (attempt < this.MAX_RETRIES) {
-                    window.setTimeout(() => this.fetchData(compId, attempt + 1), 500 * 2 ** attempt);
-                } else {
-                    this.setPending(compId, false);
-                    this.runErrorHandlers(compId, 'Could not load computation info from the MOLE API.');
-                }
-            });
-        }
-
-        private static attachHandler(compId: string, handler: CompInfoHandler, stayForUpdate: boolean, onError?: CompInfoErrorHandler) {
-            if (this.handlers === void 0) {
-                this.handlers = [];
-            }
-
-            this.handlers.push(
-                {
-                    compId,
-                    handler,
-                    onError,
-                    stayForUpdate
-                }
-            );
-
-            this.requestData(compId);
-        }
-
-        //--
-
-        public static get(compId: string, handler: CompInfoHandler, onlyFresh?: boolean, onError?: CompInfoErrorHandler) {
-            if (this.data !== void 0 && !onlyFresh) {
-                let data = this.data.get(compId);
-                if (data !== void 0) {
-                    handler(compId, data);
-                    return;
-                }
-            }
-
-            this.attachHandler(compId, handler, false, onError);
-        }
-
-        public static subscribe(compId: string, handler: CompInfoHandler, onlyFresh?: boolean) {
-            if (this.data !== void 0 && !onlyFresh) {
-                let data = this.data.get(compId);
-                if (data !== void 0) {
-                    handler(compId, data);
-                }
-            }
-
-            this.attachHandler(compId, handler, true);
+    private attachHandler(key: string, handler: DataHandler<T>, stayForUpdate: boolean, onError?: DataErrorHandler) {
+        this.handlers.push({ key, handler, onError, stayForUpdate });
+        if (!this.pending.has(key)) {
+            this.pending.add(key);
+            this.fetchData(key, 0);
         }
     }
+
+    private fetchData(key: string, attempt: number) {
+        this.fetch(key).then((val) => {
+            this.pending.delete(key);
+            if (CommonOptions.DEBUG_MODE)
+                console.log(val);
+            if (val === null) {
+                this.runErrorHandlers(key, this.notFoundMessage(key));
+                return;
+            }
+            this.data.set(key, val);
+            this.runHandlers(key, val);
+        }, (err) => {
+            if (CommonOptions.DEBUG_MODE)
+                console.log(err);
+            if (attempt < KeyedDataProvider.MAX_RETRIES) {
+                window.setTimeout(() => this.fetchData(key, attempt + 1), 500 * 2 ** attempt);
+            } else {
+                this.pending.delete(key);
+                this.runErrorHandlers(key, this.failedMessage);
+            }
+        });
+    }
+
+    private runHandlers(key: string, data: T) {
+        const current = this.handlers.filter(h => h.key === key);
+        this.handlers = this.handlers.filter(h => h.key !== key || h.stayForUpdate);
+        for (const h of current) {
+            h.handler(key, data);
+        }
+    }
+
+    private runErrorHandlers(key: string, error: string) {
+        const failed = this.handlers.filter(h => h.key === key);
+        this.handlers = this.handlers.filter(h => h.key !== key || h.stayForUpdate);
+        for (const h of failed) {
+            h.onError?.(key, error);
+        }
+    }
+}
+
+export namespace ComputationInfo {
+    export const DataProvider = new KeyedDataProvider<CompInfo>(
+        compId => ApiService.getComputationInfoList(compId),
+        compId => `Computation '${compId}' does not exist.`,
+        'Could not load computation info from the MOLE API.',
+    );
 }
 
 export namespace JobStatus {
@@ -263,197 +207,25 @@ export namespace JobStatus {
 }
 
 export namespace DataProxyCSAResidues {
-    type CSAResiduesHandler = (compId: string, info: CSAResidues) => void;
-
-    export class DataProvider {
-        private static data: Map<string, CSAResidues>;
-        private static handlers: {
-            compId: string,
-            handler: CSAResiduesHandler,
-            stayForUpdate: boolean
-        }[];
-        private static pending: Map<string, boolean>;
-
-        //--
-
-        private static hasPending(compId: string): boolean {
-            if (this.pending === void 0) {
-                return false;
-            }
-
-            let isPending = this.pending.get(compId);
-            return (isPending === void 0) ? false : isPending;
-        }
-
-        private static setPending(compId: string, isPending: boolean) {
-            if (this.pending === void 0) {
-                this.pending = new Map<string, boolean>();
-            }
-            this.pending.set(compId, isPending);
-        }
-
-        private static setData(compId: string, info: CSAResidues) {
-            if (this.data === void 0) {
-                this.data = new Map<string, CSAResidues>();
-            }
-            this.data.set(compId, info);
-            this.runHandlers(compId, info);
-        }
-
-        private static runHandlers(compId: string, info: CSAResidues) {
-            if (this.handlers === void 0) {
-                return;
-            }
-
-            let hndlrs = [];
-            for (let h of this.handlers) {
-                if (h.compId === compId) {
-                    h.handler(compId, info);
-                }
-                if (h.stayForUpdate === true || h.compId !== compId) {
-                    hndlrs.push(h);
-                }
-            }
-            this.handlers = hndlrs;
-        }
-
-        private static requestData(compId: string) {
-            if (this.hasPending(compId)) {
-                return;
-            }
-            this.setPending(compId, true);
-            ApiService.getCSAResidues(compId).then((val) => {
-                this.setPending(compId, false);
-                if (CommonOptions.DEBUG_MODE)
-                    console.log(val);
-                this.setData(compId, val);
-            }).catch((err) => {
-                if (CommonOptions.DEBUG_MODE)
-                    console.log(err);
-                window.setTimeout((() => { this.requestData(compId) }).bind(this), 100);
-            });
-        }
-
-        private static attachHandler(compId: string, handler: CSAResiduesHandler, stayForUpdate: boolean) {
-            if (this.handlers === void 0) {
-                this.handlers = [];
-            }
-
-            this.handlers.push(
-                {
-                    compId,
-                    handler,
-                    stayForUpdate
-                }
-            );
-
-            this.requestData(compId);
-        }
-
-        //--
-
-        public static get(compId: string, handler: CSAResiduesHandler, onlyFresh?: boolean) {
-            if (this.data !== void 0 && !onlyFresh) {
-                let data = this.data.get(compId);
-                if (data !== void 0) {
-                    handler(compId, data);
-                    return;
-                }
-            }
-
-            this.attachHandler(compId, handler, false);
-        }
-
-    }
+    export const DataProvider = new KeyedDataProvider<CSAResidues>(
+        compId => ApiService.getCSAResidues(compId),
+        compId => `CSA residues for computation '${compId}' are not available.`,
+        'Could not load CSA residues from the MOLE API.',
+    );
 }
 
 export namespace DataProxyCofactors {
-    
-    type CofactorsHandler = (info: Cofactors) => void;
+    const provider = new KeyedDataProvider<Cofactors>(
+        () => ApiService.getCofactors(),
+        () => 'Cofactors are not available.',
+        'Could not load cofactors from the MOLE API.',
+    );
 
-    export class DataProvider {
-        private static data: Cofactors;
-        private static handlers: {
-            handler: CofactorsHandler,
-        }[];
-        private static pending: boolean;
-
-        //--
-
-        private static hasPending(): boolean {
-            if (this.pending === void 0) {
-                return false;
-            }
-
-            return this.pending;
-        }
-
-        private static setPending(isPending: boolean) {
-            this.pending = isPending;
-        }
-
-        private static setData(info: Cofactors) {
-            this.data = info;
-            this.runHandlers(info);
-        }
-
-        private static runHandlers(info: Cofactors) {
-            if (this.handlers === void 0) {
-                return;
-            }
-
-            for (let h of this.handlers) {
-                h.handler(info);
-            }
-            this.handlers = [];
-        }
-
-        private static requestData() {
-            if (this.hasPending()) {
-                return;
-            }
-            this.setPending(true);
-            ApiService.getCofactors().then((val) => {
-                this.setPending(false);
-                if (CommonOptions.DEBUG_MODE)
-                    console.log(val);
-                this.setData(val);
-            }).catch((err) => {
-                if (CommonOptions.DEBUG_MODE)
-                    console.log(err);
-                window.setTimeout((() => { this.requestData() }).bind(this), 100);
-            });
-        }
-
-        private static attachHandler(handler: CofactorsHandler) {
-            if (this.handlers === void 0) {
-                this.handlers = [];
-            }
-
-            this.handlers.push(
-                {
-                    handler
-                }
-            );
-
-            this.requestData();
-        }
-
-        //--
-
-        public static get(handler: CofactorsHandler, onlyFresh?: boolean) {
-            if (this.data !== void 0 && !onlyFresh) {
-                let data = this.data;
-                if (data !== void 0) {
-                    handler(data);
-                    return;
-                }
-            }
-
-            this.attachHandler(handler);
-        }
-
-    }
+    export const DataProvider = {
+        get(handler: (info: Cofactors) => void, onlyFresh?: boolean) {
+            provider.get('', (_key, info) => handler(info), onlyFresh);
+        },
+    };
 }
 
 export namespace TwoDProts {
