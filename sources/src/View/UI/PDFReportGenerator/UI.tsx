@@ -478,7 +478,7 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
             Service.getPDFReportTemplateData().then(template => {
                 PDFReportGenerator.templateCache = template;
                 if (this.state.data === null) {
-                    console.log("genereateReport has no data!");
+                    this.afterError("Channel data are not loaded.");
                     return;
                 }
                 let data = this.state.data.Channels as any;

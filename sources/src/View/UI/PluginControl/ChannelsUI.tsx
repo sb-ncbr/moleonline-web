@@ -47,7 +47,18 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
         Tunnels.invokeOnTunnelsHide();
     }
 
+    private channelsPublished = false;
+
+    // Publishes the initially displayed submission's channels unless a submission
+    // change already published newer data while the initial visuals were loading.
+    private publishInitialChannels(submitId: number) {
+        if (!this.channelsPublished) {
+            this.handleTunnelsCollect(submitId);
+        }
+    }
+
     handleTunnelsCollect = (submitId: number) => {
+        this.channelsPublished = true;
         const submissions = this.getSubmissions();
         const tunnels = submissions.get(submitId);
         if (tunnels) {
@@ -119,11 +130,13 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
                         this.setState({ currentSubmitId: -2 });
                         showDefaultVisuals(-2, this.props.submissions).then(() => {
                             this.saveChannelsElems();
+                            this.publishInitialChannels(-2);
                         })
                     } else {
                         this.setState({ currentSubmitId: -1 })
                         showDefaultVisuals(-1, this.props.submissions).then(() => {
                             this.saveChannelsElems();
+                            this.publishInitialChannels(-1);
                         })
                     }
                 }))
@@ -131,12 +144,14 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
                 this.setState({ currentSubmitId: -1 })
                 showDefaultVisuals(-1, this.props.submissions).then(() => {
                     this.saveChannelsElems();
+                    this.publishInitialChannels(-1);
                 })
             }
         } else {
             this.setState({ currentSubmitId: params.submitId })
             showDefaultVisuals(params.submitId, this.props.submissions).then(() => {
                 this.saveChannelsElems();
+                this.publishInitialChannels(params.submitId);
             })
         }
     }
