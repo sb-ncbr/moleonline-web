@@ -2,7 +2,7 @@ import React from "react";
 import { Context } from "../../Context";
 import { PluginReactContext } from "molstar/lib/mol-plugin-ui/base";
 import { MoleSequenceView } from "./MoleSequenceView";
-require("molstar/lib/mol-plugin-ui/skin/light.scss");
+import "molstar/lib/mol-plugin-ui/skin/light.scss";
 
 type State = {
     minimized: boolean,

@@ -114,7 +114,7 @@
 */
 
 #dg-aglomered-parameters.datagrid .icon.bottleneck{
-    background-image: url(../images/bottleneck-radius-white.png);
+    background-image: url(/images/bottleneck-radius-white.png);
     background-repeat: no-repeat;
     background-position: center center;
     height: 1em;

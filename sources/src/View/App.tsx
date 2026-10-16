@@ -2,6 +2,31 @@
  * Copyright (c) 2016 - now David Sehnal, licensed under Apache 2.0, See LICENSE file for more info.
  */
 
+// Page styles, in cascade order; they come before the Mol* skin imported by the components
+import "../../css/AglomeredParameters.css";
+import "../../css/AlertMessages.css";
+import "../../css/annotate.css";
+import "../../css/ChannelParameters.css";
+import "../../css/CofactorPickBox.css";
+import "../../css/Components.css";
+import "../../css/Controls.css";
+import "../../css/CSAPickBox.css";
+import "../../css/datagrid.css";
+import "../../css/DownloadReport.css";
+import "../../css/StartingPoints.css";
+import "../../css/LayerVizualizerStyles.css";
+import "../../css/lining-residues.css";
+import "../../css/LoadingScreen.css";
+import "../../css/pdbid.css";
+import "../../css/PDFReportGenerator.css";
+import "../../css/QuickHelp.css";
+import "../../css/SequenceViewer.css";
+import "../../css/style.css";
+import "../../css/tabs.css";
+import "../../css/tooltips.css";
+import "../../css/MoleSequenceViewer.scss";
+import "../../css/MolstarSlider.scss";
+
 import { Instances } from "../Bridge";
 import { updateWithCurrentSession } from "../Common/Util/LastNSessions";
 import { GlobalRouter } from "../SimpleRouter";

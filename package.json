@@ -3,12 +3,11 @@
   "version": "3.0.0",
   "description": "",
   "scripts": {
-    "build-webpack": "npx webpack --mode production",
-    "build-webpack-dev": "npx webpack --mode development",
-    "build": "npm run typecheck && npm run build-webpack",
-    "build-dev": "npm run build-webpack-dev",
-    "typecheck": "tsc --noEmit --skipLibCheck --incremental --tsBuildInfoFile node_modules/.cache/tsbuildinfo",
-    "start": "cd ./dist/ && http-server"
+    "dev": "vite",
+    "build": "npm run typecheck && vite build",
+    "build-dev": "vite build --mode development --minify false --sourcemap",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit --skipLibCheck --incremental --tsBuildInfoFile node_modules/.cache/tsbuildinfo"
   },
   "main": "index.js",
   "typings": "index.d.ts",
@@ -29,16 +28,8 @@
     "@types/node": "^22.2.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "copy-webpack-plugin": "^12.0.2",
-    "css-loader": "^7.1.2",
-    "http-server": "^14.1.1",
     "sass": "1.83.4",
-    "sass-loader": "^16.0.4",
-    "style-loader": "^4.0.0",
-    "terser-webpack-plugin": "^5.3.14",
-    "ts-loader": "^9.5.2",
     "typescript": "^5.8.3",
-    "webpack": "^5.97.1",
-    "webpack-cli": "^6.0.1"
+    "vite": "^8.3.4"
   }
 }

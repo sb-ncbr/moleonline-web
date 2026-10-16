@@ -19,7 +19,7 @@ import { ParamDefinition } from "molstar/lib/mol-util/param-definition";
 import { StartingPointBox } from "./StartingPoints";
 import { ValidationState } from "./ValidationState";
 import { isMoleConfigOrPoresConfig } from "./ParamsChecker";
-require("molstar/lib/mol-plugin-ui/skin/light.scss");
+import "molstar/lib/mol-plugin-ui/skin/light.scss";
 
 const Provider = ComputationInfo.DataProvider;
 
