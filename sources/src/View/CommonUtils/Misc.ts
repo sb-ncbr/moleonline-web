@@ -3,22 +3,6 @@ import { StringPoint } from "./Selection";
 
 declare function $(p: any): any;
 
-export function dataURItoBlob(dataURI: string): Blob {
-    // convert base64 to raw binary data held in a string
-    // doesn't handle URLEncoded DataURIs - see SO answer #6850276 for code that does this
-    var byteString = atob(dataURI.split(',')[1]);
-    // separate out the mime component
-    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-    // write the bytes of the string to an ArrayBuffer
-    var ab = new ArrayBuffer(byteString.length);
-    var dw = new DataView(ab);
-    for (var i = 0; i < byteString.length; i++) {
-        dw.setUint8(i, byteString.charCodeAt(i));
-    }
-    // write the ArrayBuffer to a blob, and you're done
-    return new Blob([ab], { type: mimeString });
-}
-
 export function triggerDownload(dataUrl: string, fileName: string) {
     let a = document.createElement("a");
     document.body.appendChild(a);
@@ -95,43 +79,6 @@ export function isMoleJob(data: Submission) {
         && c.Tunnel === void 0);
 }
 
-export function parseChainsArray(value: string) {
-    if (value.length === 0) {
-        return "";
-    }
-
-    value = value.replace(/\s*,\s*/g, ",");
-    value = value.replace(/\s*$/g, '');
-    value = value.replace(/^\s*/g, '');
-    let chains = value.split(",");
-    let rv = "";
-    let idx = 0;
-    for (let chain of chains) {
-        if (idx !== 0) {
-            rv += ',';
-        }
-        rv += chain;
-        idx++;
-    }
-
-    return rv;
-}
-
-export function parseResiduesArray(residuesArray: string | undefined): { Chain: string, SequenceNumber: number }[][] {
-    if (residuesArray === void 0) {
-        return [];
-    }
-    residuesArray = residuesArray.replace(/\]\s*,\s*\[/g, "],[");
-    let parts = residuesArray.split("],[");
-    let rv = [];
-    for (let part of parts) {
-        part = part.replace(/\[/g, "");
-        part = part.replace(/\]/g, "");
-        rv.push(parseResidues(part));
-    }
-    return rv;
-}
-
 export function parseResidues(residues: string | undefined): { Chain: string, SequenceNumber: number, OperatorName: string, Name: string }[] {
     if (residues === void 0) {
         return [];
@@ -193,26 +140,4 @@ export function parsePoint(value: string | undefined): StringPoint | undefined {
         y: parts[1],
         z: parts[2]
     }
-}
-
-export function removeMultipleWSp(value: string) {
-    let v = value.replace(/\s+/g, " ");
-    v = v.replace(/\s*$/g, '');
-    v = v.replace(/^\s*/g, '');
-    return v;
-}
-export function parsePoints(value: string) {
-    value = value.replace(/\]\s*,\s*\[/g, "],[");
-    value = removeMultipleWSp(value);
-    let parts = value.split("],[");
-    let rv = [];
-    for (let part of parts) {
-        part = part.replace(/\[/g, "");
-        part = part.replace(/\]/g, "");
-        let point = parsePoint(part);
-        if (point !== void 0) {
-            rv.push(point);
-        }
-    }
-    return rv;
 }

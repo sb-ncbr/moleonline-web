@@ -17,9 +17,6 @@ interface Versions {
 }
 
 export class VersionStrip extends React.Component<{}, State> {
-    private computationId: string;
-    private submitId: number;
-
     state: State = {
         app: this,
         versions: {

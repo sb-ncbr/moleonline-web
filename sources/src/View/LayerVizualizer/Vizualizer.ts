@@ -6,7 +6,6 @@ import { ArrowHeadLine, Axis, ColorMixer, ColorPaletteFunctionSettings, ContextA
 import { Paintable, Axis as AxisCompnent, Positionable } from "./Components";
 
 declare function $(p: any): any;
-declare function svg2pdf(a: XMLDocument, pdf: any, params: { xOffset: number, yOffset: number, scale: number }): any;
 declare var ChannelDbPlugin: any;
 declare var C2S: any;
 
@@ -123,8 +122,6 @@ export class Vizualizer {
     private canvasId: string;
     private tmpCanvasId: string;
 
-    private currentVisual: ImageData;
-
     private resizePercentPrecision: number;
 
     private selectedLayerIds: number[];
@@ -133,10 +130,6 @@ export class Vizualizer {
 
     public getPublicInstanceIdx() {
         return this.publicInstanceIdx;
-    }
-
-    public getCurrentColoringSettings(tunnelType: "default" | "customizable") {
-        return this.__colorFunctionSetings.get(tunnelType);
     }
 
     private setCurrentColorFunctionSettings(tunnelType: "default" | "customizable", colorFunctionSetings: ColorPaletteFunctionSettings) {
@@ -542,18 +535,6 @@ export class Vizualizer {
         if (tunnels.customizable !== null) {
             tunnels.customizable.tunnel.selectLayers(this.selectedLayerIds);
         }
-    }
-
-    public getSelectedLayer(): number[] {
-        return this.selectedLayerIds;
-    }
-
-    public setResizePercentPrecision(percentPrecision: number) {
-        this.resizePercentPrecision = percentPrecision;
-    }
-
-    public getResizePercentPrecision() {
-        return this.resizePercentPrecision;
     }
 
     public setColorBoundsMode(mode: ColorBoundsMode) {
@@ -1592,25 +1573,6 @@ export class Vizualizer {
             customizable: (tunnels.customizable !== null)
                 ? tunnels.customizable.tunnel.getHitboxes()
                 : null,
-        }
-    }
-
-    public renderHitboxes() {
-        //Data was not prepared yet
-        if (this.dataDirty) {
-            this.prepareData();
-        }
-
-        let tunnels = this.getTunnels();
-        if (tunnels === null) {
-            return [];
-        }
-
-        if (tunnels.default !== null) {
-            tunnels.default.tunnel.renderHitboxes();
-        }
-        if (tunnels.customizable !== null) {
-            tunnels.customizable.tunnel.renderHitboxes();
         }
     }
 

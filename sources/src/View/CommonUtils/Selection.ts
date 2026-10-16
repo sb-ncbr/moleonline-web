@@ -30,10 +30,6 @@ export interface LightResidueInfo {
     residueName: string | undefined
 };
 
-export interface SelectionObject {
-    elements: number[]
-};
-
 interface ResidueInfo {
     index: number;
     name: string;
@@ -62,9 +58,6 @@ export interface Residue { type: "full", info: ResidueInfo };
 export interface StringPoint { x: string, y: string, z: string };
 
 export class SelectionHelper {
-    private static SELECTION_VISUAL_REF = "res_visual";
-    private static SELECTION_ALT_VISUAL_REF = "alt_res_visual";
-
     private static selectedChannelRef: string | undefined;
     private static selectedChannelId: string | undefined;
     private static selectedChannelReprLoci: Representation.Loci<Loci>|undefined;
@@ -76,8 +69,6 @@ export class SelectionHelper {
     private static selectedChannel: Tunnel & TunnelMetaInfo | undefined;
 
     private static onPointSelectHandlers: { handler: (points: Point[]) => void }[];
-    private static onResidueSelectHandlers: { handler: (residue: ResidueInfo) => void }[];
-    private static onResidueLightSelectHandlers: { handler: (residue: LightResidueInfo) => void }[];
     private static onResidueBulkSelectHandlers: { handler: (residues: LightResidueInfo[]) => void }[];
     private static onClearSelectionHandlers: { handler: () => void }[];
     private static onClearSelectionSequence: { handler: () => void }[];
@@ -215,14 +206,6 @@ export class SelectionHelper {
         }
     }
 
-    public static getSelectionVisualRef() {
-        return this.SELECTION_VISUAL_REF;
-    }
-
-    public static getAltSelectionVisualRef() {
-        return this.SELECTION_ALT_VISUAL_REF;
-    }
-
     public static async clearSelection() { //TODO
         await this.clearSelectionPrivate();
         Context.getInstance().visual.clearSelection();
@@ -254,28 +237,6 @@ export class SelectionHelper {
         //TODO reset scene
     }
 
-
-    private static residueEquals(r1: ResidueInfo | undefined, r2: ResidueInfo | undefined) {
-        if (r1 === void 0 && r2 === void 0) {
-            return true;
-        }
-        if (r1 === void 0 || r2 === void 0) {
-            return false;
-        }
-
-        if ((r1.authName !== r2.authName)
-            || (r1.authSeqNumber !== r2.authSeqNumber)
-            || (r1.index !== r2.index)
-            || (r1.insCode !== r2.insCode)
-            || (r1.isHet !== r2.isHet)
-            || (r1.name !== r2.name)
-            || (r1.seqNumber !== r2.seqNumber)
-        ) {
-            return false;
-        }
-
-        return true;
-    }
 
     private static residueBulkSort(bulk: LightResidueInfo[]) {
         bulk.sort((a, b) => {
@@ -395,20 +356,6 @@ export class SelectionHelper {
         return [];
     }
 
-    private static residueToLight(residue: Residue): ResidueLight {
-        return {
-            type: "light",
-            info: {
-                chain: residue.info.chain,
-                authSeqNumber: residue.info.authSeqNumber,
-                operatorName: residue.info.operatorName,
-                isHet: residue.info.isHet,
-                loci: residue.info.loci,
-                residueName: ''
-            }
-        };
-    }
-
     private static residueLightEquals(r1: ResidueLight, r2: ResidueLight) {
         if ((!this.chainLightEquals(r1.info.chain, r2.info.chain))
             || r1.info.authSeqNumber !== r2.info.authSeqNumber) {
@@ -521,20 +468,6 @@ export class SelectionHelper {
         }
     }
 
-    public static isSelected(residue: ResidueInfo) {
-        if (this.selectedResidues === void 0) {
-            return false;
-        }
-
-        for (let r of this.selectedResidues) {
-            if (this.residueLightEquals(this.residueToLight({ type: "full", info: residue }), { type: "light", info: r })) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     /**
      * 
      * @param point 
@@ -583,20 +516,6 @@ export class SelectionHelper {
         })
 
         return !deselectMode;
-    }
-
-    public static isSelectedPoint(point: Point) {
-        if (this.selectedPoints === void 0) {
-            return false;
-        }
-
-        for (let p of this.selectedPoints) {
-            if (p.X === point.X && p.Y === point.Y && p.Z === point.Z) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private static async clearSelectedPoints() {
@@ -682,10 +601,6 @@ export class SelectionHelper {
         this.invokeOnPointSelectHandlers(points);
     }
 
-    public static getSelectedChannelData() {
-        return (this.selectedChannelData === void 0) ? null : this.selectedChannelData;
-    }
-
     public static getSelectedChannelRef() {
         return (this.selectedChannelRef === void 0) ? "" : this.selectedChannelRef;
     }
@@ -696,26 +611,6 @@ export class SelectionHelper {
 
     public static getSelectedChannelLoci() {
         return (this.selectedChannelReprLoci === void 0) ? EmptyLoci : this.selectedChannelReprLoci.loci;
-    }
-
-    public static attachClearSelectionToEventHandler(plugin: Context) {
-        plugin.plugin.behaviors.interaction.click.subscribe(async ({ current, button, modifiers, position }) => {
-            const plugin = Context.getInstance().plugin;
-            console.log(current)
-            console.log(plugin);
-            console.log(position);
-
-        })
-        plugin.plugin.managers.structure.focus.behaviors.current.subscribe((selected) => {
-            if (selected?.label) {
-                console.log(selected.label);
-                console.log(selected)
-            }
-        })
-
-        plugin.plugin.managers.structure.hierarchy.behaviors.selection.subscribe(x => {
-        })
-
     }
 
     public static attachSelectionHelperHandlerToEventHandler() {

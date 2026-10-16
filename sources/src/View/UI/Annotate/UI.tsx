@@ -77,21 +77,6 @@ class BootstrapDropDownMenuItem extends React.Component<{ link?: string, linkTex
     }
 }
 
-class BootstrapDropDownMenuElementItem extends React.Component<{ link?: string, linkElement: JSX.Element, targetBlank?: boolean, onClick?: () => void }, {}> {
-    render() {
-        if (this.props.onClick !== void 0) {
-            return (
-                <li><a onClick={this.props.onClick}>{this.props.linkElement}</a></li>
-            );
-        }
-        else {
-            return (
-                <li><a target={(this.props.targetBlank) ? "_blank" : ""} href={this.props.link}>{this.props.linkElement}</a></li>
-            );
-        }
-    }
-}
-
 class BootstrapDropDownMenuButton extends React.Component<{ items: JSX.Element[] }, {}> {
     render() {
         return <div className="btn-group dropdown">

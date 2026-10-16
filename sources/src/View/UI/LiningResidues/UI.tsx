@@ -87,10 +87,6 @@ function residueStringToResidueLight(residue: string): LightResidueInfo {
 
 class Controls extends React.Component<State, {}> {
 
-    clearSelection() {
-        SelectionHelper.clearSelection();
-    }
-
     selectAll() {
         let residues = [];
         if (this.props.app.state.data === null) {

@@ -81,28 +81,10 @@ export class Bundle {
     }
 }
 
-export interface WeightFunctionsType {
-    label: string,
-    value: string
-}
 export class WeightFunctions {
-    private static cache: WeightFunctionsType[] | undefined = void 0;
     private static functions = ["VoronoiScale", "Length", "LengthAndRadius"];
     public static getFunctions(): string[] {
         return this.functions;
-    }
-    public static get(): WeightFunctionsType[] {
-        if (this.cache !== void 0) {
-            return this.cache;
-        }
-
-        let rv: WeightFunctionsType[] = [];
-        for (let key of this.functions) {
-            rv.push({ label: Bundle.get(key), value: key });
-        }
-        this.cache = rv;
-
-        return rv;
     }
 }
 
@@ -118,9 +100,6 @@ export class TooltipText {
 }
 
 export class Colors {
-    private static excludedColors = [3, 5, 8, 9, 10, 16, 19, 24/**/, 25/**/, 28, 30, 31, 32, 33, 37, 44, 51, 54, 56, 65, 73/**/, 76/**/, 81, 90, 92];
-    private static colorIndex = -1;
-
     public static get(key: Enum): Color {
         switch (key) {
             case Enum.CSAOrigin: return Color.fromRgb(128, 255, 128);
@@ -142,9 +121,6 @@ export class Colors {
         }
     }
 
-    private static shouldExcludeColor(colorIdx: number) {
-        return !(this.excludedColors.indexOf(colorIdx) < 0);
-    }
 }
 
 export enum Enum {

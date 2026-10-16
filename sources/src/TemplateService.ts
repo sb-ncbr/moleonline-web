@@ -1,8 +1,6 @@
 import { CommonOptions } from "../config/common";
 import { Fetching } from "./FetchingIf";
 
-declare function $(p: any, p1?: any): any;
-
 export interface PDFTemplate {
     css: string,
     html: string,

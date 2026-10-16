@@ -278,10 +278,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
         );
     }
 
-    getPatternQueryHint() {
-        return { link: "https://webchem.ncbr.muni.cz/Wiki/PatternQuery:UserManual", title: "See PatternQuery manual for help." }
-    }
-
     getMoleFormNew() {
         if (this.state.moleFormData === null) {
             return <div />
@@ -567,10 +563,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                 }} formGroup={validationGroup} extraClearGroup={`${validationGroup}/selection`} allowPatternQuery={false} />
             </ControlGroup>
         </div>
-    }
-
-    getMoleForm() {
-        return <></>
     }
 
     getPoresForm() {
@@ -1132,14 +1124,6 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
             }
             this.setState(s);
         });
-    }
-
-    nullIfEmpty(data: any[][]) {
-        if (data.length === 1 && data[0].length === 0) {
-            return null;
-        }
-
-        return data;
     }
 
     handleSubmit(e: React.FormEvent<HTMLFormElement>) {

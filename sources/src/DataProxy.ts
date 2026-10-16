@@ -332,16 +332,6 @@ export namespace DataProxyCSAResidues {
             this.attachHandler(compId, handler, false);
         }
 
-        public static subscribe(compId: string, handler: CSAResiduesHandler, onlyFresh?: boolean) {
-            if (this.data !== void 0 && !onlyFresh) {
-                let data = this.data.get(compId);
-                if (data !== void 0) {
-                    handler(compId, data);
-                }
-            }
-
-            this.attachHandler(compId, handler, true);
-        }
     }
 }
 
@@ -431,9 +421,6 @@ export namespace DataProxyCofactors {
             this.attachHandler(handler);
         }
 
-        public static hasData() {
-            return this.data !== void 0;
-        }
     }
 }
 

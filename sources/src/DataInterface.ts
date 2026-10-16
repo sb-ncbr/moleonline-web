@@ -82,13 +82,6 @@ export interface MoleChannels {
     Paths: Tunnel[]
 };
 
-export type ChannelSourceData = {
-    id?: string | number,
-    type?: string,
-    label?: string,
-    description?: string
-}
-
 export interface TunnelMetaInfo extends Tunnel {
     __id: string,
     __isVisible: boolean,
@@ -229,11 +222,6 @@ export function convertLayersToLayerData(layersObject: Layers): LayerData[] {
 }
 
 export namespace Annotations {
-    export interface ChannelsDBData {
-        EntryAnnotations: ProteinAnnotation[],
-        ResidueAnnotations: ResidueAnnotations
-    };
-
     export interface ProteinAnnotation {
         Function: string,
         Name: string,
@@ -254,33 +242,3 @@ export namespace Annotations {
         ReferenceType: string
     }
 }
-
-export interface ProteinData {
-    data: {
-        chains: {
-            authAsymId: String[],
-            count: Number,
-            indices: Number[],
-            residueStartIndex: Number[],
-            residueEndIndex: Number[]
-        }
-        residues: {
-            authAsymId: string[],
-            authSeqNumber: Number[],
-            authName: string[],
-            indices: Number[],
-            count: Number,
-            entityId: Number,
-            isHet: (0 | 1)[]
-        }
-    },
-    id: string,
-    modelId: string,
-    positions: {
-        count: Number,
-        indices: Number[],
-        x: Number[],
-        y: Number[],
-        z: Number[],
-    }
-};

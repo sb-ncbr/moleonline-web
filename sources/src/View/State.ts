@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2016 - now David Sehnal, licensed under Apache 2.0, See LICENSE file for more info.
  */
-import { ComputationInfo, DataProxyCSAResidues, JobStatus } from "../DataProxy";
+import { DataProxyCSAResidues, JobStatus } from "../DataProxy";
 import { ChannelsDBChannels, ChannelsDBData, Membrane, MoleData, Origins, Tunnel, TunnelMetaInfo } from "../DataInterface";
 import { ChannelsDBData as ChannelsDBDataCache, LastVisibleChannels } from "../Cache";
 import { getParameters } from "../Common/Util/Router";
-import { ApiService, CompInfo, CSAResidues } from "../MoleAPIService";
+import { ApiService, CSAResidues } from "../MoleAPIService";
 import { Context } from "./Context";
 import { CommonOptions, DataSources } from "../../config/common";
 import { Residues } from "./CommonUtils/Residues";
@@ -17,8 +17,6 @@ import { PluginCommands } from "molstar/lib/mol-plugin/commands";
 import { ColorGenerator } from "molstar/lib/extensions/meshes/mesh-utils";
 import { Shape } from "molstar/lib/mol-model/shape";
 import { Colors, Enum } from "../StaticData";
-import { Vec3 } from "molstar/lib/mol-math/linear-algebra";
-import { Mesh } from "molstar/lib/mol-geo/geometry/mesh/mesh";
 import { ColorBound } from "./VizualizerMol/color-tunnels/property-color";
 import { Property } from "./VizualizerMol/color-tunnels/property-color";
 import { LayerColors } from "./CommonUtils/LayerColors";
@@ -256,13 +254,6 @@ export async function removeChannelsData(channels?: boolean) {
     await PluginCommands.State.RemoveObject(plugin, { state: plugin.state.data, ref: 'mole-data' });
 }
 
-export async function removeMembraneData() {
-    const plugin = Context.getInstance().plugin;
-    await PluginCommands.State.RemoveObject(plugin, { state: plugin.state.data, ref: 'membrane' });
-    await PluginCommands.State.RemoveObject(plugin, { state: plugin.state.data, ref: 'membrane-data-raw' });
-    await PluginCommands.State.RemoveObject(plugin, { state: plugin.state.data, ref: 'membrane-data' });
-}
-
 interface Point { X: number, Y: number, Z: number };
 function residuesToPoints(residueOrigins: CSAResidues): string {
     let points: Point[] = [];
@@ -308,13 +299,6 @@ function createCSAOriginsData(computationId: string) {
     });
 }
 
-function generateGuid(tunnels: Tunnel[]) {
-    for (let idx = 0; idx < tunnels.length; idx++) {
-        tunnels[idx].GUID = UUID.create22();
-    }
-    return tunnels;
-}
-
 function generateCaverTag(tunnels: Tunnel[]) {
     for (let idx = 0; idx < tunnels.length; idx++) {
         tunnels[idx].Caver = true;
@@ -322,40 +306,6 @@ function generateCaverTag(tunnels: Tunnel[]) {
     return tunnels;
 }
 
-export function generateGuidAll(moleData: ChannelsDBChannels) {
-    let idx = 1;
-
-    for (const key in moleData) {
-        if (Array.isArray(moleData[key as keyof ChannelsDBChannels])) {
-            const tunnelsArray = moleData[key as keyof ChannelsDBChannels] as Tunnel[];
-
-            tunnelsArray.forEach(tunnel => {
-                tunnel.GUID =  UUID.create22();
-                idx++;
-            });
-        }
-    }
-
-    return moleData
-}
-
-
-export function generateIdAll(moleData: ChannelsDBChannels, compId: string, submissionId: string) {
-    let idx = 1;
-
-    for (const key in moleData) {
-        if (Array.isArray(moleData[key as keyof ChannelsDBChannels])) {
-            const tunnelsArray = moleData[key as keyof ChannelsDBChannels] as Tunnel[];
-
-            tunnelsArray.forEach(tunnel => {
-                tunnel.Id =  `${compId}-${submissionId}-${idx}`;
-                idx++;
-            });
-        }
-    }
-
-    return moleData
-}
 
 export function addCaverTag(moleData: ChannelsDBChannels) {
     moleData.CSATunnels_Caver = moleData.CSATunnels_Caver ? generateCaverTag(moleData.CSATunnels_Caver) : [];
@@ -487,26 +437,6 @@ function downloadProteinData(computationId: string, submitId: number) {
     });
 }
 
-export function loadAllChannels(compId: string) {
-    const channels: Map<number, ChannelsDBChannels> = new Map();
-
-    ComputationInfo.DataProvider.get(compId, (async (compId: string, info: CompInfo) => {
-        for (const submission of info.Submissions) {
-            const submitId = submission.SubmitId;
-
-            const data = await ApiService.getChannelsData(compId, submitId)
-            let dataObj = JSON.parse(data) as MoleData;
-            if (dataObj !== undefined && dataObj.Channels !== undefined) {
-                let guidData = TunnelsId.generateGuidAll(dataObj.Channels);
-                guidData = TunnelsId.generateIdAll(guidData, compId, submitId.toString());
-                channels.set(submitId, guidData);
-            }
-        }
-    }))
-
-    return channels;
-}
-
 export function loadData(channelsDB: boolean) {
     const context = Context.getInstance();
     //context.plugin.clear(); //TODO: MAYBE YES MAYBE NOT
@@ -601,100 +531,6 @@ function acquireData(computationId: string, submitId: number, res: any, rej: any
             console.log(error);
             rej(error);
         })
-}
-
-function computeNormals(vertices: Float32Array, indices: number[]): number[] {
-    const normals: Vec3[] = new Array(vertices.length / 3).fill(0).map(() => Vec3.create(0, 0, 0));
-
-    let edge1: Vec3 = Vec3.create(0, 0, 0);
-    let edge2: Vec3 = Vec3.create(0, 0, 0);
-    let normal: Vec3 = Vec3.create(0, 0, 0);
-
-    for (let i = 0; i < indices.length; i += 3) {
-        // Get vertex indices for the triangle
-        const i1 = indices[i];
-        const i2 = indices[i + 1];
-        const i3 = indices[i + 2];
-
-        // Get the vertices
-        const v1: Vec3 = Vec3.create(vertices[3 * i1], vertices[3 * i1 + 1], vertices[3 * i1 + 2]);
-        const v2: Vec3 = Vec3.create(vertices[3 * i2], vertices[3 * i2 + 1], vertices[3 * i2 + 2]);
-        const v3: Vec3 = Vec3.create(vertices[3 * i3], vertices[3 * i3 + 1], vertices[3 * i3 + 2]);
-
-        // Calculate the edges of the triangle
-        Vec3.sub(edge1, v2, v1);
-        Vec3.sub(edge2, v3, v1);
-
-        // Calculate the normal (cross product of edge1 and edge2)
-        Vec3.cross(normal, edge1, edge2);
-
-        // Add the normal to each vertex's normal
-        Vec3.add(normals[i1], normals[i1], normal);
-        Vec3.add(normals[i2], normals[i2], normal);
-        Vec3.add(normals[i3], normals[i3], normal);
-    }
-
-    // Normalize all the normals
-    const flatNormals: number[] = [];
-    normals.forEach(n => {
-        const normalizedNormal: Vec3 = Vec3.create(0, 0, 0);
-        Vec3.normalize(normalizedNormal, n);
-        flatNormals.push(...normalizedNormal);
-    });
-
-    return flatNormals;
-}
-
-function createSurface(mesh: any) {
-    // wrap the vertices in typed arrays
-    if (!(mesh.Vertices instanceof Float32Array)) {
-        mesh.Vertices = new Float32Array(mesh.Vertices);
-    }
-    if (!(mesh.Vertices instanceof Uint32Array)) {
-        mesh.Triangles = new Uint32Array(mesh.Triangles);
-    }
-
-    const normals = new Float32Array(computeNormals(mesh.Vertices, mesh.Triangles))
-    let groups = new Float32Array([0]);
-
-    let m = Mesh.create(mesh.Vertices, mesh.Triangles, normals, groups, mesh.Vertices.length, mesh.Triangles.length);
-
-    return m;
-}
-
-function createTriangleSurface(mesh: any) {
-    const triangleCount = (mesh.Triangles.length / 3) | 0;
-    const vertexCount = triangleCount * 3;
-
-    const srcV = mesh.Vertices;
-    const srcT = mesh.Triangles;
-
-    const vertices = new Float32Array(vertexCount * 3);
-    const triangleIndices = new Uint32Array(triangleCount * 3);
-    const annotation = new Int32Array(vertexCount) as any as number[];
-
-    const tri = [0, 0, 0];
-    for (let i = 0, _i = mesh.Triangles.length; i < _i; i += 3) {
-        tri[0] = srcT[i]; tri[1] = srcT[i + 1]; tri[2] = srcT[i + 2];
-
-        for (let j = 0; j < 3; j++) {
-            const v = i + j;
-            vertices[3 * v] = srcV[3 * tri[j]];
-            vertices[3 * v + 1] = srcV[3 * tri[j] + 1];
-            vertices[3 * v + 2] = srcV[3 * tri[j] + 2];
-            triangleIndices[i + j] = i + j;
-        }
-    }
-    for (let i = 0; i < triangleCount; i++) {
-        for (let j = 0; j < 3; j++) annotation[3 * i + j] = i;
-    }
-
-    const normals = new Float32Array(computeNormals(vertices, Array.from(triangleIndices)));
-    let groups = new Float32Array([1]);
-
-    let m = Mesh.create(vertices, triangleIndices, normals, groups, vertices.length, triangleIndices.length);
-
-    return m;
 }
 
 function getSurfaceColorByType(type: string) {

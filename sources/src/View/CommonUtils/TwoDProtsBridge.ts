@@ -1,5 +1,4 @@
 import { ChannelsDBChannels, Profile, Tunnel, TunnelMetaInfo } from "../../DataInterface";
-import murmurhash from 'murmurhash';
 
 interface TunnelColor {
     Color: string
@@ -13,7 +12,6 @@ interface VizualizedTunnel {
 }
 
 export class TwoDProtsBridge {
-    private static pdbId: string = '';
     private static allChannels: Map<string, Tunnel & TunnelMetaInfo> = new Map();
     private static onColorTunnelChanges: { handler: (channel: Tunnel & TunnelMetaInfo) => void }[];
     private static moleIdTable: Map<string, string> = new Map();
@@ -35,15 +33,6 @@ export class TwoDProtsBridge {
         }
     }
 
-    public static setPdbId(pdbId: string) {
-        this.pdbId = pdbId;
-    }
-
-    public static getPdbId(): string | undefined {
-        if (this.pdbId === "") return undefined;
-        return this.pdbId;
-    }
-
     public static getVizualizedChannels(): (Tunnel & TunnelColor)[] {
         const channels: (Tunnel & TunnelColor)[] = [];
         const convertIdTunnels: Map<string, VizualizedTunnel> = new Map();
@@ -62,23 +51,6 @@ export class TwoDProtsBridge {
         })
         this.initializeIdTable(convertIdTunnels)
         return channels;
-    }
-
-    private static hashToNumber(input: string): number {
-        return murmurhash.v3(input) >>> 0;
-    }
-
-    public static convertMoleId(id: string) {
-        const id_parts = id.split('-');
-        const compId = id_parts[0];
-        const submissionId = id_parts[1];
-        const tunnelId = id_parts[2];
-
-        const compNum = this.hashToNumber(compId);
-        const subNum = parseInt(submissionId, 10);
-        const tunnelNum = parseInt(tunnelId, 10);
-
-        return parseInt(`${compNum}${subNum}${tunnelNum}`);
     }
 
     private static initializeIdTable(tunnels: Map<string, VizualizedTunnel>) {

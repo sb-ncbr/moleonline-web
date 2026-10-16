@@ -13,7 +13,6 @@ import { LiningResidues } from "./UI/LiningResidues/UI";
 import { ChannelParameters } from "./UI/ChannelParameters/UI";
 import { TwoDProts } from "./UI/2DProts/UI";
 
-declare function $(p: any): any;
 declare function doAfterCollapseActivated(): any;
 
 export class RightPanel extends React.Component<{ context: Context }, {twoDProts: boolean}> {

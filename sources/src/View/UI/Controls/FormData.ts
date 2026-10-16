@@ -349,10 +349,6 @@ export class MoleFormData {
         this.NonActiveResidues = value.slice();
     }
 
-    public getIgnoredResidues() {
-        return this.NonActiveResidues;
-    }
-
     public setQueryFilter(value: string) {
         this.QueryFilter = value;
     }

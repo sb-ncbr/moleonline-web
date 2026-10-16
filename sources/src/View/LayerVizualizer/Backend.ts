@@ -1,6 +1,5 @@
 import { Color } from "molstar/lib/mol-util/color";
 import { invertHexContrastGrayscale, RGBColor, rgbToHex, Uint8ClampedArrayToRGB } from "./Colors";
-import { Enum } from "../../StaticData";
 import { LayerColors } from "../CommonUtils/LayerColors";
 
 type ColorPaletteFunction = (val: number, settings: ColorPaletteFunctionSettings) => string;
@@ -413,7 +412,6 @@ export class TextBox extends ContextAwareObject {
 }
 
 export class ColorMixer extends ContextAwareObject {
-    private scale: XYScale;
     private minVal: number;
     private maxVal: number;
     private paletteFunction: ColorPaletteFunction;
@@ -482,13 +480,10 @@ export class Tunnel extends ContextAwareObject {
     private bounds: Rectangle;
     private hasBounds: boolean;
 
-    private highlightLineWidth = 1;
     protected lineWidth = 1;
     private hitboxLineWidth = 1;
 
     private lineColor = "#8c8c8c";
-    private hitboxLineColor = "#173133";
-    private highlightLineColor = '#000';
 
     private currentVisual: ImageData;
     private currentVisualPlain: ImageData;
@@ -642,33 +637,6 @@ export class Tunnel extends ContextAwareObject {
         restOfBody: XYPoint[],
         path: XYPoint[]
     } | null = null;
-
-    private prepareLayerColors() {
-        const colors: Color[] = [];
-        const regex = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/;
-        const length = this.layers[this.layers.length - 1].end;
-        for (let i = 0; i < this.layers.length; i++) {
-            let layer = this.layers[i];
-            let prevColorValue = ((i - 1) in this.layers)
-                ? this.layers[i - 1].value
-                : this.layers[i].value;
-            let curColorValue = this.layers[i].value;
-            let color = this.paletteFunction(Number(prevColorValue), this.paletteFunctionSettings);
-            if (i != 0) {
-                color = this.paletteFunction(Number(curColorValue), this.paletteFunctionSettings);
-            }
-            const rgbValues = color.match(regex);
-            if (rgbValues) {
-                const r = parseInt(rgbValues[1], 10);
-                const g = parseInt(rgbValues[2], 10);
-                const b = parseInt(rgbValues[3], 10);
-                colors.push(Color(Color.fromRgb(r, g, b)));
-            } else {
-                colors.push(Color(Enum.DefaultColor));
-            }
-        }
-        LayerColors.colorArray = colors;
-    }
 
     private prepareLayersData() {
         //Mozilla odmita v urcitych pripadech v 1. polovine tunelu zobrazit barevny prechod kdyz je zapnuty clip()

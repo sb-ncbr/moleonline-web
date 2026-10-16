@@ -132,11 +132,6 @@ export class URL {
         return "";
     }
 
-    removeParameters() {
-        let path = this.url.split("?")[0];
-        return new URL(path);
-    }
-
     getProtocol() {
         if (!this.hasHost) {
             return "";
@@ -159,11 +154,6 @@ export class Router {
 
     getAbsoluePath() {
         return new URL(document.URL);
-    }
-
-    changeUrl(name: string, windowTitle: string, url: string) {
-        let stateObj = { page: name };
-        history.pushState(stateObj, windowTitle, url);
     }
 
 }
@@ -208,25 +198,6 @@ export class GlobalRouter {
         this.currentPid = (pid !== null) ? pid : this.defaultPid;
 
         this.isInitialized = true;
-    }
-
-    public static getCurrentPid() {
-        if (!this.isInitialized) {
-            throw new Error("GlobalRouter is not inititalised! Call init(..) function before use!");
-        }
-
-        return this.currentPid;
-    }
-
-    public static getCurrentPage() {
-        if (!this.isInitialized) {
-            throw new Error("GlobalRouter is not inititalised! Call init(..) function before use!");
-        }
-
-        let url = this.router.getAbsoluePath();
-        url = url.removeParameters();
-
-        return url.getLastPart();
     }
 
     public static redirect(url: string, relative?: boolean) {

@@ -1,5 +1,5 @@
 import { ApiService, ChannelAnnotation, ResidueAnnotation } from "./ChannelsDBAPIService";
-import { ChannelsDBChannels, Layers, MoleData, Tunnel, TunnelMetaInfo } from "./DataInterface";
+import { ChannelsDBChannels, MoleData, Tunnel, TunnelMetaInfo } from "./DataInterface";
 
 export class TunnelName {
     private static cache: Map<string, Map<string, string>> = new Map();
@@ -87,16 +87,6 @@ export class TunnelName {
 
     public static getCachedItemsCount() {
         return (this.cache === void 0) ? 0 : this.cache.size;
-    }
-}
-
-export class LastSelectedChannelData {
-    private static data: Layers;
-    public static set(data: Layers) {
-        this.data = data;
-    }
-    public static get(): Layers {
-        return this.data;
     }
 }
 

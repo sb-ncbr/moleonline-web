@@ -1,8 +1,6 @@
 import React from "react";
 import { Events, MessageInfo, MessageType } from "../../../Bridge";
 
-declare function $(p: any): any;
-
 let MAX_TICK = 5;
 let QUEUE_MAX_LENGTH = 5;
 

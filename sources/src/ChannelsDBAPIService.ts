@@ -45,26 +45,6 @@ export class ApiService {
 
     private static baseUrl = DataSources.ANNOTATION_API_URL[DataSources.ANNOTATION_API_MODE];
 
-    private static sendPOST(url: string, formData: FormData): Promise<any> {
-        let fetching = Fetching.get();
-        return this.handleResponse(fetching.fetch(url, {
-            method: "POST",
-            body: formData,
-        }), url);
-    }
-    private static sendPOSTjson(url: string, formData: Object): Promise<any> {
-        let fetching = Fetching.get();
-
-        const headers = new Headers();
-        headers.append("Accept", "application/json");
-        headers.append("Content-Type", "application/json");
-        return this.handleResponse(fetching.fetch(url, {
-            method: "POST",
-            headers,
-            body: JSON.stringify(formData),
-
-        }), url);
-    }
     private static sendGET(url: string): Promise<any> {
         let fetching = Fetching.get();
         if (CommonOptions.DEBUG_MODE)

@@ -29,11 +29,6 @@ interface AppState {
 }
 
 export class PDFReportGenerator extends React.Component<{}, AppState> {
-    private a4width = 210;
-    private a4height = 297;
-    private lineColor = "0.7";
-    private lineWidth = 0.3;
-
     public static templateCache: PDFTemplate | null = null;
 
     state: AppState = { data: null, reportContent: null, inProgress: false, progress: 0 };

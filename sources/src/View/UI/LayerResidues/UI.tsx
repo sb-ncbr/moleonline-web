@@ -142,10 +142,6 @@ class DGHead extends React.Component<State, {}> {
 
 class DGBody extends React.Component<State, {}> {
 
-    private shortenBackbone(residue: string) {
-        return residue.replace(/Backbone/g, 'BB');
-    }
-
     private isBackbone(residue: string) {
         return residue.indexOf("Backbone") >= 0;
     }

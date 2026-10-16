@@ -55,13 +55,3 @@ export class TabbedContainer extends React.Component<TabbedContainerProps, {}> {
         );
     }
 }
-
-export class Tab extends React.Component<{ active: boolean, tabIndex: number, contents: JSX.Element, namespace: string }, {}> {
-    render() {
-        return (
-            <div id={`${this.props.namespace}${this.props.tabIndex}`} className={(this.props.active) ? "active" : ""}>
-                {this.props.contents}
-            </div>
-        );
-    }
-}

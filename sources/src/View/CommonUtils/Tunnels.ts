@@ -100,13 +100,6 @@ export class Tunnels {
         }
     }
 
-    public static attachOnTunnelsCollect(handler: (submitId: number) => void) {
-        if (this.onTunnelsCollect === void 0) {
-            this.onTunnelsCollect = [];
-        }
-
-        this.onTunnelsCollect.push({ handler });
-    }
     public static invokeOnTunnelsCollect(submitId: number) {
         if (this.onTunnelsCollect === void 0) {
             return;

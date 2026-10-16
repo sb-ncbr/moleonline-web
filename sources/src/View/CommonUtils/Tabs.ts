@@ -36,25 +36,6 @@ export function doAfterTabActivated(tabbedElementId: string, tabId: string, call
     window.setTimeout(checker, 10);
 }
 
-export function doAfterCollapseActivated() {
-    var checker = function () {
-        const collapseSequence = $("#sequence-collapse")[0];
-        const collapseBottomPanel = $("#bottom-panel-collapse")[0];
-        const changeViewButton = $("#view-change")[0];
-    
-        const bottomPanel = $("#bottom-pannel");
-        const sequenceViewer = $("#sequence-viewer");
-    
-        const bottomPanelHeight = bottomPanel.attr("class").indexOf("show") >= 0 ? bottomPanel.height() : 0;
-        const sequenceViewerHeight = sequenceViewer.attr("class").indexOf("show") >= 0 ? sequenceViewer.height() : 21;
-    
-        collapseBottomPanel.style.bottom = `${bottomPanelHeight}px`;
-        collapseSequence.style.bottom = `${sequenceViewerHeight + bottomPanelHeight}px`;
-        changeViewButton.style.bottom = `${bottomPanelHeight + sequenceViewerHeight}px`;
-    };
-    window.setTimeout(checker, 10);
-}
-
 export function leftPanelTabs() {
     var checker = function () {
         const leftPanel = $("#left-panel");

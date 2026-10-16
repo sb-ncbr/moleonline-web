@@ -25,8 +25,6 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
 
     state = { isLoading: false, data: void 0, error: void 0 };
 
-    private currentProteinId: string;
-
     componentDidMount() {
         this.setState({ data: this.props.data })
         $(window).on("contentResize", this.onContentResize.bind(this));

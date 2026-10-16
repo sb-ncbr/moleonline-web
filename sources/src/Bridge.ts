@@ -1,5 +1,4 @@
-import { Observable } from "rxjs/internal/Observable";
-import { ChannelsDBData, MoleData, ProteinData } from "./DataInterface";
+import { ChannelsDBData, MoleData } from "./DataInterface";
 import { MoleConfig, PoresConfig } from "./MoleAPIService";
 
 export class Instances {
@@ -22,7 +21,6 @@ export interface CopyParametersParams {
     poresConfig:PoresConfig | null,
     mode: "pores" | "mole"
 };
-export interface ToggleSequenceViewerParams { minimized: boolean };
 
 type SimpleHandler = (args?: any) => any;
 
@@ -33,11 +31,9 @@ export type ChannelSelectHandler = (channelId: number) => void;
 export type ChangeHasKillableHandler = (hasKillable: boolean) => void;
 export type NotifyMessageHandler = (e: MessageInfo) => void;
 export type ChannelDataLoadedHandler = (data: MoleData | ChannelsDBData) => void;
-export type ProteinDataLoadedHandler = (data: ProteinData) => void;
 export type ToggleLoadingScreenHandler = (params: ToggleLoadingScreenParams) => void;
 export type RunPDFReportHandler = () => void;
 export type CopyParametersHandler = (params: CopyParametersParams) => void;
-export type OnSequneceViewerToggleHandler = (params: ToggleSequenceViewerParams) => void;
 export type OnMembraneDataReadyHandler = () => void;
 
 namespace HandlerTypes {
@@ -48,12 +44,10 @@ namespace HandlerTypes {
     export const ChangeHasKillableType = "CHANGE-HAS-KILLABLE";
     export const NotifyMessageType = "NOTIFY-MESSAGE";
     export const ChannelDataLoadedType = "CHANNEL-DATA-LOADED";
-    export const ProteinDataLoadedType = "PROTEIN-DATA-LOADED";
     export const ToggleLoadingScreenType = "TOGGLE-LOADING-SCREEN";
     export const RunPDFReportType = "RUN-PDF-REPORT";
     export const CopyParametersType = "COPY-PARAMETERS";
     export const OnReSubmitType = "ON-RESUBMIT";
-    export const OnSequneceViewerToggleType = "ON-SEQ-VIEWER-TOGGLE";
     export const OnMembraneDataReadyType = "ON-MEMBRANE-DATA-READY";
 
     export type NewSubmit = "NEW-SUBMIT";
@@ -218,28 +212,6 @@ export class Events {
         }
     }
 
-    public static subscribeProteinDataLoaded(h: ProteinDataLoadedHandler) {
-        let list = this.handlers.get(HandlerTypes.ProteinDataLoadedType);
-        if (list === void 0) {
-            list = [];
-        }
-        list.push(h);
-        this.handlers.set(HandlerTypes.ProteinDataLoadedType, list);
-    }
-
-    public static subscribe<T>(obs: Observable<T>, action: (v: T) => void) {
-        obs.subscribe(action);
-    }
-
-    public static invokeProteinDataLoaded(data: ProteinData) {
-        let hndlrs = this.handlers.get(HandlerTypes.ProteinDataLoadedType);
-        if (hndlrs !== void 0) {
-            for (let h of hndlrs) {
-                h(data);
-            }
-        }
-    }
-
     public static subscribeToggleLoadingScreen(h: ToggleLoadingScreenHandler) {
         let list = this.handlers.get(HandlerTypes.ToggleLoadingScreenType);
         if (list === void 0) {
@@ -312,24 +284,6 @@ export class Events {
         }
     }
 
-    public static subscribeOnSequneceViewerToggle(h: OnSequneceViewerToggleHandler) {
-        let list = this.handlers.get(HandlerTypes.OnSequneceViewerToggleType);
-        if (list === void 0) {
-            list = [];
-        }
-        list.push(h);
-        this.handlers.set(HandlerTypes.OnSequneceViewerToggleType, list);
-    }
-
-    public static invokeOnSequneceViewerToggle(params: ToggleSequenceViewerParams) {
-        let hndlrs = this.handlers.get(HandlerTypes.OnSequneceViewerToggleType);
-        if (hndlrs !== void 0) {
-            for (let h of hndlrs) {
-                h(params);
-            }
-        }
-    }
-
     public static subscribeOnMembraneDataReady(h: OnMembraneDataReadyHandler) {
         let list = this.handlers.get(HandlerTypes.OnMembraneDataReadyType);
         if (list === void 0) {
@@ -337,15 +291,6 @@ export class Events {
         }
         list.push(h);
         this.handlers.set(HandlerTypes.OnMembraneDataReadyType, list);
-    }
-
-    public static invokeOnMembraneDataReady() {
-        let hndlrs = this.handlers.get(HandlerTypes.OnMembraneDataReadyType);
-        if (hndlrs !== void 0) {
-            for (let h of hndlrs) {
-                h();
-            }
-        }
     }
 
 }

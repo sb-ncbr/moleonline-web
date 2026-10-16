@@ -7,8 +7,6 @@ import { MoleChannels, Tunnel } from "../../../DataInterface";
 import { Tunnels } from "../../CommonUtils/Tunnels";
 import { getParameters } from "../../../Common/Util/Router";
 
-declare function $(p: any): any;
-
 interface State {
     app: QuickHelp,
     channelSelected: boolean,

@@ -83,10 +83,6 @@ export interface PoresConfig {
     InteriorThreshold: number | null,
     ProbeRadius: number | null
 };
-export interface ProteinData {
-    data: string,
-    filename: string | null
-};
 
 export interface VersionResponse {
     PoresVersion: string,

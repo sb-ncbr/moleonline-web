@@ -1,9 +1,7 @@
 import React from "react";
-import { LayersInfo, Properties } from "../../../DataInterface";
+import { LayersInfo } from "../../../DataInterface";
 import { SelectionHelper } from "../../CommonUtils/Selection";
 import { DGElementRow, DGNoDataInfoRow, DGRowEmpty } from "../Common/Datagrid/Components";
-import { PdbResidue, PhysicoChemicalPropertyCalculation, TunnelLayer } from "../../../PhysicoChemicalProperties";
-import { Residues } from "../../CommonUtils/Residues";
 import { roundToDecimal } from "../../../Common/Util/Numbers";
 
 let DGTABLE_COLS_COUNT = 2;
@@ -146,59 +144,6 @@ class DGHead extends React.Component<State, {}> {
 }
 
 class DGBody extends React.Component<State, {}> {
-    private getPropertiesData(layerIds: number[]) {
-
-        let layersData = this.props.data;
-        if (layersData === null) {
-            return null;
-        }
-
-        let layers: TunnelLayer[] = [];
-        for (let layerIdx of layerIds) {
-            let layer = layersData[layerIdx];
-            let residues = Residues.parseResidues(layer.Residues, true);
-            let backboneLining = residues.filter(r => { return r.backbone === true }).map((v, i, arr) => {
-                return {
-                    Name: v.name,
-                    SeqNumber: v.authSeqNumber,
-                    Chain: v.chain.authAsymId
-                } as PdbResidue
-            });
-            let nonBackboneLining = residues.filter(r => { return r.backbone === false }).map((v, i, arr) => {
-                return {
-                    Name: v.name,
-                    SeqNumber: v.authSeqNumber,
-                    Chain: v.chain.authAsymId
-                } as PdbResidue
-            });
-
-            layers.push({
-                NonBackboneLining: nonBackboneLining,
-                BackboneLining: backboneLining,
-                Length: Math.abs(layer.LayerGeometry.EndDistance - layer.LayerGeometry.StartDistance)
-            } as TunnelLayer);
-        }
-
-        let data = PhysicoChemicalPropertyCalculation.CalculateAgregatedLayersProperties(layers);
-        if (data === null) {
-            return null;
-        }
-
-        return {
-            Charge: data.Charge,
-            Hydropathy: data.Hydropathy,
-            Hydrophobicity: data.Hydrophobicity,
-            Ionizable: data.Ionizable,
-            LogD: data.LogD,
-            LogP: data.LogP,
-            LogS: data.LogS,
-            Mutability: data.Mutability,
-            NumNegatives: data.NumNegatives,
-            NumPositives: data.NumPositives,
-            Polarity: data.Polarity
-        } as Properties;
-    }
-
     private getBottleneck(layerdIds: number[]) {
         if (this.props.data === null) {
             return 0;
@@ -291,27 +236,4 @@ class DGBody extends React.Component<State, {}> {
             </table>
         );
     };
-}
-
-class DGRow extends React.Component<{ columns: string[] }, {}> {
-
-    private generateRow(columns: string[]) {
-        let tds = [];
-        for (let i = 0; i < columns.length; i++) {
-            tds.push(
-                <td key={i} className={`col col-${i + 1}`}>
-                    {columns[i]}
-                </td>
-            );
-        }
-
-        return tds;
-    }
-
-    render() {
-        return (
-            <tr>
-                {this.generateRow(this.props.columns)}
-            </tr>);
-    }
 }

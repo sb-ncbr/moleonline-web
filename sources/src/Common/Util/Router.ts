@@ -25,10 +25,6 @@ export function getParameters(): URLParams | null {
     };
 }
 
-export function redirect(computationId: string, submitId: number) {
-    GlobalRouter.redirect(`/${computationId}/${submitId}`, true);
-}
-
 export function fakeRedirect(computationId: string, submitId?: string) {
     if (submitId !== void 0) {
         GlobalRouter.fakeRedirect(`/${computationId}/${submitId}`, true);

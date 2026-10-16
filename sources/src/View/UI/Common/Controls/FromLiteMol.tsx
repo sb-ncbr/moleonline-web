@@ -1,5 +1,4 @@
 import React from "react";
-import { Tooltips } from "../../../CommonUtils/Tooltips";
 import { Events } from "../../../CommonUtils/FormEvents";
 import { flattenPoints, flattenResidues, parsePoint, parseResidues } from "../../../CommonUtils/Misc";
 import { Cofactors, CSAResidues, MoleConfigResidue } from "../../../../MoleAPIService";
@@ -13,8 +12,6 @@ import { SelectControl, TextControl } from "molstar/lib/mol-plugin-ui/controls/p
 import { ParamDefinition } from "molstar/lib/mol-util/param-definition";
 import { CheckSvg, CloseSvg } from "molstar/lib/mol-plugin-ui/controls/icons";
 
-
-declare function $(p: any, p1?: any): any;
 
 interface FormControl { }
 
@@ -32,12 +29,6 @@ export class ValidationState {
         }
 
         return state;
-    }
-
-    public static setState(validationGroup: string, state: ValidationStates) {
-        let oldState = this.getState(validationGroup);
-        this.validationStates.set(validationGroup, state);
-        this.invokeOnStateChangeHandlers(validationGroup, oldState, state);
     }
 
     private static stateChangeHandlers: Map<string, ValidationStateChangeHandler[]> = new Map<string, ValidationStateChangeHandler[]>();
@@ -126,33 +117,6 @@ export class TextBox extends React.Component<TextBoxProps, TextBoxState> impleme
     }
 }
 
-function TextBoxOnBlur(e: React.FormEvent<HTMLInputElement>, validateFn?: ((value: string) => Promise<{ valid: boolean, message?: string }>), validationGroup?: string) {
-    let element = e.currentTarget;
-    if (validateFn !== void 0 && validationGroup !== void 0) {
-        let prevState = ValidationState.getState(validationGroup);
-        validateFn(element.value).then((validationResult) => {
-            if (!validationResult.valid) {
-                ValidationState.setState(validationGroup, "INVALID");
-                element.setCustomValidity((validationResult.message !== void 0) ? validationResult.message : "Entered value is not valid.");
-                element.focus();
-                $(element).addClass("invalid");
-                $(element).tooltip({
-                    trigger: 'manual',
-                    placement: 'bottom',
-                    title: function () {
-                        return validationResult.message;
-                    }
-                }).tooltip('show');
-            }
-            else {
-                element.setCustomValidity("");
-                $(element).removeClass("invalid");
-                Tooltips.destroy(element);
-            }
-        })
-    }
-}
-
 export class ComboBoxItem {
     private value: string
     private label: string
@@ -164,14 +128,6 @@ export class ComboBoxItem {
 
     getValue() {
         return this.value;
-    }
-
-    getLabel() {
-        return this.label;
-    }
-
-    equals(obj: ComboBoxItem) {
-        return this.label === obj.label && this.value === this.value;
     }
 
 };
@@ -233,46 +189,6 @@ export class ComboBox extends React.Component<ComboBoxProps, ComboBoxState> impl
                 this.setState({ value: o.value });
             }}
         />
-    }
-}
-
-interface ControlGroupProps {
-    label: string,
-    tooltip: string,
-    controls: JSX.Element[],
-    expanded?: boolean
-    onChange?: (e: boolean) => void
-}
-interface ControlGroupState {
-    panel: /*LMControls.Panel*/ | undefined, //TODO Molstar
-    expanded: boolean
-};
-export class ControlGroup extends React.Component<ControlGroupProps, ControlGroupState> {
-    state: ControlGroupState = { panel: /*this.createPanel((this.props.expanded) ? this.props.expanded : false)*/ undefined, expanded: (this.props.expanded) ? this.props.expanded : false };
-
-    componentDidUpdate(prevProps: ControlGroupProps) {
-        if (
-            this.props.expanded !== undefined &&
-            this.props.expanded !== prevProps.expanded &&
-            this.props.expanded !== this.state.expanded
-        ) {
-            this.onPanelExpand(this.props.expanded, true);
-        }
-    }
-
-
-    private onPanelExpand(e: boolean, supressOnChangeInvoke?: boolean) {
-        let s = this.state;
-        s.expanded = e;
-        this.setState(s);
-
-        if (!supressOnChangeInvoke && this.props.onChange !== void 0) {
-            this.props.onChange(e);
-        }
-    }
-
-    render() {
-        return <div></div>
     }
 }
 

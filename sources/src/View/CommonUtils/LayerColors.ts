@@ -3,7 +3,6 @@ import { Context } from "../Context";
 import { ColorBound, Property } from "../VizualizerMol/color-tunnels/property-color";
 import { Representation } from "molstar/lib/mol-repr/representation";
 import { Loci } from "molstar/lib/mol-model/loci";
-import { Color } from "molstar/lib/mol-util/color";
 import { Tunnel, TunnelMetaInfo } from "../../DataInterface";
 import { SelectionHelper } from "./Selection";
 
@@ -15,8 +14,6 @@ export class LayerColors {
     private static selectChannelLiningResidues: boolean = false;
     private static currentCanvas: HTMLCanvasElement | undefined = undefined;
 
-    public static colorArray: Color[] = [];
-
     private static onColorPropertyChanged: { handler: (property: Property) => void }[];
     private static onColorBoundsChanged: { handler: (bounds: ColorBound) => void }[];
     private static onLayerIndexOver: { handler: (layerIndex: number) => void }[];
@@ -25,14 +22,6 @@ export class LayerColors {
     private static onLayerIndexSelectObject: { handler: (layerIndex: number, loci: Representation.Loci<Loci>) => void }[];
     private static onChannelRemoved: { handler: (ref: string) => void }[];
     private static onChannelAdd: { handler: (ref: string) => void }[];
-
-    public static getCurrentProperty(): Property {
-        return this.currentColorProperty;
-    }
-
-    public static getCurrentColorBounds(): ColorBound {
-        return this.currentColorBounds;
-    }
 
     public static setSelectChannelLiningResidues(value: boolean) {
         this.selectChannelLiningResidues = value;

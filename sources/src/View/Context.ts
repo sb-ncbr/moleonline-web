@@ -25,15 +25,12 @@ import { PluginCommands } from "molstar/lib/mol-plugin/commands";
 import { PluginBehaviors } from "molstar/lib/mol-plugin/behavior";
 import { StructureFocusRepresentation } from "molstar/lib/mol-plugin/behavior/dynamic/selection/structure-focus-representation"
 import { UUID } from "molstar/lib/mol-util";
-import { StructureElement, StructureProperties } from "molstar/lib/mol-model/structure";
-import { getChainOptions, getModelEntityOptions, getOperatorOptions, getSequenceWrapper, getStructureOptions } from "molstar/lib/mol-plugin-ui/sequence";
 import { Tunnels } from "./CommonUtils/Tunnels";
 import { TunnelName } from "../Cache";
 import { OrderedSet } from 'molstar/lib/mol-data/int';
 import { Vec3 } from "molstar/lib/mol-math/linear-algebra";
 import { getPropertyProps } from "./VizualizerMol/color-tunnels/data-model";
 import { ColorBound, Property } from "./VizualizerMol/color-tunnels/property-color";
-import { parseCifText } from "molstar/lib/mol-io/reader/cif/text/parser";
 import { Events } from "../Bridge";
 import { adjustCaverDistance } from "./VizualizerMol/color-tunnels/algorithm";
 import { ApiService } from "../MoleAPIService";
@@ -100,7 +97,6 @@ export class Context {
     public data: Map<string, object> = new Map();
 
     private static instance: Context;
-    private static onCtrlPressedHandlers: { handler: (pressed: boolean) => void }[];
 
     public constructor(MySpec: PluginUISpec) {
         this.plugin = new PluginUIContext(MySpec);
@@ -110,34 +106,11 @@ export class Context {
         });
     }
 
-    private async initPlugin() {
-        this.plugin = new PluginUIContext(MySpec);
-        await this.plugin.init();
-    }
-
     public static getInstance(): Context {
         if (!Context.instance) {
             Context.instance = new Context(MySpec);
         }
         return Context.instance;
-    }
-
-    public static attachOnCtrlPressedHandler(handler: (pressed: boolean) => void) {
-        if (this.onCtrlPressedHandlers === void 0) {
-            this.onCtrlPressedHandlers = [];
-        }
-
-        this.onCtrlPressedHandlers.push({ handler });
-    }
-
-    public static invokeOnCtrlPressedHandlers(pressed: boolean) {
-        if (this.onCtrlPressedHandlers === void 0) {
-            return;
-        }
-
-        for (let h of this.onCtrlPressedHandlers) {
-            h.handler(pressed);
-        }
     }
 
     private async attachMoleObjectsNode() {
@@ -205,67 +178,6 @@ export class Context {
                 })
             }
         })
-    }
-
-    public async hetSelect() {
-        const structureOptions = getStructureOptions(this.plugin.state.data);
-        const structureRef = structureOptions.options[0][0];
-        const state = this.plugin.state.data;
-        const cell = state.select(structureRef)[0];
-        if (!structureRef || !cell || !cell.obj) return EmptyLoci;
-        const structure = (cell.obj as PluginStateObject.Molecule.Structure).data;
-        const l = StructureElement.Location.create(structure);
-
-        for (const [modelEntityId, eLabel] of getModelEntityOptions(structure, false)) {
-            for (const [chainGroupId, cLabel] of getChainOptions(structure, modelEntityId)) {
-                let [modelIdx, entityId] = modelEntityId.split('|');
-                for (const unit of structure.units) {
-                    if (unit.polymerElements.length) {
-                        StructureElement.Location.set(l, structure, unit, unit.elements[0]);
-
-                        if (structure.getModelIndex(unit.model) !== parseInt(modelIdx)) continue;
-                        if (StructureProperties.entity.id(l) !== entityId) continue;
-                    } else {
-                        for (const [operatorKey, operator_name] of getOperatorOptions(structure, modelEntityId, chainGroupId)) {
-                            const wrapper = getSequenceWrapper({
-                                structure,
-                                modelEntityId,
-                                chainGroupId,
-                                operatorKey
-                            }, this.plugin.managers.structure.selection)
-                            if (typeof wrapper !== "string") {
-                                for (let i = 0, il = wrapper.length; i < il; ++i) {
-                                    const loci = wrapper.getLoci(i);
-                                    if (loci.elements.length > 0) {
-                                        const location = StructureElement.Loci.getFirstLocation(loci, StructureElement.Location.create(void 0));
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                }
-            }
-        }
-        return;
-    }
-
-    private async loadCifTunnels(url: string) {
-        try {
-            const response = await fetch(url);
-            if (response.ok) {
-                const data = await response.text();
-                const x = await parseCifText(data).run();
-                if (!x.isError) {
-                    console.log(x.result);
-                    console.log(x.result.blocks[1].categories.sb_ncbr_channel_residue.getField("name"));
-                }
-            } else {
-                console.error('Fetch failed with status:', response.status);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        }
     }
 
     private determineFileType(text: string): "pdb" | "cif" | "unknown" {

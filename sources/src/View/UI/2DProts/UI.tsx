@@ -262,22 +262,6 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
         }
     }
 
-    private async fetchSvgAndCreateBlob(svgUrl: string) {
-        try {
-            const response = await fetch(svgUrl);
-            if (!response.ok) {
-                throw new Error(`Failed to fetch SVG: ${response.status} ${response.statusText}`);
-            }
-            const svgText = await response.text();
-            return new Blob([svgText], {type: 'image/svg+xml'});
-        } catch (error) {
-            Events.invokeNotifyMessage({
-                messageType: "Danger",
-                message: `Error while delivering 2DProts SVG: ${error}`
-            })
-        }
-    }
-
     private async loadSvg() {
         const svgUrl = `https://2dprots.ncbr.muni.cz/static/2DProt/custom_jobs/${this.state.jobId}/output.svg`;
 

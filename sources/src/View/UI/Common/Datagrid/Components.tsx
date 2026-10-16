@@ -25,92 +25,6 @@ function getTitle(title: string[] | undefined, columnCount: number) {
     return tit;
 }
 
-export class DGRow extends React.Component<{ columns: string[], columnsCount?: number, trClass?: string, tdClass?: string, forceHtml?: boolean, title?: string[] }, {}> {
-
-    private addTd(tds: JSX.Element[], i: number, columns: string[], columnsCount: number, forceHtml: boolean) {
-        let html = { __html: columns[i] };
-        let tdClass = "";
-        if (this.props.tdClass !== void 0) {
-            tdClass = this.props.tdClass;
-        }
-        let title = getTitle(this.props.title, columnsCount);
-
-        if (forceHtml) {
-            tds.push(
-                <td key={i} title={title[i]} className={`col col-${i + 1} ${tdClass}`} dangerouslySetInnerHTML={html}>
-                </td>
-            );
-        }
-        else {
-            tds.push(
-                <td key={i} title={title[i]} className={`col col-${i + 1}`} >
-                    {columns[i]}
-                </td>
-            );
-        }
-    }
-
-    private addTdWithColspan(tds: JSX.Element[], i: number, columns: string[], columnsCount: number, forceHtml: boolean) {
-        let html = { __html: columns[i] };
-        let tdClass = "";
-        if (this.props.tdClass !== void 0) {
-            tdClass = this.props.tdClass;
-        }
-        let title = getTitle(this.props.title, columnsCount);
-
-        let colSpan = 1 + (columnsCount - columns.length);
-        if (forceHtml) {
-            tds.push(
-                <td key={i} title={title[i]} className={`col col-${i + 1} ${tdClass}`} colSpan={colSpan} dangerouslySetInnerHTML={html}>
-                </td>
-            );
-        }
-        else {
-            tds.push(
-                <td key={i} title={title[i]} className={`col col-${i + 1} ${tdClass}`} colSpan={colSpan}>
-                    {columns[i]}
-                </td>
-            );
-        }
-    }
-
-    private generateRow(columns: string[]) {
-        let columnsCount = columns.length;
-        if (this.props.columnsCount !== void 0) {
-            columnsCount = this.props.columnsCount;
-        }
-
-        let forceHTML = false;
-        if (this.props.forceHtml !== void 0) {
-            forceHTML = this.props.forceHtml;
-        }
-
-        let tds: JSX.Element[] = [];
-        for (let i = 0; i < columns.length; i++) {
-            if (i === columns.length - 1 && columns.length !== columnsCount) {
-                this.addTdWithColspan(tds, i, columns, columnsCount, forceHTML);
-                break;
-            }
-
-            this.addTd(tds, i, columns, columnsCount, forceHTML);
-        }
-
-        return tds;
-    }
-
-    render() {
-        let trClass = "";
-        if (this.props.trClass !== void 0) {
-            trClass = this.props.trClass;
-        }
-
-        return (
-            <tr className={trClass}>
-                {this.generateRow(this.props.columns)}
-            </tr>);
-    }
-}
-
 export class DGElementRow extends React.Component<{ columns: JSX.Element[], columnsCount?: number, trClass?: string, tdClass?: string, title?: string[] }, {}> {
 
     private generateRow(columns: JSX.Element[]) {
@@ -156,14 +70,6 @@ export class DGElementRow extends React.Component<{ columns: JSX.Element[], colu
             <tr className={trClass}>
                 {this.generateRow(this.props.columns)}
             </tr>);
-    }
-}
-
-export class DGTdWithHtml extends React.Component<{ contents: string, colIdx: number }, {}> {
-    render() {
-        return (
-            <td className={`col col-${this.props.colIdx}`} dangerouslySetInnerHTML={{ __html: this.props.contents }}></td>
-        );
     }
 }
 

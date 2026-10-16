@@ -4,8 +4,6 @@ import { Events } from "../../Bridge";
 import { GlobalRouter } from "../../SimpleRouter";
 import { ComputationInfo, JobStatus } from "../../DataProxy";
 
-declare function $(p: any): any;
-
 export class Examples extends React.Component<{}, { activeButton: number }> {
     private computationId: string;
     private submitId: number;

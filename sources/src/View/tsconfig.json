@@ -59,7 +59,6 @@
     "../Common/Util/Cookies.ts",
     "../Common/Util/LastNSessions.ts",
     "CommonUtils/Tabs.ts",
-    "CommonUtils/Tooltips.ts",  
     "CommonUtils/Misc.ts",
     "CommonUtils/FormEvents.ts",
     "CommonUtils/Validators.ts",
@@ -82,7 +81,6 @@
     "../TemplateService.ts",
     "../DataProxy.ts",
     "../Cache.ts",
-    "../PhysicoChemicalProperties.ts",
 
     //Layer Vizualizer
     "UI/LayerVizualizer/UI.tsx",
