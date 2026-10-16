@@ -127,7 +127,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                 this.setState({ channelsData: channels, isLoadingChannels: false })
             }).catch(async error => {
                 if (info.Submissions.length === 0) {
-                    this.setState({ isLoadingChannels: false, error })
+                    this.setState({ isLoadingChannels: false, error: String(error) })
                     Events.invokeNotifyMessage({
                         messageType: "Danger",
                         message: 'Could not fetch data from ChannelsDB'
@@ -152,7 +152,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                     this.setState({ channelsData: channels, isLoadingChannels: false })
                     LoadingStatus.log('Finalizing…');
                 } catch (error) {
-                    this.setState({ isLoadingChannels: false, error })
+                    this.setState({ isLoadingChannels: false, error: String(error) })
                     Events.invokeNotifyMessage({
                         messageType: "Danger",
                         message: 'Could not fetch data from MoleAPI'
@@ -261,7 +261,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                                 <b>Data for specified protein are not available.</b>
                             </div>
                             <div>
-                                <b>Reason:</b> <i dangerouslySetInnerHTML={{ __html: errorMessage }}></i>
+                                <b>Reason:</b> <i>{errorMessage}</i>
                             </div>
                         </div>);
                 }
