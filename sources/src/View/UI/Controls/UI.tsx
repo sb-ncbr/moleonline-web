@@ -1,7 +1,7 @@
 import React from "react";
 import { Events as BridgeEvents, CopyParametersParams, Events } from "../../../Bridge";
 import { Events as FormEvents } from "../../CommonUtils/FormEvents";
-import { ApiService, CompInfo, ComputationStatus, MoleConfig, PoresConfig, Submission as ServiceSubmission } from "../../../MoleAPIService";
+import { ApiService, CompInfo, ComputationStatus, formatChains, MoleConfig, PoresConfig, Submission as ServiceSubmission } from "../../../MoleAPIService";
 import { describeError, RequestError } from "../../../Http";
 import { MoleFormData, PoresFormData } from "./FormData";
 import { ComputationInfo, JobStatus } from "../../../DataProxy";
@@ -19,7 +19,7 @@ import { BoolControl, NumberRangeControl, SelectControl, TextControl } from "mol
 import { ParamDefinition } from "molstar/lib/mol-util/param-definition";
 import { StartingPointBox } from "./StartingPoints";
 import { ValidationState } from "./ValidationState";
-import { isMoleConfigOrPoresConfig } from "./ParamsChecker";
+import { getParamsKind } from "./ParamsChecker";
 import "molstar/lib/mol-plugin-ui/skin/light.scss";
 
 const Provider = ComputationInfo.DataProvider;
@@ -433,11 +433,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
         }
 
         let data = this.state.poresFormData;
-        let chains = data.getSpecificChains();
-        if (chains === null) {
-            chains = "";
-        }
-
 
         return <div className="settings-form basic-settings pores">
             <h3>Pores</h3>
@@ -457,7 +452,7 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                 }
             }}
             />
-            <TextControl name="Specific Chains" param={ParamDefinition.Text('', { label: 'Specific Chains', placeholder: 'A, B, ...' })} value={data.getSpecificChains() ?? ""} onChange={(v) => {
+            <TextControl name="Specific Chains" param={ParamDefinition.Text('', { label: 'Specific Chains', placeholder: 'A, B, ...' })} value={data.getSpecificChains()} onChange={(v) => {
                 let s = this.state;
                 //TODO probably validate here
                 if (s.poresFormData !== null) {
@@ -534,24 +529,9 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
         this.prepareSubmissionData(this.props.computationInfo);
     }
 
-
-    private changePoresSubmissionChainsFormat(computationInfo: CompInfo) {
-        let submissions = computationInfo.Submissions.map((v, i, a) => {
-            if (v.PoresConfig !== void 0 && Array.isArray(v.PoresConfig.Chains)) {
-                v.PoresConfig.Chains = (v.PoresConfig.Chains as string[]).join(",");
-            }
-
-            return v;
-        });
-
-        computationInfo.Submissions = submissions;
-
-        return computationInfo;
-    }
-
     private prepareSubmissionData(computationInfo: CompInfo) {
         let state_ = this.state;
-        state_.computationInfo = this.changePoresSubmissionChainsFormat(computationInfo);
+        state_.computationInfo = computationInfo;
         this.setState(state_);
 
         let hasKillable = false;
@@ -768,9 +748,9 @@ export class Submission extends React.Component<{ data: ServiceSubmission, compu
 
     getPoresJob(data: ServiceSubmission) {
         return <div className="panel-body">
-            Beta Structure: {(data.PoresConfig.IsBetaBarel === void 0) ? "False" : (data.PoresConfig.IsBetaBarel) ? "True" : "False"}<br />
+            Beta Structure: {(data.PoresConfig.IsBetaBarrel) ? "True" : "False"}<br />
             Membrane Region: {(data.PoresConfig.InMembrane === void 0) ? "False" : (data.PoresConfig.InMembrane) ? "True" : "False"}<br />
-            Specific Chains: {(data.PoresConfig.Chains === void 0) ? "" : data.PoresConfig.Chains}<br />
+            Specific Chains: {formatChains(data.PoresConfig.Chains)}<br />
             Probe Radius: {(data.PoresConfig === void 0) ? "" : data.PoresConfig.ProbeRadius}<br />
             Interior Threshold: {(data.PoresConfig === void 0) ? "" : data.PoresConfig.InteriorThreshold}<br />
         </div>
@@ -1239,22 +1219,17 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
         }
         try {
             const jsonData = JSON.parse(reader.result as string);
-            const check = isMoleConfigOrPoresConfig(jsonData);
-            if (check === null) {
-                throw Error("The file is not in the required format")
-            }
-            if (jsonData !== null) {
-                BridgeEvents.invokeCopyParameters({
-                    mode: check === "MoleConfig" ? "mole" : "pores",
-                    moleConfig: check === "MoleConfig" ? jsonData as MoleConfig : null,
-                    poresConfig: check !== "MoleConfig" ? jsonData as PoresConfig : null
-                });
-                props.setOpenControls(true);
-            }
+            const check = getParamsKind(jsonData);
+            BridgeEvents.invokeCopyParameters({
+                mode: check === "MoleConfig" ? "mole" : "pores",
+                moleConfig: check === "MoleConfig" ? jsonData as MoleConfig : null,
+                poresConfig: check === "PoresConfig" ? jsonData as PoresConfig : null
+            });
+            props.setOpenControls(true);
         } catch (error) {
             Events.invokeNotifyMessage({
                 messageType: "Danger",
-                message: `Error loading JSON: ${error}`
+                message: `Error loading JSON: ${error instanceof Error ? error.message : error}`
             });
         }
     }

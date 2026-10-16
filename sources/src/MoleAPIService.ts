@@ -77,13 +77,23 @@ export interface MoleConfigPoint {
 };
 export interface MoleConfigResidue { Chain: string, SequenceNumber: number, OperatorName: string, Name: string };
 
+// The API answers with every field filled in; a request may leave out the optional ones
 export interface PoresConfig {
     InMembrane?: boolean,
-    IsBetaBarel?: boolean,
-    Chains?: any | null //TODO:...
-    InteriorThreshold: number | null,
-    ProbeRadius: number | null
+    IsBetaBarrel?: boolean,
+    Chains?: string[] | null, // chain names as in the structure, e.g. ["A", "A_2"]; null or []: all chains
+    InteriorThreshold: number | null, // null: the default (0.8)
+    ProbeRadius: number | null // null: the default (13)
 };
+
+// Chain names typed as "A, B": one name per comma, blanks dropped
+export function parseChains(text: string): string[] {
+    return text.split(",").map(c => c.trim()).filter(c => c.length > 0);
+}
+
+export function formatChains(chains: string[] | null | undefined): string {
+    return (chains ?? []).join(", ");
+}
 
 // CSA residues come without an operator: they refer to the chain in any copy of it
 export interface CSAResidue { Name: string, Chain: string, SequenceNumber: number };
@@ -171,15 +181,16 @@ export class ApiService {
             console.log(url);
         }
 
-        let jsonRequestData = {
-            IsBetaBarel: data.IsBetaBarel,
+        // exactly these fields: the API refuses unknown ones
+        const body: PoresConfig = {
             InMembrane: data.InMembrane,
-            Chains: (data.Chains === null) ? "" : data.Chains,
-            InteriorThreshold: (data.InteriorThreshold === void 0 || data.InteriorThreshold === null) ? null : data.InteriorThreshold,
-            ProbeRadius: (data.ProbeRadius === void 0 || data.ProbeRadius === null) ? null : data.ProbeRadius
-        }
+            IsBetaBarrel: data.IsBetaBarrel,
+            Chains: data.Chains,
+            InteriorThreshold: data.InteriorThreshold,
+            ProbeRadius: data.ProbeRadius
+        };
 
-        return postJson(url, jsonRequestData).then(r => checkReport(r, url));
+        return postJson(url, body).then(r => checkReport(r, url));
     }
 
     public static getFilenameFromResponseHeader(r: Response) {

@@ -1,6 +1,6 @@
 import React from "react";
 import { ChannelsDBData, firstNonEmptyCategory, MoleData, Tunnel, TunnelMetaInfo } from "../../../DataInterface";
-import { CompInfo, MoleConfig, PoresConfig, Submission } from "../../../MoleAPIService";
+import { CompInfo, formatChains, MoleConfig, PoresConfig, Submission } from "../../../MoleAPIService";
 import { PDFTemplate, Service } from "../../../TemplateService";
 import { Events, Instances } from "../../../Bridge";
 import { Vizualizer } from "../../LayerVizualizer/Vizualizer";
@@ -424,9 +424,9 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
 
     private addParamsPagePores(template: string, params: PoresConfig) {
         template = this.replacePlaceholder(template, "PORES-PARAMS-VISIBLE", "visible");
-        template = this.replacePlaceholder(template, "BETA-STRUCTURE", (params.IsBetaBarel) ? "Yes" : "No");
+        template = this.replacePlaceholder(template, "BETA-STRUCTURE", (params.IsBetaBarrel) ? "Yes" : "No");
         template = this.replacePlaceholder(template, "MEMBRANE-REGION", (params.InMembrane) ? "Yes" : "No");
-        template = this.replacePlaceholder(template, "SPECIFIC-CHAINS", params.Chains);
+        template = this.replacePlaceholder(template, "SPECIFIC-CHAINS", formatChains(params.Chains));
 
         return template;
     }

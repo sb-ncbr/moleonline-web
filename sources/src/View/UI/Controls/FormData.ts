@@ -1,5 +1,5 @@
 
-import { MoleConfig, MoleConfigCavity, MoleConfigInput, MoleConfigOrigin, MoleConfigPoint, MoleConfigResidue, MoleConfigTunnel, PoresConfig } from "../../../MoleAPIService";
+import { formatChains, MoleConfig, MoleConfigCavity, MoleConfigInput, MoleConfigOrigin, MoleConfigPoint, MoleConfigResidue, MoleConfigTunnel, parseChains, PoresConfig } from "../../../MoleAPIService";
 import { Point, Residue, StartingPoint, StartingPointQuery, StartingPointResidue, StartingPointXYZ } from "./StartingPoints";
 
 export class Cavity implements MoleConfigCavity {
@@ -501,8 +501,9 @@ export class MoleFormData {
 
 export class PoresFormData {
     private InMembrane: boolean;
-    private IsBetaBarel: boolean;
-    private Chains: string | null;
+    private IsBetaBarrel: boolean;
+    // as typed in the form ("A, B"); the request gets the list
+    private ChainsText: string;
     private ProbeRadius: number | null;
     private InteriorThreshold: number | null;
 
@@ -514,19 +515,14 @@ export class PoresFormData {
             this.InMembrane = false;
         }
 
-        if (data !== void 0 && data.IsBetaBarel !== null && data.IsBetaBarel !== void 0) {
-            this.IsBetaBarel = data.IsBetaBarel;
+        if (data !== void 0 && data.IsBetaBarrel !== null && data.IsBetaBarrel !== void 0) {
+            this.IsBetaBarrel = data.IsBetaBarrel;
         }
         else {
-            this.IsBetaBarel = false;
+            this.IsBetaBarrel = false;
         }
 
-        if (data !== void 0 && data.Chains !== null && data.Chains !== void 0) {
-            this.Chains = data.Chains;
-        }
-        else {
-            this.Chains = null;
-        }
+        this.ChainsText = formatChains(data?.Chains);
 
         if (data !== void 0 && data.InteriorThreshold !== null && data.InteriorThreshold !== void 0) {
             this.InteriorThreshold = data.InteriorThreshold;
@@ -544,11 +540,11 @@ export class PoresFormData {
     }
 
     public setBetaStructure(value: boolean) {
-        this.IsBetaBarel = value;
+        this.IsBetaBarrel = value;
     }
 
     public getBetaStructure() {
-        return this.IsBetaBarel;
+        return this.IsBetaBarrel;
     }
 
     public setMembraneRegion(value: boolean) {
@@ -560,11 +556,11 @@ export class PoresFormData {
     }
 
     public setSpecificChains(value: string) {
-        this.Chains = value;
+        this.ChainsText = value;
     }
 
     public getSpecificChains() {
-        return this.Chains;
+        return this.ChainsText;
     }
 
     public setProbeRadius(value: number) {
@@ -587,9 +583,9 @@ export class PoresFormData {
 
     public getPackage(): PoresConfig {
         return {
-            Chains: this.Chains,
+            Chains: parseChains(this.ChainsText),
             InMembrane: this.InMembrane,
-            IsBetaBarel: this.IsBetaBarel,
+            IsBetaBarrel: this.IsBetaBarrel,
             InteriorThreshold: this.InteriorThreshold,
             ProbeRadius: this.ProbeRadius
         }
