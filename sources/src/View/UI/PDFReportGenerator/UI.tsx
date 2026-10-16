@@ -427,7 +427,7 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
     private addParamsPagePores(template: string, params: PoresConfig) {
         template = this.replacePlaceholder(template, "PORES-PARAMS-VISIBLE", "visible");
         template = this.replacePlaceholder(template, "BETA-STRUCTURE", (params.IsBetaBarel) ? "Yes" : "No");
-        template = this.replacePlaceholder(template, "MEMBRANE-REGION", (params.IsBetaBarel) ? "Yes" : "No");
+        template = this.replacePlaceholder(template, "MEMBRANE-REGION", (params.InMembrane) ? "Yes" : "No");
         template = this.replacePlaceholder(template, "SPECIFIC-CHAINS", params.Chains);
 
         return template;

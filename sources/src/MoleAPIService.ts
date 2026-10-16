@@ -229,7 +229,7 @@ export class ApiService {
         }
 
         let jsonRequestData = {
-            IsBetaStructure: data.IsBetaBarel,
+            IsBetaBarel: data.IsBetaBarel,
             InMembrane: data.InMembrane,
             Chains: (data.Chains === null) ? "" : data.Chains,
             InteriorThreshold: (data.InteriorThreshold === void 0 || data.InteriorThreshold === null) ? null : data.InteriorThreshold,
