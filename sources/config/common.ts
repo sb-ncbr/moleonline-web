@@ -9,9 +9,8 @@ export class Routing {
 }
 
 export class DataSources {
-    public static API_URL: any = {
-        "upol": "https://api.mole.upol.cz",
-    }
+    // Set at build time from VITE_API_URL (.env.development for development, the environment otherwise)
+    public static API_URL: string = import.meta.env.VITE_API_URL;
 
     public static PATTERN_QUERY_API_URL: any = {
         "webchem": "https://webchem.ncbr.muni.cz/Platform/PatternQuery/ValidateQuery",
@@ -21,7 +20,6 @@ export class DataSources {
         "channelsdb2": "https://channelsdb2.biodata.ceitec.cz/api",
     }
 
-    public static MODE = "upol";
     public static PATTERN_QUERY_MODE = "webchem";
     public static ANNOTATION_API_MODE = "channelsdb2";
 }

@@ -101,7 +101,7 @@ export type MembranePoints = MembranePoint[];
 export class ApiService {
     private static DEBUG_MODE = CommonOptions.DEBUG_MODE;
 
-    private static baseUrl = DataSources.API_URL[DataSources.MODE];
+    private static baseUrl = DataSources.API_URL;
 
     private static prepareInitUrl(pdbid: string, usePores: boolean, assemblyId?: string) {
         const pores = usePores ? 'Pores/' : '';

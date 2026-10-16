@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url';
-import { defineConfig, type Connect, type Plugin } from 'vite';
+import { defineConfig, loadEnv, type Connect, type Plugin } from 'vite';
 
+const envDir = fileURLToPath(new URL('.', import.meta.url));
 const page = (path: string) => fileURLToPath(new URL(`./sources/${path}`, import.meta.url));
 
 // The same /online/... rewrites as docker/nginx.*.conf, for the dev and preview servers
@@ -22,21 +23,30 @@ const onlineRoutes: Plugin = {
     },
 };
 
-export default defineConfig({
-    root: 'sources',
-    // Served as-is at the site root: images, PDF report templates, example data and legacy global scripts
-    publicDir: '../public',
-    plugins: [onlineRoutes],
-    build: {
-        outDir: '../dist',
-        emptyOutDir: true,
-        rolldownOptions: {
-            input: {
-                index: page('index.html'),
-                detail: page('html/detail.html'),
-                about: page('html/about.html'),
-                news: page('html/news.html'),
+export default defineConfig(({ mode, isPreview }) => {
+    // The app has no built-in API URL; fail early instead of producing a site that calls nowhere
+    if (!isPreview && !loadEnv(mode, envDir, 'VITE_').VITE_API_URL) {
+        throw new Error('VITE_API_URL is not set. Set it in the environment, e.g. VITE_API_URL=https://... npm run build');
+    }
+
+    return {
+        root: 'sources',
+        // Served as-is at the site root: images, PDF report templates, example data and legacy global scripts
+        publicDir: '../public',
+        // .env files live next to package.json, not in sources/
+        envDir,
+        plugins: [onlineRoutes],
+        build: {
+            outDir: '../dist',
+            emptyOutDir: true,
+            rolldownOptions: {
+                input: {
+                    index: page('index.html'),
+                    detail: page('html/detail.html'),
+                    about: page('html/about.html'),
+                    news: page('html/news.html'),
+                },
             },
         },
-    },
+    };
 });

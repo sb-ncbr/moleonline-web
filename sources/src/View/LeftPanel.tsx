@@ -79,7 +79,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
             if (info.PdbId === '') {
                 (async () => {
                     LoadingStatus.log('Parsing data from current session...');
-                    const data = await loadCifTunnels(`${DataSources.API_URL[DataSources.MODE]}/Data/${computationId}?submitId=0&format=molecule`);
+                    const data = await loadCifTunnels(`${DataSources.API_URL}/Data/${computationId}?submitId=0&format=molecule`);
                     if (data) {
                         const dataObj = { Channels: data.Channels } as MoleData;
                         let guidData = TunnelsId.generateGuidAll(dataObj.Channels);

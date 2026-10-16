@@ -8,6 +8,9 @@ RUN npm ci
 
 COPY . ./
 
+# MOLE API URL baked into the site, e.g. --build-arg VITE_API_URL=https://...
+ARG VITE_API_URL
+
 RUN npm run build
 
 FROM nginx:1.29-alpine-slim

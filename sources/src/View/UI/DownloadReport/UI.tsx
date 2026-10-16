@@ -69,7 +69,7 @@ class DownloadResultsMenu extends React.Component<{}, DownloadResultsMenuState> 
     private async generateMoleculeContent() {
         let computationId = this.state.computationId;
         let submitId = `?submitId=${this.state.submitId}`;
-        let linkBase = `${DataSources.API_URL[DataSources.MODE]}/Data/${computationId}${submitId}`;
+        let linkBase = `${DataSources.API_URL}/Data/${computationId}${submitId}`;
         const url = `${linkBase}&format=molecule`
 
         const response = await fetch(url)
@@ -124,7 +124,7 @@ ${auditLine}
         let computationId = this.state.computationId;
         let submitId = `?submitId=${this.state.submitId}`;
 
-        let linkBase = `${DataSources.API_URL[DataSources.MODE]}/Data/${computationId}${submitId}`;
+        let linkBase = `${DataSources.API_URL}/Data/${computationId}${submitId}`;
 
         let items: JSX.Element[] = [];
 

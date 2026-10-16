@@ -6,7 +6,7 @@
     "jsx": "react-jsx",
     "esModuleInterop": true,
     "strict": true,
-    "types": ["node"],
+    "types": ["node", "vite/client"],
     "noUnusedLocals": true,
     "sourceMap": true,
     "rootDir": "./sources",

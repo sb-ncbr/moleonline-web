@@ -7,3 +7,4 @@ debug.log
 tmp/
 dev/
 dist/
+.env*.local

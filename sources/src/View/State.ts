@@ -260,7 +260,7 @@ function downloadProteinData(computationId: string, submitId: number) {
     return new Promise<any>(async (res, rej) => {
         try {
             const p = await ApiService.getComputationInfoList(computationId);
-            await Context.getInstance().load(`${DataSources.API_URL[DataSources.MODE]}/Data/${computationId}?submitId=${submitId}&format=molecule`, false, p.AssemblyId)
+            await Context.getInstance().load(`${DataSources.API_URL}/Data/${computationId}?submitId=${submitId}&format=molecule`, false, p.AssemblyId)
                 .then((data) => {
                     res(data);
                 })

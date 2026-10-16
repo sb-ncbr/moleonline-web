@@ -223,7 +223,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
         const computationId = params.computationId;
         try {
             TwoDProtsProxy.Watcher.startJob(
-                `${DataSources.API_URL[DataSources.MODE]}/Data/${computationId}?submitId=${submitId}&format=molecule`,
+                `${DataSources.API_URL}/Data/${computationId}?submitId=${submitId}&format=molecule`,
                 TwoDProtsBridge.getVizualizedChannels(),
                 (status, jobId, errorMsg) => {
                     console.log(`2DProts Job Status: ${status}`);

@@ -5,6 +5,8 @@ services:
         build:
             context: ..
             dockerfile: ./docker/Dockerfile
+            args:
+                VITE_API_URL: ${VITE_API_URL:?Set VITE_API_URL to the MOLE API URL}
         restart: unless-stopped
         container_name: moleonline-web
         ports:
