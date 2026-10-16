@@ -80,7 +80,7 @@ export class InitForm extends React.Component<{}, State> {
         }
         else if (file.size > MAX_UPLOAD_MB * 1024 * 1024) {
             // the API refuses it too (413); this saves the upload
-            this.showError(`The file is too large, at most ${MAX_UPLOAD_MB} MB can be uploaded. Compressed files (*.gz) are accepted.`);
+            this.showError(`The file is too large, at most ${MAX_UPLOAD_MB} MB can be uploaded. Gzipped files (*.pdb.gz, *.cif.gz) are accepted.`);
         }
         else {
             let data = new FormData();
@@ -244,8 +244,9 @@ export class InitForm extends React.Component<{}, State> {
                     <tr>
                         <td><label htmlFor="frm-jobSetup-setupForm-file">Upload file</label>:</td>
                         <td>
-                            <input type="file" name="file" className="text" id="frm-jobSetup-setupForm-file" style = {{ maxWidth: '250px' }} data-bs-toggle="tooltip" title="                                Plain text PDB files (UTF-8 encoding), ZIP and GZIP archives are supported,
-                                maximal file size is 30 MB. E.g. cleaned PDB with only one chain and without unnecessary HETATMs."/>
+                            <input type="file" name="file" className="text" id="frm-jobSetup-setupForm-file" style = {{ maxWidth: '250px' }}
+                                   accept=".pdb,.cif,.gz" data-bs-toggle="tooltip"
+                                   title={`PDB (*.pdb) and mmCIF (*.cif) files, also gzipped (*.pdb.gz, *.cif.gz), at most ${MAX_UPLOAD_MB} MB. Only the first model is used. E.g. cleaned PDB with only one chain and without unnecessary HETATMs.`}/>
                         </td>
                     </tr>
                 </tbody>
