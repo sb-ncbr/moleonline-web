@@ -103,7 +103,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
 
         data.setIgnoreHETATMs(true);
         data.setIgnoreHydrogens(false);
-        data.setReadAllModels(false);
         data.setProbeRadius(5);
         data.setInteriorThreshold(1.1);
         data.setOriginRadius(5);
@@ -322,14 +321,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                             this.setState(s);
                         }
                     }} />
-                    <BoolControl name='Read All Models' param={ParamDefinition.Boolean(false, { label: 'Read All Models' })} value={valueOrDefault(data.getReadAllModels(), false)} onChange={(v) => {
-                        let s = this.state;
-                        if (s.moleFormData !== null) {
-                            s.moleFormData.setReadAllModels(v.value);
-                            this.setState(s);
-                        }
-                    }}
-                    />
                     <TextControl name="Ignored Residues" param={ParamDefinition.Text('', { label: 'Ignored Residues', placeholder: 'A 69, A 386, ...' })} value={valueOrDefault(data.getIgnoredResiduesStr(), "")} onChange={(v) => {
                         let s = this.state;
                         if (s.moleFormData !== null) {
@@ -758,7 +749,6 @@ export class Submission extends React.Component<{ data: ServiceSubmission, compu
             Ignore Hydrogens: {(data.MoleConfig.Cavity === void 0) ? "False" : (data.MoleConfig.Cavity.IgnoreHydrogens) ? "True" : "False"}<br />
             Ignore HETATMs: {(data.MoleConfig.Cavity === void 0) ? "False" : (data.MoleConfig.Cavity.IgnoreHETAtoms) ? "True" : "False"}<br />
             Query Filter: {(data.MoleConfig.QueryFilter === void 0) ? "" : data.MoleConfig.QueryFilter}<br />
-            Read All Models: {(data.MoleConfig.Input === void 0) ? "False" : (data.MoleConfig.Input.ReadAllModels) ? "True" : "False"}<br />
             Ignored Residues: {(data.MoleConfig.NonActiveResidues === void 0 || data.MoleConfig.NonActiveResidues === null) ? "" : flattenResidues(data.MoleConfig.NonActiveResidues)}<br />
             Specific Chains: {(data.MoleConfig.Input === void 0) ? "" : data.MoleConfig.Input.SpecificChains}<br />
             <h4>Cavity Parameters</h4>

@@ -311,11 +311,9 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
         let origin = params.Origin;
         let tunnel = params.Tunnel;
         if (input !== void 0) {
-            template = this.replacePlaceholder(template, "READ-ALL-MODELS", (input.ReadAllModels) ? "Yes" : "No");
             template = this.replacePlaceholder(template, "SPECIFIC-CHAINS", input.SpecificChains);
         }
         else {
-            emptyPlaceholders.push("READ-ALL-MODELS");
             emptyPlaceholders.push("SPECIFIC-CHAINS");
         }
         if (cavity !== void 0) {

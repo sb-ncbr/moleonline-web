@@ -3,8 +3,7 @@
   "PoresInit":true,
   "Config": {
     "Input": {
-      "SpecificChains": "",
-      "ReadAllModels": false
+      "SpecificChains": ""
     },
     "Cavity": {
       "IgnoreHETAtoms": true,

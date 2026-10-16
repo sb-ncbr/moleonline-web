@@ -17,11 +17,9 @@ export class Cavity implements MoleConfigCavity {
 }
 
 export class Input implements MoleConfigInput {
-    public ReadAllModels: boolean
     public SpecificChains: string
 
     public constructor() {
-        this.ReadAllModels = false;
         this.SpecificChains = "";
     }
 }
@@ -96,7 +94,6 @@ export class MoleFormData {
 
         if (data !== void 0 && data.Input !== null && data.Input !== void 0) {
             this.Input = {
-                ReadAllModels: data.Input.ReadAllModels,
                 SpecificChains: data.Input.SpecificChains
             }
         }
@@ -215,20 +212,6 @@ export class MoleFormData {
             return null;
         }
         return this.Cavity.ProbeRadius;
-    }
-
-    public setReadAllModels(value: boolean) {
-        if (this.Input === null) {
-            this.Input = new Input();
-        }
-        this.Input.ReadAllModels = value;
-    }
-
-    public getReadAllModels() {
-        if (this.Input === null) {
-            return null;
-        }
-        return this.Input.ReadAllModels;
     }
 
     public setSpecificChains(value: string) {

@@ -4,7 +4,7 @@ function isMoleConfig(obj: any): obj is MoleConfig {
     if (obj == null || typeof obj !== 'object') return false;
 
     if (obj.Input !== undefined) {
-        if (typeof obj.Input.SpecificChains !== 'string' || typeof obj.Input.ReadAllModels !== 'boolean') {
+        if (typeof obj.Input.SpecificChains !== 'string') {
             return false;
         }
     }

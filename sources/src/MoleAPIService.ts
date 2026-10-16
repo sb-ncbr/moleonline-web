@@ -47,8 +47,7 @@ export interface MoleConfig {
     PoresAuto?: boolean
 };
 export interface MoleConfigInput {
-    SpecificChains: string,
-    ReadAllModels: boolean
+    SpecificChains: string
 };
 export interface MoleConfigCavity {
     IgnoreHETAtoms: boolean,
