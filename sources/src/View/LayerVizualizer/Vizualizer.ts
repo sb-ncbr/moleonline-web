@@ -534,13 +534,13 @@ export class Vizualizer {
     }
 
     public rebindDOMRefs() {
-        var cnvs = document.getElementById(this.canvasId);
+        let cnvs = document.getElementById(this.canvasId);
         if (cnvs == null) {
             throw new Error("Canvas element with id " + String(this.canvasId) + " not found");
         }
         this.__canvas = cnvs as HTMLCanvasElement;
 
-        var cntx = this.__canvas.getContext("2d", { willReadFrequently: true });
+        let cntx = this.__canvas.getContext("2d", { willReadFrequently: true });
         if (cntx == null) {
             throw new Error("Cannot obtain 2D canvas context");
         }
@@ -629,11 +629,11 @@ export class Vizualizer {
         let currentHeight = canvas.height;
         let colorMixerMinPxWidth = 150;
 
-        var toRealPx = function (width: number, height: number, component: Positionable) {
+        let toRealPx = function (width: number, height: number, component: Positionable) {
             return component.toBounds(width, height);
         };
 
-        var toPercent = function (width: number, height: number, realX: number, realY: number) {
+        let toPercent = function (width: number, height: number, realX: number, realY: number) {
             return {
                 x: (realX / width) * 100,
                 y: (realY / height) * 100
@@ -1418,8 +1418,8 @@ export class Vizualizer {
     }
 
     private wrapSVG() {
-        var canvas = this.getCanvas();
-        var ctx = new C2S(canvas.width, canvas.height);
+        let canvas = this.getCanvas();
+        let ctx = new C2S(canvas.width, canvas.height);
 
         if (ctx === null) {
             throw new Error("Unable to initialize new drawing context!");
@@ -1595,7 +1595,7 @@ export class Vizualizer {
         let skipMiddle = settings.skipMiddle;
         let middle = (settings.centerAbsolute) ? settings.centerPosition : (minVal + maxVal) / 2;
 
-        var rgb: RGBColor;
+        let rgb: RGBColor;
 
         if (value < (minVal + maxVal) / 2) {
             rgb = ChannelDbPlugin.Palette.interpolate(minVal, minColor, middle, maxColorMiddle, value);

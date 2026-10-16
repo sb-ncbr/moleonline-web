@@ -280,12 +280,12 @@ export class ArrowHeadLine extends ContextAwareObject {
         this.context.restore();
 
         // draw the starting arrowhead
-        var startRadians = Math.atan((y2 - y1) / (x2 - x1));
+        let startRadians = Math.atan((y2 - y1) / (x2 - x1));
         startRadians += ((x2 > x1) ? -90 : 90) * Math.PI / 180;
         this.drawArrowhead(x1, y1, startRadians);
 
         // draw the ending arrowhead
-        var endRadians = Math.atan((y2 - y1) / (x2 - x1));
+        let endRadians = Math.atan((y2 - y1) / (x2 - x1));
         endRadians += ((x2 > x1) ? 90 : -90) * Math.PI / 180;
         this.drawArrowhead(x2, y2, endRadians);
     }

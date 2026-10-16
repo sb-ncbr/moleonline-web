@@ -80,7 +80,7 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
     vizualizer!: Vizualizer
 
     componentDidMount() {
-        var vizualizer = this.props.vizualizer;
+        let vizualizer = this.props.vizualizer;
 
         vizualizer.setColorBoundsMode(this.state.colorBoundsMode);
 

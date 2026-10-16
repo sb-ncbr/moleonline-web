@@ -23,7 +23,7 @@ export function activateTab(tabbedElementId: string, tabId: string) {
 }
 
 export function doAfterTabActivated(tabbedElementId: string, tabId: string, callback: () => void) {
-    var checker = function () {
+    let checker = function () {
         let link = getTabLinkById(tabbedElementId, tabId);
         let href = link.attr("href");
         if (link.attr("class").indexOf("active") >= 0 && $(href).css("display") !== "none") {
@@ -37,7 +37,7 @@ export function doAfterTabActivated(tabbedElementId: string, tabId: string, call
 }
 
 export function leftPanelTabs() {
-    var checker = function () {
+    let checker = function () {
         const leftPanel = $("#left-panel");
         const tabs = $("#left-panel-tabs")[0];
 

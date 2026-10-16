@@ -6,6 +6,7 @@
     "jsx": "react-jsx",
     "esModuleInterop": true,
     "strict": true,
+    "noUnusedLocals": true,
     "sourceMap": true,
     "outDir": "./dist"
   },
