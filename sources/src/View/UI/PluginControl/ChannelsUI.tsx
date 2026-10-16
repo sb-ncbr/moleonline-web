@@ -201,7 +201,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
         channels.set('Procognate Tunnels MOLE', (!submissionChannels.ProcognateTunnels_MOLE) ? [] : submissionChannels.ProcognateTunnels_MOLE);
         channels.set('Procognate Tunnels Caver', (!submissionChannels.ProcognateTunnels_Caver) ? [] : submissionChannels.ProcognateTunnels_Caver);
         channels.set('AlphaFill Tunnels MOLE', (!submissionChannels.AlphaFillTunnels_MOLE) ? [] : submissionChannels.AlphaFillTunnels_MOLE);
-        channels.set('AlphaFill Tunnels_Caver', (!submissionChannels.AlphaFillTunnels_Caver) ? [] : submissionChannels.AlphaFillTunnels_Caver);
+        channels.set('AlphaFill Tunnels Caver', (!submissionChannels.AlphaFillTunnels_Caver) ? [] : submissionChannels.AlphaFillTunnels_Caver);
 
         channels.forEach((val, key, map) => {
             if (val.length > 0) {

@@ -254,13 +254,13 @@ export class InitForm extends React.Component<{}, State> {
                 break;
             }
             sessions.push(
-                <LastSession session={session} parent={this} />
+                <LastSession key={i} session={session} parent={this} />
             );
         }
 
         if (sessions.length === 0) {
             sessions.push(
-                <tr>
+                <tr key="none">
                     <td colSpan={4}>
                         There are no last opened sessions available...
                     </td>
