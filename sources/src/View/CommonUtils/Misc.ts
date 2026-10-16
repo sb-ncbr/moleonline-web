@@ -26,7 +26,7 @@ export function flattenResiduesArray(residuesArray: MoleConfigResidue[][]): stri
     return rv;
 }
 
-export function flattenResidues(residues: MoleConfigResidue[]): string {
+export function flattenResidues(residues: { Chain: string, SequenceNumber: number }[]): string {
     let rv = "";
     for (let r of residues) {
         if (rv !== "") {

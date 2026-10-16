@@ -1,5 +1,4 @@
 import { getStructureOptions } from "molstar/lib/mol-plugin-ui/sequence";
-import { MoleConfigResidue } from "../../MoleAPIService";
 import { Context } from "../Context";
 import { PluginStateObject } from 'molstar/lib/mol-plugin-state/objects';
 import { StructureElement, StructureSelection, StructureQuery, StructureProperties } from "molstar/lib/mol-model/structure";
@@ -197,7 +196,8 @@ export class Residues {
             return StructureProperties.atom.label_comp_id(location);
     }
 
-    public static getCenterOfMass(residues: MoleConfigResidue[]): Point | null {
+    // Residues without an operator (CSA) match the first copy of their chain
+    public static getCenterOfMass(residues: { Chain: string, SequenceNumber: number, OperatorName?: string }[]): Point | null {
         let positions: Point[] = [];
         let plugin = Context.getInstance().plugin;
 
@@ -212,7 +212,7 @@ export class Residues {
         for (let residue of residues) {
             const loci = StructureQuery.loci(atoms({
                 unitTest: ctx => {
-                    return StructureProperties.unit.operator_name(ctx.element) === residue.OperatorName;
+                    return residue.OperatorName === void 0 || StructureProperties.unit.operator_name(ctx.element) === residue.OperatorName;
                 },
                 chainTest: ctx => {
                     return StructureProperties.chain.label_asym_id(ctx.element) === residue.Chain || StructureProperties.chain.auth_asym_id(ctx.element) === residue.Chain;
@@ -221,21 +221,15 @@ export class Residues {
                     return StructureProperties.residue.auth_seq_id(ctx.element) === residue.SequenceNumber;
                 }
             }), structure)
-            const boundary = StructureElement.Loci.getBoundary(loci);
             const location = StructureElement.Loci.getFirstLocation(loci);
-            if (location) {
-                positions.push({
-                    X: StructureProperties.atom.x(location),
-                    Y: StructureProperties.atom.y(location),
-                    Z: StructureProperties.atom.z(location),
-                })
-            } else {
-                positions.push({
-                    X: (boundary.box.max[0] + boundary.box.min[0]) / 2,
-                    Y: (boundary.box.max[1] + boundary.box.min[1]) / 2,
-                    Z: (boundary.box.max[2] + boundary.box.min[2]) / 2,
-                })
+            if (!location) {
+                continue; // the residue is not in the structure
             }
+            positions.push({
+                X: StructureProperties.atom.x(location),
+                Y: StructureProperties.atom.y(location),
+                Z: StructureProperties.atom.z(location),
+            })
         }
 
         if (positions.length === 1) {

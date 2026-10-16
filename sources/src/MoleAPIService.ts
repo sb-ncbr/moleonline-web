@@ -93,7 +93,8 @@ export interface VersionResponse {
     Build: string
 };
 
-export type CSAResidue = MoleConfigResidue;
+// CSA residues come without an operator: they refer to the chain in any copy of it
+export interface CSAResidue { Name: string, Chain: string, SequenceNumber: number };
 export type CSAResidues = CSAResidue[][];
 export type ResidueName = string;
 export type PatternQueryExpression = string;
