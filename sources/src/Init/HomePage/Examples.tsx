@@ -28,10 +28,7 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
             .then((response) => {
                 this.handleFormSubmitResponse(response);
             })
-            .catch((reason) => {
-                //TODO:...
-                console.log(reason);
-            })
+            .catch((reason) => this.showError(`The MOLE API could not be reached, please try again later. (${reason instanceof Error ? reason.message : reason})`))
 
         return false;
     }
@@ -79,13 +76,22 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
         }
     }
 
+    private showError(message: string) {
+        this.setState({ activeButton: -1 });
+        Events.invokeNotifyMessage({
+            messageType: "Danger",
+            message
+        });
+    }
+
     private async handleFormSubmitResponse(response: InitResponse) {
+        if (response.Status === "Error") {
+            this.showError(response.ErrorMsg);
+            return;
+        }
+
         if (response.Status === "FailedInitialization") {
-            this.setState({ activeButton: -1 });
-            Events.invokeNotifyMessage({
-                messageType: "Danger",
-                message: `API was unable to initialize computation with specified parameters. API responded with message: ${response.ErrorMsg}`
-            })
+            this.showError(`API was unable to initialize computation with specified parameters. API responded with message: ${response.ErrorMsg}`);
             return;
         }
 
@@ -104,17 +110,13 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
             return;
         }
 
-        this.setState({ activeButton: -1 });
-        Events.invokeNotifyMessage({
-            messageType: "Danger",
-            message: `Unexpected computation status recieved from API: ${response.Status}`
-        })
+        this.showError(`Unexpected computation status received from API: ${response.Status}`);
     }
 
     private waitForComputationInitialization() {
-        ApiService.getStatus(this.computationId, this.submitId).then((response) => {
-            this.handleFormSubmitResponse(response);
-        });
+        ApiService.getStatus(this.computationId, this.submitId)
+            .then((response) => this.handleFormSubmitResponse(response))
+            .catch((reason) => this.showError(`The MOLE API could not be reached, please try again later. (${reason instanceof Error ? reason.message : reason})`));
     }
 
     examples = [

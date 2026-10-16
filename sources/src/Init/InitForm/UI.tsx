@@ -75,10 +75,7 @@ export class InitForm extends React.Component<{}, State> {
                 .then((response) => {
                     this.handleFormSubmitResponse(response);
                 })
-                .catch((reason) => {
-                    //TODO:...
-                    console.log(reason);
-                })
+                .catch((reason) => this.showRequestError(reason))
         }
         else if (file.size > MAX_UPLOAD_MB * 1024 * 1024) {
             // the API refuses it too; this saves the upload
@@ -96,34 +93,36 @@ export class InitForm extends React.Component<{}, State> {
                 .then((response) => {
                     this.handleFormSubmitResponse(response);
                 })
-                .catch((reason) => {
-                    //TODO:...
-                    console.log(reason);
-                })
+                .catch((reason) => this.showRequestError(reason))
         }
 
         return false;
     }
 
+    // Re-enables the form and tells the user why the computation did not start
+    private showError(message: string) {
+        let $next = $('#frm-jobSetup-setupForm-next');
+        $next.prop('disabled', false);
+        $next.val('Submit');
+        Events.invokeNotifyMessage({
+            messageType: "Danger",
+            message
+        });
+    }
+
+    private showRequestError(reason: unknown) {
+        this.showError(`The MOLE API could not be reached, please try again later. (${reason instanceof Error ? reason.message : reason})`);
+    }
+
     private handleFormSubmitResponse(response: InitResponse) {
         let $next = $('#frm-jobSetup-setupForm-next');
         if (response.Status === "Error") {
-            $next.prop('disabled', false);
-            $next.val('Submit');
-            Events.invokeNotifyMessage({
-                messageType: "Danger",
-                message: response.ErrorMsg
-            })
+            this.showError(response.ErrorMsg);
             return;
         }
 
         if (response.Status === "FailedInitialization") {
-            $next.prop('disabled', false);
-            $next.val('Submit');
-            Events.invokeNotifyMessage({
-                messageType: "Danger",
-                message: `API was unable to initialize computation with specified parameters. API responded with message: ${response.ErrorMsg}`
-            })
+            this.showError(`API was unable to initialize computation with specified parameters. API responded with message: ${response.ErrorMsg}`);
             return;
         }
 
@@ -148,18 +147,13 @@ export class InitForm extends React.Component<{}, State> {
             return;
         }
 
-        $next.prop('disabled', false);
-        $next.val('Submit');
-        Events.invokeNotifyMessage({
-            messageType: "Danger",
-            message: `Unexpected computation status received from API: ${response.Status}`
-        })
+        this.showError(`Unexpected computation status received from API: ${response.Status}`);
     }
 
     private waitForComputationInitialization() {
-        ApiService.getStatus(this.computationId, this.submitId).then((response) => {
-            this.handleFormSubmitResponse(response);
-        });
+        ApiService.getStatus(this.computationId, this.submitId)
+            .then((response) => this.handleFormSubmitResponse(response))
+            .catch((reason) => this.showRequestError(reason));
     }
 
     private asymmetricUnitChange(e: React.ChangeEvent<HTMLInputElement>) {

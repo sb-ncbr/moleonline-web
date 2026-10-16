@@ -148,6 +148,12 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                                 state.canSubmit = true;
                                 this.props.parent.setState(state);
                                 BridgeEvents.invokeSubmitDone(result.SubmitId);
+                                if (status.Status === "Error") {
+                                    BridgeEvents.invokeNotifyMessage({
+                                        messageType: "Danger",
+                                        message: `Submission #${result.SubmitId} failed: ${status.ErrorMsg}`
+                                    });
+                                }
                             }
                         }, (err) => {
                             BridgeEvents.invokeNotifyMessage({

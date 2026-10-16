@@ -1,6 +1,7 @@
 import React from "react";
 import { SelectionHelper } from "../../CommonUtils/Selection";
-import { ComputationInfo } from "../../../DataProxy";
+import { ComputationInfo, JobStatus } from "../../../DataProxy";
+import { CompInfo } from "../../../MoleAPIService";
 import { TunnelName } from "../../../Cache";
 import { Events } from "../../../Bridge";
 import { MoleChannels, Tunnel } from "../../../DataInterface";
@@ -12,7 +13,8 @@ interface State {
     channelSelected: boolean,
     hasSubmissions: boolean,
     fromPDBID: boolean,
-    hasChannels: boolean
+    hasChannels: boolean,
+    failure: string | null // why the current submission failed
 };
 
 export class QuickHelp extends React.Component<{}, State> {
@@ -22,37 +24,61 @@ export class QuickHelp extends React.Component<{}, State> {
         channelSelected: false,
         hasSubmissions: false,
         fromPDBID: false,
-        hasChannels: false
+        hasChannels: false,
+        failure: null
     };
+
+    private compInfo: CompInfo | null = null;
+    private currentSubmitId: number | null = null;
+
+    // Shows why the current submission failed: from CompInfo, or from the status of a job still running
+    private checkCurrentSubmission() {
+        const submitId = this.currentSubmitId;
+        const submission = this.compInfo?.Submissions.find(s => s.SubmitId === submitId);
+        if (this.compInfo === null || submitId === null || submission === undefined) {
+            return;
+        }
+        if (submission.Status === "Error") {
+            this.setState({ failure: submission.ErrorMsg });
+        }
+        else if (submission.Status === "Running" || submission.Status === "Initializing") {
+            JobStatus.Watcher.registerOnChangeHandler(this.compInfo.ComputationId, submitId, (status) => {
+                if (status.Status === "Error" && this.currentSubmitId === submitId) {
+                    this.setState({ failure: status.ErrorMsg });
+                }
+            }, () => { });
+        }
+    }
 
     componentDidMount() {
         let channelSelected = SelectionHelper.isSelectedAnyChannel();
         if (channelSelected !== this.state.channelSelected) {
-            let s = this.state;
-            s.channelSelected = channelSelected;
-            this.setState(s);
+            this.setState({ channelSelected });
         }
+        // Each handler updates only its own keys, so that updates in the same tick do not overwrite each other
         SelectionHelper.attachOnChannelDeselectHandler(() => {
-            let state = this.state;
-            state.channelSelected = false;
-            this.setState(state);
+            this.setState({ channelSelected: false });
         });
         SelectionHelper.attachOnChannelSelectHandler((data) => {
-            let state = this.state;
-            state.channelSelected = true;
-            this.setState(state);
+            this.setState({ channelSelected: true });
         });
 
         let params = getParameters();
         if (params !== null) {
+            this.currentSubmitId = params.isChannelsDB ? null : params.submitId;
+            Events.subscribeChangeSubmitId((submitId) => {
+                this.currentSubmitId = submitId;
+                this.setState({ failure: null });
+                this.checkCurrentSubmission();
+            });
             ComputationInfo.DataProvider.subscribe(params.computationId, (compid, info) => {
-                let s1 = this.state;
-
-                s1.fromPDBID = !(info.PdbId === null || info.PdbId === void 0 || info.PdbId === '');
-                s1.hasSubmissions = info.Submissions.length > 0;
-                s1.hasChannels = TunnelName.getCachedItemsCount() > 0;
-
-                this.setState(s1);
+                this.compInfo = info;
+                this.setState({
+                    fromPDBID: !(info.PdbId === null || info.PdbId === void 0 || info.PdbId === ''),
+                    hasSubmissions: info.Submissions.length > 0,
+                    hasChannels: TunnelName.getCachedItemsCount() > 0,
+                });
+                this.checkCurrentSubmission();
             });
             Events.subscribeChannelDataLoaded((data) => {
                 let channelsData = (data.Channels as MoleChannels);
@@ -63,9 +89,7 @@ export class QuickHelp extends React.Component<{}, State> {
                 tunnels = Tunnels.concatTunnelsSafe(tunnels, channelsData.Pores);
                 tunnels = Tunnels.concatTunnelsSafe(tunnels, channelsData.Tunnels);
 
-                let s2 = this.state;
-                s2.hasChannels = tunnels.length > 0;
-                this.setState(s2);
+                this.setState({ hasChannels: tunnels.length > 0 });
             })
         }
     }
@@ -104,7 +128,12 @@ export class QuickHelp extends React.Component<{}, State> {
             );
         }
         else { //has submissions
-            if (this.state.hasChannels) { //has submissions and channels were computed
+            if (this.state.failure !== null) { //the current submission failed; hasChannels counts other submissions too
+                hints.push(<div key={'failure'}>
+                    <b>The submission failed:</b>
+                    <p>{this.state.failure}</p>
+                </div>);
+            } else if (this.state.hasChannels) { //has submissions and channels were computed
                 hints.push(<div key={'channel-visibility'}>
                     <b>To see channel results:</b>
                     <ul>
