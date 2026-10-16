@@ -1,9 +1,0 @@
-{
-  "Mode": "Pores",
-  "PoresInit":true,
-  "Config": {
-    "InMembrane": true,
-    "IsBetaBarel": false,
-    "Chains": ""
-  }
-}
