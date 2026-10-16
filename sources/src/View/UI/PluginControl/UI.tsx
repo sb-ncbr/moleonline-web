@@ -73,7 +73,8 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
                     }
                     let computationId = params.computationId;
                     let submitId = params.submitId;
-                    this.setState({ isLoading: false, error: `There are no vizualization data for computation '${computationId}' and submission '${submitId}'. Try to submit some computation job.` });
+                    // also drop the previous submission's data, it would be shown instead of the error
+                    this.setState({ isLoading: false, data: void 0, error: `There are no vizualization data for computation '${computationId}' and submission '${submitId}'. Try to submit some computation job.` });
                     return;
                 }
                 let _data = entities.obj.data as MoleData;
@@ -86,14 +87,9 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
                     (_data as any).Origins.CSAOrigins = csaOrigins.obj.data.Origins.CSAOrigins;
                 }
 
-                if ((_data as any).Error !== void 0) {
-                    this.setState({ isLoading: false, error: (_data as any).Error as string });
-                }
-                else {
-                    this.setState({
-                        isLoading: false, data: _data, error: void 0
-                    });
-                }
+                this.setState({
+                    isLoading: false, data: _data, error: void 0
+                });
             })
             .catch(e => {
                 let errMessage = 'Application was unable to load data. Please try again later.';
@@ -205,7 +201,7 @@ export class Data extends React.Component<State, {}> {
         let membraneData = Context.getInstance().plugin.state.data.select(StateSelection.first('membrane-data'))[0];
         let noMembraneData = <div className="no-channels-data">There are no membrane data available...</div>
 
-        if (membraneData !== void 0 && membraneData !== null && membraneData.obj !== void 0 && Object.keys(membraneData.obj).length !== 0 && membraneData.obj.data !== void 0 && Array.isArray(membraneData.obj.data)) {
+        if (membraneData?.obj?.data !== void 0) {
             membrane = <Membrane membraneData={membraneData} label={"Membrane"} {...this.props} />
         }
 

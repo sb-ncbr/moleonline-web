@@ -2,6 +2,7 @@ import React from "react";
 import { Events as BridgeEvents, CopyParametersParams, Events } from "../../../Bridge";
 import { Events as FormEvents } from "../../CommonUtils/FormEvents";
 import { ApiService, CompInfo, ComputationStatus, MoleConfig, PoresConfig, Submission as ServiceSubmission } from "../../../MoleAPIService";
+import { describeError, RequestError } from "../../../Http";
 import { MoleFormData, PoresFormData } from "./FormData";
 import { ComputationInfo, JobStatus } from "../../../DataProxy";
 import { TooltipText, WeightFunctions } from "../../../StaticData";
@@ -131,54 +132,42 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
     handleSubmitPromise(promise: any) {
         promise
             .then((result: any) => {
-                if (result.Status === "Error") {
+                fakeRedirect(result.ComputationId, String(result.SubmitId));
+
+                Provider.get(result.ComputationId, ((compId: string, info: CompInfo) => {
+                    JobStatus.Watcher.registerOnChangeHandler(result.ComputationId, result.SubmitId, (status) => {
+                        if (checkCanSubmit(status.Status)) {
+                            let state = this.props.parent.state;
+                            state.canSubmit = true;
+                            this.props.parent.setState(state);
+                            BridgeEvents.invokeSubmitDone(result.SubmitId, status.Status);
+                            if (status.Status === "Error") {
+                                BridgeEvents.invokeNotifyMessage({
+                                    messageType: "Danger",
+                                    message: `Submission #${result.SubmitId} failed: ${status.ErrorMsg}`
+                                });
+                            }
+                        }
+                    }, (err) => {
+                        BridgeEvents.invokeNotifyMessage({
+                            messageType: "Danger",
+                            message: describeError(err, "Job status cannot be tracked. Please try to refresh the page.")
+                        })
+                    })
+
                     let state = this.props.parent.state;
-                    state.canSubmit = true;
+                    state.data = info;
                     this.props.parent.setState(state);
 
-                    BridgeEvents.invokeNotifyMessage({
-                        messageType: "Danger",
-                        message: result.ErrorMsg
-                    })
-                }
-                else {
-                    fakeRedirect(result.ComputationId, String(result.SubmitId));
+                    BridgeEvents.invokeNewSubmit(result.SubmitId);
+                    BridgeEvents.invokeChangeSubmitId(result.SubmitId);
 
-                    Provider.get(result.ComputationId, ((compId: string, info: CompInfo) => {
-                        JobStatus.Watcher.registerOnChangeHandler(result.ComputationId, result.SubmitId, (status) => {
-                            if (checkCanSubmit(status.Status)) {
-                                let state = this.props.parent.state;
-                                state.canSubmit = true;
-                                this.props.parent.setState(state);
-                                BridgeEvents.invokeSubmitDone(result.SubmitId, status.Status);
-                                if (status.Status === "Error") {
-                                    BridgeEvents.invokeNotifyMessage({
-                                        messageType: "Danger",
-                                        message: `Submission #${result.SubmitId} failed: ${status.ErrorMsg}`
-                                    });
-                                }
-                            }
-                        }, (err) => {
-                            BridgeEvents.invokeNotifyMessage({
-                                messageType: "Danger",
-                                message: "Job status cannot be tracked. Please try to refresh the page."
-                            })
-                        })
+                }).bind(this), true);
 
-                        let state = this.props.parent.state;
-                        state.data = info;
-                        this.props.parent.setState(state);
-
-                        BridgeEvents.invokeNewSubmit(result.SubmitId);
-                        BridgeEvents.invokeChangeSubmitId(result.SubmitId);
-
-                    }).bind(this), true);
-
-                    BridgeEvents.invokeToggleLoadingScreen({
-                        message: "Submited job in progress...",
-                        visible: true
-                    });
-                }
+                BridgeEvents.invokeToggleLoadingScreen({
+                    message: "Submited job in progress...",
+                    visible: true
+                });
             })
             .catch((err: any) => {
                 let state = this.props.parent.state;
@@ -188,8 +177,9 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                 if (CommonOptions.DEBUG_MODE)
                     console.log(err);
                 BridgeEvents.invokeNotifyMessage({
-                    messageType: "Danger",
-                    message: "Job submit was not completed succesfully! Please try again later."
+                    // 409 (still running or loading) and 503 (server busy): try again later
+                    messageType: err instanceof RequestError && (err.status === 409 || err.status === 503) ? "Warning" : "Danger",
+                    message: describeError(err, "Job submit was not completed succesfully! Please try again later.")
                 })
             })
     }
@@ -615,6 +605,10 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
                             this.hasKillable = hasKillable_;
                             BridgeEvents.invokeChangeHasKillable(hasKillable_);
                         }
+                    }
+                    // done (e.g. it was running when the page opened): its channels are loaded like those of a new one
+                    if (state.Status !== "Initializing" && state.Status !== "Running") {
+                        BridgeEvents.invokeSubmitDone(submission.SubmitId, state.Status);
                     }
                 }
             }, (err) => {
@@ -1357,7 +1351,7 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
                     })
                         .catch((err) => {
                             BridgeEvents.invokeNotifyMessage({
-                                message: "Attempt to kill running job failed! Please try again later.",
+                                message: describeError(err, "Attempt to kill running job failed! Please try again later."),
                                 messageType: "Danger"
                             });
                         });
@@ -1376,7 +1370,15 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
                     if (this.props.computationInfo === void 0) {
                         return false;
                     }
-                    ApiService.deleteProject(this.props.computationInfo.ComputationId).then(() => {
+                    ApiService.deleteProject(this.props.computationInfo.ComputationId).then((result) => {
+                        if (result.Status !== "Deleted") {
+                            BridgeEvents.invokeNotifyMessage({
+                                message: (result.ErrorMsg.length === 0) ? "Attempt to delete current computation was not successful." : result.ErrorMsg,
+                                messageType: "Warning"
+                            });
+                            return;
+                        }
+
                         BridgeEvents.invokeNotifyMessage({
                             message: "Current computation was successfully deleted. You will be redirected to initial page.",
                             messageType: "Success"
@@ -1387,7 +1389,7 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
                     })
                         .catch((err) => {
                             BridgeEvents.invokeNotifyMessage({
-                                message: "Attempt to delete current computation failed! Please try again later.",
+                                message: describeError(err, "Attempt to delete current computation failed! Please try again later."),
                                 messageType: "Danger"
                             });
                         });

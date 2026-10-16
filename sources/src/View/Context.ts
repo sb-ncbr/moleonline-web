@@ -34,6 +34,7 @@ import { ColorBound, Property } from "./VizualizerMol/color-tunnels/property-col
 import { Events } from "../Bridge";
 import { adjustCaverDistance } from "./VizualizerMol/color-tunnels/algorithm";
 import { ApiService } from "../MoleAPIService";
+import { requestError } from "../Http";
 import { SbNcbrTunnelsExtension } from "./VizualizerMol/tunnels-extension/behavior";
 import { Model } from "molstar/lib/mol-model/structure";
 
@@ -239,7 +240,7 @@ export class Context {
                     throw Error("Unkown type of input file")
                 }
             } else {
-                throw Error("Something went wrong while retrieving input file");
+                throw await requestError("GET", url, response);
             }
         } catch (error) {
             Events.invokeNotifyMessage({

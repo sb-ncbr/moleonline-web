@@ -150,15 +150,10 @@ export class ApiService {
         }
 
         return getJson(url).then((val) => {
-            if (val.Status === "Error") {
-                return null;
+            for (const submission of val.Submissions) {
+                checkSubmitId(submission.SubmitId, url);
             }
-            else {
-                for (const submission of val.Submissions) {
-                    checkSubmitId(submission.SubmitId, url);
-                }
-                return val;
-            }
+            return val;
         })
     }
 

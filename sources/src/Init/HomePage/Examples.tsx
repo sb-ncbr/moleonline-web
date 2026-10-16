@@ -1,5 +1,6 @@
 import React from "react";
 import { ApiService, CompInfo, InitResponse, MoleConfig, PoresConfig } from "../../MoleAPIService";
+import { describeError } from "../../Http";
 import { Events } from "../../Bridge";
 import { GlobalRouter } from "../../SimpleRouter";
 import { ComputationInfo, JobStatus } from "../../DataProxy";
@@ -28,7 +29,7 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
             .then((response) => {
                 this.handleFormSubmitResponse(response);
             })
-            .catch((reason) => this.showError(`The MOLE API could not be reached, please try again later. (${reason instanceof Error ? reason.message : reason})`))
+            .catch((reason) => this.showError(describeError(reason, "The MOLE API could not be reached, please try again later.")))
 
         return false;
     }
@@ -48,31 +49,21 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
                 result = await ApiService.submitPoresJob(computationId, data.Config as PoresConfig);
             }
 
-            if (result.Status === "Error") {
-                throw new Error(`${result.ErrorMsg}`)
-            }
-            else {
-                ComputationInfo.DataProvider.get(result.ComputationId, ((compId: string, info: CompInfo) => {
-                    JobStatus.Watcher.registerOnChangeHandler(result.ComputationId, result.SubmitId, (status) => {
-                        if (status.Status !== "Running") {
-                            GlobalRouter.redirect(`/${result.ComputationId}/${result.SubmitId}`, true);
-                        }
-                    }, (err) => {
-                        Events.invokeNotifyMessage({
-                            messageType: "Danger",
-                            message: `Job status cannot be tracked. Please try to refresh the page.`
-                        });
-                    })
-                }).bind(this), true);
-            }
+            ComputationInfo.DataProvider.get(result.ComputationId, ((compId: string, info: CompInfo) => {
+                JobStatus.Watcher.registerOnChangeHandler(result.ComputationId, result.SubmitId, (status) => {
+                    if (status.Status !== "Running") {
+                        GlobalRouter.redirect(`/${result.ComputationId}/${result.SubmitId}`, true);
+                    }
+                }, (err) => {
+                    Events.invokeNotifyMessage({
+                        messageType: "Danger",
+                        message: describeError(err, "Job status cannot be tracked. Please try to refresh the page.")
+                    });
+                })
+            }).bind(this), true, (_compId, error) => this.showError(error));
         } catch (error: any) {
-            //TODO better with toast I think
-            this.setState({ activeButton: -1 });
-            console.error('Error loading JSON:', error.message);
-            Events.invokeNotifyMessage({
-                messageType: "Danger",
-                message: `Error loading JSON: ${error.message}`
-            });
+            console.error('The example could not be started:', error);
+            this.showError(describeError(error, "The example could not be started."));
         }
     }
 
@@ -85,11 +76,6 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
     }
 
     private async handleFormSubmitResponse(response: InitResponse) {
-        if (response.Status === "Error") {
-            this.showError(response.ErrorMsg);
-            return;
-        }
-
         if (response.Status === "FailedInitialization") {
             this.showError(`API was unable to initialize computation with specified parameters. API responded with message: ${response.ErrorMsg}`);
             return;
@@ -116,7 +102,7 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
     private waitForComputationInitialization() {
         ApiService.getStatus(this.computationId, this.submitId)
             .then((response) => this.handleFormSubmitResponse(response))
-            .catch((reason) => this.showError(`The MOLE API could not be reached, please try again later. (${reason instanceof Error ? reason.message : reason})`));
+            .catch((reason) => this.showError(describeError(reason, "The MOLE API could not be reached, please try again later.")));
     }
 
     examples = [

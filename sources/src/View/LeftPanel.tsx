@@ -13,6 +13,7 @@ import { StateSelection } from "molstar/lib/mol-state";
 import { ChannelsDBChannels, MoleData } from "../DataInterface";
 import { ComputationInfo } from "../DataProxy";
 import { ApiService, CompInfo } from "../MoleAPIService";
+import { describeError, isNotFound } from "../Http";
 import { ChannelsDBData as ChannelsDBDataCache, TunnelName } from "../Cache"
 import { Tunnels } from "./CommonUtils/Tunnels";
 import { loadCifTunnels } from "./VizualizerMol/mmcif-tunnels/converter2json";
@@ -52,17 +53,43 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
     }
 
     // Runs both loads: structure/visual data and computation info with channels
-    private reload(channelsDB: boolean) {
+    // fresh: ask for the computation info again, submissions may have finished since it was loaded
+    private reload(channelsDB: boolean, fresh = false) {
         this.setState({ isLoading: true, isLoadingChannels: true, error: void 0 });
         this.load(channelsDB);
-        this.loadChannels();
+        this.loadChannels(fresh);
     }
 
     private onContentResize(_: any) {
         this.forceUpdate();
     }
 
-    loadChannels() {
+    // Channels of the finished submissions; the others have no results
+    private async loadSubmissionsChannels(info: CompInfo, channels: Map<number, ChannelsDBChannels>) {
+        for (const submission of info.Submissions) {
+            if (submission.Status !== "Finished") {
+                continue;
+            }
+            const submitId = submission.SubmitId;
+            let data;
+            try {
+                data = await ApiService.getChannelsData(info.ComputationId, submitId);
+            } catch (e) {
+                if (isNotFound(e)) {
+                    continue; // no channels after all
+                }
+                throw e;
+            }
+            const dataObj = JSON.parse(data) as MoleData;
+            let guidData = TunnelsId.generateGuidAll(dataObj.Channels);
+            guidData = TunnelsId.generateIdAll(guidData, info.ComputationId, submitId.toString());
+            TunnelName.reload({ Channels: guidData }, submitId.toString());
+            Tunnels.addChannels(submitId.toString(), guidData);
+            channels.set(submitId, guidData);
+        }
+    }
+
+    loadChannels(fresh: boolean) {
         LoadingStatus.log('Loading channels from current session...');
         let params = getParameters();
         if (params === null) {
@@ -91,13 +118,15 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                         Tunnels.addChannels('-2', completeChannelsDbData);
                         channels.set(-2, completeChannelsDbData);
                     }
+                    await this.loadSubmissionsChannels(info, channels);
                     Tunnels.invokeOnTunnelsLoaded();
                     LoadingStatus.log('Finalizing…');
                     this.setState({ channelsData: channels, isLoadingChannels: false })
                 })().catch(error => {
+                    this.setState({ isLoadingChannels: false, error: String(error) })
                     Events.invokeNotifyMessage({
                         messageType: "Danger",
-                        message: 'Could not fetch data from ChannelsDB'
+                        message: describeError(error, 'Could not fetch data from MoleAPI')
                     })
                 });
                 return;
@@ -110,19 +139,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                 Tunnels.setChannelsDB(completeChannelsDbData);
                 TunnelName.reload({ Channels: completeChannelsDbData }, '-1');
                 channels.set(-1, completeChannelsDbData);
-                for (const submission of info.Submissions) {
-                    const submitId = submission.SubmitId;
-
-                    const data = await ApiService.getChannelsData(compId, submitId)
-                    let dataObj = JSON.parse(data) as MoleData;
-                    if (dataObj !== undefined && dataObj.Channels !== undefined) {
-                        let guidData = TunnelsId.generateGuidAll(dataObj.Channels);
-                        guidData = TunnelsId.generateIdAll(guidData, computationId, submitId.toString())
-                        TunnelName.reload({ Channels: guidData }, submitId.toString())
-                        Tunnels.addChannels(submitId.toString(), guidData);
-                        channels.set(submitId, guidData);
-                    }
-                }
+                await this.loadSubmissionsChannels(info, channels);
                 Tunnels.invokeOnTunnelsLoaded();
                 LoadingStatus.log('Finalizing…');
                 this.setState({ channelsData: channels, isLoadingChannels: false })
@@ -136,19 +153,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                     return;
                 }
                 try {
-                    for (const submission of info.Submissions) {
-                        const submitId = submission.SubmitId;
-
-                        const data = await ApiService.getChannelsData(compId, submitId)
-                        let dataObj = JSON.parse(data) as MoleData;
-                        if (dataObj !== undefined && dataObj.Channels !== undefined) {
-                            let guidData = TunnelsId.generateGuidAll(dataObj.Channels)
-                            guidData = TunnelsId.generateIdAll(guidData, computationId, submitId.toString())
-                            TunnelName.reload({ Channels: guidData }, submitId.toString())
-                            Tunnels.addChannels(submitId.toString(), guidData);
-                            channels.set(submitId, guidData);
-                        }
-                    }
+                    await this.loadSubmissionsChannels(info, channels);
                     Tunnels.invokeOnTunnelsLoaded();
                     this.setState({ channelsData: channels, isLoadingChannels: false })
                     LoadingStatus.log('Finalizing…');
@@ -156,12 +161,12 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                     this.setState({ isLoadingChannels: false, error: String(error) })
                     Events.invokeNotifyMessage({
                         messageType: "Danger",
-                        message: 'Could not fetch data from MoleAPI'
+                        message: describeError(error, 'Could not fetch data from MoleAPI')
                     })
                 }
                 LoadingStatus.clear();
             });
-        }).bind(this), false, (compId: string, error: string) => {
+        }).bind(this), fresh, (compId: string, error: string) => {
             this.setState({ isLoading: false, isLoadingChannels: false, error });
             LoadingStatus.clear();
         })
@@ -186,7 +191,8 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                     this.setState({ compId: params.computationId })
                     let computationId = params.computationId;
                     let submitId = params.submitId;
-                    this.setState({ isLoading: false, error: `There are no vizualization data for computation '${computationId}' and submission '${submitId}'. Try to submit some computation job.` });
+                    // also drop the previous submission's data, it would be shown instead of the error
+                    this.setState({ isLoading: false, data: void 0, error: `There are no vizualization data for computation '${computationId}' and submission '${submitId}'. Try to submit some computation job.` });
                     return;
                 }
                 let _data = entities.obj.data as MoleData;
@@ -199,14 +205,9 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                     (_data as any).Origins.CSAOrigins = csaOrigins.obj.data.Origins.CSAOrigins;
                 }
 
-                if ((_data as any).Error !== void 0) {
-                    this.setState({ isLoading: false, error: (_data as any).Error as string });
-                }
-                else {
-                    this.setState({
-                        isLoading: false, data: _data, error: void 0
-                    });
-                }
+                this.setState({
+                    isLoading: false, data: _data, error: void 0
+                });
             })
             .catch(e => {
                 let errMessage = 'Application was unable to load data. Please try again later.';
@@ -217,7 +218,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                 this.setState({ isLoading: false, error: errMessage, data: void 0 });
                 Events.invokeNotifyMessage({
                     messageType: "Danger",
-                    message: 'Application was unable to load data. Please try again later.'
+                    message: errMessage
                 })
             });
     }
@@ -274,7 +275,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                 if (params !== null) {
                     channelsDB = params.isChannelsDB;
                 }
-                controls.push(<button key={'reload'} className="reload-data btn btn-primary" onClick={() => this.reload(channelsDB)}>Reload Data</button>);
+                controls.push(<button key={'reload'} className="reload-data btn btn-primary" onClick={() => this.reload(channelsDB, true)}>Reload Data</button>);
             }
 
             return <div className="d-flex flex-column h-100">

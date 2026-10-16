@@ -1,11 +1,12 @@
 /*
  * Copyright (c) 2016 - now David Sehnal, licensed under Apache 2.0, See LICENSE file for more info.
  */
-import { DataProxyCSAResidues, JobStatus } from "../DataProxy";
+import { ComputationInfo, DataProxyCSAResidues, JobStatus } from "../DataProxy";
 import { ChannelsDBChannels, ChannelsDBData, firstNonEmptyCategory, Membrane, MoleData, Origins, Tunnel, TunnelMetaInfo } from "../DataInterface";
 import { ChannelsDBData as ChannelsDBDataCache, LastVisibleChannels } from "../Cache";
 import { getParameters } from "../Common/Util/Router";
-import { ApiService, CSAResidues } from "../MoleAPIService";
+import { ApiService, CompInfo, CSAResidues } from "../MoleAPIService";
+import { isNotFound } from "../Http";
 import { Context } from "./Context";
 import { CommonOptions, DataSources } from "../../config/common";
 import { Residues } from "./CommonUtils/Residues";
@@ -162,7 +163,19 @@ function generateGuidMole(moleData: MoleData) {
     return moleData
 }
 
+// Only a pore submission computes the membrane
+function hasPoresSubmission(computationId: string) {
+    return new Promise<boolean>((res, rej) => {
+        ComputationInfo.DataProvider.get(computationId, (_compId, info: CompInfo) => {
+            res(info.Submissions.some(s => s.Mode === "Pores"));
+        }, false, (_compId, error) => rej(error));
+    });
+}
+
 async function downloadMembraneData(computationId: string) {
+    if (!await hasPoresSubmission(computationId).catch(() => false)) {
+        return;
+    }
     return new Promise<any>((res, rej) => {
         ApiService.getMembraneData(computationId).then((data) => {
             const update = Context.getInstance().plugin.build();
@@ -178,8 +191,9 @@ async function downloadMembraneData(computationId: string) {
                     rej(err);
                 });
         }).catch(err => {
-            console.log("Membrane data not available!");
-            console.log(err);
+            if (!isNotFound(err)) { // 404: no membrane
+                console.log("Membrane data not available!", err);
+            }
             res(null);
         });
     }).then(() => {
@@ -216,7 +230,13 @@ export async function downloadChannelsData(computationId: string, submitId: numb
                     rej(error);
                 })
         })
-            .catch(err => rej(err))
+            .catch(err => {
+                if (isNotFound(err)) {
+                    res(null); // no channels: the submission has no results
+                } else {
+                    rej(err);
+                }
+            })
     });
 }
 
@@ -303,7 +323,8 @@ export function loadData(channelsDB: boolean) {
                 acquireData(computationId, submitId, res, rej, !proteinLoaded, submitId == 0, channelsDB);   //TODO podminka pro prenacteni kanalu pro submit 0
             }
             else if (status.Status === "FailedInitialization" || status.Status === "Error" || status.Status === "Deleted" || status.Status === "Aborted") {
-                rej(status.ErrorMsg);
+                // a stopped submission comes without a message
+                rej(status.ErrorMsg.trim() || (status.Status === "Aborted" ? `Submission #${submitId} was stopped, it has no results.` : `The status is ${status.Status}.`));
             }
             else if (status.Status === "Finished") {
                 acquireData(computationId, submitId, res, rej, !proteinLoaded, true, channelsDB);

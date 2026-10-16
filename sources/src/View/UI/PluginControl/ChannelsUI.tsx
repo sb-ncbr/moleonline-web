@@ -17,6 +17,7 @@ import { Colors, Enum } from "../../../StaticData";
 import { Color } from "molstar/lib/mol-util/color";
 import { debounce } from "lodash";
 import { ApiService, CompInfo } from "../../../MoleAPIService";
+import { describeError, isNotFound } from "../../../Http";
 import { ComputationInfo } from "../../../DataProxy";
 import { SelectionHelper } from "../../CommonUtils/Selection";
 import { TwoDProtsBridge } from "../../CommonUtils/TwoDProtsBridge";
@@ -138,16 +139,23 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
     }
 
     private unsubscribe: (() => void)[] = [];
+    // submissions whose channels are being loaded
+    private loadingSubmitIds = new Set<number>();
 
     componentDidMount() {
         this.initializeSubmissionData();
 
         this.unsubscribe.push(Events.subscribeSubmitDone(async (newSubmitId, status) => {
+            // a submission started on this page is announced twice (its submit and the submissions list)
+            if (this.loadingSubmitIds.has(newSubmitId)) {
+                return;
+            }
             // a failed or stopped submission has no channels to load
             if (status === "Finished" && !this.state.submissions.has(newSubmitId)) {
-                const data = await ApiService.getChannelsData(this.props.computationId, newSubmitId)
-                let dataObj = JSON.parse(data) as MoleData;
-                if (dataObj !== undefined && dataObj.Channels !== undefined) {
+                this.loadingSubmitIds.add(newSubmitId);
+                try {
+                    const data = await ApiService.getChannelsData(this.props.computationId, newSubmitId)
+                    let dataObj = JSON.parse(data) as MoleData;
                     const submissions = this.state.submissions;
                     let guidData = TunnelsId.generateGuidAll(dataObj.Channels)
                     guidData = TunnelsId.generateIdAll(guidData, this.props.computationId, newSubmitId.toString())
@@ -160,6 +168,15 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
                     currentSumbissionElems.set(newSubmitId, channelElems);
                     await showDefaultVisualsNewSubmission(guidData, newSubmitId.toString());
                     this.setState({ submissions, currentSubmitId: newSubmitId, submissionsElems: currentSumbissionElems })
+                } catch (e) {
+                    if (!isNotFound(e)) { // 404: no channels after all
+                        Events.invokeNotifyMessage({
+                            messageType: "Danger",
+                            message: describeError(e, `Channels of submission #${newSubmitId} could not be loaded.`)
+                        });
+                    }
+                } finally {
+                    this.loadingSubmitIds.delete(newSubmitId);
                 }
             }
             Events.invokeToggleLoadingScreen({

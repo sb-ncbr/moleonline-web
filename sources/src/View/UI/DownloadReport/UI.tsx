@@ -4,6 +4,7 @@ import { getParameters } from "../../../Common/Util/Router";
 import { DataSources } from "../../../../config/common";
 import { Tunnels } from "../../CommonUtils/Tunnels";
 import { cleanCifContent, JSON2CIF } from "../../VizualizerMol/mmcif-tunnels/converter";
+import { describeError, requestError } from "../../../Http";
 
 export class DownloadReport extends React.Component<{}, {}> {
 
@@ -74,8 +75,11 @@ class DownloadResultsMenu extends React.Component<{}, DownloadResultsMenuState> 
 
         const response = await fetch(url)
         if (!response.ok) {
-            //TODO toast
-            console.log("Fetching molecule data went wrong");
+            const error = await requestError("GET", url, response);
+            Events.invokeNotifyMessage({
+                messageType: "Danger",
+                message: describeError(error, "The structure could not be downloaded.")
+            });
             return;
         }
 

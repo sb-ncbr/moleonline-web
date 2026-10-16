@@ -1,5 +1,6 @@
 import React from "react";
 import {ApiService, CompInfo, InitResponse} from "../../MoleAPIService";
+import { describeError } from "../../Http";
 import {Events} from "../../Bridge";
 import {GlobalRouter} from "../../SimpleRouter";
 import {TabbedContainer} from "../../Common/UI/Tabs/BootstrapTabs";
@@ -78,13 +79,8 @@ export class InitForm extends React.Component<{}, State> {
                 .catch((reason) => this.showRequestError(reason))
         }
         else if (file.size > MAX_UPLOAD_MB * 1024 * 1024) {
-            // the API refuses it too; this saves the upload
-            this.handleFormSubmitResponse({
-                ComputationId: "",
-                SubmitId: 0,
-                Status: "Error",
-                ErrorMsg: `The file is too large, at most ${MAX_UPLOAD_MB} MB can be uploaded. Compressed files (*.gz) are accepted.`
-            });
+            // the API refuses it too (413); this saves the upload
+            this.showError(`The file is too large, at most ${MAX_UPLOAD_MB} MB can be uploaded. Compressed files (*.gz) are accepted.`);
         }
         else {
             let data = new FormData();
@@ -111,16 +107,11 @@ export class InitForm extends React.Component<{}, State> {
     }
 
     private showRequestError(reason: unknown) {
-        this.showError(`The MOLE API could not be reached, please try again later. (${reason instanceof Error ? reason.message : reason})`);
+        this.showError(describeError(reason, "The MOLE API could not be reached, please try again later."));
     }
 
     private handleFormSubmitResponse(response: InitResponse) {
         let $next = $('#frm-jobSetup-setupForm-next');
-        if (response.Status === "Error") {
-            this.showError(response.ErrorMsg);
-            return;
-        }
-
         if (response.Status === "FailedInitialization") {
             this.showError(`API was unable to initialize computation with specified parameters. API responded with message: ${response.ErrorMsg}`);
             return;

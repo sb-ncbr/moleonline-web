@@ -1,13 +1,15 @@
 import { CommonOptions } from "../config/common";
 import { ApiService, CompInfo, InitResponse, CSAResidues, Cofactors } from "./MoleAPIService";
+import { describeError, isRefused } from "./Http";
 import {Tunnel} from "./DataInterface";
 
 type DataHandler<T> = (key: string, data: T) => void;
 type DataErrorHandler = (key: string, error: string) => void;
 
 // Caches API data per key and notifies handlers once it arrives.
-// Concurrent requests for a key share one fetch; only failed requests are retried (with backoff),
-// a null result from `fetch` is a final error, and handler exceptions are not treated as request failures.
+// Concurrent requests for a key share one fetch; only network and server errors are retried (with backoff),
+// a request the API refuses (e.g. 404 unknown computation) fails at once, and handler exceptions are not
+// treated as request failures.
 class KeyedDataProvider<T> {
     private static readonly MAX_RETRIES = 5;
     private data = new Map<string, T>();
@@ -15,8 +17,7 @@ class KeyedDataProvider<T> {
     private pending = new Set<string>();
 
     constructor(
-        private fetch: (key: string) => Promise<T | null>,
-        private notFoundMessage: (key: string) => string,
+        private fetch: (key: string) => Promise<T>,
         private failedMessage: string,
     ) { }
 
@@ -50,20 +51,16 @@ class KeyedDataProvider<T> {
             this.pending.delete(key);
             if (CommonOptions.DEBUG_MODE)
                 console.log(val);
-            if (val === null) {
-                this.runErrorHandlers(key, this.notFoundMessage(key));
-                return;
-            }
             this.data.set(key, val);
             this.runHandlers(key, val);
         }, (err) => {
             if (CommonOptions.DEBUG_MODE)
                 console.log(err);
-            if (attempt < KeyedDataProvider.MAX_RETRIES) {
+            if (!isRefused(err) && attempt < KeyedDataProvider.MAX_RETRIES) {
                 window.setTimeout(() => this.fetchData(key, attempt + 1), 500 * 2 ** attempt);
             } else {
                 this.pending.delete(key);
-                this.runErrorHandlers(key, this.failedMessage);
+                this.runErrorHandlers(key, describeError(err, this.failedMessage));
             }
         });
     }
@@ -88,7 +85,6 @@ class KeyedDataProvider<T> {
 export namespace ComputationInfo {
     export const DataProvider = new KeyedDataProvider<CompInfo>(
         compId => ApiService.getComputationInfoList(compId),
-        compId => `Computation '${compId}' does not exist.`,
         'Could not load computation info from the MOLE API.',
     );
 }
@@ -169,7 +165,8 @@ export namespace JobStatus {
         // Poll often at first, then less often for long jobs
         private static readonly FIRST_POLL_MS = 1000;
         private static readonly MAX_POLL_MS = 5000;
-        // A failed status request is retried after 2, 4, 8, 16 and 30 s before the error is reported
+        // A status request that fails on the network or the server is retried after 2, 4, 8, 16 and 30 s
+        // before the error is reported
         private static readonly MAX_RETRIES = 5;
         private static readonly MAX_RETRY_MS = 30000;
 
@@ -196,7 +193,8 @@ export namespace JobStatus {
                         break;
                 }
             }, (err) => { // only a failed request is retried, not an error in the code above
-                if (failures < Watcher.MAX_RETRIES) {
+                // a refused request (404 unknown computation or submission, 410 deleted) is final
+                if (!isRefused(err) && failures < Watcher.MAX_RETRIES) {
                     const retryMs = Math.min(2000 * 2 ** failures, Watcher.MAX_RETRY_MS);
                     if (CommonOptions.DEBUG_MODE)
                         console.log(`Status of ${computationId}:${submitId} not available, retrying in ${retryMs} ms`, err);
@@ -224,7 +222,6 @@ export namespace JobStatus {
 export namespace DataProxyCSAResidues {
     export const DataProvider = new KeyedDataProvider<CSAResidues>(
         compId => ApiService.getCSAResidues(compId),
-        compId => `CSA residues for computation '${compId}' are not available.`,
         'Could not load CSA residues from the MOLE API.',
     );
 }
@@ -232,7 +229,6 @@ export namespace DataProxyCSAResidues {
 export namespace DataProxyCofactors {
     const provider = new KeyedDataProvider<Cofactors>(
         () => ApiService.getCofactors(),
-        () => 'Cofactors are not available.',
         'Could not load cofactors from the MOLE API.',
     );
 
