@@ -1531,13 +1531,8 @@ only screen and (max-height: 542px) {
     .current-pbdbid-sign,
     .download-button,
     .button.download.dropdown-toggle,
-    .annotate,
-    .help-button {
+    .annotate {
         font-size: 10pt;
-    }
-
-    .help-button .help-ico {
-        vertical-align: sub !important;
     }
 
     .current-pbdbid-sign {
@@ -1555,13 +1550,6 @@ only screen and (max-height: 542px) {
     .download-button {
         width: 115px;
         right: 220px;
-    }
-
-    .help-button {
-        width: 90px;
-        right: 330px;
-        padding-left: 5px;
-        padding-right: 5px;
     }
 
     .right-panel .ui {
@@ -1793,31 +1781,10 @@ only screen and (max-height: 542px) {
 
 }
 
-@media only screen and (max-width: 768px) {
-    .helpDialog {
-        position: fixed;
-        right: 2%;
-        width: 96%;
-        left: 2%;
-        margin-top: 30px;
-        border-top-left-radius: 10px;
-    }
-
-    .helpDialog .custom-box {
-        width: 90%;
-        margin-left: 5%;
-    }
-
-    .helpDialog .error-msg {
-        width: 100%;
-    }
-}
-
 @media only screen and (max-width: 650px) {
     .current-pbdbid-sign .glyphicon,
     .download-button .glyphicon,
-    .annotate-button .glyphicon,
-    .help-button .glyphicon {
+    .annotate-button .glyphicon {
         display: none;
     }
 
@@ -1835,12 +1802,6 @@ only screen and (max-height: 542px) {
         right: 100px;
     }
 
-    .help-button {
-        right: 285px;
-        border-left: none;
-        width: 60px;
-        padding-right: 15px;
-    }
 }
 
 @media only screen and (max-width: 400px) {

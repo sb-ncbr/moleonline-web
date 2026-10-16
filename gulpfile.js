@@ -38,7 +38,6 @@ gulp.task('merge-css', function() {
         "./sources/css/datagrid.css",
         "./sources/css/DownloadReport.css",
         "./sources/css/FromLiteMol.css",
-        "./sources/css/Help.css",
         "./sources/css/LayerVizualizerStyles.css",
         "./sources/css/lining-residues.css",
         "./sources/css/LoadingScreen.css",

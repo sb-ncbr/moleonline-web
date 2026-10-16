@@ -88,17 +88,6 @@ export interface ProteinData {
     filename: string | null
 };
 
-export interface SubmitFeedbackParams {
-    From: string,
-    ComputationId: string,
-    SubmitId: number,
-    Msg: string
-};
-export interface SubmitFeedbackResponse {
-    Success: boolean,
-    Msg?: string | null
-};
-
 export interface VersionResponse {
     PoresVersion: string,
     MoleVersion: string,
@@ -341,17 +330,6 @@ export class ApiService {
             if (this.DEBUG_MODE)
                 console.timeEnd("getCofactors");
             return rv;
-        });
-    }
-
-    public static submitFeedback(params: SubmitFeedbackParams) {
-        let url = `${this.baseUrl}/__Mail`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
-
-        return this.sendPOSTjson(url, params).then((val) => {
-            return val as SubmitFeedbackResponse;
         });
     }
 
