@@ -514,7 +514,7 @@ function generateColorPickerId() {
 }
 export class ColorPicker extends React.Component<{ tunnel: Tunnel & TunnelMetaInfo }, { visible: boolean, color: Color | undefined }> {
     state = { visible: false, color: this.props.tunnel.__color || undefined }
-    private id: string;
+    private id!: string;
 
     setTunnelColor = () => {
         if (this.state.color && this.state.color !== this.props.tunnel.__color) {

@@ -5,8 +5,8 @@ import { GlobalRouter } from "../../SimpleRouter";
 import { ComputationInfo, JobStatus } from "../../DataProxy";
 
 export class Examples extends React.Component<{}, { activeButton: number }> {
-    private computationId: string;
-    private submitId: number;
+    private computationId!: string;
+    private submitId!: number;
 
     constructor(props: {}) {
         super(props);
@@ -68,7 +68,7 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
                     })
                 }).bind(this), true);
             }
-        } catch (error) {
+        } catch (error: any) {
             //TODO better with toast I think
             this.setState({ activeButton: -1 });
             console.error('Error loading JSON:', error.message);

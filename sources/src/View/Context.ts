@@ -87,11 +87,11 @@ export class Context {
     public plugin: PluginUIContext;
     public model: Model | undefined = undefined;
     private assemblyRef = '';
-    initParams: InitParams;
+    initParams?: InitParams;
     selectedParams: any;
     selectedLoci: Loci | null = null;
-    defaultRendererProps: Canvas3DProps['renderer'];
-    defaultMarkingProps: Canvas3DProps['marking'];
+    defaultRendererProps?: Canvas3DProps['renderer'];
+    defaultMarkingProps?: Canvas3DProps['marking'];
     isHighlightColorUpdated = false;
     isSelectedColorUpdated = false;
     public data: Map<string, object> = new Map();
@@ -710,7 +710,7 @@ export class Context {
             if (params.camera) await PluginCommands.Camera.Reset(this.plugin, { durationMs: 250 });
 
             if (params.theme) {
-                const defaultTheme: any = { color: this.initParams.alphafoldView ? 'plddt-confidence' : 'default' };
+                const defaultTheme: any = { color: this.initParams?.alphafoldView ? 'plddt-confidence' : 'default' };
                 const componentGroups = this.plugin.managers.structure.hierarchy.currentComponentGroups;
                 for (const compGrp of componentGroups) {
                     await this.plugin.managers.structure.component.updateRepresentationsTheme(compGrp, defaultTheme);

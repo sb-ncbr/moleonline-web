@@ -244,7 +244,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
                     this.setState({ isComputing: false, jobId: '', error: <div className="text-danger">Error: {error.message}</div> })
                 })
             )
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error sending JSON to backend:', error);
             this.setState({ isComputing: false, jobId: '', error: <div className="text-danger">Error: {error.message}</div> })
         }

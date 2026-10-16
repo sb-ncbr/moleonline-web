@@ -68,7 +68,7 @@ export class MoleFormData {
     private CustomExits: MoleConfigOrigin | null
     private PoresMerged: boolean
     private PoresAuto: boolean
-    private IgnoredResidues: string
+    private IgnoredResidues!: string
 
     public constructor(data?: MoleConfig) {
         if (data !== void 0 && data.Cavity !== null && data.Cavity !== void 0) {

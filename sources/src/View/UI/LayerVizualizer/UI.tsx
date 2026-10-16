@@ -77,7 +77,7 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
         channel: undefined
     };
 
-    vizualizer: Vizualizer
+    vizualizer!: Vizualizer
 
     componentDidMount() {
         var vizualizer = this.props.vizualizer;
@@ -285,7 +285,7 @@ class Hint extends React.Component<State, {}> {
 }
 
 class ColorMenuItem extends React.Component<State & { propertyName: string, isCustom: boolean }, {}> {
-    private changeColoringProperty(e: React.MouseEvent<HTMLAreaElement>) {
+    private changeColoringProperty(e: React.MouseEvent<HTMLElement>) {
         let targetElement = (e.target as HTMLElement);
         let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
         let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
@@ -333,7 +333,7 @@ class ColorMenuItem extends React.Component<State & { propertyName: string, isCu
 }
 
 class RadiusMenuItem extends React.Component<State & { propertyName: string, isCustom: boolean }, {}> {
-    private changeRadiusProperty(e: React.MouseEvent<HTMLAreaElement>) {
+    private changeRadiusProperty(e: React.MouseEvent<HTMLElement>) {
         let targetElement = (e.target as HTMLElement);
         let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
         let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
@@ -371,7 +371,7 @@ class RadiusMenuItem extends React.Component<State & { propertyName: string, isC
 }
 
 class ColorBoundsMenuItem extends React.Component<State & { mode: string }, {}> {
-    private changeColorBoundsMode(e: React.MouseEvent<HTMLAreaElement>) {
+    private changeColorBoundsMode(e: React.MouseEvent<HTMLElement>) {
         let targetElement = (e.target as HTMLElement);
         let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
         let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
@@ -670,7 +670,7 @@ class CommonButtonArea extends React.Component<State, {}> {
 
 class ExportTypeButton extends React.Component<{ instanceId: number, exportType: string }, {}> {
 
-    private export(e: React.MouseEvent<HTMLAreaElement>) {
+    private export(e: React.MouseEvent<HTMLElement>) {
         let targetElement = (e.target as HTMLElement);
         let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
         let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];

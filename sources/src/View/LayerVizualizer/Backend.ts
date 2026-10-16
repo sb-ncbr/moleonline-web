@@ -248,7 +248,7 @@ export class CurlyBrackets extends ContextAwareObject {
 export class ArrowHeadLine extends ContextAwareObject {
     private lineColor = "#8c8c8c";
     private isHorizontal: boolean;
-    private bounds: Rectangle;
+    private bounds!: Rectangle;
 
     private doHighlight: boolean = false;  //Žluté podbarvení obdélníku
 
@@ -469,7 +469,7 @@ export class ColorMixer extends ContextAwareObject {
 }
 
 export class Tunnel extends ContextAwareObject {
-    private scale: XYScale;
+    private scale!: XYScale;
     private minVal: XYPoint;
     private maxVal: XYPoint;
     private isInverted_: boolean;
@@ -477,7 +477,7 @@ export class Tunnel extends ContextAwareObject {
     private paletteFunction: ColorPaletteFunction;
     private paletteFunctionSettings: ColorPaletteFunctionSettings;
 
-    private bounds: Rectangle;
+    private bounds!: Rectangle;
     private hasBounds: boolean;
 
     protected lineWidth = 1;
@@ -485,8 +485,8 @@ export class Tunnel extends ContextAwareObject {
 
     private lineColor = "#8c8c8c";
 
-    private currentVisual: ImageData;
-    private currentVisualPlain: ImageData;
+    private currentVisual!: ImageData;
+    private currentVisualPlain!: ImageData;
 
     public constructor(minVal: XYPoint, maxVal: XYPoint, layers: Layer[],
         context: CanvasRenderingContext2D, paletteFunction: ColorPaletteFunction,

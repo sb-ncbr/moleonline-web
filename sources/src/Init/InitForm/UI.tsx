@@ -17,8 +17,8 @@ interface State {
 };
 
 export class InitForm extends React.Component<{}, State> {
-    private computationId: string;
-    private submitId: number;
+    private computationId!: string;
+    private submitId!: number;
 
     state: State = {
         app: this,
@@ -32,7 +32,7 @@ export class InitForm extends React.Component<{}, State> {
     componentWillUnmount() {
     }
 
-    private handleFormSubmit(e: Event) {
+    private handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
         let form = e.target as HTMLFormElement;
@@ -139,7 +139,7 @@ export class InitForm extends React.Component<{}, State> {
         });
     }
 
-    private asymmetricUnitChange(e: Event) {
+    private asymmetricUnitChange(e: React.ChangeEvent<HTMLInputElement>) {
         let el = e.target as HTMLInputElement;
         let s = this.state;
         s.useAsymmetricUnit = el.checked;
