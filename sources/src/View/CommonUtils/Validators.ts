@@ -4,6 +4,7 @@ export function validatePatternQuery(v: string) {
     return new Promise<{ valid: boolean, message?: string }>((res, rej) => {
         if (v.length === 0) {
             res({ valid: true });
+            return;
         }
         ApiService.getValidationResult(v)
             .then((result) => {

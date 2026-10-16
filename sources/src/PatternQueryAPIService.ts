@@ -12,7 +12,7 @@ export class ApiService {
     private static baseUrl = DataSources.PATTERN_QUERY_API_URL[DataSources.PATTERN_QUERY_MODE];
 
     public static getValidationResult(query: string): Promise<PatternQueryResponse> {
-        let url = `${this.baseUrl}/?query=${query}`;
+        let url = `${this.baseUrl}/?query=${encodeURIComponent(query)}`;
         if (this.DEBUG_MODE) {
             console.log(url);
         }
