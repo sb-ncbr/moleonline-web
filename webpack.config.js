@@ -2,6 +2,61 @@
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const path = require('path');
+const sass = require('sass');
+
+// Legacy global scripts, concatenated in this order into js/scripts.js
+const legacyScripts = [
+    'datagrid.js',
+    'Palette.js',
+    'tabsConfig.js',
+];
+
+// Stylesheets concatenated in this order into css/styles.css (.scss files are compiled first)
+const stylesheets = [
+    'AglomeredParameters.css',
+    'AlertMessages.css',
+    'annotate.css',
+    'ChannelParameters.css',
+    'CofactorPickBox.css',
+    'Components.css',
+    'Controls.css',
+    'CSAPickBox.css',
+    'datagrid.css',
+    'DownloadReport.css',
+    'FromLiteMol.css',
+    'LayerVizualizerStyles.css',
+    'lining-residues.css',
+    'LoadingScreen.css',
+    'pdbid.css',
+    'PDFReportGenerator.css',
+    'QuickHelp.css',
+    'SequenceViewer.css',
+    'style.css',
+    'tabs.css',
+    'tooltips.css',
+    'MoleSequenceViewer.scss',
+    'MolstarSlider.scss',
+];
+
+// Copy pattern joining `files` from `dir` in the listed order into a single `to` file
+function concatPattern(dir, files, to) {
+    return {
+        from: `${dir}/*`,
+        filter: file => files.includes(path.basename(file)),
+        to,
+        transformAll(assets) {
+            const byName = new Map(assets.map(a => [path.basename(a.absoluteFilename), a]));
+            return files.map(name => {
+                const asset = byName.get(name);
+                if (!asset) throw new Error(`Missing ${dir}/${name}`);
+                const content = asset.data.toString();
+                return name.endsWith('.scss')
+                    ? sass.compileString(content, { loadPaths: [path.dirname(asset.absoluteFilename)] }).css
+                    : content;
+            }).join('\n');
+        },
+    };
+}
 
 module.exports = (env, argv) => {
     const isProd = argv.mode === 'production';
@@ -52,8 +107,8 @@ module.exports = (env, argv) => {
             plugins: [
                 new CopyWebpackPlugin({
                     patterns: [
-                        { from: './sources/js/scripts.js', to: 'js/scripts.js' },
-                        { from: './sources/css/styles.css', to: 'css/styles.css' },
+                        concatPattern('sources/js', legacyScripts, 'js/scripts.js'),
+                        concatPattern('sources/css', stylesheets, 'css/styles.css'),
                         { from: './sources/css/Init.css', to: 'css/init-styles.css' },
                         { from: './sources/images/*', to: () => `images/[name][ext]` },
                         { from: './sources/html/index.html', to: () => `index.html` },

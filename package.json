@@ -3,13 +3,10 @@
   "version": "3.0.0",
   "description": "",
   "scripts": {
-    "merge-js": "gulp merge-js",
-    "merge-css": "gulp merge-css",
-    "compile-sass": "gulp compile-sass",
     "build-webpack": "npx webpack --mode production",
     "build-webpack-dev": "npx webpack --mode development",
-    "build": "npm run merge-js && npm run compile-sass && npm run merge-css && npm run build-webpack",
-    "build-dev": "npm run merge-js && npm run compile-sass && npm run merge-css && npm run build-webpack-dev",
+    "build": "npm run build-webpack",
+    "build-dev": "npm run build-webpack-dev",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "start": "cd ./dist/ && http-server"
   },
@@ -28,16 +25,12 @@
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
-    "@types/gulp": "^4.0.17",
     "@types/lodash": "^4.17.13",
     "@types/node": "^22.2.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "copy-webpack-plugin": "^12.0.2",
     "css-loader": "^7.1.2",
-    "gulp": "^5.0.0",
-    "gulp-concat": "^2.6.1",
-    "gulp-sass": "^6.0.0",
     "http-server": "^14.1.1",
     "sass": "1.83.4",
     "sass-loader": "^16.0.4",
