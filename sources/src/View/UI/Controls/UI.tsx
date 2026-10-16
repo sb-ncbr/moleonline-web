@@ -294,14 +294,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                         s.moleFormData.setIgnoreHETATMs(v.value);
                         this.setState(s);
                     }
-                    (() => {
-                        FormEvents.attachOnClearEventHandler((formGroup) => {
-                            if (formGroup !== validationGroup) {
-                                return;
-                            }
-                            s.moleFormData.setIgnoreHETATMs(true);
-                        });
-                    }).bind(v)();
                 }}
                 />
                 <ControlGroup header='Advanced options' initialExpanded={this.props.parent.state.openControls}>
@@ -311,14 +303,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                             s.moleFormData.setIgnoreHydrogens(v.value);
                             this.setState(s);
                         }
-                        (() => {
-                            FormEvents.attachOnClearEventHandler((formGroup) => {
-                                if (formGroup !== validationGroup) {
-                                    return;
-                                }
-                                s.moleFormData.setIgnoreHydrogens(false);
-                            });
-                        }).bind(v)();
                     }}
                     />
                     <TextControl name="Query Filter" param={ParamDefinition.Text('', { label: 'Query Filter', placeholder: 'Residues(\'GOL\')' })} value={valueOrDefault(data.getQueryFilter(), "")} onChange={(v) => {
@@ -327,14 +311,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                             s.moleFormData.setQueryFilter(v.value);
                             this.setState(s);
                         }
-                        (() => {
-                            FormEvents.attachOnClearEventHandler((formGroup) => {
-                                if (formGroup !== validationGroup) {
-                                    return;
-                                }
-                                s.moleFormData.setQueryFilter('');
-                            });
-                        }).bind(v)();
                     }} />
                     <BoolControl name='Read All Models' param={ParamDefinition.Boolean(false, { label: 'Read All Models' })} value={valueOrDefault(data.getReadAllModels(), false)} onChange={(v) => {
                         let s = this.state;
@@ -342,14 +318,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                             s.moleFormData.setReadAllModels(v.value);
                             this.setState(s);
                         }
-                        (() => {
-                            FormEvents.attachOnClearEventHandler((formGroup) => {
-                                if (formGroup !== validationGroup) {
-                                    return;
-                                }
-                                s.moleFormData.setReadAllModels(false);
-                            });
-                        }).bind(v)();
                     }}
                     />
                     <TextControl name="Ignored Residues" param={ParamDefinition.Text('', { label: 'Ignored Residues', placeholder: 'A 69, A 386, ...' })} value={valueOrDefault(data.getIgnoredResiduesStr(), "")} onChange={(v) => {
@@ -359,15 +327,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                             s.moleFormData.setIgnoredResiduesStr(v.value)
                             this.setState(s);
                         }
-                        (() => {
-                            FormEvents.attachOnClearEventHandler((formGroup) => {
-                                if (formGroup !== validationGroup) {
-                                    return;
-                                }
-                                s.moleFormData.setIgnoredResidues(parseResidues(''));
-                                s.moleFormData.setIgnoredResiduesStr('');
-                            });
-                        }).bind(v)();
                     }} />
                     <TextControl name="Specific Chains" param={ParamDefinition.Text('', { label: 'Specific Chains', placeholder: 'A, B, ...' })} value={valueOrDefault(data.getSpecificChains(), "")} onChange={(v) => {
                         let s = this.state;
@@ -375,14 +334,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                             s.moleFormData.setSpecificChains(v.value);
                             this.setState(s);
                         }
-                        (() => {
-                            FormEvents.attachOnClearEventHandler((formGroup) => {
-                                if (formGroup !== validationGroup) {
-                                    return;
-                                }
-                                s.moleFormData.setSpecificChains('');
-                            });
-                        }).bind(v)();
                     }} />
                 </ControlGroup>
             </ControlGroup>
@@ -393,14 +344,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                         s.moleFormData.setProbeRadius(v.value);
                         this.setState(s);
                     }
-                    (() => {
-                        FormEvents.attachOnClearEventHandler((formGroup) => {
-                            if (formGroup !== validationGroup) {
-                                return;
-                            }
-                            s.moleFormData.setProbeRadius(5);
-                        });
-                    }).bind(v)();
                 }} />
                 <NumberRangeControl name="Interior Treshold" param={ParamDefinition.Numeric(1.1, { min: 0.3, max: 3, step: 0.01 })} value={valueOrDefault(data.getInteriorThreshold(), 1.1)} onChange={(v) => {
                     let s = this.state;
@@ -408,14 +351,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                         s.moleFormData.setInteriorThreshold(v.value);
                         this.setState(s);
                     }
-                    (() => {
-                        FormEvents.attachOnClearEventHandler((formGroup) => {
-                            if (formGroup !== validationGroup) {
-                                return;
-                            }
-                            s.moleFormData.setInteriorThreshold(5);
-                        });
-                    }).bind(v)();
                 }} />
             </ControlGroup>
             <ControlGroup header='Channel Parameters' initialExpanded={this.props.parent.state.openControls}>
@@ -425,14 +360,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                         s.moleFormData.setOriginRadius(v.value);
                         this.setState(s);
                     }
-                    (() => {
-                        FormEvents.attachOnClearEventHandler((formGroup) => {
-                            if (formGroup !== validationGroup) {
-                                return;
-                            }
-                            s.moleFormData.setOriginRadius(5);
-                        });
-                    }).bind(v)();
                 }} />
                 <NumberRangeControl name="Surface Cover Radius" param={ParamDefinition.Numeric(10, { min: 5, max: 20, step: 0.5 })} value={valueOrDefault(data.getSurfaceCoverRadius(), 10)} onChange={(v) => {
                     let s = this.state;
@@ -440,14 +367,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                         s.moleFormData.setSurfaceCoverRadius(v.value);
                         this.setState(s);
                     }
-                    (() => {
-                        FormEvents.attachOnClearEventHandler((formGroup) => {
-                            if (formGroup !== validationGroup) {
-                                return;
-                            }
-                            s.moleFormData.setSurfaceCoverRadius(5);
-                        });
-                    }).bind(v)();
                 }} />
                 <SelectControl
                     name="Weight Function"
@@ -459,14 +378,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                             s.moleFormData.setWeightFunction(v.value);
                             this.setState(s);
                         }
-                        (() => {
-                            FormEvents.attachOnClearEventHandler((formGroup) => {
-                                if (formGroup !== validationGroup) {
-                                    return;
-                                }
-                                s.moleFormData.setWeightFunction("VoronoiScale");
-                            });
-                        }).bind(v)();
                     }} />
                 <BoolControl name='Merge Pores' param={ParamDefinition.Boolean(false, { label: 'Merge Pores' })} value={valueOrDefault(data.getMergePores(), false)} onChange={(v) => {
                     let s = this.state;
@@ -474,14 +385,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                         s.moleFormData.setMergePores(v.value);
                         this.setState(s);
                     }
-                    (() => {
-                        FormEvents.attachOnClearEventHandler((formGroup) => {
-                            if (formGroup !== validationGroup) {
-                                return;
-                            }
-                            s.moleFormData.setMergePores(false);
-                        });
-                    }).bind(v)();
                 }}
                 />
                 <BoolControl name='Automatic Pores' param={ParamDefinition.Boolean(false, { label: 'Automatic Pores' })} value={valueOrDefault(data.getAutomaticPores(), false)} onChange={(v) => {
@@ -490,14 +393,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                         s.moleFormData.setAutomaticPores(v.value);
                         this.setState(s);
                     }
-                    (() => {
-                        FormEvents.attachOnClearEventHandler((formGroup) => {
-                            if (formGroup !== validationGroup) {
-                                return;
-                            }
-                            s.moleFormData.setAutomaticPores(false);
-                        });
-                    }).bind(v)();
                 }}
                 />
                 <ControlGroup header='Advanced options'>
@@ -507,14 +402,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                             s.moleFormData.setBottleneckRadius(v.value);
                             this.setState(s);
                         }
-                        (() => {
-                            FormEvents.attachOnClearEventHandler((formGroup) => {
-                                if (formGroup !== validationGroup) {
-                                    return;
-                                }
-                                s.moleFormData.setBottleneckRadius(5);
-                            });
-                        }).bind(v)();
                     }} />
                     <NumberRangeControl name="Bottleneck Tolerance" param={ParamDefinition.Numeric(3, { min: 0, max: 5, step: 0.1 })} value={valueOrDefault(data.getBottleneckTollerance(), 3)} onChange={(v) => {
                         let s = this.state;
@@ -522,14 +409,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                             s.moleFormData.setBottleneckTolerance(v.value);
                             this.setState(s);
                         }
-                        (() => {
-                            FormEvents.attachOnClearEventHandler((formGroup) => {
-                                if (formGroup !== validationGroup) {
-                                    return;
-                                }
-                                s.moleFormData.setBottleneckTolerance(5);
-                            });
-                        }).bind(v)();
                     }} />
                     <NumberRangeControl name="Max Tunnel Similarity" param={ParamDefinition.Numeric(0.7, { min: 0, max: 1, step: 0.05 })} value={valueOrDefault(data.getMaxTunnelSimilarity(), 0.7)} onChange={(v) => {
                         let s = this.state;
@@ -537,14 +416,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                             s.moleFormData.setMaxTunnelSimilarity(v.value);
                             this.setState(s);
                         }
-                        (() => {
-                            FormEvents.attachOnClearEventHandler((formGroup) => {
-                                if (formGroup !== validationGroup) {
-                                    return;
-                                }
-                                s.moleFormData.setMaxTunnelSimilarity(5);
-                            });
-                        }).bind(v)();
                     }} />
                 </ControlGroup>
             </ControlGroup>
@@ -609,14 +480,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                     s.poresFormData.setProbeRadius(v.value);
                     this.setState(s);
                 }
-                (() => {
-                    FormEvents.attachOnClearEventHandler((formGroup) => {
-                        if (formGroup !== validationGroup) {
-                            return;
-                        }
-                        s.poresFormData.setProbeRadius(13);
-                    });
-                }).bind(v)();
             }} />
             <NumberRangeControl name="Interior Treshold" param={ParamDefinition.Numeric(0.8, { min: 0.3, max: 3, step: 0.01 })} value={valueOrDefault(data.getInteriorThreshold(), 0.8)} onChange={(v) => {
                 let s = this.state;
@@ -624,14 +487,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                     s.poresFormData.setInteriorThreshold(v.value);
                     this.setState(s);
                 }
-                (() => {
-                    FormEvents.attachOnClearEventHandler((formGroup) => {
-                        if (formGroup !== validationGroup) {
-                            return;
-                        }
-                        s.poresFormData.setInteriorThreshold(0.8);
-                    });
-                }).bind(v)();
             }} />
         </div>
     }
