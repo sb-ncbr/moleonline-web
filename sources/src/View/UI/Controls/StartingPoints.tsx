@@ -1,12 +1,13 @@
 import React from "react";
-import { Events } from "../../../CommonUtils/FormEvents";
-import { flattenPoints, flattenResidues, parsePoint, parseResidues } from "../../../CommonUtils/Misc";
-import { Cofactors, CSAResidues, MoleConfigResidue } from "../../../../MoleAPIService";
-import { SelectionHelper } from "../../../CommonUtils/Selection";
-import { DataProxyCofactors, DataProxyCSAResidues } from "../../../../DataProxy";
-import { Residues } from "../../../CommonUtils/Residues";
-import { validatePatternQuery } from "../../../CommonUtils/Validators";
-import { getParameters } from "../../../../Common/Util/Router";
+import { Events } from "../../CommonUtils/FormEvents";
+import { ValidationState } from "./ValidationState";
+import { flattenPoints, flattenResidues, parsePoint, parseResidues } from "../../CommonUtils/Misc";
+import { Cofactors, CSAResidues, MoleConfigResidue } from "../../../MoleAPIService";
+import { SelectionHelper } from "../../CommonUtils/Selection";
+import { DataProxyCofactors, DataProxyCSAResidues } from "../../../DataProxy";
+import { Residues } from "../../CommonUtils/Residues";
+import { validatePatternQuery } from "../../CommonUtils/Validators";
+import { getParameters } from "../../../Common/Util/Router";
 import { Button } from "molstar/lib/mol-plugin-ui/controls/common";
 import { SelectControl, TextControl } from "molstar/lib/mol-plugin-ui/controls/parameters";
 import { ParamDefinition } from "molstar/lib/mol-util/param-definition";
@@ -14,51 +15,6 @@ import { CheckSvg, CloseSvg } from "molstar/lib/mol-plugin-ui/controls/icons";
 
 
 interface FormControl { }
-
-
-export type ValidationStates = "VALID" | "INVALID"
-export type ValidationStateChangeHandler = (oldState: ValidationStates, newState: ValidationStates) => void
-
-export class ValidationState {
-    private static validationStates: Map<string, ValidationStates> = new Map<string, ValidationStates>();
-
-    public static getState(validationGroup: string) {
-        let state = this.validationStates.get(validationGroup);
-        if (state === void 0) {
-            return "VALID";
-        }
-
-        return state;
-    }
-
-    private static stateChangeHandlers: Map<string, ValidationStateChangeHandler[]> = new Map<string, ValidationStateChangeHandler[]>();
-
-    public static attachOnStateChangeHandler(validationGroup: string, handler: ValidationStateChangeHandler) {
-        let groupHandlers = this.stateChangeHandlers.get(validationGroup);
-        if (groupHandlers === void 0) {
-            groupHandlers = [];
-        }
-        groupHandlers.push(handler);
-        this.stateChangeHandlers.set(validationGroup, groupHandlers);
-    }
-
-    private static invokeOnStateChangeHandlers(validationGroup: string, oldState: ValidationStates, newState: ValidationStates) {
-        let groupHandlers = this.stateChangeHandlers.get(validationGroup);
-        if (groupHandlers === void 0) {
-            return;
-        }
-
-        for (let h of groupHandlers) {
-            h(oldState, newState);
-        }
-    }
-
-    public static reset(validationGroup: string) {
-        let oldState = this.getState(validationGroup);
-        this.validationStates.delete(validationGroup);
-        this.invokeOnStateChangeHandlers(validationGroup, oldState, this.getState(validationGroup));
-    }
-}
 
 interface ControlValidationCommonProps {
     validationGroup?: string,
@@ -553,7 +509,7 @@ export class StartingPointCofactorBox extends React.Component<StartingPointCofac
             let selected = null;
             let validCofactors = this.getValidCofactors(cofactors);
             if (validCofactors.size > 0) {
-                selected = validCofactors.keys().next().value;
+                selected = validCofactors.keys().next().value!;
             }
             this.setState({ isLoading: false, cofactors: validCofactors, selected });
         });

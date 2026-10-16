@@ -16,7 +16,8 @@ import { CommonOptions, Routing } from "../../../../config/common";
 import { ControlGroup } from "molstar/lib/mol-plugin-ui/controls/common";
 import { BoolControl, NumberRangeControl, SelectControl, TextControl } from "molstar/lib/mol-plugin-ui/controls/parameters";
 import { ParamDefinition } from "molstar/lib/mol-util/param-definition";
-import { StartingPointBox, ValidationState } from "../Common/Controls/FromLiteMol";
+import { StartingPointBox } from "./StartingPoints";
+import { ValidationState } from "./ValidationState";
 import { isMoleConfigOrPoresConfig } from "./ParamsChecker";
 require("molstar/lib/mol-plugin-ui/skin/light.scss");
 

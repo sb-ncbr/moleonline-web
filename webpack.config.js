@@ -23,7 +23,7 @@ const stylesheets = [
     'CSAPickBox.css',
     'datagrid.css',
     'DownloadReport.css',
-    'FromLiteMol.css',
+    'StartingPoints.css',
     'LayerVizualizerStyles.css',
     'lining-residues.css',
     'LoadingScreen.css',

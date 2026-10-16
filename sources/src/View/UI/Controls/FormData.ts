@@ -1,6 +1,6 @@
 
 import { MoleConfig, MoleConfigCavity, MoleConfigInput, MoleConfigOrigin, MoleConfigPoint, MoleConfigResidue, MoleConfigTunnel, PoresConfig } from "../../../MoleAPIService";
-import { Point, Residue, StartingPoint, StartingPointQuery, StartingPointResidue, StartingPointXYZ } from "../Common/Controls/FromLiteMol";
+import { Point, Residue, StartingPoint, StartingPointQuery, StartingPointResidue, StartingPointXYZ } from "./StartingPoints";
 
 export class Cavity implements MoleConfigCavity {
     public IgnoreHETAtoms: boolean
