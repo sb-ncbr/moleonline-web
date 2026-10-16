@@ -150,8 +150,13 @@ export namespace JobStatus {
                 return;
             }
 
+            // a failing subscriber must not stop the others, nor the polling and its cleanup
             for (let h of handlers) {
-                h(status);
+                try {
+                    h(status);
+                } catch (e) {
+                    console.error(`Status handler of ${computationId}:${submitId} failed`, e);
+                }
             }
         }
 
@@ -161,25 +166,24 @@ export namespace JobStatus {
             this.errHandlers.delete(key);
         }
 
-        private static waitForResult(computationId: string, submitId: number) {
+        // Poll often at first, then less often for long jobs
+        private static readonly FIRST_POLL_MS = 1000;
+        private static readonly MAX_POLL_MS = 5000;
+        // A failed status request is retried after 2, 4, 8, 16 and 30 s before the error is reported
+        private static readonly MAX_RETRIES = 5;
+        private static readonly MAX_RETRY_MS = 30000;
+
+        private static waitForResult(computationId: string, submitId: number, pollMs = Watcher.FIRST_POLL_MS, failures = 0) {
             ApiService.getStatus(computationId, submitId).then((state) => {
                 if (CommonOptions.DEBUG_MODE)
                     console.log(state);
-                /*
-                "Initializing"| OK
-                "Initialized"| OK
-                "FailedInitialization"| OK
-                "Running"| OK
-                "Finished"| OK
-                "Error"| OK
-                "Deleted"| OK
-                "Aborted"; OK
-                */
                 switch (state.Status) {
                     case "Initializing":
                     case "Running":
                         this.notifyStatusUpdate(computationId, submitId, state);
-                        window.setTimeout(() => { this.waitForResult(computationId, submitId); }, 1000);
+                        window.setTimeout(() => {
+                            this.waitForResult(computationId, submitId, Math.min(pollMs * 1.5, Watcher.MAX_POLL_MS));
+                        }, pollMs);
                         break;
                     case "Initialized":
                     case "FailedInitialization":
@@ -191,17 +195,28 @@ export namespace JobStatus {
                         this.removeHandlers(computationId, submitId);
                         break;
                 }
-            })
-                .catch((err) => {
-                    let h = this.errHandlers.get(this.makeHash(computationId, submitId));
-                    if (h === void 0) {
-                        throw new Error(err);
-                    }
+            }, (err) => { // only a failed request is retried, not an error in the code above
+                if (failures < Watcher.MAX_RETRIES) {
+                    const retryMs = Math.min(2000 * 2 ** failures, Watcher.MAX_RETRY_MS);
+                    if (CommonOptions.DEBUG_MODE)
+                        console.log(`Status of ${computationId}:${submitId} not available, retrying in ${retryMs} ms`, err);
+                    window.setTimeout(() => {
+                        this.waitForResult(computationId, submitId, pollMs, failures + 1);
+                    }, retryMs);
+                    return;
+                }
 
-                    for (let handler of h) {
-                        handler(err);
-                    }
-                });
+                // give up; a new registration starts polling again
+                let h = this.errHandlers.get(this.makeHash(computationId, submitId));
+                this.removeHandlers(computationId, submitId);
+                if (h === void 0) {
+                    throw new Error(err);
+                }
+
+                for (let handler of h) {
+                    handler(err);
+                }
+            });
         }
     }
 }
