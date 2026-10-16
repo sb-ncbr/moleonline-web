@@ -22,8 +22,6 @@ export interface CopyParametersParams {
     mode: "pores" | "mole"
 };
 
-type SimpleHandler = (args?: any) => any;
-
 export type NewSubmitHandler = (submitId: number) => void;
 export type SubmitDoneHandler = (submitId: number) => void;
 export type ChangeSubmitIdHandler = (submitId: number) => void;
@@ -36,261 +34,70 @@ export type RunPDFReportHandler = () => void;
 export type CopyParametersHandler = (params: CopyParametersParams) => void;
 export type OnMembraneDataReadyHandler = () => void;
 
-namespace HandlerTypes {
-    export const NewSubmitType = "NEW-SUBMIT";
-    export const SubmitDoneType = "SUBMIT-DONE";
-    export const ChangeSubmitIdType = "CHANGE-SUBMIT-ID";
-    export const ChannelSelectType = "CHANNEL-SELECT";
-    export const ChangeHasKillableType = "CHANGE-HAS-KILLABLE";
-    export const NotifyMessageType = "NOTIFY-MESSAGE";
-    export const ChannelDataLoadedType = "CHANNEL-DATA-LOADED";
-    export const ToggleLoadingScreenType = "TOGGLE-LOADING-SCREEN";
-    export const RunPDFReportType = "RUN-PDF-REPORT";
-    export const CopyParametersType = "COPY-PARAMETERS";
-    export const OnReSubmitType = "ON-RESUBMIT";
-    export const OnMembraneDataReadyType = "ON-MEMBRANE-DATA-READY";
-
-    export type NewSubmit = "NEW-SUBMIT";
-    export type SubmitDone = "SUBMIT-DONE";
-    export type ChangeSubmitId = "CHANGE-SUBMIT-ID";
-    export type ChannelSelect = "CHANNEL-SELECT";
-    export type ChangeHasKillable = "CHANGE-HAS-KILLABLE";
-    export type NotifyMessage = "NOTIFY-MESSAGE";
-    export type ChannelDataLoaded = "CHANNEL-DATA-LOADED";
-    export type ProteinDataLoaded = "PROTEIN-DATA-LOADED";
-    export type ToggleLoadingScreen = "TOGGLE-LOADING-SCREEN";
-    export type RunPDFReport = "RUN-PDF-REPORT";
-    export type CopyParameters = "COPY-PARAMETERS";
-    export type OnReSubmit = "ON-RESUBMIT";
-    export type OnSequneceViewerToggle = "ON-SEQ-VIEWER-TOGGLE";
-    export type OnMembraneDataReady = "ON-MEMBRANE-DATA-READY";
-};
-
-type HandlerType = HandlerTypes.NewSubmit
-    | HandlerTypes.ChangeSubmitId
-    | HandlerTypes.ChannelSelect
-    | HandlerTypes.ChangeHasKillable
-    | HandlerTypes.NotifyMessage
-    | HandlerTypes.ChannelDataLoaded
-    | HandlerTypes.ProteinDataLoaded
-    | HandlerTypes.ToggleLoadingScreen
-    | HandlerTypes.RunPDFReport
-    | HandlerTypes.CopyParameters
-    | HandlerTypes.OnReSubmit
-    | HandlerTypes.OnSequneceViewerToggle
-    | HandlerTypes.OnMembraneDataReady
-    | HandlerTypes.SubmitDone;
+type EventName =
+    | "NEW-SUBMIT"
+    | "SUBMIT-DONE"
+    | "CHANGE-SUBMIT-ID"
+    | "CHANNEL-SELECT"
+    | "CHANGE-HAS-KILLABLE"
+    | "NOTIFY-MESSAGE"
+    | "CHANNEL-DATA-LOADED"
+    | "TOGGLE-LOADING-SCREEN"
+    | "RUN-PDF-REPORT"
+    | "COPY-PARAMETERS"
+    | "ON-RESUBMIT"
+    | "ON-MEMBRANE-DATA-READY";
 
 export class Events {
-    private static handlers = new Map<HandlerType, SimpleHandler[]>();
+    private static handlers = new Map<EventName, ((arg?: any) => void)[]>();
 
-    public static subscribeChannelSelect(handler: ChannelSelectHandler) {
-        let hndlrs = this.handlers.get(HandlerTypes.ChannelSelectType);
-        if (hndlrs === void 0) {
-            hndlrs = [];
-        }
-        hndlrs.push(handler);
-        this.handlers.set(HandlerTypes.ChannelSelectType, hndlrs);
-    }
-
-    public static invokeChannelSelect(channelId: string) {
-        let hndlrs = this.handlers.get(HandlerTypes.ChannelSelectType);
-        if (hndlrs === void 0) {
-            return;
-        }
-
-        for (let h of hndlrs) {
-            h(channelId);
-        }
-    }
-
-    public static subscribeNewSubmit(h: NewSubmitHandler) {
-        let list = this.handlers.get(HandlerTypes.NewSubmitType);
+    private static subscribe(name: EventName, h: (arg?: any) => void) {
+        let list = this.handlers.get(name);
         if (list === void 0) {
             list = [];
+            this.handlers.set(name, list);
         }
         list.push(h);
-        this.handlers.set(HandlerTypes.NewSubmitType, list);
     }
 
-    public static invokeNewSubmit(submitId: number) {
-        let hndlrs = this.handlers.get(HandlerTypes.NewSubmitType);
-        if (hndlrs !== void 0) {
-            for (let h of hndlrs) {
-                h(submitId);
-            }
+    private static invoke(name: EventName, arg?: any) {
+        for (let h of this.handlers.get(name) ?? []) {
+            h(arg);
         }
     }
 
-    public static subscribeSubmitDone(h: SubmitDoneHandler) {
-        let list = this.handlers.get(HandlerTypes.SubmitDoneType);
-        if (list === void 0) {
-            list = [];
-        }
-        list.push(h);
-        this.handlers.set(HandlerTypes.SubmitDoneType, list);
-    }
+    public static subscribeChannelSelect(h: ChannelSelectHandler) { this.subscribe("CHANNEL-SELECT", h); }
+    public static invokeChannelSelect(channelId: string) { this.invoke("CHANNEL-SELECT", channelId); }
 
-    public static invokeSubmitDone(submitId: number) {
-        let hndlrs = this.handlers.get(HandlerTypes.SubmitDoneType);
-        if (hndlrs !== void 0) {
-            for (let h of hndlrs) {
-                h(submitId);
-            }
-        }
-    }
+    public static subscribeNewSubmit(h: NewSubmitHandler) { this.subscribe("NEW-SUBMIT", h); }
+    public static invokeNewSubmit(submitId: number) { this.invoke("NEW-SUBMIT", submitId); }
 
-    public static subscribeChangeSubmitId(h: ChangeSubmitIdHandler) {
-        let list = this.handlers.get(HandlerTypes.ChangeSubmitIdType);
-        if (list === void 0) {
-            list = [];
-        }
-        list.push(h);
-        this.handlers.set(HandlerTypes.ChangeSubmitIdType, list);
-    }
+    public static subscribeSubmitDone(h: SubmitDoneHandler) { this.subscribe("SUBMIT-DONE", h); }
+    public static invokeSubmitDone(submitId: number) { this.invoke("SUBMIT-DONE", submitId); }
 
-    public static invokeChangeSubmitId(submitId: number) {
-        let hndlrs = this.handlers.get(HandlerTypes.ChangeSubmitIdType);
-        if (hndlrs !== void 0) {
-            for (let h of hndlrs) {
-                h(submitId);
-            }
-        }
-    }
+    public static subscribeChangeSubmitId(h: ChangeSubmitIdHandler) { this.subscribe("CHANGE-SUBMIT-ID", h); }
+    public static invokeChangeSubmitId(submitId: number) { this.invoke("CHANGE-SUBMIT-ID", submitId); }
 
-    public static subscribeChangeHasKillable(h: ChangeHasKillableHandler) {
-        let list = this.handlers.get(HandlerTypes.ChangeHasKillableType);
-        if (list === void 0) {
-            list = [];
-        }
-        list.push(h);
-        this.handlers.set(HandlerTypes.ChangeHasKillableType, list);
-    }
+    public static subscribeChangeHasKillable(h: ChangeHasKillableHandler) { this.subscribe("CHANGE-HAS-KILLABLE", h); }
+    public static invokeChangeHasKillable(hasKillable: boolean) { this.invoke("CHANGE-HAS-KILLABLE", hasKillable); }
 
-    public static invokeChangeHasKillable(hasKillable: boolean) {
-        let hndlrs = this.handlers.get(HandlerTypes.ChangeHasKillableType);
-        if (hndlrs !== void 0) {
-            for (let h of hndlrs) {
-                h(hasKillable);
-            }
-        }
-    }
+    public static subscribeNotifyMessage(h: NotifyMessageHandler) { this.subscribe("NOTIFY-MESSAGE", h); }
+    public static invokeNotifyMessage(e: MessageInfo) { this.invoke("NOTIFY-MESSAGE", e); }
 
-    public static subscribeNotifyMessage(h: NotifyMessageHandler) {
-        let list = this.handlers.get(HandlerTypes.NotifyMessageType);
-        if (list === void 0) {
-            list = [];
-        }
-        list.push(h);
-        this.handlers.set(HandlerTypes.NotifyMessageType, list);
-    }
+    public static subscribeChannelDataLoaded(h: ChannelDataLoadedHandler) { this.subscribe("CHANNEL-DATA-LOADED", h); }
+    public static invokeChannelDataLoaded(data: MoleData | ChannelsDBData) { this.invoke("CHANNEL-DATA-LOADED", data); }
 
-    public static invokeNotifyMessage(e: MessageInfo) {
-        let hndlrs = this.handlers.get(HandlerTypes.NotifyMessageType);
-        if (hndlrs !== void 0) {
-            for (let h of hndlrs) {
-                h(e);
-            }
-        }
-    }
+    public static subscribeToggleLoadingScreen(h: ToggleLoadingScreenHandler) { this.subscribe("TOGGLE-LOADING-SCREEN", h); }
+    public static invokeToggleLoadingScreen(params: ToggleLoadingScreenParams) { this.invoke("TOGGLE-LOADING-SCREEN", params); }
 
-    public static subscribeChannelDataLoaded(h: ChannelDataLoadedHandler) {
-        let list = this.handlers.get(HandlerTypes.ChannelDataLoadedType);
-        if (list === void 0) {
-            list = [];
-        }
-        list.push(h);
-        this.handlers.set(HandlerTypes.ChannelDataLoadedType, list);
-    }
+    public static subscribeRunGeneratePDFReport(h: RunPDFReportHandler) { this.subscribe("RUN-PDF-REPORT", h); }
+    public static invokeRunPDFReport() { this.invoke("RUN-PDF-REPORT"); }
 
-    public static invokeChannelDataLoaded(data: MoleData | ChannelsDBData) {
-        let hndlrs = this.handlers.get(HandlerTypes.ChannelDataLoadedType);
-        if (hndlrs !== void 0) {
-            for (let h of hndlrs) {
-                h(data);
-            }
-        }
-    }
+    public static subscribeCopyParameters(h: CopyParametersHandler) { this.subscribe("COPY-PARAMETERS", h); }
+    public static invokeCopyParameters(params: CopyParametersParams) { this.invoke("COPY-PARAMETERS", params); }
 
-    public static subscribeToggleLoadingScreen(h: ToggleLoadingScreenHandler) {
-        let list = this.handlers.get(HandlerTypes.ToggleLoadingScreenType);
-        if (list === void 0) {
-            list = [];
-        }
-        list.push(h);
-        this.handlers.set(HandlerTypes.ToggleLoadingScreenType, list);
-    }
+    public static subscribeOnReSubmit(h: CopyParametersHandler) { this.subscribe("ON-RESUBMIT", h); }
+    public static invokeOnReSubmit(promise: any) { this.invoke("ON-RESUBMIT", promise); }
 
-    public static invokeToggleLoadingScreen(params: ToggleLoadingScreenParams) {
-        let hndlrs = this.handlers.get(HandlerTypes.ToggleLoadingScreenType);
-        if (hndlrs !== void 0) {
-            for (let h of hndlrs) {
-                h(params);
-            }
-        }
-    }
-
-    public static subscribeRunGeneratePDFReport(h: RunPDFReportHandler) {
-        let list = this.handlers.get(HandlerTypes.RunPDFReportType);
-        if (list === void 0) {
-            list = [];
-        }
-        list.push(h);
-        this.handlers.set(HandlerTypes.RunPDFReportType, list);
-    }
-
-    public static invokeRunPDFReport() {
-        let hndlrs = this.handlers.get(HandlerTypes.RunPDFReportType);
-        if (hndlrs !== void 0) {
-            for (let h of hndlrs) {
-                h();
-            }
-        }
-    }
-
-    public static subscribeCopyParameters(h: CopyParametersHandler) {
-        let list = this.handlers.get(HandlerTypes.CopyParametersType);
-        if (list === void 0) {
-            list = [];
-        }
-        list.push(h);
-        this.handlers.set(HandlerTypes.CopyParametersType, list);
-    }
-
-    public static invokeCopyParameters(params: CopyParametersParams) {
-        let hndlrs = this.handlers.get(HandlerTypes.CopyParametersType);
-        if (hndlrs !== void 0) {
-            for (let h of hndlrs) {
-                h(params);
-            }
-        }
-    }
-
-    public static subscribeOnReSubmit(h: CopyParametersHandler) {
-        let list = this.handlers.get(HandlerTypes.OnReSubmitType);
-        if (list === void 0) {
-            list = [];
-        }
-        list.push(h);
-        this.handlers.set(HandlerTypes.OnReSubmitType, list);
-    }
-
-    public static invokeOnReSubmit(promise: any) {
-        let hndlrs = this.handlers.get(HandlerTypes.OnReSubmitType);
-        if (hndlrs !== void 0) {
-            for (let h of hndlrs) {
-                h(promise);
-            }
-        }
-    }
-
-    public static subscribeOnMembraneDataReady(h: OnMembraneDataReadyHandler) {
-        let list = this.handlers.get(HandlerTypes.OnMembraneDataReadyType);
-        if (list === void 0) {
-            list = [];
-        }
-        list.push(h);
-        this.handlers.set(HandlerTypes.OnMembraneDataReadyType, list);
-    }
-
+    public static subscribeOnMembraneDataReady(h: OnMembraneDataReadyHandler) { this.subscribe("ON-MEMBRANE-DATA-READY", h); }
 }
