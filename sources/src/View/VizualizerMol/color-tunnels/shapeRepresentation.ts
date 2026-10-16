@@ -45,8 +45,8 @@ export function ShapeRepresentation<D, G extends Geometry, P extends Geometry.Pa
     let _shape: Shape<G>;
     let geometryVersion = -1;
     const _theme = Theme.createEmpty();
-    let currentProps: PD.Values<P> = PD.getDefaultValues(geometryUtils.Params as P); // TODO avoid casting
-    let currentParams: P;
+    const currentParams = geometryUtils.Params as P; // TODO avoid casting
+    let currentProps: PD.Values<P> = PD.getDefaultValues(currentParams);
     let locationIt: LocationIterator;
     let positionIt: LocationIterator;
 

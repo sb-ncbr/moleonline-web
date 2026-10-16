@@ -58,7 +58,7 @@ export function getShapeGroupColorThemeParams(ctx: ThemeDataContext) {
     return ShapeGroupColorThemeParams; // TODO return copy
 }
 
-export function ShapeGroupColorTheme(props: PD.Values<ShapeGroupColorThemeParams>): ColorTheme<ShapeGroupColorThemeParams> {
+export function ShapeGroupColorTheme(ctx: ThemeDataContext, props: PD.Values<ShapeGroupColorThemeParams>): ColorTheme<ShapeGroupColorThemeParams> {
     return {
         factory: ShapeGroupColorTheme,
         granularity: 'vertex',
@@ -98,7 +98,7 @@ export function getShapeGroupSizeThemeParams(ctx: ThemeDataContext) {
     return ShapeGroupSizeThemeParams; // TODO return copy
 }
 
-export function ShapeGroupSizeTheme(/*ctx: ThemeDataContext,*/ props: PD.Values<ShapeGroupSizeThemeParams>): SizeTheme<ShapeGroupSizeThemeParams> {
+export function ShapeGroupSizeTheme(ctx: ThemeDataContext, props: PD.Values<ShapeGroupSizeThemeParams>): SizeTheme<ShapeGroupSizeThemeParams> {
     return {
         factory: ShapeGroupSizeTheme,
         granularity: 'groupInstance',

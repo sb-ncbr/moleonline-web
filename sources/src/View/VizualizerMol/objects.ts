@@ -213,7 +213,7 @@ export const TunnelPropertyColorRepresentation3D = Transform({
             let repr = ColorShapeRepresentation(a.data.getShape, a.data.geometryUtils);
             const data = interpolateTunnel(a.data.data.data.tunnel.data, a.data.data.params.samplingRate);
             repr.setTheme({
-                color: ShapeGroupColorTheme({
+                color: ShapeGroupColorTheme({}, {
                     // tree: createTree(data),
                     mappedPoints: assignLayers(data, a.data.data.params.layers),
                     colorOptions: {
@@ -225,7 +225,7 @@ export const TunnelPropertyColorRepresentation3D = Transform({
                     },
                     property: a.data.data.params.colorTheme.params.property.name
                 }),
-                size: ShapeGroupSizeTheme({})
+                size: ShapeGroupSizeTheme({}, {})
             })
             await repr.createOrUpdate(props, a.data.data).runInContext(ctx);
             repr = {...repr, params: { tag: "PropertyColorTunnel", tunnel: params.tunnel }};
