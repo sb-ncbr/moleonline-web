@@ -27,7 +27,7 @@ type SimpleHandler = (args?: any) => any;
 export type NewSubmitHandler = (submitId: number) => void;
 export type SubmitDoneHandler = (submitId: number) => void;
 export type ChangeSubmitIdHandler = (submitId: number) => void;
-export type ChannelSelectHandler = (channelId: number) => void;
+export type ChannelSelectHandler = (channelId: string) => void;
 export type ChangeHasKillableHandler = (hasKillable: boolean) => void;
 export type NotifyMessageHandler = (e: MessageInfo) => void;
 export type ChannelDataLoadedHandler = (data: MoleData | ChannelsDBData) => void;

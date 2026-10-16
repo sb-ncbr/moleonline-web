@@ -1,6 +1,6 @@
 import React from "react";
 
-export class SimpleComboBox extends React.Component<{ id: string, items: { label: string, value: string }[], defaultSelectedIndex?: number, className?: string, onSelectedChange?: (e: any) => boolean }, {}> {
+export class SimpleComboBox extends React.Component<{ id: string, items: { label: string, value: string }[], defaultSelectedIndex?: number, className?: string, onSelectedChange?: (e: any) => void }, {}> {
     render() {
         let classNames = "";
         if (this.props.className !== void 0) {

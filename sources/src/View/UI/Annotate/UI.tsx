@@ -697,8 +697,8 @@ class TunnelAnnotations extends React.Component<TunnelAnnotationsProps, TunnelAn
         });
     }
 
-    updateCurrentElementReferenceType(referenceType: ReferenceType) {
-        this.updateCurrentElement(referenceType, (pto, val) => {
+    updateCurrentElementReferenceType(referenceType: string) {
+        this.updateCurrentElement(referenceType as ReferenceType, (pto, val) => {
             pto.ReferenceType = val;
             return pto;
         });
@@ -1073,8 +1073,8 @@ class ResidueAnnotations extends React.Component<ResidueAnnotationsProps, Residu
         });
     }
 
-    updateCurrentElementReferenceType(referenceType: ReferenceType) {
-        this.updateCurrentElement(referenceType, (pto, val) => {
+    updateCurrentElementReferenceType(referenceType: string) {
+        this.updateCurrentElement(referenceType as ReferenceType, (pto, val) => {
             pto.ReferenceType = val;
             return pto;
         });

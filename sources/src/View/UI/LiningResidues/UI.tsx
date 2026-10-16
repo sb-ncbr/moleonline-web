@@ -117,7 +117,7 @@ class Controls extends React.Component<State, {}> {
             }
 
             if (rClass.indexOf("blue") !== -1 || rClass.indexOf("red") !== -1) {
-                ionizableResidues.push(residue);
+                ionizableResidues.push({ ...residue, residueName: residue.name });
             }
         }
 
