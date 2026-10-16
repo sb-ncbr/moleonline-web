@@ -56,7 +56,6 @@ export class TunnelName {
             channels = channels.concat(data.Channels.AlphaFillTunnels_Caver);
         }
 
-        let cache = new Map<string, string>();
         for (let channel of channels) {
             let annotations = ChannelsDBData.getChannelAnnotationsImmediate(channel.Id);
             if (annotations !== null && annotations !== void 0) {

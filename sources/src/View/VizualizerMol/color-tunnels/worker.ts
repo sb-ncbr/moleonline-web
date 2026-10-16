@@ -12,7 +12,6 @@ type CalcTunnelSurfaceProps = {
 
 
 self.onmessage = async (e) => {
-    const start = performance.now();
     let lastClip = -1;
 
     const props = e.data as CalcTunnelSurfaceProps;
@@ -156,7 +155,6 @@ self.onmessage = async (e) => {
     }
 
     async function projectPoints() {
-        const start = performance.now();
         for (let i = 0; i < n; i += updateChunk) {
             projectPointsRange(i, Math.min(i + updateChunk, n));
 
@@ -164,7 +162,6 @@ self.onmessage = async (e) => {
                 await props.ctx.update({ message: 'projecting points', current: i, max: n });
             }
         }
-        const end = performance.now();
     }
 
     function normalToLine(out: Vec3, p: Vec3) {
@@ -295,7 +292,6 @@ self.onmessage = async (e) => {
     }
 
     async function projectTorii() {
-        const start = performance.now();
         for (let i = 0; i < n; i += updateChunk) {
             projectToriiRange(i, Math.min(i + updateChunk, n));
 
@@ -303,7 +299,6 @@ self.onmessage = async (e) => {
                 await props.ctx.update({ message: 'projecting torii', current: i, max: n });
             }
         }
-        const end = performance.now();
     }
 
     function findClosestPoint(target: Vec3, points: Map<Vec3, number>) {
@@ -326,7 +321,6 @@ self.onmessage = async (e) => {
         centerLine: Profile[],
         layers: LayersInfo[]
     ): { mappedPoints: Map<Vec3, number> } {
-        const start = performance.now();
         let currentLayerId = 0;
         let currentLayer = layers[currentLayerId];
         let mappedPoints: Map<Vec3, number> = new Map();
@@ -343,7 +337,6 @@ self.onmessage = async (e) => {
             pointArray.push({ point: vec, index: currentLayerId });
         }
 
-        const end = performance.now();
 
         return { mappedPoints };
     }
@@ -395,8 +388,6 @@ self.onmessage = async (e) => {
 
     try {
         await Promise.all(promises);
-        const field = Tensor.create(space, data);
-        const idField = Tensor.create(space, idData);
 
         const transform = Mat4.identity();
         Mat4.fromScaling(transform, Vec3.create(resolution, resolution, resolution));

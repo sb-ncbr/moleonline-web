@@ -274,7 +274,6 @@ class DGBody extends React.Component<State, {}> {
 
         let rows: JSX.Element[] = [];
         for (let [index, residue] of this.props.data.entries()) {
-            let residueId = residue.split(" ").slice(1, 3).join(" ");
             let residueInfo = Residues.parseResidues([residue], true);
 
             let trClass = (this.isBackbone(residue) ? "help" : "");

@@ -125,7 +125,6 @@ export const JSON2CIF = (name: string, data: string) => {
     }
 
     for (const ann of data_json["Annotations"]) {
-        const annotationId = rows.annotation.length + 1;
         rows.annotation.push(`${ann["Id"]} ${ann["ChannelId"] ? ann["ChannelId"] : '?'} "${ann["Name"]}" "${ann["Description"]}" "${ann["Reference"]}" ${ann["ReferenceType"]} `);
     }
 

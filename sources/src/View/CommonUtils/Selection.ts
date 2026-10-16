@@ -63,10 +63,8 @@ export class SelectionHelper {
     private static selectedChannelReprLoci: Representation.Loci<Loci>|undefined;
     private static selectedResidues: LightResidueInfo[] | undefined;
     private static selectedPoints: Point[] | undefined;
-    private static selectedTPoint: Point | undefined;
 
     private static selectedChannelData: Layers | undefined;
-    private static selectedChannel: Tunnel & TunnelMetaInfo | undefined;
 
     private static onPointSelectHandlers: { handler: (points: Point[]) => void }[];
     private static onResidueBulkSelectHandlers: { handler: (residues: LightResidueInfo[]) => void }[];
@@ -219,7 +217,6 @@ export class SelectionHelper {
             this.deselectTunnelByRef();
             this.selectedChannelRef = void 0;
             this.selectedChannelData = void 0;
-            this.selectedChannel = void 0;
             this.selectedChannelId = void 0;
         }
         this.clearAltSelection();
@@ -274,7 +271,6 @@ export class SelectionHelper {
         await SelectionHelper.clearSelectionPrivate();
         this.selectedChannelRef = void 0;
         this.selectedChannelData = void 0;
-        this.selectedChannel = void 0;
         this.selectedChannelId = void 0;
         this.selectedResidues = void 0;
         await this.clearSelectedPoints();
@@ -525,7 +521,6 @@ export class SelectionHelper {
 
     private static async clearSelectedTPoint() {
         await PluginCommands.State.RemoveObject(Context.getInstance().plugin, { state: Context.getInstance().plugin.state.data, ref: 'point-selection-T' });
-        this.selectedTPoint = void 0;
     }
 
     private static deselectTunnelByRef() {
@@ -567,7 +562,6 @@ export class SelectionHelper {
             this.removeHighlightSelectedChannel();
             context.plugin.managers.camera.focusLoci(current.__loci);
             this.selectedChannelReprLoci = { loci: current.__loci } as Representation.Loci<Loci>;
-            this.selectedChannel = current;
             this.selectedChannelData = current.Layers;
             this.selectedChannelId = current.Id;
             this.selectedChannelRef = current.__ref;
@@ -589,7 +583,6 @@ export class SelectionHelper {
         await SelectionHelper.clearSelectionPrivate();
         this.selectedChannelRef = void 0;
         this.selectedChannelData = void 0;
-        this.selectedChannel = void 0;
         this.selectedChannelId = void 0;
         this.selectedResidues = void 0;
         this.selectedPoints = void 0;
@@ -616,7 +609,6 @@ export class SelectionHelper {
     public static attachSelectionHelperHandlerToEventHandler() {
 
         this.attachOnResidueSelectHandler(async (residues) => {
-            let ref = "residue-selection-T";
             if (residues.length > 0) {
                 let centerOfMass = Residues.getCenterOfMass(
                     residues.map((val, idx, arr) => {
@@ -630,7 +622,6 @@ export class SelectionHelper {
                 if (centerOfMass === null) {
                     return;
                 }
-                this.selectedTPoint = centerOfMass;
                 await this.createTPointSelectionVisual(centerOfMass);
             }
             else {
@@ -679,7 +670,6 @@ export class SelectionHelper {
                         this.selectedChannelData = void 0;
                         this.selectedChannelId = void 0;
                         this.selectedChannelReprLoci = void 0;
-                        this.selectedChannel = void 0;
                         this.invokeOnChannelDeselectHandlers();
                     }
                     else {

@@ -211,7 +211,6 @@ export function convertToPositionData(profile: Profile[], probeRadius: number, l
     const indices: Array<number> = [];
     const radius: number[] = [];
 
-    const maxRadius: number = Number.MIN_SAFE_INTEGER;
 
     let sphereCounter = 0;
     for (const sphere of profile) {
@@ -294,7 +293,6 @@ async function createTunnelMesh(
         idField
     };
     const surface = await computeMarchingCubesMesh(params, options.prev).run();
-    const iterations = Math.ceil(2 / 1);
     // Mesh.smoothEdges(surface, { iterations, maxNewEdgeLength: Math.sqrt(2) });
     Mesh.smoothEdges(surface, { iterations: Math.ceil(maxRadius), maxNewEdgeLength: Math.sqrt(2) });
 
@@ -404,9 +402,6 @@ async function calcTunnelSurface(ctx: RuntimeContext,
     const dim = Box3D.size(Vec3(), scaledBox);
     Vec3.ceil(dim, dim);
 
-    const [dimX, dimY, dimZ] = dim;
-    const iu = dimZ, iv = dimY, iuv = iu * iv;
-
     const space = Tensor.Space(dim, [0, 1, 2], Float32Array);
     let data = space.create();
     let idData = space.create();
@@ -442,7 +437,6 @@ export function extendCenterLine(
         throw new Error("Center line must have at least two points.");
     }
 
-    const v = Vec3();
 
     // Direction vectors
     const beginDirection = Vec3.normalize(Vec3(), Vec3.sub(Vec3(), centerLine[0], centerLine[1]));
@@ -466,7 +460,6 @@ export function assignLayers(centerLine: Profile[], layers: LayersInfo[]): Map<V
     let currentLayerId = 0;
     let currentLayer = layers[currentLayerId];
     // let currentPoint = Vec3.create(data[0].X, data[0].Y, data[0].Z);
-    let currentDist = 0;
     let mappedPoints: Map<Vec3, { layer: LayersInfo, nextLayer: LayersInfo | undefined, distance: number }> = new Map();
 
     for (const point of centerLine) {

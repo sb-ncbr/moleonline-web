@@ -75,11 +75,9 @@ export class TextBox extends React.Component<TextBoxProps, TextBoxState> impleme
 
 export class ComboBoxItem {
     private value: string
-    private label: string
 
     public constructor(value: string, label: string) {
         this.value = value;
-        this.label = label;
     }
 
     getValue() {
@@ -401,7 +399,6 @@ export class StartingPointResultsBox extends React.Component<StartingPointResult
     render() {
         let rows = [];
         for (let [index, i] of this.props.items.entries()) {
-            let boxClass = `starting-point-${i.uiType.replace(/\s/g, "-")}`;
             rows.push(
                 <div key={index} className="msp-control-row">
                     <span className="msp-control-row-label">{i.uiType}</span>
@@ -683,7 +680,6 @@ export class StartingPoint3DPointBox extends React.Component<StartingPoint3DPoin
     render() {
         let button = <Button onClick={() => {
             if (this.props.onChange !== void 0) {
-                let newPointData: Residue[] = [];
                 let point = parsePoint(this.state.value);
                 if (point === void 0) {
                     return;

@@ -151,7 +151,6 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
         });
         SelectionHelper.attachOnChannelSelectHandler2((channel) => {
             window.setTimeout(() => {
-                let state = this.state;
                 doAfterTabActivated("left-tabs", "1", () => {
                     let s1 = this.state;
                     s1.channel = channel;

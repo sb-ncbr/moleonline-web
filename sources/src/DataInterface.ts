@@ -198,15 +198,6 @@ export function convertLayersToLayerData(layersObject: Layers): LayerData[] {
 
     for (let i = 0; i < layerCount; i++) {
 
-        let properties = {
-            Charge: layersObject.LayersInfo[i].Properties.Charge,
-            NumPositives: layersObject.LayersInfo[i].Properties.NumPositives,
-            NumNegatives: layersObject.LayersInfo[i].Properties.NumNegatives,
-            Hydrophobicity: layersObject.LayerWeightedProperties.Hydrophobicity,
-            Hydropathy: layersObject.LayerWeightedProperties.Hydropathy,
-            Polarity: layersObject.LayerWeightedProperties.Polarity,
-            Mutability: layersObject.LayerWeightedProperties.Mutability
-        };
         layersData.push({
             StartDistance: layersObject.LayersInfo[i].LayerGeometry.StartDistance,
             EndDistance: layersObject.LayersInfo[i].LayerGeometry.EndDistance,

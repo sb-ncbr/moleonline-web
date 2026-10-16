@@ -169,7 +169,6 @@ class DGBody extends React.Component<State, {}> {
 
         let rows: JSX.Element[] = [];
 
-        let data = this.props.data;
 
         for (const submissionId of Array.from(this.props.data.keys())) {
             if (submissionId === this.props.currentSubmission) {

@@ -98,8 +98,6 @@ export class Vizualizer {
     private maxColoringValue!: Map<string, number>;
     private absCenterPositions!: Map<PropertyKey, number>;
     private skipMiddle!: boolean;
-    private topMarginPercent!: number;
-    private topAirBorderHeight!: number;
     private maxX!: number;
     private maxY!: number;
     private customMaxY!: number;
@@ -118,7 +116,6 @@ export class Vizualizer {
     private publicInstanceIdx: number;
     private currentLayerIdx: number;
 
-    private uiContainerId: string;
     private canvasId: string;
     private tmpCanvasId: string;
 
@@ -385,11 +382,6 @@ export class Vizualizer {
         if (settings.skipMiddleColor != null) {
             this.skipMiddle = settings.skipMiddleColor.valueOf();
         }
-
-        this.topMarginPercent = 10;
-        if (settings.topMargin != null) {
-            this.topMarginPercent = settings.topMargin.valueOf();
-        }
     }
 
     private configureColors() {
@@ -476,7 +468,6 @@ export class Vizualizer {
         this.publicInstanceIdx = Vizualizer.ACTIVE_INSTANCES.length;
         Vizualizer.ACTIVE_INSTANCES.push(this);
 
-        this.uiContainerId = uiContainerId;
 
         this.configBySettings(settings);
 
@@ -555,7 +546,6 @@ export class Vizualizer {
         }
         this.__context = cntx;
 
-        this.topAirBorderHeight = ((this.__canvas.height / 100) * this.topMarginPercent);
 
         this.isDOMBound = true;
 
@@ -638,7 +628,6 @@ export class Vizualizer {
         let currentWidth = canvas.width;
         let currentHeight = canvas.height;
         let colorMixerMinPxWidth = 150;
-        let distanceLabelMinPxWidth = 80;
 
         var toRealPx = function (width: number, height: number, component: Positionable) {
             return component.toBounds(width, height);
@@ -1418,7 +1407,7 @@ export class Vizualizer {
 
         document.body.appendChild(tmpCanvas);
 
-        let oldCtx = this.getContext();
+        this.getContext();
         let tmpCtx = tmpCanvas.getContext("2d") as CanvasRenderingContext2D;
         if (tmpCtx === null) {
             throw new Error("Unable initiate new 2D canvas context");

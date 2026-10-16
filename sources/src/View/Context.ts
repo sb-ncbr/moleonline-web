@@ -363,7 +363,7 @@ export class Context {
 
         const providerRepr = moleObjectsNode
             .apply(SurfaceShapeProvider, { triangleIndices: triangles, vertices, colorTheme: color, solidForm: false, tag, label }, {tags: 'Surface'});
-        const repr = await providerRepr
+        await providerRepr
             .apply(PickableRepresentation3D, { alpha: 0.65, emissive: 0.20, pickable: false }, { state: { /*isGhost: true*/ } })
             .commit();
 
@@ -503,8 +503,8 @@ export class Context {
                 if (Loci.isEmpty(loci)) return;
                 if (loci.kind === 'element-loci') {
                     if (params.focusCenter) {
-                        const { lookup3d, serialMapping, unitIndexMap, units } = loci.structure;
-                        const { cumulativeUnitElementCount, elementIndices, unitIndices } = serialMapping;
+                        const { serialMapping } = loci.structure;
+                        const { elementIndices } = serialMapping;
                         const element = loci.elements[0];
                         OrderedSet.toArray(element.indices).forEach((e) => {
                             centerFocusPositions.push(element.unit.conformation.position(elementIndices[e], Vec3()));

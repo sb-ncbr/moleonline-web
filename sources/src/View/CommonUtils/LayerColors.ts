@@ -7,9 +7,6 @@ import { Tunnel, TunnelMetaInfo } from "../../DataInterface";
 import { SelectionHelper } from "./Selection";
 
 export class LayerColors {
-    private static currentColorProperty: Property = 'hydropathy';
-    private static currentColorBounds: ColorBound = 'absolute';
-    private static currentLayerIndex: number;
     private static currentSelectedLayer: number = -1;
     private static selectChannelLiningResidues: boolean = false;
     private static currentCanvas: HTMLCanvasElement | undefined = undefined;
@@ -48,7 +45,6 @@ export class LayerColors {
     }
     public static invokeOnColorPropertyChagned(property: Property | undefined) {
         if (property) {
-            this.currentColorProperty = property;
             if (this.onColorPropertyChanged === void 0) {
                 return;
             }
@@ -67,7 +63,6 @@ export class LayerColors {
         this.onLayerIndexOver.push({ handler });
     }
     public static invokeLayerIndexOver(layerIndex: number) {
-        this.currentLayerIndex = layerIndex;
         if (this.onLayerIndexOver === void 0) {
             return;
         }
@@ -85,7 +80,6 @@ export class LayerColors {
         this.onLayerIndexOverObject.push({ handler });
     }
     public static invokeLayerIndexOverObject(layerIndex: number, tunnelId: string) {
-        this.currentLayerIndex = layerIndex;
         if (this.onLayerIndexOverObject === void 0) {
             return;
         }
@@ -139,7 +133,6 @@ export class LayerColors {
         this.onColorBoundsChanged.push({ handler });
     }
     public static invokeOnColorBoundsChanged(bounds: ColorBound) {
-        this.currentColorBounds = bounds;
         if (this.onColorBoundsChanged === void 0) {
             return;
         }
@@ -230,7 +223,6 @@ export class LayerColors {
         plugin.behaviors.interaction.click.subscribe(({ current, button, modifiers, position }) => {
             if (current.loci.kind === 'group-loci') {
                 if (current.repr && current.repr.params && typeof current.repr.params.tag === 'string' && current.repr.params.tag === "PropertyColorTunnel" && current.repr.params.tunnel !== null) {
-                    const loci = current.loci;
                     const tunnel = current.repr.params.tunnel as unknown as (Tunnel & TunnelMetaInfo);
                     const ids = OrderedSet.toArray(current.loci.groups[0].ids);
                     if (SelectionHelper.getSelectedChannelId() !== tunnel.Id) {

@@ -1180,7 +1180,6 @@ class ResidueAnnotations extends React.Component<ResidueAnnotationsProps, Residu
     }
 
     generateInfoRow(item: ResidueAnnotation) {
-        const residueId = item.Id;
 
         return <tr>
             <td>

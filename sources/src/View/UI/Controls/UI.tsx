@@ -284,7 +284,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
             return <div />
         }
 
-        let pdbid = this.state.pdbid;
         let data = this.state.moleFormData;
         return <div className="settings-form basic-settings">
             <h3>Channels</h3>
@@ -577,7 +576,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
             chains = "";
         }
 
-        let pdbid = this.state.pdbid;
 
         return <div className="settings-form basic-settings pores">
             <h3>Pores</h3>
@@ -1086,7 +1084,6 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
 
         let parameters = getParameters();
         if (parameters !== null) {
-            let compId = parameters.computationId;
             let submitId = parameters.submitId;
             if (parameters.isChannelsDB) {
                 submitId = -1;

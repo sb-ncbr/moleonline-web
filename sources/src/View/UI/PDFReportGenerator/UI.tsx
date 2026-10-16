@@ -577,7 +577,6 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
                         if (this.state.reportContent !== null && PDFReportGenerator.templateCache !== null) {
                             let css = '<style>' + PDFReportGenerator.templateCache.css + "</style>";
                             let reportWrapperId = "report-wrapper";
-                            let jsConstants = `<script>var report_idToRemoveAfterPrint = '${reportWrapperId}';</script>`;
                             let toPrint = `<div id='${reportWrapperId}'>` + css + this.state.reportContent + '</div>';
                             let toPrintHtml = $(toPrint)[0];
                             $(document.body.children).addClass("no-print");

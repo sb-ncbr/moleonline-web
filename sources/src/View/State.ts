@@ -541,7 +541,6 @@ function getSurfaceColorByType(type: string) {
 
 async function showSurfaceVisuals(elements: any[], visible: boolean, type: string, label: (e: any) => string, alpha: number): Promise<any> {
     const context = Context.getInstance();
-    let needsApply = false;
 
     for (let element of elements) {
         if (!element.__id) element.__id = UUID.create22();
@@ -564,13 +563,11 @@ async function showSurfaceVisuals(elements: any[], visible: boolean, type: strin
             element.__refBoundary = refBoundary?.ref;
             element.__refInner = refInner?.ref;
 
-            needsApply = true;
         }
         else {
             const ref = await context.renderSurface(element.Mesh.Boundary.Triangles, element.Mesh.Boundary.Vertices, Colors.get(Enum.CavityBoundary), undefined, `<b${element.Type} ${element.Id}</b>, Volume: ${Math.round(element.Volume)} Å`);
             element.__refBoundary = ref?.ref;
             element.__refInner = null;
-            needsApply = true;
         }
     }
     for (let element of elements) {
@@ -621,8 +618,6 @@ async function showChannelDefaultVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
 export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], visible: boolean, forceRepaint?: boolean, channelsDB?: boolean, submitId?: string): Promise<any> {
     const context = Context.getInstance();
 
-    let label = (channel: any) => `${channel.Type} ${Tunnels.getName(channel)}`;
-    let alpha = 1.0;
 
     let visibleChannels: Tunnel[]&TunnelMetaInfo[] = [];
     for (let channel of channels) {
@@ -689,8 +684,6 @@ export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
 export async function showChannelPropertyColorVisuals(channel: Tunnel & TunnelMetaInfo, colorOptions: { property: Property, colorBounds: ColorBound }, forceRepaint?: boolean, channelsDB?: boolean): Promise<any> {
     const context = Context.getInstance();
 
-    let label = (channel: any) => `${channel.Type} ${Tunnels.getName(channel)}`;
-    let alpha = 1.0;
 
     if (!channel.__id) channel.__id = UUID.create22();
     if (!channel.__isVisible && !forceRepaint) return;

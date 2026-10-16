@@ -13,8 +13,6 @@ export class Service {
 
     private static baseUrl = "/html/templates";
 
-    private static version = 6;
-    private static noCacheMode = false;
 
     private static sendGET(url: string): Promise<any> {
         let fetching = Fetching.get();
@@ -48,7 +46,6 @@ export class Service {
     }
 
     public static getPDFReportTemplateData(): Promise<PDFTemplate> {
-        let cacheToken = (this.noCacheMode) ? Math.random() : this.version;
 
         let urlHTML = `${this.baseUrl}/pdf-report.html`; //`${this.baseUrl}/pdf-report.html?version=${cacheToken}`;
         if (this.DEBUG_MODE) {

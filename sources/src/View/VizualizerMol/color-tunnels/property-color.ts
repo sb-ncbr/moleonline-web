@@ -198,7 +198,6 @@ function getColor(value: number, property: Property, settings: ColorPaletteFunct
     let color: Color;
     let t: number;
 
-    const stopFactor = (value - minVal) / (maxVal - minVal);
 
     // if (value < (minVal + maxVal) / 2)
     if (value < middle) {
@@ -245,14 +244,9 @@ export function colorTunnel(property: Property, groupId: number,
             : getValue(layer, property);
         const currentColorValue = getValue(layer, property);
 
-        const currLength = layer.LayerGeometry.EndDistance - layer.LayerGeometry.StartDistance;
-        const totalLength = colorOptions.layers[colorOptions.layers.length - 1].LayerGeometry.EndDistance - colorOptions.layers[0].LayerGeometry.StartDistance;
-        const proportionalValue = (currLength / totalLength) * currentColorValue;
-        let currentColorStop = 0;
         let color = getColor(prevColorValue, property, settings);
         if (groupId !== 0) {
             color = getColor(currentColorValue, property, settings);
-            currentColorStop = (currLength / totalLength);
         }
         return color;
         // return LayerColors.colorArray[groupId];
@@ -268,9 +262,6 @@ export function colorTunnelNew(property: Property, layer: LayersInfo, nextLayer:
         skipMiddleColors: boolean,
         colorBounds: ColorBound
     }) {
-    const settings = prepareSettings(property, colorOptions);
-    const currentColorValue = getValue(layer, property);
-    const nextColorValue = nextLayer ? getValue(nextLayer, property) : currentColorValue;
 
     const totalLength = colorOptions.layers[colorOptions.layers.length - 1].LayerGeometry.EndDistance - colorOptions.layers[0].LayerGeometry.StartDistance;
     const canvas = LayerColors.getCanvas();

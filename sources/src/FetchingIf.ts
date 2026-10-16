@@ -28,7 +28,6 @@ export class Fetching {
 export class FetchingFetchImpl implements FetchingIf {
     fetch(url: string, params: FetchIfParams): Promise<Response> {
         if (params.method === "GET") {
-            let getParams = params as FetchIfGETParams;
             return fetch(url, {
                 method: "GET"
             })

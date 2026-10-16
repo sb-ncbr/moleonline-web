@@ -14,17 +14,6 @@ interface Residue {
     Backbone: boolean;
 }
 
-interface Profile {
-    Radius: number,
-    FreeRadius: number,
-    T: number,
-    Distance: number,
-    X: number,
-    Y: number,
-    Z: number,
-    Charge: number
-}
-
 interface ChannelsDBData {
     Channels: {
         Tunnels: Tunnel[];
@@ -103,7 +92,6 @@ function parseChannels(category: any, atomSiteResidues: Map<string, { name: stri
     const rowCount = category.sb_ncbr_channel.rowCount;
     const ids = category.sb_ncbr_channel.getField("id");
     const types = category.sb_ncbr_channel.getField("type");
-    const methods = category.sb_ncbr_channel.getField("method");
     const software = category.sb_ncbr_channel.getField("software");
     const autos = category.sb_ncbr_channel.getField("auto");
     const cavities = category.sb_ncbr_channel.getField("cavity");
@@ -230,7 +218,6 @@ function parseProfiles(channels: Map<string, Tunnel>, category: any) {
     const z = category.getField("z");
     const charges = category.getField("charge");
 
-    const profiles: Profile[] = [];
     for (let i = 0; i < rowCount; i++) {
         let channel = channels.get(channelIds.str(i));
         if (channel) {
@@ -296,7 +283,6 @@ function parseLayerResidues(category: any, channelResidues: Map<string, Residue>
             residues = [];
             flowIndicies = [];
         }
-        const r = residueIds.str(i);
         const res = channelResidues.get(residueIds.str(i));
         if (res) {
             residues.push(`${res.Name} ${res.SequenceNumber} ${res.ChainId}${res.Backbone ? " Backbone" : ""}`);

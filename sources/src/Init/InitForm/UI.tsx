@@ -309,7 +309,6 @@ class LastSession extends React.Component<LastSessionProps, LastSessionState> {
         let computationId = this.props.session.split("|")[1].split("/")[0];
 
         ComputationInfo.DataProvider.get(computationId, (compId, info) => {
-            let s = this.state;
             this.setState({
                 loaded: true,
                 data: info

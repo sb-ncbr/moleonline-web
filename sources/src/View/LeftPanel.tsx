@@ -15,7 +15,6 @@ import { ComputationInfo } from "../DataProxy";
 import { ApiService, CompInfo } from "../MoleAPIService";
 import { ChannelsDBData as ChannelsDBDataCache, TunnelName } from "../Cache"
 import { Tunnels } from "./CommonUtils/Tunnels";
-import { SbNcbrTunnelsPropertyProvider } from "./VizualizerMol/tunnels-extension/property";
 import { loadCifTunnels } from "./VizualizerMol/mmcif-tunnels/converter2json";
 import { TunnelsId } from "./CommonUtils/TunnelsId";
 import { ChannelAnnotation } from "../ChannelsDBAPIService";
@@ -79,9 +78,6 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
             LoadingStatus.log('Processing data from current session...');
             if (info.PdbId === '') {
                 (async () => {
-                    const context = Context.getInstance();
-                    const model = context.model;
-                    const o = SbNcbrTunnelsPropertyProvider.isApplicable(model!);
                     LoadingStatus.log('Parsing data from current session...');
                     const data = await loadCifTunnels(`${DataSources.API_URL[DataSources.MODE]}/Data/${computationId}?submitId=0&format=molecule`);
                     if (data) {

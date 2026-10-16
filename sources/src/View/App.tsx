@@ -37,7 +37,6 @@ import { LeftPanel } from "./LeftPanel";
     let layerVizualizer = new Vizualizer('layer-vizualizer-ui', lvSettings);
     Instances.setLayersVizualizer(layerVizualizer);
 
-    let plugin = undefined;
 
     let molstar_plugin = Context.getInstance();
 

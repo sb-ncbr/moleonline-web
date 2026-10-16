@@ -1,4 +1,3 @@
-import { Color } from "molstar/lib/mol-util/color";
 import { invertHexContrastGrayscale, RGBColor, rgbToHex, Uint8ClampedArrayToRGB } from "./Colors";
 import { LayerColors } from "../CommonUtils/LayerColors";
 
@@ -73,8 +72,6 @@ export abstract class ContextAwareObject extends DrawableObject {
 
 export class Axis extends ContextAwareObject {
     private isHorizontal: boolean;
-    private minVal: number;
-    private maxVal: number;
     private countOfParts: number;
     private margin: number;
     private doHighlight: boolean = false;  //Žluté podbarvení obdélníku
@@ -86,8 +83,6 @@ export class Axis extends ContextAwareObject {
         super(context);
 
         this.isHorizontal = isHorizontal;
-        this.minVal = minVal;
-        this.maxVal = maxVal;
         this.countOfParts = countOfParts;
         this.margin = marginPercent;
         this.lineWidth = lineWidth;
@@ -154,17 +149,14 @@ export class Axis extends ContextAwareObject {
 export class CurlyBrackets extends ContextAwareObject {
     private lineColor = "#8c8c8c";
 
-    private isLeftToRight: boolean;
 
     public constructor(context: CanvasRenderingContext2D) {
         super(context);
 
-        this.isLeftToRight = true;
     }
 
     public draw(x: number, y: number, width: number, height: number): void {
         //!!!
-        this.isLeftToRight = true;
         //!!!
         let bounds = { x, y, width, height };
 
@@ -177,10 +169,6 @@ export class CurlyBrackets extends ContextAwareObject {
             x: bounds.x + border,
             y: bounds.y + borderVertical
         };
-        let p1 = {
-            x: bounds.x + border + radius,
-            y: bounds.y + borderVertical
-        };
         let p2 = {
             x: bounds.x + border + radius,
             y: bounds.y + borderVertical + radius
@@ -188,10 +176,6 @@ export class CurlyBrackets extends ContextAwareObject {
         let p3 = {
             x: bounds.x + border + radius,
             y: bounds.y + borderVertical + lineLength - radius
-        };
-        let p4 = {
-            x: bounds.x + border + radius,
-            y: bounds.y + borderVertical + lineLength
         };
         let p5 = {
             x: bounds.x + border + radius * 2,
@@ -204,10 +188,6 @@ export class CurlyBrackets extends ContextAwareObject {
         let p7 = {
             x: bounds.x + border + radius,
             y: bounds.y + borderVertical + lineLength * 2 - radius
-        };
-        let p8 = {
-            x: bounds.x + border + radius,
-            y: bounds.y + borderVertical + lineLength * 2
         };
         let p9 = {
             x: bounds.x + border,
@@ -470,7 +450,6 @@ export class ColorMixer extends ContextAwareObject {
 
 export class Tunnel extends ContextAwareObject {
     private scale!: XYScale;
-    private minVal: XYPoint;
     private maxVal: XYPoint;
     private isInverted_: boolean;
     private layers: Layer[];
@@ -485,15 +464,12 @@ export class Tunnel extends ContextAwareObject {
 
     private lineColor = "#8c8c8c";
 
-    private currentVisual!: ImageData;
-    private currentVisualPlain!: ImageData;
 
     public constructor(minVal: XYPoint, maxVal: XYPoint, layers: Layer[],
         context: CanvasRenderingContext2D, paletteFunction: ColorPaletteFunction,
         paletteFunctionSettings: ColorPaletteFunctionSettings, isInverted = false) {
         super(context);
 
-        this.minVal = minVal;
         this.maxVal = maxVal;
         this.layers = layers;
         this.paletteFunction = paletteFunction;
@@ -532,12 +508,6 @@ export class Tunnel extends ContextAwareObject {
         this.renderHitboxes();
 
         this.paintBox();
-
-        this.currentVisualPlain = this.context.getImageData(
-            this.bounds.x, this.bounds.y,
-            this.bounds.width, this.bounds.height
-        );
-        this.currentVisual = this.currentVisualPlain;
 
     }
 
@@ -768,7 +738,6 @@ export class Tunnel extends ContextAwareObject {
             }
         ];
 
-        let selectedLayers = this.selectedLayers.slice().sort((a, b) => { return a - b });
 
         let restOfBody = [
             {
@@ -992,10 +961,6 @@ export class Tunnel extends ContextAwareObject {
         const regex = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/;
         const match = color.match(regex);
         if (match) {
-            const r = parseInt(match[1], 10);
-            const g = parseInt(match[2], 10);
-            const b = parseInt(match[3], 10);
-            const c = Color.fromRgb(r, g, b);
         }
         if (gradient !== null) {
             gradient.addColorStop(currentColorStop, color);
@@ -1066,8 +1031,6 @@ export class Tunnel extends ContextAwareObject {
         if (scale === null) {
             throw new Error("Value of scale has not been computed!");
         }
-
-        let inversionConstant = (this.isInverted()) ? -1 : 1;
         let hitbox = this.getHitbox(layerIdx);
         let maxY = this.layers[layerIdx - 1].radius;
 

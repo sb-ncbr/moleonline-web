@@ -146,10 +146,8 @@ export class URL {
 }
 
 export class Router {
-    private contextPath: string;
 
     constructor(contextPath: string) {
-        this.contextPath = contextPath;
     }
 
     getAbsoluePath() {
@@ -167,37 +165,13 @@ export interface RoutingParameters {
 
 export class GlobalRouter {
     private static defaultContextPath: string;
-    private static defaultPid: string;
-    private static useParameterAsPid: boolean;
-    private static useLastPathPartAsPid: boolean;
-    private static currentPid: string;
 
     private static router: Router;
 
-    private static isInitialized: boolean = false;
 
     public static init(routingParameters: RoutingParameters) {
         this.defaultContextPath = routingParameters.defaultContextPath;
-        this.defaultPid = routingParameters.defaultPid;
-        this.useParameterAsPid = (routingParameters.useParameterAsPid === void 0) ? false : routingParameters.useParameterAsPid;
-        this.useLastPathPartAsPid = (routingParameters.useLastPathPartAsPid === void 0) ? false : routingParameters.useLastPathPartAsPid;
-
         this.router = new Router(routingParameters.defaultContextPath);
-
-        let url = this.router.getAbsoluePath();
-
-        let pid = null;
-        if (this.useParameterAsPid === true) {
-            pid = url.getParameterValue("pid");
-        }
-        else if (this.useLastPathPartAsPid === true) {
-            let lastPathPartAsParam = url.substractPathFromStart(this.defaultContextPath).getLastPart();
-            pid = lastPathPartAsParam === "" ? null : lastPathPartAsParam;
-        }
-
-        this.currentPid = (pid !== null) ? pid : this.defaultPid;
-
-        this.isInitialized = true;
     }
 
     public static redirect(url: string, relative?: boolean) {
@@ -206,10 +180,6 @@ export class GlobalRouter {
     }
 
     private static prepareUrlForRedirect(url: string, relative?: boolean) {
-        let rel = false;
-        if (relative !== void 0) {
-            rel = relative;
-        }
         let newUrl = url;
         if (relative) {
             let currentUrl = this.router.getAbsoluePath();
