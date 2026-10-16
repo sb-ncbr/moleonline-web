@@ -8,7 +8,12 @@ module.exports = (env, argv) => {
 
     return [
         {
-            cache: false,
+            cache: {
+                type: 'filesystem',
+                buildDependencies: {
+                    config: [__filename, path.resolve(__dirname, 'tsconfig.json')],
+                },
+            },
             mode: isProd ? 'production' : 'development',
             entry: {
                 MOLEonline_View: './sources/src/View/App.tsx',
@@ -17,31 +22,32 @@ module.exports = (env, argv) => {
             output: {
                 filename: '[name]-Core.js?version=R1.1.9.5',
                 path: path.resolve(__dirname, 'dist/'),
+                clean: true,
             },
             devtool: isProd ? false : 'source-map',
 
             optimization: isProd
-            ? {
-                minimize: true,
-                minimizer: [
-                    new TerserPlugin({
-                        terserOptions: {
-                            ecma: 2017,
-                            compress: {
+                ? {
+                    minimize: true,
+                    minimizer: [
+                        new TerserPlugin({
+                            terserOptions: {
                                 ecma: 2017,
+                                compress: {
+                                    ecma: 2017,
+                                },
+                                mangle: true,
+                                format: {
+                                    comments: false,
+                                },
                             },
-                            mangle: true,
-                            format: {
-                                comments: false,
-                            },
-                        },
-                        extractComments: false,
-                    }),
-                ],
-            }
-            : {
-                minimize: false,
-            },
+                            extractComments: false,
+                        }),
+                    ],
+                }
+                : {
+                    minimize: false,
+                },
 
             plugins: [
                 new CopyWebpackPlugin({
@@ -50,14 +56,14 @@ module.exports = (env, argv) => {
                         { from: './sources/css/styles.css', to: 'css/styles.css' },
                         { from: './sources/css/Init.css', to: 'css/init-styles.css' },
                         { from: './sources/images/*', to: () => `images/[name][ext]` },
-                                      { from: './sources/html/index.html', to: () => `index.html` },
-                                      {
-                                          from: './sources/html/*',
-                                          to: () => `html/[name][ext]`,
-                                      globOptions: { ignore: ['**/index.html'] },
-                                      },
-                                      { from: './sources/templates/*', to: () => `html/templates/[name][ext]` },
-                                      { from: './static/data/*', to: () => `static/[name][ext]` },
+                        { from: './sources/html/index.html', to: () => `index.html` },
+                        {
+                            from: './sources/html/*',
+                            to: () => `html/[name][ext]`,
+                            globOptions: { ignore: ['**/index.html'] },
+                        },
+                        { from: './sources/templates/*', to: () => `html/templates/[name][ext]` },
+                        { from: './static/data/*', to: () => `static/[name][ext]` },
                     ],
                 }),
             ],
