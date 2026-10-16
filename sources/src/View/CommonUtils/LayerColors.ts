@@ -1,7 +1,6 @@
 import { OrderedSet } from "molstar/lib/mol-data/int";
 import { Context } from "../Context";
 import { ColorBound, Property } from "../VizualizerMol/color-tunnels/property-color";
-import { MarkerAction } from "molstar/lib/mol-util/marker-action";
 import { Representation } from "molstar/lib/mol-repr/representation";
 import { Loci } from "molstar/lib/mol-model/loci";
 import { Color } from "molstar/lib/mol-util/color";

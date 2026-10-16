@@ -1,5 +1,4 @@
 import { Color } from "molstar/lib/mol-util/color";
-import { getPalette } from "molstar/lib/mol-util/color/palette";
 
 export class Bundle {
     public static get(key: string) {

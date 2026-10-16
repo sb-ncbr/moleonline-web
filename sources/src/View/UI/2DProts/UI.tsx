@@ -7,6 +7,7 @@ import { SelectionHelper } from "../../CommonUtils/Selection";
 import { Tunnel, TunnelMetaInfo } from "../../../DataInterface";
 import { LastVisibleChannels } from "../../../Cache";
 import { Color } from "molstar/lib/mol-util/color";
+import { DataSources } from "../../../../config/common";
 
 function highlightElement(elementId: string, highlightColour: string): void {
     const svgContainer = document.getElementById('svgContainer');
@@ -222,7 +223,7 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
         const computationId = params.computationId;
         try {
             TwoDProtsProxy.Watcher.startJob(
-                `https://api.mole.upol.cz/Data/${computationId}?submitId=${submitId}&format=molecule`,
+                `${DataSources.API_URL[DataSources.MODE]}/Data/${computationId}?submitId=${submitId}&format=molecule`,
                 TwoDProtsBridge.getVizualizedChannels(),
                 (status, jobId, errorMsg) => {
                     console.log(`2DProts Job Status: ${status}`);

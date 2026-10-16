@@ -15,7 +15,6 @@ import { isPositionLocation } from 'molstar/lib/mol-geo/util/location-iterator';
 import { ColorNames } from 'molstar/lib/mol-util/color/names';
 import { Vec3 } from 'molstar/lib/mol-math/linear-algebra';
 import { SizeTheme } from 'molstar/lib/mol-theme/size';
-import { KDTree } from './kd-tree';
 import { LayersInfo } from '../../../DataInterface';
 import { ColorBound, colorTunnelNew, Property } from './property-color';
 

@@ -1,5 +1,5 @@
 import { OrderedSet } from "molstar/lib/mol-data/int";
-import { Box3D, fillGridDim, GridLookup3D, Result } from "molstar/lib/mol-math/geometry";
+import { Box3D, fillGridDim, GridLookup3D } from "molstar/lib/mol-math/geometry";
 import { Mat4, Tensor, Vec3 } from "molstar/lib/mol-math/linear-algebra";
 import { RuntimeContext } from "molstar/lib/mol-task";
 import { SurfaceData } from "./algorithm";

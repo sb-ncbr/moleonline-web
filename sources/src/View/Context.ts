@@ -35,7 +35,6 @@ import { Vec3 } from "molstar/lib/mol-math/linear-algebra";
 import { getPropertyProps } from "./VizualizerMol/color-tunnels/data-model";
 import { ColorBound, Property } from "./VizualizerMol/color-tunnels/property-color";
 import { parseCifText } from "molstar/lib/mol-io/reader/cif/text/parser";
-import { loadCifTunnels } from "./VizualizerMol/mmcif-tunnels/converter2json";
 import { Events } from "../Bridge";
 import { adjustCaverDistance } from "./VizualizerMol/color-tunnels/algorithm";
 import { ApiService } from "../MoleAPIService";

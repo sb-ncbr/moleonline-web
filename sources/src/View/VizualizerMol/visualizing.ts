@@ -4,7 +4,7 @@ import { createPrimitive } from "molstar/lib/mol-geo/primitive/primitive";
 import { Mat4, Vec3 } from "molstar/lib/mol-math/linear-algebra";
 import { Shape } from "molstar/lib/mol-model/shape";
 import { Color } from "molstar/lib/mol-util/color";
-import { MembranePoint, Origins, Point } from "../../DataInterface";
+import { MembranePoint, Point } from "../../DataInterface";
 import { Dodecahedron } from "molstar/lib/mol-geo/primitive/dodecahedron";
 import { Polyhedron } from "molstar/lib/mol-geo/primitive/polyhedron";
 import { Colors, Enum } from "../../StaticData";

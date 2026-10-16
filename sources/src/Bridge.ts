@@ -1,18 +1,9 @@
 import { Observable } from "rxjs/internal/Observable";
-import { ChannelsDBChannels, ChannelsDBData, MoleData, ProteinData } from "./DataInterface";
+import { ChannelsDBData, MoleData, ProteinData } from "./DataInterface";
 import { MoleConfig, PoresConfig } from "./MoleAPIService";
 
 export class Instances {
-    private static plugin: undefined/*LiteMol.Plugin.Controller;*/
     private static layerVizualizer: any;
-
-    public static setPlugin(plugin: undefined) {
-        this.plugin = plugin;
-    }
-
-    public static getPlugin(): undefined {
-        return this.plugin;
-    }
 
     public static setLayersVizualizer(instance: any) {
         this.layerVizualizer = instance;

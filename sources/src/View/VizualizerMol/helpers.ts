@@ -1,24 +1,11 @@
 /*
 * Following code is based on 'PDBe Molstar'. See https://github.com/molstar/pdbe-molstar for more info.
 */
-import { QualityAssessment } from 'molstar/lib/extensions/model-archive/quality-assessment/prop';
-import { Model, Queries, QueryContext, ResidueIndex, Structure, StructureProperties, StructureSelection } from 'molstar/lib/mol-model/structure';
+import { Queries, StructureProperties, StructureSelection } from 'molstar/lib/mol-model/structure';
 import { AtomsQueryParams } from 'molstar/lib/mol-model/structure/query/queries/generators';
 import { StructureQuery } from 'molstar/lib/mol-model/structure/query/query';
-import { BuiltInTrajectoryFormat } from 'molstar/lib/mol-plugin-state/formats/trajectory';
-import { CreateVolumeStreamingInfo } from 'molstar/lib/mol-plugin/behavior/dynamic/volume-streaming/transformers';
-import { PluginCommands } from 'molstar/lib/mol-plugin/commands';
-import { PluginContext } from 'molstar/lib/mol-plugin/context';
-import { MolScriptBuilder, MolScriptBuilder as MS } from 'molstar/lib/mol-script/language/builder';
 import Expression from 'molstar/lib/mol-script/language/expression';
-import { compile } from 'molstar/lib/mol-script/runtime/query/compiler';
-import { StateSelection } from 'molstar/lib/mol-state';
-import { Task } from 'molstar/lib/mol-task';
 import { SIFTSMapping, SIFTSMappingMapping } from './sifts-mapping';
-import { InitParams } from './spec';
-
-export type SupportedFormats = 'mmcif' | 'bcif' | 'cif' | 'pdb' | 'sdf'
-export type LoadParams = { url: string, format?: BuiltInTrajectoryFormat, assemblyId?: string, isHetView?: boolean, isBinary?: boolean, progressMessage?: string }
 
 export type MapParams = {
     'em'?: MapStyle,
@@ -31,63 +18,6 @@ interface MapStyle {
     wireframe?: boolean,
 }
 
-export namespace PDBeVolumes {
-
-    export function mapParams(defaultParams: any, mapParams?: MapParams, ref?: string | number) {
-        const pdbeParams = { ...defaultParams };
-        pdbeParams.options.behaviorRef = 'volume-streaming' + '' + Math.floor(Math.random() * Math.floor(100));
-        pdbeParams.options.emContourProvider = 'pdbe';
-        pdbeParams.options.serverUrl = 'https://www.ebi.ac.uk/pdbe/volume-server';
-        const MAIN_MAP_DEFAULTS: MapStyle = { opacity: 0.49, wireframe: false };
-        const DIFF_MAP_DEFAULTS: MapStyle = { opacity: 0.3, wireframe: true };
-        pdbeParams.options.channelParams['em'] = addDefaults(mapParams?.['em'], MAIN_MAP_DEFAULTS);
-        pdbeParams.options.channelParams['2fo-fc'] = addDefaults(mapParams?.['2fo-fc'], MAIN_MAP_DEFAULTS);
-        pdbeParams.options.channelParams['fo-fc(+ve)'] = addDefaults(mapParams?.['fo-fc(+ve)'], DIFF_MAP_DEFAULTS);
-        pdbeParams.options.channelParams['fo-fc(-ve)'] = addDefaults(mapParams?.['fo-fc(-ve)'], DIFF_MAP_DEFAULTS);
-        return pdbeParams;
-    }
-
-    export function displayUsibilityMessage(plugin: PluginContext) {
-        PluginCommands.Toast.Show(plugin, {
-            title: 'Volume',
-            message: 'Streaming enabled, click on a residue or an atom to view the data.',
-            key: 'toast-1',
-            timeoutMs: 7000
-        });
-    }
-
-    export function toggle(plugin: PluginContext) {
-        const state = plugin.state.data;
-        const streamingState = state.select(StateSelection.Generators.ofTransformer(CreateVolumeStreamingInfo))[0];
-
-        if (streamingState) {
-            PluginCommands.State.ToggleVisibility(plugin, { state: state, ref: streamingState.transform.ref });
-            return;
-        }
-    }
-}
-
-
-export namespace AlphafoldView {
-    export function getLociByPLDDT(score: number, contextData: Structure) {
-        const queryExp = MS.struct.modifier.union([
-            MS.struct.modifier.wholeResidues([
-                MS.struct.modifier.union([
-                    MS.struct.generator.atomGroups({
-                        'chain-test': MS.core.rel.eq([MS.ammp('objectPrimitive'), 'atomistic']),
-                        'residue-test': MS.core.rel.gr([QualityAssessment.symbols.pLDDT.symbol(), score]),
-                    })
-                ])
-            ])
-        ]);
-
-        const query = compile<StructureSelection>(queryExp);
-        const sel = query(new QueryContext(contextData));
-        return StructureSelection.toLociWithSourceUnits(sel);
-
-    }
-}
-
 export type LigandQueryParam = {
     label_comp_id_list?: any,
     auth_asym_id?: string,
@@ -96,80 +26,6 @@ export type LigandQueryParam = {
     auth_seq_id?: number,
     show_all?: boolean
 };
-
-export namespace LigandView {
-    export function query(ligandViewParams: LigandQueryParam): { core: Expression.Expression, surroundings: Expression.Expression } {
-        const atomGroupsParams: any = {
-            'group-by': MS.core.str.concat([MS.struct.atomProperty.core.operatorName(), MS.struct.atomProperty.macromolecular.residueKey()])
-        };
-
-        // Residue Param
-        let residueParam: any;
-        if (ligandViewParams.auth_seq_id !== undefined) {
-            residueParam = MS.core.rel.eq([MS.struct.atomProperty.macromolecular.auth_seq_id(), ligandViewParams.auth_seq_id]);
-        } else if (ligandViewParams.label_comp_id) {
-            residueParam = MS.core.rel.eq([MS.struct.atomProperty.macromolecular.label_comp_id(), ligandViewParams.label_comp_id]);
-        }
-        if (residueParam) atomGroupsParams['residue-test'] = residueParam;
-
-        // Chain Param
-        if (ligandViewParams.auth_asym_id) {
-            atomGroupsParams['chain-test'] = MS.core.rel.eq([MS.struct.atomProperty.macromolecular.auth_asym_id(), ligandViewParams.auth_asym_id]);
-        } else if (ligandViewParams.struct_asym_id) {
-            atomGroupsParams['chain-test'] = MS.core.rel.eq([MS.struct.atomProperty.macromolecular.label_asym_id(), ligandViewParams.struct_asym_id]);
-        }
-
-        // Construct core query
-        const core = ligandViewParams.show_all ?
-            MS.struct.generator.atomGroups(atomGroupsParams) :
-            MS.struct.filter.first([
-                MS.struct.generator.atomGroups(atomGroupsParams)
-            ]);
-
-        // Construct surroundings query
-        const surroundings = MS.struct.modifier.includeSurroundings({ 0: core, radius: 5, 'as-whole-residues': true });
-
-        return {
-            core,
-            surroundings
-        };
-
-    }
-
-    export function branchedQuery(params: any): { core: Expression.Expression, surroundings: Expression.Expression } {
-        const entityObjArray: any[] = [];
-
-        params.atom_site.forEach((param: any) => {
-            const qEntities = {
-                'group-by': MS.core.str.concat([MS.struct.atomProperty.core.operatorName(), MS.struct.atomProperty.macromolecular.residueKey()]),
-                'residue-test': MS.core.rel.eq([MS.struct.atomProperty.macromolecular.auth_seq_id(), param.auth_seq_id])
-            };
-            entityObjArray.push(qEntities);
-        });
-
-        const atmGroupsQueries: Expression.Expression[] = [];
-
-        entityObjArray.forEach((entityObj: any) => {
-            atmGroupsQueries.push(MS.struct.generator.atomGroups(entityObj));
-        });
-
-        const core = MS.struct.modifier.union([
-            atmGroupsQueries.length === 1
-                ? atmGroupsQueries[0]
-                // Need to union before merge for fast performance
-                : MS.struct.combinator.merge(atmGroupsQueries.map(q => MS.struct.modifier.union([q])))
-        ]);
-
-        // Construct surroundings query
-        const surroundings = MS.struct.modifier.includeSurroundings({ 0: core, radius: 5, 'as-whole-residues': true });
-
-        return {
-            core,
-            surroundings
-        };
-
-    }
-}
 
 export type QueryParam = {
     auth_seq_id?: number,
@@ -294,120 +150,8 @@ export namespace QueryHelper {
         return Queries.combinators.merge(atmGroupsQueries);
     }
 
-    export function testQuery() {
-        const { core, struct } = MolScriptBuilder;
-        const partnerExpressions = [];
-        const propTests: Parameters<typeof struct.generator.atomGroups>[0] = {
-            'chain-test': core.rel.eq([struct.atomProperty.macromolecular.label_asym_id(), 'A']),
-            'group-by': struct.atomProperty.core.operatorName(),
-        };
-
-        propTests['residue-test'] = core.rel.eq([struct.atomProperty.macromolecular.label_seq_id(), 3])
-        propTests['chain-test'] = core.rel.eq([struct.atomProperty.core.operatorName(), 'ASM_2'])
-        // propTests['atom-test'] = core.rel.eq([struct.atomProperty.macromolecular.label_alt_id(), ]);
-
-        partnerExpressions.push(struct.filter.first([struct.generator.atomGroups(propTests)]))
-
-        return struct.combinator.merge(partnerExpressions.map(e => struct.modifier.union([e])));
-    }
-
     export function getInteractivityLoci(params: any, contextData: any) {
         const sel = StructureQuery.run(QueryHelper.getQueryObject(params, contextData) as any, contextData);
         return StructureSelection.toLociWithSourceUnits(sel);
     }
-
-    export function getHetLoci(queryExp: Expression.Expression, contextData: any) {
-        const query = compile<StructureSelection>(queryExp);
-        const sel = query(new QueryContext(contextData));
-        return StructureSelection.toLociWithSourceUnits(sel);
-    }
-}
-
-export interface ModelInfo {
-    hetNames: string[],
-    carbEntityCount: number,
-}
-
-export namespace ModelInfo {
-    export async function get(model: Model, structures: any): Promise<ModelInfo> {
-        const { _rowCount: residueCount } = model.atomicHierarchy.residues;
-        const { offsets: residueOffsets } = model.atomicHierarchy.residueAtomSegments;
-        const chainIndex = model.atomicHierarchy.chainAtomSegments.index;
-
-        const hetNames: ModelInfo['hetNames'] = [];
-        let carbEntityCount: ModelInfo['carbEntityCount'] = 0;
-        for (let rI = 0 as ResidueIndex; rI < residueCount; rI++) {
-            const cI = chainIndex[residueOffsets[rI]];
-            const eI = model.atomicHierarchy.index.getEntityFromChain(cI);
-            const entityType = model.entities.data.type.value(eI);
-
-            if (entityType !== 'non-polymer' && entityType !== 'branched') continue;
-
-            // const comp_id = model.atomicHierarchy.atoms.label_comp_id.value(rI);
-            const comp_id = model.atomicHierarchy.atoms.label_comp_id.value(residueOffsets[rI]);
-            if (entityType === 'branched') {
-                carbEntityCount++;
-            } else {
-                if (hetNames.indexOf(comp_id) === -1) hetNames.push(comp_id);
-            }
-
-        }
-
-        return {
-            hetNames,
-            carbEntityCount
-        };
-    }
-}
-
-/** Run `action` with showing a message in the bottom-left corner of the plugin UI */
-export async function runWithProgressMessage(plugin: PluginContext, progressMessage: string | undefined, action: () => any) {
-    const task = Task.create(progressMessage ?? 'Task', async ctx => {
-        let done = false;
-        try {
-            if (progressMessage) {
-                setTimeout(() => { if (!done) ctx.update(progressMessage); }, 1000); // Delay the first update to force showing message in UI
-            }
-            await action();
-        } finally {
-            done = true;
-        }
-    });
-    await plugin.runTask(task);
-}
-
-/** Parameters for a request to ModelServer */
-export interface ModelServerRequest {
-    pdbId: string,
-    queryType: 'full' | 'residueSurroundings' | 'atoms', // add more when needed
-    queryParams?: Record<string, any>,
-}
-
-/** Return URL for a ModelServer request.
- * If `queryType` is 'full' and `lowPrecisionCoords` is false, return URL of the static file instead (updated mmCIF or bCIF). */
-export function getStructureUrl(initParams: InitParams, request: ModelServerRequest) {
-    const pdbeUrl = initParams.pdbeUrl.replace(/\/$/, ''); // without trailing slash
-    const useStaticFile = request.queryType === 'full' && !initParams.lowPrecisionCoords;
-    if (useStaticFile) {
-        const suffix = initParams.encoding === 'bcif' ? '.bcif' : '_updated.cif';
-        return `${pdbeUrl}/entry-files/download/${request.pdbId}${suffix}`;
-    } else {
-        const queryParams = {
-            ...request.queryParams,
-            encoding: initParams.encoding,
-            lowPrecisionCoords: initParams.lowPrecisionCoords ? 1 : undefined,
-        };
-        const queryString = Object.entries(queryParams).filter(([key, value]) => value !== undefined).map(([key, value]) => `${key}=${value}`).join('&');
-        const url = `${pdbeUrl}/model-server/v1/${request.pdbId}/${request.queryType}`;
-        return (queryString !== '') ? `${url}?${queryString}` : url;
-    }
-}
-
-/** Create a copy of object `object`, fill in missing/undefined keys using `defaults` */
-export function addDefaults<T extends {}>(object: Partial<T> | undefined, defaults: T): T {
-    const result: Partial<T> = { ...object };
-    for (const key in defaults) {
-        result[key] ??= defaults[key];
-    }
-    return result as T;
 }

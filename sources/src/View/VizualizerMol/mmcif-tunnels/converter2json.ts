@@ -1,4 +1,4 @@
-import { CifBlock, CifCategory } from "molstar/lib/mol-io/reader/cif";
+import { CifBlock } from "molstar/lib/mol-io/reader/cif";
 import { parseCifText } from "molstar/lib/mol-io/reader/cif/text/parser";
 import { Layers, Tunnel } from "../../../DataInterface";
 import { ChannelsDBData as ChannelsDBCache } from "../../../Cache";

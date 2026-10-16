@@ -57,7 +57,6 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
     }
 
     private addCurrentLMScreen(template: string) {
-        let plugin = Instances.getPlugin();
         let context = Context.getInstance();
         let molstarCanvas = context.plugin.canvas3dContext && context.plugin.canvas3dContext.canvas ? context.plugin.canvas3dContext.canvas : ({} as HTMLCanvasElement)
         // let litemolCanvas = (plugin.context.scene.scene.parentElement.children[0] as HTMLCanvasElement);
@@ -124,7 +123,6 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
     }
 
     private selectChannel(channel: Tunnel, allChannels: Tunnel[]) {
-        // let plugin = Instances.getPlugin();
         return new Promise<any>((res, rej) => {
             try {
                 showChannelVisuals(allChannels as (Tunnel[] & TunnelMetaInfo[]), false).then(() => {

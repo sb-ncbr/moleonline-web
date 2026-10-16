@@ -1,11 +1,10 @@
 import React from "react";
-import { Events as BridgeEvents, CopyParametersParams, Events, Instances } from "../../../Bridge";
+import { Events as BridgeEvents, CopyParametersParams, Events } from "../../../Bridge";
 import { Events as FormEvents } from "../../CommonUtils/FormEvents";
 import { ApiService, CompInfo, ComputationStatus, MoleConfig, PoresConfig, Submission as ServiceSubmission } from "../../../MoleAPIService";
 import { MoleFormData, PoresFormData } from "./FormData";
 import { ComputationInfo, JobStatus } from "../../../DataProxy";
 import { TooltipText, WeightFunctions } from "../../../StaticData";
-import { validateChainsArray, validatePatternQuery, validateResidueSimpleArray } from "../../CommonUtils/Validators";
 import { flattenResidues, flattenResiduesArray, isMoleJob, parseResidues, pointsToString } from "../../CommonUtils/Misc";
 import { ChannelsDBChannels } from "../../../DataInterface";
 import { ChannelsDBData } from "../../../Cache";
@@ -14,9 +13,8 @@ import { GlobalRouter } from "../../../SimpleRouter";
 import { fakeRedirect, getParameters } from "../../../Common/Util/Router";
 import { TabbedContainer } from "../../../Common/UI/Tabs/BootstrapTabs";
 import { CommonOptions, Routing } from "../../../../config/common";
-import { Button, ControlGroup, ControlRow, ToggleButton } from "molstar/lib/mol-plugin-ui/controls/common";
-import { BookmarksOutlinedSvg, CloseSvg } from "molstar/lib/mol-plugin-ui/controls/icons";
-import { BoolControl, BoundedIntervalControl, IntervalControl, NumberRangeControl, SelectControl, TextControl } from "molstar/lib/mol-plugin-ui/controls/parameters";
+import { ControlGroup } from "molstar/lib/mol-plugin-ui/controls/common";
+import { BoolControl, NumberRangeControl, SelectControl, TextControl } from "molstar/lib/mol-plugin-ui/controls/parameters";
 import { ParamDefinition } from "molstar/lib/mol-util/param-definition";
 import { StartingPointBox, ValidationState } from "../Common/Controls/FromLiteMol";
 import { isMoleConfigOrPoresConfig } from "./ParamsChecker";
@@ -189,7 +187,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                 }
                 else {
                     fakeRedirect(result.ComputationId, String(result.SubmitId));
-                    // LiteMol.Example.Channels.State.removeChannelsData(Instances.getPlugin());
 
                     Provider.get(result.ComputationId, ((compId: string, info: CompInfo) => {
                         JobStatus.Watcher.registerOnChangeHandler(result.ComputationId, result.SubmitId, (status) => {
@@ -1160,7 +1157,6 @@ function changeSubmitId(computationId: string, submitId: number) {
     else {
         fakeRedirect(computationId, (submitId > 0) ? String(submitId) : void 0);
     }
-    // LiteMol.Example.Channels.State.removeChannelsData(Instances.getPlugin());
     BridgeEvents.invokeChangeSubmitId(submitId);
 }
 

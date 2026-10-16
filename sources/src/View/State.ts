@@ -3,12 +3,11 @@
  */
 import { ComputationInfo, DataProxyCSAResidues, JobStatus } from "../DataProxy";
 import { ChannelsDBChannels, ChannelsDBData, Membrane, MoleData, Origins, Tunnel, TunnelMetaInfo } from "../DataInterface";
-import { Events, Instances } from "../Bridge";
-import { ChannelsDBData as ChannelsDBDataCache, LastVisibleChannels, TunnelName } from "../Cache";
+import { ChannelsDBData as ChannelsDBDataCache, LastVisibleChannels } from "../Cache";
 import { getParameters } from "../Common/Util/Router";
 import { ApiService, CompInfo, CSAResidues } from "../MoleAPIService";
 import { Context } from "./Context";
-import { CommonOptions } from "../../config/common";
+import { CommonOptions, DataSources } from "../../config/common";
 import { Residues } from "./CommonUtils/Residues";
 import { ParseJson, RawData } from "molstar/lib/mol-plugin-state/transforms/data";
 import { UUID } from "molstar/lib/mol-util";
@@ -17,7 +16,6 @@ import { Tunnels } from "./CommonUtils/Tunnels";
 import { PluginCommands } from "molstar/lib/mol-plugin/commands";
 import { ColorGenerator } from "molstar/lib/extensions/meshes/mesh-utils";
 import { Shape } from "molstar/lib/mol-model/shape";
-import { StateSelection } from "molstar/lib/mol-state";
 import { Colors, Enum } from "../StaticData";
 import { Vec3 } from "molstar/lib/mol-math/linear-algebra";
 import { Mesh } from "molstar/lib/mol-geo/geometry/mesh/mesh";
@@ -501,7 +499,7 @@ function downloadProteinData(computationId: string, submitId: number) {
     return new Promise<any>(async (res, rej) => {
         try {
             const p = await ApiService.getComputationInfoList(computationId);
-            await Context.getInstance().load(`https://api.mole.upol.cz/Data/${computationId}?submitId=${submitId}&format=molecule`, false, p.AssemblyId)
+            await Context.getInstance().load(`${DataSources.API_URL[DataSources.MODE]}/Data/${computationId}?submitId=${submitId}&format=molecule`, false, p.AssemblyId)
                 .then((data) => {
                     res(data);
                 })
@@ -555,7 +553,6 @@ export function loadData(channelsDB: boolean) {
         JobStatus.Watcher.registerOnChangeHandler(computationId, submitId, (status => {
             if (CommonOptions.DEBUG_MODE)
                 console.log("Watcher iteration");
-            let plugin = Instances.getPlugin();
             let proteinLoaded = context.plugin.state.data.tree.children.has('protein-data')
             if (status.Status === "Initializing" || status.Status === "Running") {
                 //Do Nothing

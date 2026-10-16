@@ -1,5 +1,4 @@
 import { getStructureOptions } from "molstar/lib/mol-plugin-ui/sequence";
-import { Instances } from "../../Bridge";
 import { MoleConfigResidue } from "../../MoleAPIService";
 import { Context } from "../Context";
 import { PluginStateObject } from 'molstar/lib/mol-plugin-state/objects';
@@ -280,7 +279,6 @@ export class Residues {
     }
 
     public static currentContextHasResidue(residueName: string): boolean {
-        let plugin = Instances.getPlugin();
         // if (plugin.context.select('polymer-visual')[0].props !== void 0) {
         //     let props = plugin.context.select('polymer-visual')[0].props as any;
         //     if (props.model === void 0 || props.model.model === void 0) {

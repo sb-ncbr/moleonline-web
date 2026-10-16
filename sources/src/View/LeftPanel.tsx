@@ -7,7 +7,7 @@ import { PluginReactContext } from "molstar/lib/mol-plugin-ui/base";
 import { Controls } from "./UI/Controls/UI";
 import { getParameters } from "../Common/Util/Router";
 import { Events } from "../Bridge";
-import { CommonOptions } from "../../config/common";
+import { CommonOptions, DataSources } from "../../config/common";
 import { addCaverTag, loadData } from "./State";
 import { StateSelection } from "molstar/lib/mol-state";
 import { ChannelsDBChannels, MoleData } from "../DataInterface";
@@ -78,7 +78,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                     const model = context.model;
                     const o = SbNcbrTunnelsPropertyProvider.isApplicable(model!);
                     LoadingStatus.log('Parsing data from current session...');
-                    const data = await loadCifTunnels(`https://api.mole.upol.cz/Data/${computationId}?submitId=0&format=molecule`);
+                    const data = await loadCifTunnels(`${DataSources.API_URL[DataSources.MODE]}/Data/${computationId}?submitId=0&format=molecule`);
                     if (data) {
                         const dataObj = { Channels: data.Channels } as MoleData;
                         let guidData = TunnelsId.generateGuidAll(dataObj.Channels);

@@ -23,7 +23,6 @@ import { PickingId } from 'molstar/lib/mol-geo/geometry/picking';
 import { Visual } from 'molstar/lib/mol-repr/visual';
 import { RuntimeContext, Task } from 'molstar/lib/mol-task';
 import { ParamDefinition as PD } from 'molstar/lib/mol-util/param-definition';
-import { isDebugMode } from 'molstar/lib/mol-util/debug';
 
 export interface ShapeRepresentation<D, G extends Geometry, P extends Geometry.Params<G>> extends Representation<D, P> { }
 

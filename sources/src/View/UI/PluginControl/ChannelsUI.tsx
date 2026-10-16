@@ -6,7 +6,7 @@ import React from "react";
 import { Events } from "../../../Bridge";
 import { ChannelsDBChannels, MoleData, Tunnel, TunnelMetaInfo } from "../../../DataInterface";
 import { Tunnels } from "../../CommonUtils/Tunnels";
-import { ChannelsDBData, LastVisibleChannels, TunnelName } from "../../../Cache";
+import { ChannelsDBData, TunnelName } from "../../../Cache";
 import { ChannelAnnotation } from "../../../ChannelsDBAPIService";
 import { getParameters, isInChannelsDBMode } from "../../../Common/Util/Router";
 import { showChannelVisuals, showDefaultVisuals, showDefaultVisualsNewSubmission } from "../../State";

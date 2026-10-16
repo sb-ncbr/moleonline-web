@@ -1,7 +1,6 @@
 ﻿/*
  * Copyright (c) 2016 - now David Sehnal, licensed under Apache 2.0, See LICENSE file for more info.
  */
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { GlobalRouter } from "../SimpleRouter";
 import { AlertMessages } from '../Common/UI/AlertMessages/UI';

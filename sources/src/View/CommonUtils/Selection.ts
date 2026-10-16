@@ -1,5 +1,4 @@
 import { PluginCommands } from "molstar/lib/mol-plugin/commands";
-import { Events, Instances } from "../../Bridge";
 import { Layers, OriginsSourceData, ShapeSourceData, SurfaceSourceData, Tunnel, TunnelMetaInfo } from "../../DataInterface";
 import { MoleConfigResidue } from "../../MoleAPIService";
 import { Context } from "../Context";
@@ -9,15 +8,12 @@ import { Colors, Enum } from "../../StaticData";
 import { StructureElement, StructureProperties as Props } from "molstar/lib/mol-model/structure";
 import { Representation } from "molstar/lib/mol-repr/representation";
 import { EmptyLoci, Loci } from "molstar/lib/mol-model/loci";
-import { Shape, ShapeGroup } from "molstar/lib/mol-model/shape";
-import { Geometry } from "molstar/lib/mol-geo/geometry/geometry";
+import { ShapeGroup } from "molstar/lib/mol-model/shape";
 import { OrderedSet } from "molstar/lib/mol-data/int";
 import { getTriangleCenter } from "../Behaviour";
 import { Vec3 } from "molstar/lib/mol-math/linear-algebra";
 import { StateSelection } from "molstar/lib/mol-state";
 import { PluginStateObject } from "molstar/lib/mol-plugin-state/objects";
-import { StructureComponent } from "molstar/lib/mol-plugin-state/transforms/model";
-import { StructureRepresentation3D } from "molstar/lib/mol-plugin-state/transforms/representation";
 import { MarkerAction } from "molstar/lib/mol-util/marker-action";
 import { CommonOptions } from "../../../config/common";
 
@@ -476,7 +472,6 @@ export class SelectionHelper {
      * @return True - residue selected | False - residue deselected
      */
     public static addResidueToSelection(seqNumber: number, chain: string, operator_name?: string, loci?: Loci, isHet?: boolean, residueName?: string): boolean {
-        let plugin = Instances.getPlugin();
         let residues = SelectionHelper.getSelectedResidues();
         let newSelection: LightResidueInfo[] = [];
         let deselectMode = false;
@@ -518,7 +513,6 @@ export class SelectionHelper {
      */
     public static addResiduesToSelection(residues: LightResidueInfo[], doRemove?: boolean) {
         doRemove = (doRemove === void 0) ? true : doRemove;
-        let plugin = Instances.getPlugin();
         let currentResidues = SelectionHelper.getSelectedResidues();
         let newSelection: LightResidueInfo[] = [];
 
@@ -642,13 +636,11 @@ export class SelectionHelper {
     }
 
     private static async clearSelectedPoints() {
-        // let plugin = Instances.getPlugin();
         await PluginCommands.State.RemoveObject(Context.getInstance().plugin, { state: Context.getInstance().plugin.state.data, ref: 'point-selection' });
         this.selectedPoints = void 0;
     }
 
     private static async clearSelectedTPoint() {
-        // let plugin = Instances.getPlugin();
         await PluginCommands.State.RemoveObject(Context.getInstance().plugin, { state: Context.getInstance().plugin.state.data, ref: 'point-selection-T' });
         this.selectedTPoint = void 0;
     }

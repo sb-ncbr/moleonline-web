@@ -5,10 +5,10 @@ import { MeshBuilder } from 'molstar/lib/mol-geo/geometry/mesh/mesh-builder';
 import { computeMarchingCubesMesh } from 'molstar/lib/mol-geo/util/marching-cubes/algorithm';
 import { WebGLContext } from 'molstar/lib/mol-gl/webgl/context';
 import { Texture } from 'molstar/lib/mol-gl/webgl/texture';
-import { PositionData, Sphere3D, Box3D, GridLookup3D, fillGridDim } from 'molstar/lib/mol-math/geometry';
+import { PositionData, Sphere3D, Box3D, GridLookup3D } from 'molstar/lib/mol-math/geometry';
 import { Boundary, getBoundary } from 'molstar/lib/mol-math/geometry/boundary';
 import { DefaultMolecularSurfaceCalculationProps, MolecularSurfaceCalculationProps } from 'molstar/lib/mol-math/geometry/molecular-surface';
-import { lerp, smoothstep, spline } from 'molstar/lib/mol-math/interpolate';
+import { lerp, spline } from 'molstar/lib/mol-math/interpolate';
 import { Vec3, Tensor, Mat4 } from 'molstar/lib/mol-math/linear-algebra';
 import { Shape } from 'molstar/lib/mol-model/shape';
 import { ensureReasonableResolution } from 'molstar/lib/mol-repr/structure/visual/util/common';
@@ -18,8 +18,6 @@ import { Color } from 'molstar/lib/mol-util/color';
 import { LayersInfo, TunnelMetaInfo, Tunnel as DataTunnel } from '../../../DataInterface';
 import { ColorBound, colorByDistance, DefaultColor, Property, colorTunnel, getLayerGroupId } from './property-color';
 import { Profile, Tunnel } from 'molstar/lib/extensions/sb-ncbr/tunnels/data-model';
-import { ColorSmoothingParams, getColorSmoothingProps } from 'molstar/lib/mol-geo/geometry/base';
-import { ParamDefinition } from 'molstar/lib/mol-util/param-definition';
 
 type MolecularSurfaceMeta = {
     resolution?: number
