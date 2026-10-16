@@ -488,50 +488,50 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
                 if (data.MergedPores && data.MergedPores.length > 0) {
                     channels = data.MergedPores;
                 }
-                if (data.Paths && data.Paths.length > 0) {
+                else if (data.Paths && data.Paths.length > 0) {
                     channels = data.Paths;
                 }
-                if (data.Pores && data.Pores.length > 0) {
+                else if (data.Pores && data.Pores.length > 0) {
                     channels = data.Pores;
                 }
-                if (data.Tunnels && data.Tunnels.length > 0) {
+                else if (data.Tunnels && data.Tunnels.length > 0) {
                     channels = data.Tunnels;
                 }
                 //-- ChannelsDB
-                if (data.ReviewedChannels_MOLE && data.ReviewedChannels_MOLE.length > 0) {
-                    channels = data.RevieReviewedChannels_MOLEwedChannels;
+                else if (data.ReviewedChannels_MOLE && data.ReviewedChannels_MOLE.length > 0) {
+                    channels = data.ReviewedChannels_MOLE;
                 }
-                if (data.ReviewedChannels_Caver && data.ReviewedChannels_Caver.length > 0) {
+                else if (data.ReviewedChannels_Caver && data.ReviewedChannels_Caver.length > 0) {
                     channels = data.ReviewedChannels_Caver;
                 }
-                if (data.CSATunnels_MOLE && data.CSATunnels_MOLE.length > 0) {
+                else if (data.CSATunnels_MOLE && data.CSATunnels_MOLE.length > 0) {
                     channels = data.CSATunnels_MOLE;
                 }
-                if (data.CSATunnels_Caver && data.CSATunnels_Caver.length > 0) {
+                else if (data.CSATunnels_Caver && data.CSATunnels_Caver.length > 0) {
                     channels = data.CSATunnels_Caver;
                 }
-                if (data.TransmembranePores_MOLE && data.TransmembranePores_MOLE.length > 0) {
+                else if (data.TransmembranePores_MOLE && data.TransmembranePores_MOLE.length > 0) {
                     channels = data.TransmembranePores_MOLE;
                 }
-                if (data.TransmembranePores_Caver && data.TransmembranePores_Caver.length > 0) {
+                else if (data.TransmembranePores_Caver && data.TransmembranePores_Caver.length > 0) {
                     channels = data.TransmembranePores_Caver;
                 }
-                if (data.CofactorTunnels_MOLE && data.CofactorTunnels_MOLE.length > 0) {
+                else if (data.CofactorTunnels_MOLE && data.CofactorTunnels_MOLE.length > 0) {
                     channels = data.CofactorTunnels_MOLE;
                 }
-                if (data.CofactorTunnels_Caver && data.CofactorTunnels_Caver.length > 0) {
+                else if (data.CofactorTunnels_Caver && data.CofactorTunnels_Caver.length > 0) {
                     channels = data.CofactorTunnels_Caver;
                 }
-                if (data.ProcognateTunnels_MOLE && data.ProcognateTunnels_MOLE.length > 0) {
+                else if (data.ProcognateTunnels_MOLE && data.ProcognateTunnels_MOLE.length > 0) {
                     channels = data.ProcognateTunnels_MOLE;
                 }
-                if (data.ProcognateTunnels_Caver && data.ProcognateTunnels_Caver.length > 0) {
+                else if (data.ProcognateTunnels_Caver && data.ProcognateTunnels_Caver.length > 0) {
                     channels = data.ProcognateTunnels_Caver;
                 }
-                if (data.AlphaFillTunnels_MOLE && data.AlphaFillTunnels_MOLE.length > 0) {
+                else if (data.AlphaFillTunnels_MOLE && data.AlphaFillTunnels_MOLE.length > 0) {
                     channels = data.AlphaFillTunnels_MOLE;
                 }
-                if (data.AlphaFillTunnels_Caver && data.AlphaFillTunnels_Caver.length > 0) {
+                else if (data.AlphaFillTunnels_Caver && data.AlphaFillTunnels_Caver.length > 0) {
                     channels = data.AlphaFillTunnels_Caver;
                 }
 
