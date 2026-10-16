@@ -500,7 +500,7 @@ export class Context {
             for await (const param of params.data) {
                 // get loci from param
                 const loci = this.getLociForParams([param], params.structureNumber, params.isHet);
-                if (Loci.isEmpty(loci)) return;
+                if (Loci.isEmpty(loci)) continue;
                 if (loci.kind === 'element-loci') {
                     if (params.focusCenter) {
                         const { serialMapping } = loci.structure;
@@ -553,80 +553,6 @@ export class Context {
             }
             if (params.focusCenter && centerFocusPositions.length > 0) {
                 this.plugin.managers.camera.focusSphere(this.computeCenterAndRadius(centerFocusPositions));
-            }
-            this.plugin.canvas3d?.pause(false);
-
-            // reset selection color
-            this.visual.reset({ selectColor: true });
-            // save selection params to optimise clear
-            this.selectedParams = params;
-
-        },
-        selectResidues: async (params: { data: QueryParam[], nonSelectedColor?: any, addedRepr?: boolean, structureNumber?: number, forceClear?: boolean, isHet?: boolean }) => {
-
-            // clear prvious selection
-            if (this.selectedParams || params.forceClear) {
-                await this.visual.clearSelection(params.structureNumber);
-            }
-
-            // Structure list to apply selection
-            let structureData = this.plugin.managers.structure.hierarchy.current.structures;
-            if (params.structureNumber) {
-                structureData = [this.plugin.managers.structure.hierarchy.current.structures[params.structureNumber - 1]];
-            }
-
-            // set non selected theme color
-            if (params.nonSelectedColor) {
-                for await (const s of structureData) {
-                    await this.plugin.managers.structure.component.updateRepresentationsTheme(s.components, { color: 'uniform', colorParams: { value: this.normalizeColor(params.nonSelectedColor) } });
-                }
-            }
-
-            this.plugin.canvas3d?.pause(true);
-            // apply individual selections
-            for await (const param of params.data) {
-                // get loci from param
-                const loci = this.getLociForParams([param], params.structureNumber, params.isHet);
-                if (Loci.isEmpty(loci)) return;
-                // set default selection color to minimise change display
-                this.visual.setColor({ select: param.color ? param.color : { r: 255, g: 112, b: 3 } });
-                // apply selection
-                this.plugin.managers.interactivity.lociSelects.select({ loci });
-                // create theme param values and apply them to create overpaint
-                const themeParams = StructureComponentManager.getThemeParams(this.plugin, this.plugin.managers.structure.component.pivotStructure);
-                const colorValue = ParamDefinition.getDefaultValues(themeParams);
-                colorValue.action.params = { color: param.color ? this.normalizeColor(param.color) : Color.fromRgb(255, 112, 3), opacity: 1 };
-                await this.plugin.managers.structure.component.applyTheme(colorValue, structureData);
-                // add new representations
-                if (param.sideChain || param.representation) {
-                    let repr = 'ball-and-stick';
-                    if (param.representation) repr = param.representation;
-                    const defaultParams = StructureComponentManager.getAddParams(this.plugin, { allowNone: false, hideSelection: true, checkExisting: true });
-                    const defaultValues = ParamDefinition.getDefaultValues(defaultParams);
-                    defaultValues.options = { label: '[Focus] Target - Lining Residues', checkExisting: params.structureNumber ? false : true };
-                    const values = { ...defaultValues, ...{ representation: repr } };
-                    const structures = this.plugin.managers.structure.hierarchy.getStructuresWithSelection();
-                    await this.plugin.managers.structure.component.add(values, structures);
-
-                    // Apply uniform theme
-                    if (param.representationColor) {
-                        let updatedStructureData = this.plugin.managers.structure.hierarchy.current.structures;
-                        if (params.structureNumber) {
-                            updatedStructureData = [this.plugin.managers.structure.hierarchy.current.structures[params.structureNumber - 1]];
-                        }
-                        const comps = updatedStructureData[0].components;
-                        const lastCompsIndex = comps.length - 1;
-                        const recentRepComp = [comps[lastCompsIndex]];
-                        const uniformColor = param.representationColor ? this.normalizeColor(param.representationColor) : Color.fromRgb(255, 112, 3);
-                        this.plugin.managers.structure.component.updateRepresentationsTheme(recentRepComp, { color: 'uniform', colorParams: { value: uniformColor } });
-                    }
-
-                    params.addedRepr = true;
-                }
-                // focus loci
-                if (param.focus) this.plugin.managers.camera.focusLoci(loci);
-                // remove selection
-                this.plugin.managers.interactivity.lociSelects.deselect({ loci });
             }
             this.plugin.canvas3d?.pause(false);
 

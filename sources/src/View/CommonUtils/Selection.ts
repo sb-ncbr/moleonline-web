@@ -235,37 +235,6 @@ export class SelectionHelper {
     }
 
 
-    private static residueBulkSort(bulk: LightResidueInfo[]) {
-        bulk.sort((a, b) => {
-            if (a.chain.authAsymId < b.chain.authAsymId) {
-                return -1;
-            }
-            else if (a.chain.authAsymId == b.chain.authAsymId) {
-                return a.authSeqNumber - b.authSeqNumber;
-            }
-            else {
-                return 1;
-            }
-        });
-    }
-
-    private static residueBulkEquals(r1: LightResidueInfo[], r2: LightResidueInfo[]) {
-        if (r1.length !== r2.length) {
-            return false;
-        }
-
-        this.residueBulkSort(r1);
-        this.residueBulkSort(r2);
-
-        for (let idx = 0; idx < r1.length; idx++) {
-            if (this.residueLightEquals({ type: "light", info: r1[idx] }, { type: "light", info: r2[idx] })) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     //TODO probably remove cause balls and sticks render automaticly with selection
     private static async selectResiduesBulkWithBallsAndSticks(residues: LightResidueInfo[]) {
         await SelectionHelper.clearSelectionPrivate();
@@ -274,12 +243,6 @@ export class SelectionHelper {
         this.selectedChannelId = void 0;
         this.selectedResidues = void 0;
         await this.clearSelectedPoints();
-
-        if (this.selectedResidues !== void 0) {
-            if (this.residueBulkEquals(residues, this.selectedResidues)) {
-                return;
-            }
-        }
 
         let queries: QueryParam[] = [];
         let hetQueries: QueryParam[] = [];
@@ -350,18 +313,6 @@ export class SelectionHelper {
         }
 
         return [];
-    }
-
-    private static residueLightEquals(r1: ResidueLight, r2: ResidueLight) {
-        if ((!this.chainLightEquals(r1.info.chain, r2.info.chain))
-            || r1.info.authSeqNumber !== r2.info.authSeqNumber) {
-            return false;
-        }
-        return true;
-    }
-
-    private static chainLightEquals(c1: { authAsymId: string }, c2: { authAsymId: string }) {
-        return (c1.authAsymId === c2.authAsymId);
     }
 
     public static isSelectedAnyChannel() {

@@ -89,6 +89,8 @@ export async function showDefaultVisualsNewSubmission(channels: ChannelsDBChanne
                 return;
             })
         }
+        // nothing to show
+        res(null);
     });
 }
 
@@ -222,7 +224,7 @@ export async function showDefaultVisuals(currentSubmitId: number, submissionChan
             }
 
             if (toShow.length > 0) {
-                return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB, currentSubmitId === -1 ? "ChannelsDB" : currentSubmitId === -2 ? 'FromFile' : currentSubmitId.toString()).then(() => {
+                return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB, submitId === -1 ? "ChannelsDB" : submitId === -2 ? 'FromFile' : submitId.toString()).then(() => {
                     res(null);
                     return;
                 })
@@ -230,6 +232,8 @@ export async function showDefaultVisuals(currentSubmitId: number, submissionChan
 
         }
 
+        // nothing to show
+        res(null);
     });
 }
 
