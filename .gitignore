@@ -11,4 +11,5 @@ sources/js/init-scripts.js
 sources/js/scripts.js
 sources/css/init-styles.css
 sources/css/styles.css
-
+sources/css/MoleSequenceViewer.css
+sources/css/MolstarSlider.css
