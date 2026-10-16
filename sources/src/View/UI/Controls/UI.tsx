@@ -20,7 +20,7 @@ import { StartingPointBox, ValidationState } from "../Common/Controls/FromLiteMo
 import { isMoleConfigOrPoresConfig } from "./ParamsChecker";
 require("molstar/lib/mol-plugin-ui/skin/light.scss");
 
-var Provider = ComputationInfo.DataProvider;
+const Provider = ComputationInfo.DataProvider;
 
 declare function $(p: any, p1?: any): any;
 
@@ -50,50 +50,6 @@ export class Controls extends React.Component<{}, State> {
             <ControlTabs />
         );
     }
-}
-
-function onFocusReplaceDefaultValidationPopup(e: any, elemId: string) {
-    let el = e.currentTarget as HTMLElement;
-    if (el.dataset["hasReplacedValidationPopup"] !== "true") {
-        replaceDefaultValidationPopup(elemId);
-        el.dataset["hasReplacedValidationPopup"] = "true";
-    }
-};
-
-function replaceDefaultValidationPopup(id: string) {
-    $(`#${id}`)[0]
-        .addEventListener("invalid", (event: any) => {
-            $(event.target).data("toggle", "popover");
-            $(event.target).data("trigger", "manual");
-            $(event.target).data("placement", "left");
-            //$(event.target).data("container","body");
-            $(event.target).data("content", event.target.validationMessage);
-            $(event.target).popover("show");
-            window.setTimeout(() => {
-                $(event.target).popover("hide");
-                $(event.target).popover("destroy");
-            }, 5000);
-            $(event.target).focus();
-
-            event.preventDefault();
-        }
-        );
-}
-
-function createCustomValidationPopup(el: HTMLElement, message: string) {
-    $(el)[0].validationMessage = message;
-
-    $(el).data("toggle", "popover");
-    $(el).data("trigger", "manual");
-    $(el).data("placement", "left");
-    //$(el).data("container","body");
-    $(el).data("content", message);
-    $(el).popover("show");
-    window.setTimeout(() => {
-        $(el).popover("hide");
-        $(el).popover("destroy");
-    }, 5000);
-    $(el).focus();
 }
 
 interface SettingsProps {
@@ -700,12 +656,8 @@ function valueOrDefault(value: any | null, def: any) {
 }
 
 function getSubmissionIdx(compInfo: CompInfo, submitId: number): number | null {
-    for (let idx = 0; idx < compInfo.Submissions.length; idx++) {
-        if (String(compInfo.Submissions[idx].SubmitId) === String(submitId)) {
-            return idx;
-        }
-    }
-    return null;
+    const idx = compInfo.Submissions.findIndex(s => String(s.SubmitId) === String(submitId));
+    return idx === -1 ? null : idx;
 }
 
 function deepEqual(objA: any, objB: any): boolean {
@@ -753,11 +705,7 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
 
     private changePoresSubmissionChainsFormat(computationInfo: CompInfo) {
         let submissions = computationInfo.Submissions.map((v, i, a) => {
-            if (v.PoresConfig !== void 0
-                && v.PoresConfig.Chains !== void 0
-                && v.PoresConfig.Chains !== void 0
-                && v.PoresConfig.Chains !== null
-                && Array.isArray(v.PoresConfig.Chains)) {
+            if (v.PoresConfig !== void 0 && Array.isArray(v.PoresConfig.Chains)) {
                 v.PoresConfig.Chains = (v.PoresConfig.Chains as string[]).join(",");
             }
 
@@ -844,14 +792,7 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
     }
 
     private checkHasKillable(compInfo: CompInfo) {
-        let hasKillable = false;
-        for (let submission of compInfo.Submissions) {
-            if (submission.Status === "Running") {
-                hasKillable = true;
-                return hasKillable;
-            }
-        }
-        return hasKillable;
+        return compInfo.Submissions.some(s => s.Status === "Running");
     }
 
     componentDidMount() {
@@ -941,54 +882,17 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
 }
 
 function checkCanKill(status: ComputationStatus) {
-    let result = false;
-    switch (status as ComputationStatus) {
-        case "Running":
-            result = true;
-            break;
-    }
-    return result;
+    return status === "Running";
 }
 
 function checkCanSubmit(status: ComputationStatus) {
     return !checkCanKill(status);
 }
 
-function checkCanDelete(status: ComputationStatus) {
-    let result = false;
-    switch (status as ComputationStatus) {
-        case "Aborted":
-        case "Error":
-        case "FailedInitialization":
-        case "Finished":
-        case "Initialized":
-            result = true;
-            break;
-        case "Running":
-        case "Initializing":
-            result = false;
-            break;
-    }
-    return result;
-}
+const RESUBMITTABLE_STATUSES: ComputationStatus[] = ["Aborted", "Error", "FailedInitialization", "Finished", "Initialized"];
 
 function checkCanResubmit(status: ComputationStatus) {
-    let result = false;
-    switch (status as ComputationStatus) {
-        case "Aborted":
-        case "Error":
-        case "FailedInitialization":
-        case "Finished":
-        case "Initialized":
-            result = true;
-            break;
-        case "Running":
-        case "Initializing":
-        case "Deleted":
-            result = false;
-            break;
-    }
-    return result;
+    return RESUBMITTABLE_STATUSES.includes(status);
 }
 
 export class Submission extends React.Component<{ data: ServiceSubmission, computationId: string, status: string, currentSubmitId: number, onCopy: (submitId: number) => void, onResubmit: (info: CompInfo) => void }, {}> {
@@ -1406,14 +1310,8 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
     }
 
     private getSelectedIndex(submitId: number, items: SubmissionCoboboxItem[]): number | undefined {
-        for (let idx = 0; idx < items.length; idx++) {
-            let item = items[idx];
-            if (item.value === `${submitId}`) {
-                return idx;
-            }
-        }
-
-        return void 0;
+        const idx = items.findIndex(item => item.value === `${submitId}`);
+        return idx === -1 ? void 0 : idx;
     }
 
     private onSubmitIdComboSelectChange(e: any) {
