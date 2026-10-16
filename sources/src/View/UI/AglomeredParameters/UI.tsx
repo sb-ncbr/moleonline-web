@@ -1,4 +1,4 @@
-import { ChannelsDBChannels, Tunnel } from "../../../DataInterface";
+import { Tunnel } from "../../../DataInterface";
 import { Tunnels } from "../../CommonUtils/Tunnels";
 import { TooltipText as Tooltips } from "../../../StaticData";
 import { ChannelsDBData, TunnelName } from "../../../Cache";
@@ -24,43 +24,19 @@ export class AglomeredParameters extends React.Component<{}, State> {
         app: this,
     };
 
-    concatTunnels(tunnels: ChannelsDBChannels) {
-        let concatTunnels: Tunnel[] = [];
-
-        concatTunnels = Tunnels.concatTunnelsSafe(concatTunnels, tunnels.Tunnels);
-        concatTunnels = Tunnels.concatTunnelsSafe(concatTunnels, tunnels.Paths);
-        concatTunnels = Tunnels.concatTunnelsSafe(concatTunnels, tunnels.Pores);
-        concatTunnels = Tunnels.concatTunnelsSafe(concatTunnels, tunnels.MergedPores);
-
-        concatTunnels = Tunnels.concatTunnelsSafe(concatTunnels, tunnels.ReviewedChannels_MOLE);
-        concatTunnels = Tunnels.concatTunnelsSafe(concatTunnels, tunnels.ReviewedChannels_Caver);
-        concatTunnels = Tunnels.concatTunnelsSafe(concatTunnels, tunnels.CSATunnels_MOLE);
-        concatTunnels = Tunnels.concatTunnelsSafe(concatTunnels, tunnels.CSATunnels_Caver);
-        concatTunnels = Tunnels.concatTunnelsSafe(concatTunnels, tunnels.TransmembranePores_MOLE);
-        concatTunnels = Tunnels.concatTunnelsSafe(concatTunnels, tunnels.TransmembranePores_Caver);
-        concatTunnels = Tunnels.concatTunnelsSafe(concatTunnels, tunnels.CofactorTunnels_MOLE);
-        concatTunnels = Tunnels.concatTunnelsSafe(concatTunnels, tunnels.CofactorTunnels_Caver);
-        concatTunnels = Tunnels.concatTunnelsSafe(concatTunnels, tunnels.ProcognateTunnels_MOLE);
-        concatTunnels = Tunnels.concatTunnelsSafe(concatTunnels, tunnels.ProcognateTunnels_Caver);
-        concatTunnels = Tunnels.concatTunnelsSafe(concatTunnels, tunnels.AlphaFillTunnels_MOLE);
-        concatTunnels = Tunnels.concatTunnelsSafe(concatTunnels, tunnels.AlphaFillTunnels_Caver);
-
-        return concatTunnels;
-    }
-
     componentDidMount() {
         Tunnels.attachOnTunnelsLoaded(() => {
             const submissionsMap: Map<string, Tunnel[]> = new Map();
             const channelsDB = Tunnels.getChannelsDB();
             if (channelsDB) {
-                const concatChannelsDB = this.concatTunnels(channelsDB);
+                const concatChannelsDB = Tunnels.concatAllCategories(channelsDB);
                 submissionsMap.set('ChannelsDB', concatChannelsDB);
             }
             const submissions = Tunnels.getChannels();
             for (const submission of Array.from(submissions.keys())) {
                 const channels = submissions.get(submission);
                 if (channels) {
-                    const concatDataChannels = this.concatTunnels(channels);
+                    const concatDataChannels = Tunnels.concatAllCategories(channels);
                     submissionsMap.set(submission === '-2' ? 'FromFile' : submission, concatDataChannels);
                 }
             }

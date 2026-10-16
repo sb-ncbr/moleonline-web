@@ -1,7 +1,7 @@
 import { ReferenceType, TunnelAnnotation } from "../../AnnotationToChannelsDBService";
 import { ChannelsDBData, LastVisibleChannels, TunnelName } from "../../Cache";
 import { roundToDecimal } from "../../Common/Util/Numbers";
-import { ChannelsDBChannels, ExportTunnel, Tunnel } from "../../DataInterface";
+import { CHANNEL_CATEGORIES, ChannelsDBChannels, ExportTunnel, Tunnel } from "../../DataInterface";
 import { TunnelsId } from "./TunnelsId";
 import { TwoDProtsBridge } from "./TwoDProtsBridge";
 
@@ -151,5 +151,13 @@ export class Tunnels {
         }
 
         return origin.concat(newTunnels);
+    }
+
+    public static concatAllCategories(channels: ChannelsDBChannels) {
+        let tunnels: Tunnel[] = [];
+        for (const category of CHANNEL_CATEGORIES) {
+            tunnels = this.concatTunnelsSafe(tunnels, channels[category]);
+        }
+        return tunnels;
     }
 }
