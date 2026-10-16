@@ -25,14 +25,6 @@ interface Profile {
     Charge: number
 }
 
-interface Annotation {
-    Id: string;
-    Name: string;
-    Description: string;
-    Reference: string;
-    ReferenceType: string;
-}
-
 interface ChannelsDBData {
     Channels: {
         Tunnels: Tunnel[];

@@ -485,26 +485,3 @@ export function assignLayers(centerLine: Profile[], layers: LayersInfo[]): Map<V
     return mappedPoints;
 }
 
-export function assignLayersToPoints(
-    centerLine: Profile[],
-    layers: LayersInfo[]
-): { mappedPoints: Map<Vec3, number> } {
-    let currentLayerId = 0;
-    let currentLayer = layers[currentLayerId];
-    let mappedPoints: Map<Vec3, number> = new Map();
-    let pointArray: { point: Vec3; index: number }[] = [];
-
-    for (const point of centerLine) {
-        const distance = point.Distance;
-        if (distance > currentLayer.LayerGeometry.EndDistance) {
-            currentLayerId = currentLayerId + 1 < layers.length ? currentLayerId + 1 : currentLayerId;
-            currentLayer = layers[currentLayerId];
-        }
-        const vec = Vec3.create(point.X, point.Y, point.Z);
-        mappedPoints.set(vec, currentLayerId);
-        pointArray.push({ point: vec, index: currentLayerId });
-    }
-
-    return { mappedPoints };
-}
-

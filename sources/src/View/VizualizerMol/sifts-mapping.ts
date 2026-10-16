@@ -5,7 +5,6 @@ import { Column } from 'molstar/lib/mol-data/db';
 import { MmcifFormat } from 'molstar/lib/mol-model-formats/structure/mmcif';
 import { CustomPropertyDescriptor } from 'molstar/lib/mol-model/custom-property';
 import { Model } from 'molstar/lib/mol-model/structure';
-import { StructureElement } from 'molstar/lib/mol-model/structure/structure';
 import { CustomModelProperty } from 'molstar/lib/mol-model-props/common/custom-model-property';
 
 export { SIFTSMapping as SIFTSMapping };
@@ -43,24 +42,6 @@ namespace SIFTSMapping {
         } = model.sourceData.data.db.atom_site;
 
         return db_name.isDefined && db_acc.isDefined && db_num.isDefined && db_res.isDefined;
-    }
-
-    export function getKey(loc: StructureElement.Location) {
-        const model = loc.unit.model;
-        const data = Provider.get(model).value;
-        if (!data) return '';
-        const rI = model.atomicHierarchy.residueAtomSegments.index[loc.element];
-        return data.accession[rI];
-    }
-
-    export function getLabel(loc: StructureElement.Location) {
-        const model = loc.unit.model;
-        const data = Provider.get(model).value;
-        if (!data) return;
-        const rI = model.atomicHierarchy.residueAtomSegments.index[loc.element];
-        const dbName = data.dbName[rI];
-        if (!dbName) return;
-        return `${dbName} ${data.accession[rI]} ${data.num[rI]} ${data.residue[rI]}`;
     }
 
     function fromCif(model: Model): SIFTSMappingMapping | undefined {

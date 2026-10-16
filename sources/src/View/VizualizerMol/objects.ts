@@ -1,10 +1,8 @@
 import { Mesh } from "molstar/lib/mol-geo/geometry/mesh/mesh";
-import { presetStaticComponent, StructureRepresentationPresetProvider } from "molstar/lib/mol-plugin-state/builder/structure/representation-preset";
 import { PluginStateObject, PluginStateTransform } from "molstar/lib/mol-plugin-state/objects";
-import { StateObjectRef, StateTransformer } from "molstar/lib/mol-state";
+import { StateTransformer } from "molstar/lib/mol-state";
 import { Task } from "molstar/lib/mol-task";
 import { Color } from "molstar/lib/mol-util/color";
-import { Material } from "molstar/lib/mol-util/material";
 import { ParamDefinition as PD } from "molstar/lib/mol-util/param-definition";
 import { createMembrane, createOriginSurface, createSurfaceShape } from "./visualizing";
 import { BaseGeometry, ColorSmoothingParams } from "molstar/lib/mol-geo/geometry/base";
@@ -18,37 +16,6 @@ import { ShapeGroupColorTheme, ShapeGroupSizeTheme } from "./color-tunnels/color
 import { ShapeRepresentation } from "molstar/lib/mol-repr/shape/representation";
 
 const Transform = StateTransformer.builderFactory("moleonline");
-
-const PresetParams = {
-    ...StructureRepresentationPresetProvider.CommonParams,
-};
-
-const CustomMaterial = Material({ roughness: 0.2, metalness: 0 });
-
-const SurfacePreset = StructureRepresentationPresetProvider({
-    id: 'preset-surface',
-    display: { name: 'Surface' },
-    params: () => PresetParams,
-    async apply(ref, params, plugin) {
-        const structureCell = StateObjectRef.resolveAndCheck(plugin.state.data, ref);
-        const structure = structureCell?.obj?.data;
-        if (!structureCell || !structure) return {};
-
-        const components = {
-            polymer: await presetStaticComponent(plugin, structureCell, 'polymer'),
-        };
-
-        const { update, builder, typeParams } = StructureRepresentationPresetProvider.reprBuilder(plugin, params);
-        const representations = {
-            polymer: builder.buildRepresentation(update, components.polymer, { type: 'molecular-surface', typeParams: { ...typeParams, material: CustomMaterial, quality: 'custom', resolution: 0.5, doubleSided: true }, color: 'partial-charge' }, { tag: 'polymer' }),
-        };
-
-        await update.commit({ revertOnError: true });
-        plugin.managers.interactivity.setProps({ granularity: 'residue' });
-
-        return { components, representations };
-    }
-});
 
 export const MembraneShapeProvider = Transform({
     name: 'membrane-shape-provider',

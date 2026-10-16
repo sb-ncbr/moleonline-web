@@ -10,7 +10,6 @@ import { Location } from 'molstar/lib/mol-model/location';
 import { ShapeGroup } from 'molstar/lib/mol-model/shape';
 import { ParamDefinition, ParamDefinition as PD } from 'molstar/lib/mol-util/param-definition';
 import { ThemeDataContext } from 'molstar/lib/mol-theme/theme';
-import { ColorThemeCategory } from 'molstar/lib/mol-theme/color/categories';
 import { isPositionLocation } from 'molstar/lib/mol-geo/util/location-iterator';
 import { ColorNames } from 'molstar/lib/mol-util/color/names';
 import { Vec3 } from 'molstar/lib/mol-math/linear-algebra';
@@ -54,9 +53,6 @@ export const ShapeGroupColorThemeParams = {
     property: ParamDefinition.Value<Property | undefined>(undefined, { isHidden: true })
 };
 export type ShapeGroupColorThemeParams = typeof ShapeGroupColorThemeParams
-export function getShapeGroupColorThemeParams(ctx: ThemeDataContext) {
-    return ShapeGroupColorThemeParams; // TODO return copy
-}
 
 export function ShapeGroupColorTheme(ctx: ThemeDataContext, props: PD.Values<ShapeGroupColorThemeParams>): ColorTheme<ShapeGroupColorThemeParams> {
     return {
@@ -78,25 +74,12 @@ export function ShapeGroupColorTheme(ctx: ThemeDataContext, props: PD.Values<Sha
     };
 }
 
-export const ShapeGroupColorThemeProvider: ColorTheme.Provider<ShapeGroupColorThemeParams, 'shape-group'> = {
-    name: 'shape-group',
-    label: 'Shape Group',
-    category: ColorThemeCategory.Misc,
-    factory: ShapeGroupColorTheme,
-    getParams: getShapeGroupColorThemeParams,
-    defaultValues: PD.getDefaultValues(ShapeGroupColorThemeParams),
-    isApplicable: (ctx: ThemeDataContext) => !!ctx.shape
-};
-
 
 const DefaultSize = 1;
 const Description = 'Assigns sizes as defined by the shape object.';
 
 export const ShapeGroupSizeThemeParams = {};
 export type ShapeGroupSizeThemeParams = typeof ShapeGroupSizeThemeParams
-export function getShapeGroupSizeThemeParams(ctx: ThemeDataContext) {
-    return ShapeGroupSizeThemeParams; // TODO return copy
-}
 
 export function ShapeGroupSizeTheme(ctx: ThemeDataContext, props: PD.Values<ShapeGroupSizeThemeParams>): SizeTheme<ShapeGroupSizeThemeParams> {
     return {
@@ -112,13 +95,3 @@ export function ShapeGroupSizeTheme(ctx: ThemeDataContext, props: PD.Values<Shap
         description: Description
     };
 }
-
-export const ShapeGroupSizeThemeProvider: SizeTheme.Provider<ShapeGroupSizeThemeParams, 'shape-group'> = {
-    name: 'shape-group',
-    label: 'Shape Group',
-    category: '',
-    factory: ShapeGroupSizeTheme,
-    getParams: getShapeGroupSizeThemeParams,
-    defaultValues: PD.getDefaultValues(ShapeGroupSizeThemeParams),
-    isApplicable: (ctx: ThemeDataContext) => !!ctx.shape
-};

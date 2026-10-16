@@ -24,8 +24,6 @@ import { StructureSelectionManager } from 'molstar/lib/mol-plugin-state/manager/
 import { arrayEqual } from 'molstar/lib/mol-util/array';
 import { MoleSequence } from './MoleSequence';
 
-interface Wrapper { wrapper: (string | SequenceWrapper.Any), label: string, operatorName: string }
-
 const MaxDisplaySequenceLength = 5000;
 // TODO: add virtualized Select controls (at best with a search box)?
 const MaxSelectOptionsCount = 1000;
@@ -349,43 +347,6 @@ export class MoleSequenceView extends PluginUIComponent<{ defaultMode?: Sequence
             operatorName: this.state.operatorName
         };
     }
-
-    private setParamProps = (p: { param: PD.Base<any>, name: string, value: any }) => {
-        const state = { ...this.state };
-        switch (p.name) {
-            case 'mode':
-                state.mode = p.value;
-                if (this.state.mode === state.mode) return;
-
-                if (state.mode === 'all' || state.mode === 'polymers') {
-                    break;
-                }
-            // eslint-disable-next-line no-fallthrough
-            case 'structure':
-                if (p.name === 'structure') state.structureRef = p.value;
-                state.structure = this.getStructure(state.structureRef);
-                state.modelEntityId = getModelEntityOptions(state.structure)[0][0];
-                state.chainGroupId = getChainOptions(state.structure, state.modelEntityId)[0][0];
-                state.operatorKey = getOperatorOptions(state.structure, state.modelEntityId, state.chainGroupId)[0][0];
-                state.operatorName = getOperatorOptions(state.structure, state.modelEntityId, state.chainGroupId)[0][1];
-                break;
-            case 'entity':
-                state.modelEntityId = p.value;
-                state.chainGroupId = getChainOptions(state.structure, state.modelEntityId)[0][0];
-                state.operatorKey = getOperatorOptions(state.structure, state.modelEntityId, state.chainGroupId)[0][0];
-                state.operatorName = getOperatorOptions(state.structure, state.modelEntityId, state.chainGroupId)[0][1];
-                break;
-            case 'chain':
-                state.chainGroupId = p.value;
-                state.operatorKey = getOperatorOptions(state.structure, state.modelEntityId, state.chainGroupId)[0][0];
-                state.operatorName = getOperatorOptions(state.structure, state.modelEntityId, state.chainGroupId)[0][1];
-                break;
-            case 'operator':
-                state.operatorKey = p.value;
-                break;
-        }
-        this.setState(state);
-    };
 
     render() {
         if (this.getStructure(this.state.structureRef) === Structure.Empty) {

@@ -163,33 +163,6 @@ export class MoleSequence<P extends SequenceProps> extends PluginUIComponent<P> 
         this.mouseDownLoci = loci;
     };
 
-    private updateMarkerSelect(seqIx: number, loci: StructureElement.Loci) {
-        if (!this.parentDiv.current) return;
-        const xs = this.parentDiv.current.children;
-        const { markerArray } = this.props.sequenceWrapper;
-        const hasNumbers = !this.props.hideSequenceNumbers, period = this.sequenceNumberPeriod;
-
-        let o = 0;
-        for (let i = 0, il = markerArray.length; i < il; i++) {
-            if (hasNumbers && i % period === 0 && i < il) o++;
-            // o + 1 to account for help icon
-            const span = xs[o] as HTMLSpanElement;
-            if (!span) return;
-            o++;
-
-            if (i === seqIx) {
-                if (this.selectedLocis[i] === 0) {
-                    this.selectedLocis[i] = 1;
-                    this.props.sequenceWrapper.mark(loci, MarkerAction.Select);
-                } else {
-                    this.selectedLocis[i] = 0;
-                    this.props.sequenceWrapper.mark(loci, MarkerAction.Deselect);
-                }
-                return;
-            }
-        }
-    }
-
     mouseUp = (e: React.MouseEvent) => {
         e.stopPropagation();
 

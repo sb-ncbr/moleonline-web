@@ -1,15 +1,10 @@
 import { Color } from 'molstar/lib/mol-util/color';
 import { ColorPaletteFunctionSettings } from './data-model';
 import { LayersInfo } from '../../../DataInterface';
-import { RGBColor } from '../../LayerVizualizer/Vizualizer';
 import { LayerColors } from '../../CommonUtils/LayerColors';
 
 
-const DefaultList = 'many-distinct';
 export const DefaultColor = Color(0xFAFAFA);
-const Description = 'Color tunnel by specific property.';
-
-declare var ChannelDbPlugin: any;
 
 const maxYellow = Color(0xFBFF07); // { r: 251, g: 255, b: 7 };
 const middleYellow = Color(0xF0F8BE); // { r: 240, g: 248, b: 190 };
@@ -186,26 +181,6 @@ function prepareSettings(property: Property, colorOptions: {
     };
 }
 
-function interpolate(minColor: Color, maxColor: Color, t: number) {
-    const minRGB = Color.toRgb(minColor);
-    const maxRGB = Color.toRgb(maxColor);
-
-    const r = minRGB[0] + (maxRGB[0] - minRGB[0]) * t;
-    const g = minRGB[1] + (maxRGB[1] - minRGB[1]) * t;
-    const b = minRGB[2] + (maxRGB[2] - minRGB[2]) * t;
-
-    return Color.fromRgb(r, g, b);
-}
-
-function toRGB(color: Color): RGBColor {
-    const rgb = Color.toRgb(color);
-    return {
-        r: rgb[0],
-        g: rgb[1],
-        b: rgb[2]
-    }
-}
-
 
 function getColor(value: number, property: Property, settings: ColorPaletteFunctionSettings | undefined) {
     if (!settings) {
@@ -310,39 +285,6 @@ export function colorTunnelNew(property: Property, layer: LayersInfo, nextLayer:
             const pixelData = ctx.getImageData(x, 0, 1, 1).data;
             return Color.fromRgb(pixelData[0], pixelData[1], pixelData[2]);
         }
-    }
-    return DefaultColor;
-}
-
-export function colorTunnelGradient(property: Property, groupId: number, dist: number,
-    colorOptions: {
-        colorMaxValue: number,
-        colorMinValue: number,
-        layers: LayersInfo[],
-        skipMiddleColors: boolean,
-        colorBounds: ColorBound
-    }) {
-    if (groupId > 0 && groupId < colorOptions.layers.length) {
-        const layer = colorOptions.layers[groupId];
-        const settings = prepareSettings(property, colorOptions);
-        const prevColorValue = ((groupId - 1) in colorOptions.layers)
-            ? getValue(colorOptions.layers[groupId - 1], property)
-            : getValue(layer, property);
-        const currentColorValue = getValue(layer, property);
-
-        const currLength = layer.LayerGeometry.EndDistance - layer.LayerGeometry.StartDistance;
-        const totalLength = colorOptions.layers[colorOptions.layers.length - 1].LayerGeometry.EndDistance - colorOptions.layers[0].LayerGeometry.StartDistance;
-        const proportionalValue = (currLength / totalLength) * currentColorValue;
-        let currentColorStop = 0;
-        let color = getColor(prevColorValue, property, settings);
-        if (groupId !== 0) {
-            color = getColor(currentColorValue, property, settings);
-            currentColorStop = (currLength / totalLength);
-        }
-        if (currentColorStop < (dist / totalLength)) {
-            return Color(0xFFFFFF);
-        }
-        return color;
     }
     return DefaultColor;
 }

@@ -10,10 +10,6 @@ import { Polyhedron } from "molstar/lib/mol-geo/primitive/polyhedron";
 import { Colors, Enum } from "../../StaticData";
 import { getTriangleCenter } from "../Behaviour";
 
-interface MolObjectSourceData {
-    kind: 'origin' | 'surface' | 'membrane'
-}
-
 export function createSurfaceShape(options: { triangles: number[], vertices: number[], color: Color, solidForm: boolean, label: string, prev?: Shape<Mesh> }) { 
     const builder = MeshBuilder.createState(options.triangles.length * 2 + 1, undefined, options.prev?.geometry);
     const t = Mat4.identity();
