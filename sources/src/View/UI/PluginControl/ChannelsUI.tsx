@@ -4,7 +4,7 @@
 
 import React from "react";
 import { Events } from "../../../Bridge";
-import { ChannelsDBChannels, MoleData, Tunnel, TunnelMetaInfo } from "../../../DataInterface";
+import { ChannelsDBChannels, emptyChannels, MoleData, Tunnel, TunnelMetaInfo } from "../../../DataInterface";
 import { Tunnels } from "../../CommonUtils/Tunnels";
 import { ChannelsDBData, TunnelName } from "../../../Cache";
 import { ChannelAnnotation } from "../../../ChannelsDBAPIService";
@@ -64,26 +64,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
         if (tunnels) {
             Events.invokeChannelDataLoaded({ Channels: tunnels });
         } else {
-            Events.invokeChannelDataLoaded({
-                Channels: {
-                    Tunnels: [],
-                    MergedPores: [],
-                    Pores: [],
-                    Paths: [],
-                    CSATunnels_MOLE: [],
-                    CSATunnels_Caver: [],
-                    ReviewedChannels_MOLE: [],
-                    ReviewedChannels_Caver: [],
-                    CofactorTunnels_MOLE: [],
-                    CofactorTunnels_Caver: [],
-                    TransmembranePores_MOLE: [],
-                    TransmembranePores_Caver: [],
-                    ProcognateTunnels_MOLE: [],
-                    ProcognateTunnels_Caver: [],
-                    AlphaFillTunnels_MOLE: [],
-                    AlphaFillTunnels_Caver: []
-                }
-            });
+            Events.invokeChannelDataLoaded({ Channels: emptyChannels() });
         }
     }
 

@@ -1,6 +1,6 @@
 import { CifBlock } from "molstar/lib/mol-io/reader/cif";
 import { parseCifText } from "molstar/lib/mol-io/reader/cif/text/parser";
-import { Layers, Tunnel } from "../../../DataInterface";
+import { emptyChannels, Layers, Tunnel } from "../../../DataInterface";
 import { ChannelsDBData as ChannelsDBCache } from "../../../Cache";
 import { ChannelAnnotation, ApiService } from "../../../ChannelsDBAPIService";
 
@@ -401,24 +401,7 @@ function parseCifToChannelsDBData(blocks: CifBlock[]): ChannelsDBData {
         channels = parseChannels(tunnelsBlock.categories, residuesNames);
 
     return {
-        Channels: {
-            Tunnels: channels,
-            MergedPores: [],
-            Pores: [],
-            Paths: [],
-            CSATunnels_MOLE: [],
-            CSATunnels_Caver: [],
-            ReviewedChannels_MOLE: [],
-            ReviewedChannels_Caver: [],
-            CofactorTunnels_MOLE: [],
-            CofactorTunnels_Caver: [],
-            TransmembranePores_MOLE: [],
-            TransmembranePores_Caver: [],
-            ProcognateTunnels_MOLE: [],
-            ProcognateTunnels_Caver: [],
-            AlphaFillTunnels_MOLE: [],
-            AlphaFillTunnels_Caver: [],
-        },
+        Channels: { ...emptyChannels(), Tunnels: channels },
         Annotations: annotations,
     };
 }

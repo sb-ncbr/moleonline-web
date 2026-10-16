@@ -1,4 +1,4 @@
-import { AnnotationObject, Annotations, ChannelsDBChannels, ChannelsDBData, Tunnel } from "./DataInterface";
+import { AnnotationObject, Annotations, CHANNELSDB_CATEGORIES, ChannelsDBChannels, ChannelsDBData, Tunnel } from "./DataInterface";
 import { getJson } from "./Http";
 import { CommonOptions, DataSources } from "../config/common";
 import { customAlphabet } from 'nanoid';
@@ -160,52 +160,10 @@ export class ApiService {
     private static parseLiningResiduesAndChannelsData(data: ChannelsDBData) {
         let channels: Tunnel[] = [];
 
-        if (data.Channels.ReviewedChannels_MOLE !== void 0) {
-            channels = channels.concat(data.Channels.ReviewedChannels_MOLE);
-        }
-
-        if (data.Channels.ReviewedChannels_Caver !== void 0) {
-            channels = channels.concat(data.Channels.ReviewedChannels_Caver);
-        }
-
-        if (data.Channels.CSATunnels_MOLE !== void 0) {
-            channels = channels.concat(data.Channels.CSATunnels_MOLE);
-        }
-
-        if (data.Channels.CSATunnels_Caver !== void 0) {
-            channels = channels.concat(data.Channels.CSATunnels_Caver);
-        }
-
-        if (data.Channels.TransmembranePores_MOLE !== void 0) {
-            channels = channels.concat(data.Channels.TransmembranePores_MOLE);
-        }
-
-        if (data.Channels.TransmembranePores_Caver !== void 0) {
-            channels = channels.concat(data.Channels.TransmembranePores_Caver);
-        }
-
-        if (data.Channels.CofactorTunnels_MOLE !== void 0) {
-            channels = channels.concat(data.Channels.CofactorTunnels_MOLE);
-        }
-
-        if (data.Channels.CofactorTunnels_Caver !== void 0) {
-            channels = channels.concat(data.Channels.CofactorTunnels_Caver);
-        }
-
-        if (data.Channels.ProcognateTunnels_MOLE !== void 0) {
-            channels = channels.concat(data.Channels.ProcognateTunnels_MOLE);
-        }
-
-        if (data.Channels.ProcognateTunnels_Caver !== void 0) {
-            channels = channels.concat(data.Channels.ProcognateTunnels_Caver);
-        }
-
-        if (data.Channels.AlphaFillTunnels_MOLE !== void 0) {
-            channels = channels.concat(data.Channels.AlphaFillTunnels_MOLE);
-        }
-
-        if (data.Channels.AlphaFillTunnels_Caver !== void 0) {
-            channels = channels.concat(data.Channels.AlphaFillTunnels_Caver);
+        for (const category of CHANNELSDB_CATEGORIES) {
+            if (data.Channels[category] !== void 0) {
+                channels = channels.concat(data.Channels[category]);
+            }
         }
 
         let liningResidues: string[] = [];

@@ -118,6 +118,37 @@ export interface ChannelsDBChannels {
     AlphaFillTunnels_Caver: Tunnel[]
 };
 
+// MOLEonline results first, then ChannelsDB; the first non-empty category is shown by default.
+export const MOLE_CATEGORIES = ["MergedPores", "Paths", "Pores", "Tunnels"] as const;
+export const CHANNELSDB_CATEGORIES = [
+    "ReviewedChannels_MOLE", "ReviewedChannels_Caver",
+    "CSATunnels_MOLE", "CSATunnels_Caver",
+    "TransmembranePores_MOLE", "TransmembranePores_Caver",
+    "CofactorTunnels_MOLE", "CofactorTunnels_Caver",
+    "ProcognateTunnels_MOLE", "ProcognateTunnels_Caver",
+    "AlphaFillTunnels_MOLE", "AlphaFillTunnels_Caver",
+] as const;
+export const CHANNEL_CATEGORIES = [...MOLE_CATEGORIES, ...CHANNELSDB_CATEGORIES];
+export type ChannelCategory = typeof CHANNEL_CATEGORIES[number];
+
+export function emptyChannels(): ChannelsDBChannels {
+    const channels = {} as Record<ChannelCategory, Tunnel[]>;
+    for (const category of CHANNEL_CATEGORIES) {
+        channels[category] = [];
+    }
+    return channels;
+}
+
+export function firstNonEmptyCategory(channels: ChannelsDBChannels) {
+    for (let i = 0; i < CHANNEL_CATEGORIES.length; i++) {
+        const tunnels = channels[CHANNEL_CATEGORIES[i]];
+        if (tunnels && tunnels.length > 0) {
+            return { tunnels, channelsDB: i >= MOLE_CATEGORIES.length };
+        }
+    }
+    return null;
+}
+
 export interface ChannelsDBData {
     Channels: ChannelsDBChannels,
     Annotations: AnnotationObject[]

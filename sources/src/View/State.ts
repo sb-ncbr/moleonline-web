@@ -2,7 +2,7 @@
  * Copyright (c) 2016 - now David Sehnal, licensed under Apache 2.0, See LICENSE file for more info.
  */
 import { DataProxyCSAResidues, JobStatus } from "../DataProxy";
-import { ChannelsDBChannels, ChannelsDBData, Membrane, MoleData, Origins, Tunnel, TunnelMetaInfo } from "../DataInterface";
+import { ChannelsDBChannels, ChannelsDBData, firstNonEmptyCategory, Membrane, MoleData, Origins, Tunnel, TunnelMetaInfo } from "../DataInterface";
 import { ChannelsDBData as ChannelsDBDataCache, LastVisibleChannels } from "../Cache";
 import { getParameters } from "../Common/Util/Router";
 import { ApiService, CSAResidues } from "../MoleAPIService";
@@ -25,66 +25,9 @@ import { TunnelsId } from "./CommonUtils/TunnelsId";
 
 export async function showDefaultVisualsNewSubmission(channels: ChannelsDBChannels, submitId: string) {
     return new Promise(res => {
-        let toShow: Tunnel[] = [];
-        let channelsDB = true;
-        const data = channels;
-        //-- MoleOnline
-        if (data.MergedPores && data.MergedPores.length > 0) {
-            toShow = data.MergedPores;
-            channelsDB = false;
-        }
-        else if (data.Paths && data.Paths.length > 0) {
-            toShow = data.Paths;
-            channelsDB = false;
-        }
-        else if (data.Pores && data.Pores.length > 0) {
-            toShow = data.Pores;
-            channelsDB = false;
-        }
-        else if (data.Tunnels && data.Tunnels.length > 0) {
-            toShow = data.Tunnels;
-            channelsDB = false;
-        }
-        //-- ChannelsDB
-        else if (data.ReviewedChannels_MOLE && data.ReviewedChannels_MOLE.length > 0) {
-            toShow = data.ReviewedChannels_MOLE;
-        }
-        else if (data.ReviewedChannels_Caver && data.ReviewedChannels_Caver.length > 0) {
-            toShow = data.ReviewedChannels_Caver;
-        }
-        else if (data.CSATunnels_MOLE && data.CSATunnels_MOLE.length > 0) {
-            toShow = data.CSATunnels_MOLE;
-        }
-        else if (data.CSATunnels_Caver && data.CSATunnels_Caver.length > 0) {
-            toShow = data.CSATunnels_Caver;
-        }
-        else if (data.TransmembranePores_MOLE && data.TransmembranePores_MOLE.length > 0) {
-            toShow = data.TransmembranePores_MOLE;
-        }
-        else if (data.TransmembranePores_Caver && data.TransmembranePores_Caver.length > 0) {
-            toShow = data.TransmembranePores_Caver;
-        }
-        else if (data.CofactorTunnels_MOLE && data.CofactorTunnels_MOLE.length > 0) {
-            toShow = data.CofactorTunnels_MOLE;
-        }
-        else if (data.CofactorTunnels_Caver && data.CofactorTunnels_Caver.length > 0) {
-            toShow = data.CofactorTunnels_Caver;
-        }
-        else if (data.ProcognateTunnels_MOLE && data.ProcognateTunnels_MOLE.length > 0) {
-            toShow = data.ProcognateTunnels_MOLE;
-        }
-        else if (data.ProcognateTunnels_Caver && data.ProcognateTunnels_Caver.length > 0) {
-            toShow = data.ProcognateTunnels_Caver;
-        }
-        else if (data.AlphaFillTunnels_MOLE && data.AlphaFillTunnels_MOLE.length > 0) {
-            toShow = data.AlphaFillTunnels_MOLE;
-        }
-        else if (data.AlphaFillTunnels_Caver && data.AlphaFillTunnels_Caver.length > 0) {
-            toShow = data.AlphaFillTunnels_Caver;
-        }
-
-        if (toShow.length > 0) {
-            return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB, submitId).then(() => {
+        const first = firstNonEmptyCategory(channels);
+        if (first !== null) {
+            return showChannelDefaultVisuals((first.tunnels.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], first.channelsDB, submitId).then(() => {
                 res(null);
                 return;
             })
@@ -96,69 +39,11 @@ export async function showDefaultVisualsNewSubmission(channels: ChannelsDBChanne
 
 export async function showDefaultVisuals(currentSubmitId: number, submissionChannels: Map<number, ChannelsDBChannels>) {
     return new Promise(res => {
-        let toShow: Tunnel[] = [];
-        let channelsDB = true;
-        
         const submissionData = submissionChannels.get(currentSubmitId)
         if (submissionData !== undefined) {
-            const data = submissionData;
-            //-- MoleOnline
-            if (data.MergedPores && data.MergedPores.length > 0) {
-                toShow = data.MergedPores;
-                channelsDB = false;
-            }
-            else if (data.Paths && data.Paths.length > 0) {
-                toShow = data.Paths;
-                channelsDB = false;
-            }
-            else if (data.Pores && data.Pores.length > 0) {
-                toShow = data.Pores;
-                channelsDB = false;
-            }
-            else if (data.Tunnels && data.Tunnels.length > 0) {
-                toShow = data.Tunnels;
-                channelsDB = false;
-            }
-            //-- ChannelsDB
-            else if (data.ReviewedChannels_MOLE && data.ReviewedChannels_MOLE.length > 0) {
-                toShow = data.ReviewedChannels_MOLE;
-            }
-            else if (data.ReviewedChannels_Caver && data.ReviewedChannels_Caver.length > 0) {
-                toShow = data.ReviewedChannels_Caver;
-            }
-            else if (data.CSATunnels_MOLE && data.CSATunnels_MOLE.length > 0) {
-                toShow = data.CSATunnels_MOLE;
-            }
-            else if (data.CSATunnels_Caver && data.CSATunnels_Caver.length > 0) {
-                toShow = data.CSATunnels_Caver;
-            }
-            else if (data.TransmembranePores_MOLE && data.TransmembranePores_MOLE.length > 0) {
-                toShow = data.TransmembranePores_MOLE;
-            }
-            else if (data.TransmembranePores_Caver && data.TransmembranePores_Caver.length > 0) {
-                toShow = data.TransmembranePores_Caver;
-            }
-            else if (data.CofactorTunnels_MOLE && data.CofactorTunnels_MOLE.length > 0) {
-                toShow = data.CofactorTunnels_MOLE;
-            }
-            else if (data.CofactorTunnels_Caver && data.CofactorTunnels_Caver.length > 0) {
-                toShow = data.CofactorTunnels_Caver;
-            }
-            else if (data.ProcognateTunnels_MOLE && data.ProcognateTunnels_MOLE.length > 0) {
-                toShow = data.ProcognateTunnels_MOLE;
-            }
-            else if (data.ProcognateTunnels_Caver && data.ProcognateTunnels_Caver.length > 0) {
-                toShow = data.ProcognateTunnels_Caver;
-            }
-            else if (data.AlphaFillTunnels_MOLE && data.AlphaFillTunnels_MOLE.length > 0) {
-                toShow = data.AlphaFillTunnels_MOLE;
-            }
-            else if (data.AlphaFillTunnels_Caver && data.AlphaFillTunnels_Caver.length > 0) {
-                toShow = data.AlphaFillTunnels_Caver;
-            }
-
-            if (toShow.length > 0) {
-                return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB, currentSubmitId === -1 ? "ChannelsDB" : currentSubmitId === -2 ? 'FromFile' : currentSubmitId.toString()).then(() => {
+            const first = firstNonEmptyCategory(submissionData);
+            if (first !== null) {
+                return showChannelDefaultVisuals((first.tunnels.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], first.channelsDB, currentSubmitId === -1 ? "ChannelsDB" : currentSubmitId === -2 ? 'FromFile' : currentSubmitId.toString()).then(() => {
                     res(null);
                     return;
                 })
@@ -168,63 +53,9 @@ export async function showDefaultVisuals(currentSubmitId: number, submissionChan
         for (const submitId of Array.from(submissionChannels.keys())) {
             const data = submissionChannels.get(submitId)
             if (data === undefined) continue;
-            //-- MoleOnline
-            if (data.MergedPores && data.MergedPores.length > 0) {
-                toShow = data.MergedPores;
-                channelsDB = false;
-            }
-            else if (data.Paths && data.Paths.length > 0) {
-                toShow = data.Paths;
-                channelsDB = false;
-            }
-            else if (data.Pores && data.Pores.length > 0) {
-                toShow = data.Pores;
-                channelsDB = false;
-            }
-            else if (data.Tunnels && data.Tunnels.length > 0) {
-                toShow = data.Tunnels;
-                channelsDB = false;
-            }
-            //-- ChannelsDB
-            else if (data.ReviewedChannels_MOLE && data.ReviewedChannels_MOLE.length > 0) {
-                toShow = data.ReviewedChannels_MOLE;
-            }
-            else if (data.ReviewedChannels_Caver && data.ReviewedChannels_Caver.length > 0) {
-                toShow = data.ReviewedChannels_Caver;
-            }
-            else if (data.CSATunnels_MOLE && data.CSATunnels_MOLE.length > 0) {
-                toShow = data.CSATunnels_MOLE;
-            }
-            else if (data.CSATunnels_Caver && data.CSATunnels_Caver.length > 0) {
-                toShow = data.CSATunnels_Caver;
-            }
-            else if (data.TransmembranePores_MOLE && data.TransmembranePores_MOLE.length > 0) {
-                toShow = data.TransmembranePores_MOLE;
-            }
-            else if (data.TransmembranePores_Caver && data.TransmembranePores_Caver.length > 0) {
-                toShow = data.TransmembranePores_Caver;
-            }
-            else if (data.CofactorTunnels_MOLE && data.CofactorTunnels_MOLE.length > 0) {
-                toShow = data.CofactorTunnels_MOLE;
-            }
-            else if (data.CofactorTunnels_Caver && data.CofactorTunnels_Caver.length > 0) {
-                toShow = data.CofactorTunnels_Caver;
-            }
-            else if (data.ProcognateTunnels_MOLE && data.ProcognateTunnels_MOLE.length > 0) {
-                toShow = data.ProcognateTunnels_MOLE;
-            }
-            else if (data.ProcognateTunnels_Caver && data.ProcognateTunnels_Caver.length > 0) {
-                toShow = data.ProcognateTunnels_Caver;
-            }
-            else if (data.AlphaFillTunnels_MOLE && data.AlphaFillTunnels_MOLE.length > 0) {
-                toShow = data.AlphaFillTunnels_MOLE;
-            }
-            else if (data.AlphaFillTunnels_Caver && data.AlphaFillTunnels_Caver.length > 0) {
-                toShow = data.AlphaFillTunnels_Caver;
-            }
-
-            if (toShow.length > 0) {
-                return showChannelDefaultVisuals((toShow.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], channelsDB, submitId === -1 ? "ChannelsDB" : submitId === -2 ? 'FromFile' : submitId.toString()).then(() => {
+            const first = firstNonEmptyCategory(data);
+            if (first !== null) {
+                return showChannelDefaultVisuals((first.tunnels.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], first.channelsDB, submitId === -1 ? "ChannelsDB" : submitId === -2 ? 'FromFile' : submitId.toString()).then(() => {
                     res(null);
                     return;
                 })

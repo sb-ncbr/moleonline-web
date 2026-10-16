@@ -1,5 +1,5 @@
 import { ApiService, ChannelAnnotation, ResidueAnnotation } from "./ChannelsDBAPIService";
-import { ChannelsDBChannels, MoleData, Tunnel, TunnelMetaInfo } from "./DataInterface";
+import { CHANNEL_CATEGORIES, ChannelsDBChannels, MoleData, Tunnel, TunnelMetaInfo } from "./DataInterface";
 
 export class TunnelName {
     private static cache: Map<string, Map<string, string>> = new Map();
@@ -7,53 +7,10 @@ export class TunnelName {
     public static reload(data: MoleData, submission: string) {
         let channels: Tunnel[] = [];
         let channelsMap: Map<string, string> = new Map();
-        if (data.Channels.MergedPores !== void 0) {
-            channels = channels.concat(data.Channels.MergedPores);
-        }
-        if (data.Channels.Paths !== void 0) {
-            channels = channels.concat(data.Channels.Paths);
-        }
-        if (data.Channels.Pores !== void 0) {
-            channels = channels.concat(data.Channels.Pores);
-        }
-        if (data.Channels.Tunnels !== void 0) {
-            channels = channels.concat(data.Channels.Tunnels);
-        }
-        if (data.Channels.ReviewedChannels_MOLE !== void 0) {
-            channels = channels.concat(data.Channels.ReviewedChannels_MOLE);
-        }
-        if (data.Channels.ReviewedChannels_Caver !== void 0) {
-            channels = channels.concat(data.Channels.ReviewedChannels_Caver);
-        }
-        if (data.Channels.CSATunnels_MOLE !== void 0) {
-            channels = channels.concat(data.Channels.CSATunnels_MOLE);
-        }
-        if (data.Channels.CSATunnels_Caver !== void 0) {
-            channels = channels.concat(data.Channels.CSATunnels_Caver);
-        }
-        if (data.Channels.TransmembranePores_MOLE !== void 0) {
-            channels = channels.concat(data.Channels.TransmembranePores_MOLE);
-        }
-        if (data.Channels.TransmembranePores_Caver !== void 0) {
-            channels = channels.concat(data.Channels.TransmembranePores_Caver);
-        }
-        if (data.Channels.CofactorTunnels_MOLE !== void 0) {
-            channels = channels.concat(data.Channels.CofactorTunnels_MOLE);
-        }
-        if (data.Channels.CofactorTunnels_Caver !== void 0) {
-            channels = channels.concat(data.Channels.CofactorTunnels_Caver);
-        }
-        if (data.Channels.ProcognateTunnels_MOLE !== void 0) {
-            channels = channels.concat(data.Channels.ProcognateTunnels_MOLE);
-        }
-        if (data.Channels.ProcognateTunnels_Caver !== void 0) {
-            channels = channels.concat(data.Channels.ProcognateTunnels_Caver);
-        }
-        if (data.Channels.AlphaFillTunnels_MOLE !== void 0) {
-            channels = channels.concat(data.Channels.AlphaFillTunnels_MOLE);
-        }
-        if (data.Channels.AlphaFillTunnels_Caver !== void 0) {
-            channels = channels.concat(data.Channels.AlphaFillTunnels_Caver);
+        for (const category of CHANNEL_CATEGORIES) {
+            if (data.Channels[category] !== void 0) {
+                channels = channels.concat(data.Channels[category]);
+            }
         }
 
         for (let channel of channels) {
