@@ -93,9 +93,6 @@
 
     "../Bridge.ts",
 
-    //LoadingScreen
-    "UI/LoadingScreen/UI.tsx",
-
     //Alert messages
     "../Common/UI/AlertMessages/UI.tsx",
 

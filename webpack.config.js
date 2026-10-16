@@ -56,7 +56,6 @@ module.exports = (env, argv) => {
                                           to: () => `html/[name][ext]`,
                                       globOptions: { ignore: ['**/index.html'] },
                                       },
-                                      { from: './sources/config/*', to: () => `config/[name][ext]` },
                                       { from: './sources/templates/*', to: () => `html/templates/[name][ext]` },
                                       { from: './static/data/*', to: () => `static/[name][ext]` },
                     ],

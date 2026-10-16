@@ -16,9 +16,6 @@
     "skipDefaultLibCheck": true
   },
   "files": [   
-    "common.ts",
-    "local.ts",
-    "test.ts",
-    "prod.ts"
+    "common.ts"
   ]
 }
