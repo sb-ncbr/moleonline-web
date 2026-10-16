@@ -462,7 +462,7 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
                     else {
                         if (compId === urlParams.computationId) {
                             for (let s of info.Submissions) {
-                                if (String(s.SubmitId) === String(urlParams.submitId)) {
+                                if (s.SubmitId === urlParams.submitId) {
                                     res({ submission: s, compInfo: info });
                                     return;
                                 }

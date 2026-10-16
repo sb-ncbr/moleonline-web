@@ -63,20 +63,7 @@ export function pointsToString(points: MoleConfigPoint[]): string {
 }
 
 export function isMoleJob(data: Submission) {
-    if (data.MoleConfig === void 0 || data.MoleConfig === null) {
-        return false;
-    }
-
-    let c = data.MoleConfig;
-    return !(c.Cavity === void 0
-        && c.CustomExits === void 0
-        && c.Input === void 0
-        && c.NonActiveResidues === void 0
-        && c.Origin === void 0
-        && c.PoresAuto === void 0
-        && c.PoresMerged === void 0
-        && c.QueryFilter === void 0
-        && c.Tunnel === void 0);
+    return data.Mode === "Mole";
 }
 
 export function parseResidues(residues: string | undefined): { Chain: string, SequenceNumber: number, OperatorName: string, Name: string }[] {

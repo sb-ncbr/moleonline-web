@@ -185,6 +185,12 @@
     font-weight: bold;
 }
 
+.submissions .submission-error {
+    color: red;
+    font-size: 0.9em;
+    white-space: normal;
+}
+
 .submissions .panel-heading a {
     display: block;
     padding: 10px 15px;

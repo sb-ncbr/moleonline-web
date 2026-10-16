@@ -8,6 +8,9 @@ import {ComputationInfo} from "../../DataProxy";
 import {Routing} from "../../../config/common";
 import AlertMessages from "../../Common/UI/AlertMessages/UI";
 
+// The API refuses larger uploads
+const MAX_UPLOAD_MB = 30;
+
 declare function $(p: any): any;
 
 interface State {
@@ -77,6 +80,15 @@ export class InitForm extends React.Component<{}, State> {
                     console.log(reason);
                 })
         }
+        else if (file.size > MAX_UPLOAD_MB * 1024 * 1024) {
+            // the API refuses it too; this saves the upload
+            this.handleFormSubmitResponse({
+                ComputationId: "",
+                SubmitId: 0,
+                Status: "Error",
+                ErrorMsg: `The file is too large, at most ${MAX_UPLOAD_MB} MB can be uploaded. Compressed files (*.gz) are accepted.`
+            });
+        }
         else {
             let data = new FormData();
             data.append("file", file)
@@ -95,6 +107,16 @@ export class InitForm extends React.Component<{}, State> {
 
     private handleFormSubmitResponse(response: InitResponse) {
         let $next = $('#frm-jobSetup-setupForm-next');
+        if (response.Status === "Error") {
+            $next.prop('disabled', false);
+            $next.val('Submit');
+            Events.invokeNotifyMessage({
+                messageType: "Danger",
+                message: response.ErrorMsg
+            })
+            return;
+        }
+
         if (response.Status === "FailedInitialization") {
             $next.prop('disabled', false);
             $next.val('Submit');
@@ -127,6 +149,7 @@ export class InitForm extends React.Component<{}, State> {
         }
 
         $next.prop('disabled', false);
+        $next.val('Submit');
         Events.invokeNotifyMessage({
             messageType: "Danger",
             message: `Unexpected computation status received from API: ${response.Status}`
@@ -237,7 +260,7 @@ export class InitForm extends React.Component<{}, State> {
                         <td><label htmlFor="frm-jobSetup-setupForm-file">Upload file</label>:</td>
                         <td>
                             <input type="file" name="file" className="text" id="frm-jobSetup-setupForm-file" style = {{ maxWidth: '250px' }} data-bs-toggle="tooltip" title="                                Plain text PDB files (UTF-8 encoding), ZIP and GZIP archives are supported,
-                                maximal file size is 50MB. E.g. cleaned PDB with only one chain and without unnecessary HETATMs."/>
+                                maximal file size is 30 MB. E.g. cleaned PDB with only one chain and without unnecessary HETATMs."/>
                         </td>
                     </tr>
                 </tbody>

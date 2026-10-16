@@ -58,7 +58,7 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
                 ComputationInfo.DataProvider.get(result.ComputationId, ((compId: string, info: CompInfo) => {
                     JobStatus.Watcher.registerOnChangeHandler(result.ComputationId, result.SubmitId, (status) => {
                         if (status.Status !== "Running") {
-                            GlobalRouter.redirect(`/${result.ComputationId}/${String(result.SubmitId)}`, true);
+                            GlobalRouter.redirect(`/${result.ComputationId}/${result.SubmitId}`, true);
                         }
                     }, (err) => {
                         Events.invokeNotifyMessage({

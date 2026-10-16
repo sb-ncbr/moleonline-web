@@ -28,9 +28,11 @@ export interface CompInfo {
 
 export interface Submission {
     SubmitId: number,
+    Mode: "Mole" | "Pores" | null, // null: no parameters were submitted
+    Status: ComputationStatus,
+    ErrorMsg: string,
     MoleConfig: MoleConfig,
-    PoresConfig: PoresConfig,
-    Status: ComputationStatus
+    PoresConfig: PoresConfig
 };
 
 export interface MoleConfig {
@@ -98,6 +100,18 @@ export type PatternQueryExpression = string;
 export type Cofactors = Map<ResidueName, PatternQueryExpression>;
 export type MembranePoints = MembranePoint[];
 
+// The API sends SubmitId as a number. Anything else is an API bug: fail instead of converting it.
+function checkSubmitId(submitId: unknown, url: string) {
+    if (typeof submitId !== "number") {
+        throw new Error(`${url}: SubmitId must be a number, got ${JSON.stringify(submitId)}`);
+    }
+}
+
+function checkReport(report: any, url: string): InitResponse {
+    checkSubmitId(report.SubmitId, url);
+    return report;
+}
+
 export class ApiService {
     private static DEBUG_MODE = CommonOptions.DEBUG_MODE;
 
@@ -114,14 +128,14 @@ export class ApiService {
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return postEmpty(url);
+        return postEmpty(url).then(r => checkReport(r, url));
     }
     public static initWithFile(formData: FormData): Promise<InitResponse> {
         let url = this.prepareInitUrl("", false);
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return postForm(url, formData);
+        return postForm(url, formData).then(r => checkReport(r, url));
     }
 
     public static getStatus(computationId: string, submitId?: number): Promise<InitResponse> {
@@ -133,7 +147,7 @@ export class ApiService {
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return getJson(url);
+        return getJson(url).then(r => checkReport(r, url));
     }
 
     public static getComputationInfoList(computationId: string): Promise<CompInfo> {
@@ -147,6 +161,9 @@ export class ApiService {
                 return null;
             }
             else {
+                for (const submission of val.Submissions) {
+                    checkSubmitId(submission.SubmitId, url);
+                }
                 return val;
             }
         })
@@ -157,7 +174,7 @@ export class ApiService {
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return postJson(url, data);
+        return postJson(url, data).then(r => checkReport(r, url));
     }
 
     public static submitPoresJob(computationId: string, data: PoresConfig) {
@@ -174,7 +191,7 @@ export class ApiService {
             ProbeRadius: (data.ProbeRadius === void 0 || data.ProbeRadius === null) ? null : data.ProbeRadius
         }
 
-        return postJson(url, jsonRequestData);
+        return postJson(url, jsonRequestData).then(r => checkReport(r, url));
     }
 
     public static getFilenameFromResponseHeader(r: Response) {
@@ -226,7 +243,7 @@ export class ApiService {
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return postEmpty(url);
+        return postEmpty(url).then(r => checkReport(r, url));
     }
 
     public static deleteProject(computationId: string) {
@@ -234,7 +251,7 @@ export class ApiService {
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return deleteJson(url);
+        return deleteJson(url).then(r => checkReport(r, url));
     }
 
     public static getCSAResidues(computationId: string): Promise<CSAResidues> {

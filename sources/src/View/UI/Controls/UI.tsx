@@ -160,8 +160,8 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                         state.data = info;
                         this.props.parent.setState(state);
 
-                        BridgeEvents.invokeNewSubmit(Number(result.SubmitId));
-                        BridgeEvents.invokeChangeSubmitId(Number(result.SubmitId));
+                        BridgeEvents.invokeNewSubmit(result.SubmitId);
+                        BridgeEvents.invokeChangeSubmitId(result.SubmitId);
 
                     }).bind(this), true);
 
@@ -497,7 +497,7 @@ function valueOrDefault(value: any | null, def: any) {
 }
 
 function getSubmissionIdx(compInfo: CompInfo, submitId: number): number | null {
-    const idx = compInfo.Submissions.findIndex(s => String(s.SubmitId) === String(submitId));
+    const idx = compInfo.Submissions.findIndex(s => s.SubmitId === submitId);
     return idx === -1 ? null : idx;
 }
 
@@ -605,6 +605,7 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
                         return;
                     }
                     currentCompInfo.Submissions[subIdx].Status = state.Status;
+                    currentCompInfo.Submissions[subIdx].ErrorMsg = state.ErrorMsg;
                     s.computationInfo = currentCompInfo;
                     this.setState(s);
                     if (oldStatus !== void 0) {
@@ -666,7 +667,7 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
                 submissions.push(
                     <Submission key={s.SubmitId} data={s} currentSubmitId={submitId} computationId={this.props.computationInfo.ComputationId} status={(stat === void 0) ? "Unknown" : stat} onResubmit={this.props.onResubmit} onCopy={(submitId: number) => {
                         for (let submission of this.props.computationInfo.Submissions) {
-                            if (submission.SubmitId.toString() === submitId.toString()) {
+                            if (submission.SubmitId === submitId) {
                                 BridgeEvents.invokeCopyParameters({
                                     mode: (isMoleJob(submission)) ? "mole" : "pores",
                                     moleConfig: submission.MoleConfig,
@@ -799,7 +800,7 @@ export class Submission extends React.Component<{ data: ServiceSubmission, compu
                 <div className="panel-heading">
                     <a data-bs-toggle="collapse" href={`#submit-data-${data.SubmitId}`} onClick={(e) => {
                         if (e.currentTarget.attributes.getNamedItem('aria-expanded')!.value === 'true') {
-                            if (String(data.SubmitId) !== String(this.props.currentSubmitId)) {
+                            if (data.SubmitId !== this.props.currentSubmitId) {
                                 changeSubmitId(this.props.computationId, data.SubmitId);
                             }
                         }
@@ -810,9 +811,10 @@ export class Submission extends React.Component<{ data: ServiceSubmission, compu
                         <div className="submission-state">
                             Status: <span className={`state-${this.props.status}`}>{this.props.status}</span>
                         </div>
+                        {data.ErrorMsg ? <div className="submission-error">{data.ErrorMsg}</div> : null}
                     </a>
                 </div>
-                <div id={`submit-data-${data.SubmitId}`} className={`panel-collapse collapse${(currentSubmitId.toString() === data.SubmitId.toString()) ? ' in' : ''}`}>
+                <div id={`submit-data-${data.SubmitId}`} className={`panel-collapse collapse${(currentSubmitId === data.SubmitId) ? ' in' : ''}`}>
                     {contents}
                     <div className="panel-footer">
                         <span className="btn btn-sm btn-primary" onClick={(() => this.exportParams()).bind(this)}>Export</span><span className="btn btn-sm btn-primary" onClick={(() => this.copyParams(data.SubmitId)).bind(this)}>Copy</span><span className="btn btn-sm btn-primary" aria-disabled={!canResubmit} onClick={(() => this.reSubmit()).bind(this)}>Resubmit</span>
@@ -1196,7 +1198,7 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
         }
 
         for (let idx = 0; idx < submissions.length; idx++) {
-            if (String(submissions[idx].SubmitId) === String(this.props.submitId)) {
+            if (submissions[idx].SubmitId === this.props.submitId) {
                 if (!left) {
                     let nextIdx = idx + 1;
                     return nextIdx < submissions.length;

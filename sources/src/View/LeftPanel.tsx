@@ -111,7 +111,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                 TunnelName.reload({ Channels: completeChannelsDbData }, '-1');
                 channels.set(-1, completeChannelsDbData);
                 for (const submission of info.Submissions) {
-                    const submitId = Number(submission.SubmitId);
+                    const submitId = submission.SubmitId;
 
                     const data = await ApiService.getChannelsData(compId, submitId)
                     let dataObj = JSON.parse(data) as MoleData;
@@ -137,7 +137,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                 }
                 try {
                     for (const submission of info.Submissions) {
-                        const submitId = Number(submission.SubmitId);
+                        const submitId = submission.SubmitId;
 
                         const data = await ApiService.getChannelsData(compId, submitId)
                         let dataObj = JSON.parse(data) as MoleData;
