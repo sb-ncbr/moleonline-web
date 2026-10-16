@@ -85,13 +85,6 @@ export interface PoresConfig {
     ProbeRadius: number | null
 };
 
-export interface VersionResponse {
-    PoresVersion: string,
-    MoleVersion: string,
-    APIVersion: string,
-    Build: string
-};
-
 // CSA residues come without an operator: they refer to the chain in any copy of it
 export interface CSAResidue { Name: string, Chain: string, SequenceNumber: number };
 export type CSAResidues = CSAResidue[][];
@@ -280,20 +273,6 @@ export class ApiService {
             if (this.DEBUG_MODE)
                 console.timeEnd("getCofactors");
             return rv;
-        });
-    }
-
-    public static getVersions(): Promise<VersionResponse> {
-        let url = `${this.baseUrl}/Version`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
-        if (this.DEBUG_MODE)
-            console.time("getVersions");
-        return getJson(url).then((s: VersionResponse) => {
-            if (this.DEBUG_MODE)
-                console.timeEnd("getVersions");
-            return s;
         });
     }
 }

@@ -4,7 +4,6 @@
 import ReactDOM from 'react-dom/client';
 import { GlobalRouter } from "../SimpleRouter";
 import { AlertMessages } from '../Common/UI/AlertMessages/UI';
-import { VersionStrip } from './VersionStrip/UI';
 import { InitForm } from './InitForm/UI';
 import { Routing } from '../../config/common';
 import { Examples } from './HomePage/Examples';
@@ -18,10 +17,6 @@ import { Examples } from './HomePage/Examples';
     const initFormElement = document.getElementById("init-form");
     if (initFormElement !== null) {
         ReactDOM.createRoot(initFormElement).render(<InitForm />);
-    }
-    const versionElement = document.getElementById("version-block");
-    if (versionElement !== null) {
-        ReactDOM.createRoot(versionElement).render(<VersionStrip />);
     }
     const examples = document.getElementById("examples");
     if (examples !== null) {
