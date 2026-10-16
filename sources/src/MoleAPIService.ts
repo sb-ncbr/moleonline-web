@@ -1,6 +1,6 @@
 import { CommonOptions, DataSources } from "../config/common";
 import { MembranePoint } from "./DataInterface";
-import { Fetching } from "./FetchingIf";
+import { getJson, postForm, postJson } from "./Http";
 
 
 export type ComputationStatus =
@@ -103,56 +103,6 @@ export class ApiService {
 
     private static baseUrl = DataSources.API_URL[DataSources.MODE];
 
-    private static sendPOST(url: string, formData: FormData): Promise<any> {
-        let fetching = Fetching.get();
-        return this.handleResponse(fetching.fetch(url, {
-            method: "POST",
-            body: formData,
-        }), url);
-    }
-    private static sendPOSTjson(url: string, formData: Object): Promise<any> {
-        let fetching = Fetching.get();
-        const headers = new Headers();
-        headers.append("Accept", "application/json");
-        headers.append("Content-Type", "application/json");
-        return this.handleResponse(fetching.fetch(url, {
-            method: "POST",
-            headers,
-            body: JSON.stringify(formData),
-
-        }), url);
-    }
-    private static sendGET(url: string): Promise<any> {
-        let fetching = Fetching.get();
-        if (CommonOptions.DEBUG_MODE)
-            console.time(`sendGET '${url}'`);
-        return this.handleResponse(fetching.fetch(url, {
-            method: "GET"
-        }), url).then((val) => {
-            if (CommonOptions.DEBUG_MODE)
-                console.timeEnd(`sendGET '${url}'`);
-            return val;
-        });
-    }
-    private static handleResponse(response: Promise<Response>, url: string) {
-        return new Promise<any>((res, rej) => {
-            response.then((rawResponse) => {
-                if (!rawResponse.ok) {
-                    if (this.DEBUG_MODE) {
-                        console.log(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
-                    }
-                    rej(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
-                }
-                else {
-                    res(rawResponse.json());
-                }
-            })
-                .catch(err => {
-                    rej(err);
-                });
-        });
-    }
-
     private static prepareInitUrl(pdbid: string, usePores: boolean, assemblyId?: string) {
         const pores = usePores ? 'Pores/' : '';
         const optional = assemblyId ? `?assemblyId=${assemblyId}` : '';
@@ -164,14 +114,14 @@ export class ApiService {
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return this.sendGET(url);
+        return getJson(url);
     }
     public static initWithFile(formData: FormData): Promise<InitResponse> {
         let url = this.prepareInitUrl("", false);
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return this.sendPOST(url, formData);
+        return postForm(url, formData);
     }
 
     public static getStatus(computationId: string, submitId?: number): Promise<InitResponse> {
@@ -183,7 +133,7 @@ export class ApiService {
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return this.sendGET(url);
+        return getJson(url);
     }
 
     public static getComputationInfoList(computationId: string): Promise<CompInfo> {
@@ -192,7 +142,7 @@ export class ApiService {
             console.log(url);
         }
 
-        return this.sendGET(url).then((val) => {
+        return getJson(url).then((val) => {
             if (val.Status === "Error") {
                 return null;
             }
@@ -202,24 +152,12 @@ export class ApiService {
         })
     }
 
-    private static handleJsonToStringResponse(response: Promise<any>) {
-        return new Promise<string>((res, rej) => {
-            response.then(value => {
-                let data = value as Object;
-                res(JSON.stringify(data));
-            })
-                .catch(error => {
-                    rej(error);
-                })
-        });
-    }
-
     public static submitMoleJob(computationId: string, data: MoleConfig) {
         let url = `${this.baseUrl}/Submit/Mole/${computationId}`;
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return this.sendPOSTjson(url, data);
+        return postJson(url, data);
     }
 
     public static submitPoresJob(computationId: string, data: PoresConfig) {
@@ -236,7 +174,7 @@ export class ApiService {
             ProbeRadius: (data.ProbeRadius === void 0 || data.ProbeRadius === null) ? null : data.ProbeRadius
         }
 
-        return this.sendPOSTjson(url, jsonRequestData);
+        return postJson(url, jsonRequestData);
     }
 
     public static getFilenameFromResponseHeader(r: Response) {
@@ -262,7 +200,7 @@ export class ApiService {
         }
         if (this.DEBUG_MODE)
             console.time("getChannelsData");
-        return this.handleJsonToStringResponse(this.sendGET(url)).then((s) => {
+        return getJson(url).then((v) => JSON.stringify(v)).then((s) => {
             if (this.DEBUG_MODE)
                 console.timeEnd("getChannelsData");
             return s;
@@ -276,7 +214,7 @@ export class ApiService {
         }
         if (this.DEBUG_MODE)
             console.time("getMembraneData");
-        return this.sendGET(url).then((s) => {
+        return getJson(url).then((s) => {
             if (this.DEBUG_MODE)
                 console.timeEnd("getMembraneData");
             return s as MembranePoints;
@@ -288,7 +226,7 @@ export class ApiService {
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return this.sendGET(url);
+        return getJson(url);
     }
 
     public static deleteProject(computationId: string) {
@@ -296,7 +234,7 @@ export class ApiService {
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return this.sendGET(url);
+        return getJson(url);
     }
 
     public static getCSAResidues(computationId: string): Promise<CSAResidues> {
@@ -304,7 +242,7 @@ export class ApiService {
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return this.sendGET(url);
+        return getJson(url);
     }
 
     public static getCofactors(): Promise<Cofactors> {
@@ -314,7 +252,7 @@ export class ApiService {
         }
         if (this.DEBUG_MODE)
             console.time("getCofactors");
-        return this.sendGET(url).then((s) => {
+        return getJson(url).then((s) => {
             let rv = new Map<ResidueName, PatternQueryExpression>();
             for (let key in s) {
                 if (!s.hasOwnProperty(key)) {
@@ -335,7 +273,7 @@ export class ApiService {
         }
         if (this.DEBUG_MODE)
             console.time("getVersions");
-        return this.sendGET(url).then((s: VersionResponse) => {
+        return getJson(url).then((s: VersionResponse) => {
             if (this.DEBUG_MODE)
                 console.timeEnd("getVersions");
             return s;

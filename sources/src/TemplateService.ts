@@ -1,5 +1,5 @@
 import { CommonOptions } from "../config/common";
-import { Fetching } from "./FetchingIf";
+import { getText } from "./Http";
 
 export interface PDFTemplate {
     css: string,
@@ -12,38 +12,6 @@ export class Service {
     private static DEBUG_MODE = CommonOptions.DEBUG_MODE;
 
     private static baseUrl = "/html/templates";
-
-
-    private static sendGET(url: string): Promise<any> {
-        let fetching = Fetching.get();
-        if (this.DEBUG_MODE)
-            console.time(`sendGET '${url}'`);
-        return this.handleResponse(fetching.fetch(url, {
-            method: "GET"
-        }), url).then((val) => {
-            if (this.DEBUG_MODE)
-                console.timeEnd(`sendGET '${url}'`);
-            return val;
-        });
-    }
-    private static handleResponse(response: Promise<Response>, url: string) {
-        return new Promise<any>((res, rej) => {
-            response.then((rawResponse) => {
-                if (!rawResponse.ok) {
-                    if (this.DEBUG_MODE) {
-                        console.log(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
-                    }
-                    rej(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
-                }
-                else {
-                    res(rawResponse.text());
-                }
-            })
-                .catch(err => {
-                    rej(err);
-                });
-        });
-    }
 
     public static getPDFReportTemplateData(): Promise<PDFTemplate> {
 
@@ -65,13 +33,13 @@ export class Service {
         let css: string | null = null;
         return new Promise<PDFTemplate>((res, rej) => {
             Promise.all([
-                this.sendGET(urlHTML).then(htmlTemplate => {
+                getText(urlHTML).then(htmlTemplate => {
                     html = htmlTemplate;
                 }),
-                this.sendGET(urlParamsPageHTML).then(htmlTemplate => {
+                getText(urlParamsPageHTML).then(htmlTemplate => {
                     paramsPageHtml = htmlTemplate;
                 }),
-                this.sendGET(urlCSS).then(cssTemplate => {
+                getText(urlCSS).then(cssTemplate => {
                     css = cssTemplate;
                 }),
             ])

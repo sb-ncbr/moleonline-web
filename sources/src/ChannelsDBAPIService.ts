@@ -1,5 +1,5 @@
 import { AnnotationObject, Annotations, ChannelsDBChannels, ChannelsDBData, Tunnel } from "./DataInterface";
-import { Fetching } from "./FetchingIf";
+import { getJson } from "./Http";
 import { CommonOptions, DataSources } from "../config/common";
 import { customAlphabet } from 'nanoid';
 
@@ -44,37 +44,6 @@ export class ApiService {
     private static DEBUG_MODE = CommonOptions.DEBUG_MODE;
 
     private static baseUrl = DataSources.ANNOTATION_API_URL[DataSources.ANNOTATION_API_MODE];
-
-    private static sendGET(url: string): Promise<any> {
-        let fetching = Fetching.get();
-        if (CommonOptions.DEBUG_MODE)
-            console.time(`sendGET '${url}'`);
-        return this.handleResponse(fetching.fetch(url, {
-            method: "GET"
-        }), url).then((val) => {
-            if (CommonOptions.DEBUG_MODE)
-                console.timeEnd(`sendGET '${url}'`);
-            return val;
-        });
-    }
-    private static handleResponse(response: Promise<Response>, url: string) {
-        return new Promise<any>((res, rej) => {
-            response.then((rawResponse) => {
-                if (!rawResponse.ok) {
-                    if (this.DEBUG_MODE) {
-                        console.log(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
-                    }
-                    rej(`GET: ${url} ${rawResponse.status}: ${rawResponse.statusText}`);
-                }
-                else {
-                    res(rawResponse.json());
-                }
-            })
-                .catch(err => {
-                    rej(err);
-                });
-        });
-    }
 
     private static parseChannelsAnnotations(data: AnnotationObject[]) {
         let map = new Map<string, ChannelAnnotation[]>();
@@ -273,7 +242,7 @@ export class ApiService {
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return this.sendGET(url).then(async val => {
+        return getJson(url).then(async val => {
             return this.handleChannelsAPIData(val);
         });
     }
@@ -283,7 +252,7 @@ export class ApiService {
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return this.sendGET(url).then(val => {
+        return getJson(url).then(val => {
             return this.handleAnnotationsAPIData(val);
         });
     }
