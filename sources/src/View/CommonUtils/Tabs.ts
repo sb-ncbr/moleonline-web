@@ -11,7 +11,6 @@ export function getTabLinkById(tabbedElementId: string, tabId: string) {
 
 export function isActive(tabbedElementId: string, tabId: string) {
     return getTabLinkById(tabbedElementId, tabId).attr("class").indexOf("active") >= 0;
-    // return getTabLinkById(tabbedElementId, tabId).parent().attr("class").indexOf("active") >= 0;
 }
 
 export function activateTab(tabbedElementId: string, tabId: string) {

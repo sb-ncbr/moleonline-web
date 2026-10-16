@@ -59,8 +59,6 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
     private addCurrentLMScreen(template: string) {
         let context = Context.getInstance();
         let molstarCanvas = context.plugin.canvas3dContext && context.plugin.canvas3dContext.canvas ? context.plugin.canvas3dContext.canvas : ({} as HTMLCanvasElement)
-        // let litemolCanvas = (plugin.context.scene.scene.parentElement.children[0] as HTMLCanvasElement);
-        // let litemolCanvas = ({} as HTMLCanvasElement);
         let molstar_screenshot = molstarCanvas.toDataURL('image/png');
         template = template.replace("[[3D-SCREEN-SRC]]", molstar_screenshot);
         return template.replace("[[report-3D-view-visible]]", "visible");
@@ -602,7 +600,6 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
                                         document.body.removeChild(reportWrapper);
                                     }
                                     $(document.body.children).removeClass("no-print");
-                                    //$(".pdf-report-generator").removeClass("in-progress");
                                     let state = this.state;
                                     state.progress = 0;
                                     state.inProgress = false;

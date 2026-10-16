@@ -296,7 +296,6 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
 
             const tunnelElements = inlineSvg.querySelectorAll('.tunnel');
             tunnelElements.forEach(element => {
-                // element.setAttribute('style', 'fill: black; stroke: black');
                 element.setAttribute("display", "none");
             });
 

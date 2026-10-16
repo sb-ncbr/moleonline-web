@@ -332,7 +332,6 @@ export class Selection extends React.Component<State, { label?: string | JSX.Ele
     componentWillUnmount() {
         if (this.observerChannels) {
             this.observerChannels.unsubscribe();
-            // this.observerChannels.dispose();
             this.observerChannels = void 0;
         }
     }
@@ -385,7 +384,6 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, e
     }
 
     private highlight(isOn: boolean) {
-        // this.props.plugin.command(Bootstrap.Command.Entity.Highlight, { entities: this.props.plugin.context.select(this.props.element.__id), isOn }); //TODO
     }
 
     private toggleAnnotations(e: any) {
@@ -479,7 +477,6 @@ export class Origins extends React.Component<{ label: string | JSX.Element, orig
     }
 
     private highlight(isOn: boolean) {
-        // this.props.plugin.command(Bootstrap.Command.Entity.Highlight, { entities: this.props.plugin.context.select(this.props.origins.__id), isOn }); //TODO
     }
 
     render() {
@@ -526,7 +523,6 @@ export class Membrane extends React.Component<{ label: string | JSX.Element, mem
     }
 
     private highlight(isOn: boolean) {
-        // this.props.plugin.command(Bootstrap.Command.Entity.Highlight, { entities: this.props.plugin.context.select(this.props.membraneData.__id), isOn });
     }
 
     render() {

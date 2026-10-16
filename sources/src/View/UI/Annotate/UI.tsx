@@ -1,4 +1,3 @@
-// import Bundle = MoleOnlineWebUI.StaticData.Bundle;
 
 import React from "react";
 import { Events as BridgeEvents } from "../../../Bridge"
@@ -44,9 +43,6 @@ export class Annotate extends React.Component<{}, AppState> {
     componentDidMount() {
         this.changeParams();
 
-        // BridgeEvents.subscribeChangeSubmitId((submitId) => {
-        //     this.changeParams(submitId);
-        // });
     }
 
     componentWillUnmount() {

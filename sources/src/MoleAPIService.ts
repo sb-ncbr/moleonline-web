@@ -313,7 +313,6 @@ export class ApiService {
 
     public static getCofactors(): Promise<Cofactors> {
         let url = `${this.baseUrl}/inputs/cofactors.json`;
-        //let url = `/online/cofactors.json`;
         if (this.DEBUG_MODE) {
             console.log(url);
         }

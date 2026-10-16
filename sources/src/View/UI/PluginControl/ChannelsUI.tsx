@@ -171,9 +171,6 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
         })
 
         Events.subscribeChangeSubmitId(this.handleTunnelsCollect.bind(this));
-        // showDefaultVisuals(this.props.submissions).then(() => this.forceUpdate());
-
-        // Tunnels.attachOnTunnelsCollect(this.handleTunnelsCollect);
 
         this.setState({ submissions: this.props.submissions })
         $(window).on("contentResize", this.forceUpdate());
@@ -321,7 +318,6 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
     }
 
     private highlight(isOn: boolean) {
-        // this.props.plugin.command(Bootstrap.Command.Entity.Highlight, { entities: this.props.plugin.context.select(this.props.element.__id), isOn }); //TODO
         const context = Context.getInstance();
         if (isOn && this.props.element.__isVisible)
             context.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci: this.props.element.__loci } as Representation.Loci)

@@ -5,7 +5,6 @@ export class Routing {
         "prod": { defaultContextPath: "/online" },
     };
 
-    // public static ROUTING_MODE = "unknown";
     public static ROUTING_MODE = "local";
 }
 
@@ -31,10 +30,3 @@ export class CommonOptions {
     public static DEBUG_MODE = false;
     public static CHANNELSDB_LINK_DETAIL_URL = "https://channelsdb2.biodata.ceitec.cz/detail/pdb";
 }
-/*
-export let ROUTING_OPTIONS:any = {
-    "local":{defaultContextPath: "/online", defaultCompId:"compid", defaultSubmitId:"1", useParameterAsPid:true},
-    "test":{defaultContextPath: "/online/<?pid>", defaultPid:"5an8", useLastPathPartAsPid:true},
-    "prod":{defaultContextPath: "/online", defaultPid:"5an8", useLastPathPartAsPid:true},
-};
-*/

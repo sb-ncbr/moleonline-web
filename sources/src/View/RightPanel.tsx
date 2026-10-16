@@ -11,7 +11,6 @@ import { LayerProperties } from "./UI/LayerProperties/UI";
 import { LayerResidues } from "./UI/LayerResidues/UI";
 import { LiningResidues } from "./UI/LiningResidues/UI";
 import { ChannelParameters } from "./UI/ChannelParameters/UI";
-// import { doAfterCollapseActivated } from "./CommonUtils/Tabs";
 import { TwoDProts } from "./UI/2DProts/UI";
 
 declare function $(p: any): any;

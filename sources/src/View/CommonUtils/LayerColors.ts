@@ -235,7 +235,6 @@ export class LayerColors {
                     LayerColors.invokeLayerIndexOverObject(ids[0], (current.repr.params.tunnel as unknown as Tunnel).Id);
                 }
             } else {
-                // LayerColors.invokeLayerIndexOver(-1);
             }
         })
 
@@ -256,7 +255,6 @@ export class LayerColors {
                         }
                     }
                 } else {
-                    // LayerColors.invokeLayerIndexOver(-1);
                 }
             }
         })

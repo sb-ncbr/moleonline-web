@@ -100,7 +100,6 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
                 state.currentTunnelRef = SelectionHelper.getSelectedChannelRef();
                 state.isLayerSelected = false;
                 this.setState(state);
-                //$('#left-tabs').tabs("option", "active", 0);
                 activateTab("left-tabs", "1");
                 let layers = convertLayersToLayerData(data);
                 doAfterTabActivated("left-tabs", "1", () => {
@@ -153,7 +152,6 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
         SelectionHelper.attachOnChannelSelectHandler2((channel) => {
             window.setTimeout(() => {
                 let state = this.state;
-                // this.setState(state);
                 doAfterTabActivated("left-tabs", "1", () => {
                     let s1 = this.state;
                     s1.channel = channel;
@@ -533,7 +531,6 @@ class PropertyColorTunnel extends React.Component<{ state: State }, { property: 
                     }).catch(() => {this.setState({ isProcessing: false }); this.forceUpdate()});
                 })
             } else {
-                // this.forceUpdate(() => {
                 showChannelVisuals([channel], true, true).then(() => {
                     this.state.context.plugin.managers.interactivity.lociSelects.selectOnly({ loci: channel.__loci });
                     this.setState({ isProcessing: false }); 
@@ -1176,8 +1173,6 @@ class InteractionMap extends React.Component<State, InteractionMapState> {
                     data-instanceidx={String(this.props.instanceId)}
                     onMouseOver={this.displayDetailsEventHandler.bind(this)}
                     onMouseDown={this.handleMouseDown.bind(this)}
-                // onMouseMove={this.handleMouseMove.bind(this)}
-                // onMouseUp={this.handleMouseUp.bind(this)}
                 />);
             }
         }
@@ -1185,10 +1180,6 @@ class InteractionMap extends React.Component<State, InteractionMapState> {
         return (
             <map name={`layersInteractiveMap${this.props.instanceId}`}
                 id={`layer-vizualizer-hitbox-map${this.props.instanceId}`}
-            // onTouchStart={this.handleTouchStart.bind(this)}
-            // onTouchMove={this.handleTouchMove.bind(this)}
-            // onTouchEnd={this.handleTouchEnd.bind(this)}
-            // onMouseOut={this.handleMouseOut.bind(this)}
             >
                 {areas}
             </map>

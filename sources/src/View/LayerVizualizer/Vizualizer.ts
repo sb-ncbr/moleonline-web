@@ -1210,9 +1210,6 @@ export class Vizualizer {
         let canvasHeight = this.getCanvas().height;
         let context = this.getContext();
 
-        //console.log(canvasWidth);
-        //console.log(canvasHeight);
-
         let toRender = [];
 
         //Data was not prepared yet
@@ -1283,24 +1280,12 @@ export class Vizualizer {
         //Prepare color mixer objects
 
         //Color mixer for default tunnel
-        /* //Vertical
-        toRender.push({
-            drawable: new ColorMixer(dTminVal,dTmaxVal,context,this.getColor,defaultTunnelData.colorFunctionSettings),
-            bounds: positioning.defaultColorMixer.toBounds(canvasWidth,canvasHeight)   
-        });
-        */
         //Horizontal
         toRender.push({
             drawable: new ColorMixer(dTminVal, dTmaxVal, context, this.getColor, defaultTunnelData.colorFunctionSettings, true),
             bounds: positioning.defaultColorMixerHorizontal.toBounds(canvasWidth, canvasHeight)
         });
         //Color mixer for customizable tunnel
-        /* //Vertical
-        toRender.push({
-            drawable: new ColorMixer(cTminVal,cTmaxVal,context,this.getColor,customizableTunnelData.colorFunctionSettings),
-            bounds: positioning.customizableColorMixer.toBounds(canvasWidth,canvasHeight)   
-        });
-        */
         //Horizontal
         toRender.push({
             drawable: new ColorMixer(cTminVal, cTmaxVal, context, this.getColor, customizableTunnelData.colorFunctionSettings, true),
@@ -1345,18 +1330,6 @@ export class Vizualizer {
             drawable: new TextBox(`${this.getMaxY(this.customMaxY)} Å`, context, "medium", "right"),
             bounds: positioning.vAxis2BottomLabel.toBounds(canvasWidth, canvasHeight)
         });
-        /*
-        // Label on top right side of color mixer for default tunnel
-        toRender.push({
-            drawable: new TextBox(`${dTmaxVal}`,context,"medium","left"),
-            bounds: positioning.dColorMixerTopLabel.toBounds(canvasWidth,canvasHeight)   
-        });
-        // Label on bottom right side of color mixer for default tunnel
-        toRender.push({
-            drawable: new TextBox(`${dTminVal}`,context,"medium","left"),
-            bounds: positioning.dColorMixerBottomLabel.toBounds(canvasWidth,canvasHeight)   
-        });
-        */
         // Label on top left side of color mixer for default tunnel
         toRender.push({
             drawable: new TextBox(`${roundToDecimal(dTminVal, 2)}`, context, "small", "left"),
@@ -1367,18 +1340,6 @@ export class Vizualizer {
             drawable: new TextBox(`${roundToDecimal(dTmaxVal, 2)}`, context, "small", "right"),
             bounds: positioning.dColorMixerRightLabel.toBounds(canvasWidth, canvasHeight)
         });
-        /*
-        // Label on top right side of color mixer for customizable tunnel
-        toRender.push({
-            drawable: new TextBox(`${cTmaxVal}`,context,"medium","left"),
-            bounds: positioning.cColorMixerTopLabel.toBounds(canvasWidth,canvasHeight)   
-        });
-        // Label on bottom right side of color mixer for customizable tunnel
-        toRender.push({
-            drawable: new TextBox(`${cTminVal}`,context,"medium","left"),
-            bounds: positioning.cColorMixerBottomLabel.toBounds(canvasWidth,canvasHeight)   
-        });
-        */
         // Label on bottom left side of color mixer for customizable tunnel
         toRender.push({
             drawable: new TextBox(`${roundToDecimal(cTminVal, 2)}`, context, "small", "left"),
@@ -1546,24 +1507,9 @@ export class Vizualizer {
         ctx.getSerializedSvg();
 
         let svg = ctx.getSvg();
-        // svg.charset = "UTF-8";
 
         return svg;
     }
-
-    // Try this if above function will not work or fail
-    // private getSVGData(): string {
-    //     let ctx = this.getContext() as CanvasRenderingContext2D & { getSvg: () => XMLDocument, getSerializedSvg: () => string };
-    //     let svgData = ctx.getSerializedSvg();
-    
-    //     let parser = new DOMParser();
-    //     let svgDocument = parser.parseFromString(svgData, "image/svg+xml");
-    
-    //     let serializer = new XMLSerializer();
-    //     let svgString = '<?xml version="1.0" encoding="UTF-8"?>\n' + serializer.serializeToString(svgDocument);
-    
-    //     return svgString;
-    // }
 
     public exportSVGImage(): string {
         if (!this.isDOMBound || this.isDataDirty()) {

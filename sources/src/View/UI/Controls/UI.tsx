@@ -98,10 +98,7 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
 
         data.setIgnoreHETATMs(true);
         data.setIgnoreHydrogens(false);
-        //data.setQueryFilter("");
         data.setReadAllModels(false);
-        //data.setIgnoredResidues([]);
-        //data.setSpecificChains("");
         data.setProbeRadius(5);
         data.setInteriorThreshold(1.1);
         data.setOriginRadius(5);
@@ -121,7 +118,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
 
         data.setBetaStructure(false);
         data.setMembraneRegion(false);
-        //data.setSpecificChains("");
         data.setProbeRadius(13);
         data.setInteriorThreshold(0.8);
 
@@ -262,7 +258,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
         let form = <div />;
 
         if (this.state.mode === "Channels") {
-            // form = this.getMoleForm();
             form = this.getMoleFormNew();
         }
         else if (this.state.mode === "Pores") {
@@ -1190,11 +1185,9 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
         }
         if (this.state.canSubmit) {
             $('#controls .submit-parent').find("input[type=submit]").removeAttr("disabled");
-            // $('#controls .submit-parent').find("#controls-submit").removeAttr("disabled");
         }
         else {
             $('#controls .submit-parent').find("input[type=submit]").attr("disabled", true);
-            // $('#controls .submit-parent').find("#controls-submit").attr("disabled", true);
         }
         return (
             <div className="submit-form-container">
@@ -1400,7 +1393,6 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
         }
         try {
             const jsonData = JSON.parse(reader.result as string);
-            // const data = parseToMoleConfigOrPoresConfig(jsonData);
             const check = isMoleConfigOrPoresConfig(jsonData);
             if (check === null) {
                 throw Error("The file is not in the required format")

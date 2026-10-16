@@ -1,4 +1,3 @@
-// import Service = MoleOnlineWebUI.Service.MoleAPI;
 
 import { MoleConfig, MoleConfigCavity, MoleConfigInput, MoleConfigOrigin, MoleConfigPoint, MoleConfigResidue, MoleConfigTunnel, PoresConfig } from "../../../MoleAPIService";
 import { Point, Residue, StartingPoint, StartingPointQuery, StartingPointResidue, StartingPointXYZ } from "../Common/Controls/FromLiteMol";

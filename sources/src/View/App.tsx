@@ -43,8 +43,6 @@ import { LeftPanel } from "./LeftPanel";
 
     SelectionHelper.attachSelectionHelperHandlerToEventHandler();
     LayerColors.attachLayerColorsHandlerToEventHandler(molstar_plugin);
-    //helper function
-    // SelectionHelper.attachClearSelectionToEventHandler(molstar_plugin);
     
     createRoot(document.getElementById("left-panel")!).render(<LeftPanel context={molstar_plugin}/>);
     createRoot(document.getElementById("right-panel")!).render(<RightPanel context={molstar_plugin}/>);

@@ -1,5 +1,3 @@
-// import ApiService = MoleOnlineWebUI.Service.MoleAPI.ApiService;
-// import MoleAPI = MoleOnlineWebUI.Service.MoleAPI;
 
 import React from "react";
 import { ApiService } from "../../MoleAPIService";

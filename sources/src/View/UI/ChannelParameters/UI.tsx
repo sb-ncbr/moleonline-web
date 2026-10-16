@@ -1,4 +1,3 @@
-// import DGComponents = Datagrid.Components;
 
 import React from "react";
 import { ChannelsDBChannels, Tunnel } from "../../../DataInterface";

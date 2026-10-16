@@ -9,11 +9,6 @@ import { InitForm } from './InitForm/UI';
 import { Routing } from '../../config/common';
 import { Examples } from './HomePage/Examples';
 
-// all commands and events can be found in Bootstrap/Event folder.
-// easy to follow the types and parameters in VSCode.
-
-// you can subsribe to any command or event using <Event/Command>.getStream(plugin.context).subscribe(e => ....)
-
 (function () {
     GlobalRouter.init(Routing.ROUTING_OPTIONS[Routing.ROUTING_MODE]);
     const alertMessagesElement = document.getElementById("alert-messages");

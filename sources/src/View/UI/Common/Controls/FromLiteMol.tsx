@@ -264,7 +264,6 @@ export class ControlGroup extends React.Component<ControlGroupProps, ControlGrou
     private onPanelExpand(e: boolean, supressOnChangeInvoke?: boolean) {
         let s = this.state;
         s.expanded = e;
-        // s.panel = this.createPanel(e);
         this.setState(s);
 
         if (!supressOnChangeInvoke && this.props.onChange !== void 0) {
@@ -273,7 +272,6 @@ export class ControlGroup extends React.Component<ControlGroupProps, ControlGrou
     }
 
     render() {
-        // return this.state.panel.render();
         return <div></div>
     }
 }
@@ -491,8 +489,6 @@ interface StartingPointResultsBoxState {
     //items:StartingPoint[],
 }
 export class StartingPointResultsBox extends React.Component<StartingPointResultsBoxProps, StartingPointResultsBoxState> {
-
-    //state:StartingPointResultsBoxState = {items:this.props.items}
 
     private generateUIItem(p: StartingPoint) {
         let content = "";

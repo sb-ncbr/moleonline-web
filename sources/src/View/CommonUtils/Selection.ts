@@ -17,7 +17,6 @@ import { PluginStateObject } from "molstar/lib/mol-plugin-state/objects";
 import { MarkerAction } from "molstar/lib/mol-util/marker-action";
 import { CommonOptions } from "../../../config/common";
 
-// import Transformer = LiteMol.Bootstrap.Entity.Transformer;
 //TODO Molstar
 
 export interface LightResidueInfo {
@@ -85,7 +84,6 @@ export class SelectionHelper {
     private static onChannelSelectHandlers: { handler: (data: Layers, channelId?: string, submissionId?: string) => void }[];
     private static onChannelSelectHandlers2: { handler: (channel: Tunnel & TunnelMetaInfo) => void }[];
     private static onChannelDeselectHandlers: { handler: () => void }[];
-    // private static onChannelChanged
 
     public static attachOnResidueSelectHandler(handler: (residues: LightResidueInfo[]) => void) {
         if (this.onResidueBulkSelectHandlers === void 0) {
@@ -229,13 +227,11 @@ export class SelectionHelper {
         await this.clearSelectionPrivate();
         Context.getInstance().visual.clearSelection();
         this.invokeOnClearSelectionHandlers();
-        //this.resetScene(plugin);
     }
 
     private static async clearSelectionPrivate() {
         await this.clearSelectedTPoint();
         await this.clearSelectedPoints();
-        // LiteMol.Bootstrap.Command.Tree.RemoveNode.dispatch(plugin.context, this.SELECTION_VISUAL_REF);
         if (this.selectedChannelRef !== void 0) {
             this.deselectTunnelByRef();
             this.selectedChannelRef = void 0;
@@ -243,7 +239,6 @@ export class SelectionHelper {
             this.selectedChannel = void 0;
             this.selectedChannelId = void 0;
         }
-        // LiteMol.Bootstrap.Event.Visual.VisualSelectElement.dispatch(plugin.context, LiteMol.Bootstrap.Interactivity.Info.empty);
         this.clearAltSelection();
 
         this.selectedResidues = void 0;
@@ -252,24 +247,13 @@ export class SelectionHelper {
     }
 
     public static clearAltSelection() {
-        // LiteMol.Bootstrap.Command.Tree.RemoveNode.dispatch(plugin.context, this.SELECTION_ALT_VISUAL_REF);
     }
 
 
     public static resetScene() {
         //TODO reset scene
-        // LiteMol.Bootstrap.Command.Visual.ResetScene.dispatch(plugin.context, void 0);
     }
 
-
-    // private static chainEquals(c1: LiteMol.Bootstrap.Interactivity.Molecule.ChainInfo, c2: LiteMol.Bootstrap.Interactivity.Molecule.ChainInfo) {
-    //     if ((c1.asymId !== c2.asymId)
-    //         || (c1.authAsymId !== c2.authAsymId)
-    //         || (c1.index !== c2.index)) {
-    //         return false;
-    //     }
-    //     return true;
-    // }
 
     private static residueEquals(r1: ResidueInfo | undefined, r2: ResidueInfo | undefined) {
         if (r1 === void 0 && r2 === void 0) {
@@ -281,7 +265,6 @@ export class SelectionHelper {
 
         if ((r1.authName !== r2.authName)
             || (r1.authSeqNumber !== r2.authSeqNumber)
-            // || (!this.chainEquals(r1.chain, r2.chain))
             || (r1.index !== r2.index)
             || (r1.insCode !== r2.insCode)
             || (r1.isHet !== r2.isHet)
@@ -334,7 +317,6 @@ export class SelectionHelper {
         this.selectedChannelId = void 0;
         this.selectedResidues = void 0;
         await this.clearSelectedPoints();
-        //this.resetScene(plugin);           
 
         if (this.selectedResidues !== void 0) {
             if (this.residueBulkEquals(residues, this.selectedResidues)) {
@@ -374,7 +356,6 @@ export class SelectionHelper {
 
         if (queries.length > 0) await Context.getInstance().visual.select({ data: queries })
         if (locis.length > 0) Context.getInstance().selectLocis(locis);
-        // await Context.getInstance().visual.select({ data: hetQueries, isHet: true })
 
         // for (let residue of residues) {
         //     queries.push(
@@ -385,23 +366,6 @@ export class SelectionHelper {
         //         ).compile()
         //     );
         // }
-
-        // let query = LiteMol.Core.Structure.Query.or(...queries);
-
-        // let t = plugin.createTransform();
-        // const visualStyle = LiteMol.Bootstrap.Visualization.Molecule.Default.ForType.get('BallsAndSticks');
-        // if (visualStyle !== void 0) {
-        //     visualStyle.taskType = "Silent";
-        // }
-        //TODO
-        // t.add('polymer-visual', Transformer.Molecule.CreateSelectionFromQuery, { query, name: 'Residues', silent: true }, { ref: SelectionHelper.getSelectionVisualRef(), isHidden: true })
-        //     .then(Transformer.Molecule.CreateVisual, { style: visualStyle }, { isHidden: true });
-
-        // plugin.applyTransform(t);
-
-        /*.then(()=>{
-            //LiteMol.Bootstrap.Command.Entity.Focus.dispatch(plugin.context, plugin.context.select(CommonUtils.Selection.SelectionHelper.getSelectionVisualRef()));
-        }); */
 
         if (residues.length > 0) {
             this.selectedResidues = residues;
@@ -656,7 +620,6 @@ export class SelectionHelper {
         context.visual.setColor({ select: { r: 255, g: 0, b: 255 } });
         if (this.selectedChannelReprLoci) 
             context.plugin.canvas3d?.mark(this.selectedChannelReprLoci, MarkerAction.Select);
-        // context.visual.reset({ selectColor: true });
     } 
 
     public static highlightSelectedChannel() {
@@ -747,7 +710,6 @@ export class SelectionHelper {
             if (selected?.label) {
                 console.log(selected.label);
                 console.log(selected)
-                // this.invokeOnResidueSelectHandlers()
             }
         })
 
@@ -757,9 +719,6 @@ export class SelectionHelper {
     }
 
     public static attachSelectionHelperHandlerToEventHandler() {
-        // Events.subscribeChangeSubmitId(() => {
-        //     this.clearSelection();
-        // });
 
         this.attachOnResidueSelectHandler(async (residues) => {
             let ref = "residue-selection-T";
@@ -918,7 +877,6 @@ export class SelectionHelper {
 
             if (this.selectedResidues !== void 0) {
                 await this.clearSelectionPrivate();
-                // LiteMol.Bootstrap.Command.Tree.RemoveNode.dispatch(plugin.context, this.SELECTION_VISUAL_REF);
                 this.selectedResidues = void 0;
             }
         }

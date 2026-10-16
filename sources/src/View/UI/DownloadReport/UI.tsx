@@ -95,7 +95,6 @@ class DownloadResultsMenu extends React.Component<{}, DownloadResultsMenuState> 
         }
 
         let cifText = await response.text();
-        // cifText = removeLoopsFromMMCIF(cifText);
         cifText = cleanCifContent(cifText);
         const tunnelData = Tunnels.generateTunnelsDataJson();
         const tunnelDataStr = JSON.stringify(tunnelData);

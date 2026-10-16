@@ -170,13 +170,6 @@ export class CurlyBrackets extends ContextAwareObject {
         let bounds = { x, y, width, height };
 
         this.clear(bounds);
-        /*
-        let radius = bounds.width/2;
-        let linelength = bounds.height / 2;
-
-        let lx = bounds.x + radius;
-        let r = (this.isLeftToRight?(-1)*radius:radius);
-        */
         let border = (bounds.width / 100) * 10;
         let borderVertical = (bounds.height / 100) * 2;
         let radius = (bounds.width - (2 * border)) / 2;
@@ -551,7 +544,6 @@ export class Tunnel extends ContextAwareObject {
         );
         this.currentVisual = this.currentVisualPlain;
 
-        //this.highlightHitbox(0);
     }
 
     public renderHitboxes(): void {
@@ -652,7 +644,6 @@ export class Tunnel extends ContextAwareObject {
     } | null = null;
 
     private prepareLayerColors() {
-        // const intervals: Interval[] = []
         const colors: Color[] = [];
         const regex = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/;
         const length = this.layers[this.layers.length - 1].end;
@@ -676,7 +667,6 @@ export class Tunnel extends ContextAwareObject {
                 colors.push(Color(Enum.DefaultColor));
             }
         }
-        // LayerColors.invokeOnColorIntervalCreated(new ColorInterval(intervals));
         LayerColors.colorArray = colors;
     }
 
@@ -724,8 +714,6 @@ export class Tunnel extends ContextAwareObject {
             restOfBody: restOfBody.slice(),
             path: path.slice()
         }
-
-        // this.prepareLayerColors()
 
         return this.layersData;
     }

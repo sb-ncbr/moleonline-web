@@ -235,20 +235,6 @@ export async function showDefaultVisuals(currentSubmitId: number, submissionChan
     });
 }
 
-// function getNodeFromTree(root: Bootstrap.Entity.Any, ref: string): Bootstrap.Entity.Any | null {
-//     if (root.ref === ref) {
-//         return root;
-//     }
-//     for (let c of root.children) {
-//         let n = getNodeFromTree(c, ref);
-//         if (n !== null) {
-//             return n;
-//         }
-//     }
-
-//     return null;
-// }
-
 export async function removeChannelsData(channels?: boolean) {
     const plugin = Context.getInstance().plugin;
     const refs: string[] = [];
@@ -276,13 +262,6 @@ export async function removeMembraneData() {
     await PluginCommands.State.RemoveObject(plugin, { state: plugin.state.data, ref: 'membrane-data-raw' });
     await PluginCommands.State.RemoveObject(plugin, { state: plugin.state.data, ref: 'membrane-data' });
 }
-
-// function removeNodeFromTree(plugin: Plugin.Controller, nodeRef: string) {
-//     let obj = getNodeFromTree(plugin.root, nodeRef);
-//     if (obj !== null) {
-//         Tree.remove(obj);
-//     }
-// }
 
 interface Point { X: number, Y: number, Z: number };
 function residuesToPoints(residueOrigins: CSAResidues): string {
@@ -399,7 +378,6 @@ function generateGuidMole(moleData: MoleData) {
 }
 
 async function downloadMembraneData(computationId: string) {
-    // await removeMembraneData();
     return new Promise<any>((res, rej) => {
         ApiService.getMembraneData(computationId).then((data) => {
             const update = Context.getInstance().plugin.build();
@@ -420,7 +398,6 @@ async function downloadMembraneData(computationId: string) {
             res(null);
         });
     }).then(() => {
-        // Events.invokeOnMembraneDataReady();
     });
 }
 
@@ -440,7 +417,6 @@ export async function downloadChannelsData(computationId: string, submitId: numb
                     } else {
                         let data_ = s.data as MoleData;
                         data_ = generateGuidMole(data_);
-                        // TunnelName.reload(data_);
                         Tunnels.invokeOnTunnelsCollect(submitId);
                         // Events.invokeChannelDataLoaded(data_); //TODO check handlers that are attached to it
                         //TODO same with the same one here
@@ -537,7 +513,6 @@ export function loadData(channelsDB: boolean) {
     if (CommonOptions.DEBUG_MODE)
         console.profile("loadData");
 
-    // //plugin.clear();
     let modelLoadPromise = new Promise<any>((res, rej) => {
         let parameters = getParameters();
 
@@ -724,11 +699,6 @@ function createTriangleSurface(mesh: any) {
 
 function getSurfaceColorByType(type: string) {
     switch (type) {
-        /*
-        case 'Cavity': return ColorScheme.Colors.get(ColorScheme.Enum.Cavity);
-        case 'MolecularSurface': return ColorScheme.Colors.get(ColorScheme.Enum.Surface);
-        case 'Void': return ColorScheme.Colors.get(ColorScheme.Enum.Void);
-        */
         default: return Colors.get(Enum.DefaultColor);
     }
 }

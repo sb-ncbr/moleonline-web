@@ -279,20 +279,6 @@ export class Residues {
     }
 
     public static currentContextHasResidue(residueName: string): boolean {
-        // if (plugin.context.select('polymer-visual')[0].props !== void 0) {
-        //     let props = plugin.context.select('polymer-visual')[0].props as any;
-        //     if (props.model === void 0 || props.model.model === void 0) {
-        //         return false;
-        //     }
-        //     let model = props.model.model as Model;
-        //     let params = LiteMol.Core.Structure.Query.residuesByName(residueName.toUpperCase()).compile()(
-        //         LiteMol.Core.Structure.Query.Context.ofStructure(
-        //             model
-        //         )
-        //     );
-
-        //     return params.fragments.length > 0;
-        // }
         return false;
     }
 

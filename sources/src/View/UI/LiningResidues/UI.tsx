@@ -63,7 +63,6 @@ function residueStringToResidueLight(residue: string): LightResidueInfo {
     [0 , 1 ,2 ,  3   ]
     VAL 647 A Backbone
     */
-    // let residueParts = residue.split(" ");
     const regex = /^(\w+)\s+(\d+)\s+([A-Za-z]+)(?:_(\d+))?(?:\s+\w+)?$/;
     const match = residue.match(regex);
     if (!match) {

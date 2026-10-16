@@ -10,7 +10,6 @@ import { PluginLayoutControlsDisplay } from "molstar/lib/mol-plugin/layout";
 import { PluginSpec } from "molstar/lib/mol-plugin/spec";
 import { StateSelection } from "molstar/lib/mol-state";
 import { Color } from "molstar/lib/mol-util/color";
-// import { Tunnel } from "molstar/lib/extensions/sb-ncbr/tunnels/data-model";
 import { Tunnel } from "../DataInterface";
 import { EmptyLoci, Loci } from "molstar/lib/mol-model/loci";
 import { MembraneShapeProvider, MoleObjectsNodeProvider, OriginShapeProvider, PickableRepresentation3D, SurfaceShapeProvider, TunnelPropertyColorRepresentation3D, TunnelPropertyColorShapeProvider, TunnelRepresentation3D } from "./VizualizerMol/objects";
@@ -220,17 +219,12 @@ export class Context {
         for (const [modelEntityId, eLabel] of getModelEntityOptions(structure, false)) {
             for (const [chainGroupId, cLabel] of getChainOptions(structure, modelEntityId)) {
                 let [modelIdx, entityId] = modelEntityId.split('|');
-                // let [] = [parseInt(modelIdx), entityId];
                 for (const unit of structure.units) {
                     if (unit.polymerElements.length) {
                         StructureElement.Location.set(l, structure, unit, unit.elements[0]);
 
                         if (structure.getModelIndex(unit.model) !== parseInt(modelIdx)) continue;
                         if (StructureProperties.entity.id(l) !== entityId) continue;
-                        // const entitySeq = unit.model.sequence.byEntityKey[StructureProperties.entity.key(l)];
-                        // for (let i = 0; i < entitySeq.sequence.length; i++) {
-                        //     const x = entitySeq.sequence.seqId.value(i);
-                        // }
                     } else {
                         for (const [operatorKey, operator_name] of getOperatorOptions(structure, modelEntityId, chainGroupId)) {
                             const wrapper = getSequenceWrapper({
@@ -244,13 +238,6 @@ export class Context {
                                     const loci = wrapper.getLoci(i);
                                     if (loci.elements.length > 0) {
                                         const location = StructureElement.Loci.getFirstLocation(loci, StructureElement.Location.create(void 0));
-                                        // if (location) {
-                                        //     console.log(StructureProperties.atom.label_atom_id(location));
-                                        //     console.log(StructureProperties.chain.auth_asym_id(location));
-                                        //     console.log(StructureProperties.unit.operator_name(location));
-                                        //     console.log(StructureProperties.residue.auth_seq_id(location));
-                                        //     console.log(wrapper.residueLabel(i));
-                                        // }
                                     }
                                 }
                             }
@@ -344,7 +331,6 @@ export class Context {
         }
 
         const polymer = structure.apply(StructureComponent, { type: { name: 'static', params: 'polymer' } }, { ref: "protein-data" });
-        // const water = structure.apply(StructureComponent, { type: { name: 'static', params: 'water' } });
         const het = structure.apply(StateTransforms.Model.StructureComplexElement, { type: 'atomic-het' }, { ref: "het" });
 
         polymer.apply(StructureRepresentation3D, {
@@ -487,11 +473,6 @@ export class Context {
             .commit()
         return repr.selector;
     }
-
-    // public async rerenderOrigins(ref: string, data: Point[], color?: Color, tag?: string) {
-    //     await PluginCommands.State.RemoveObject(this.plugin, { state: this.plugin.state.data, ref });
-    //     await this.renderOrigin(data, color, ref, tag);
-    // }
 
     public selectLocis(locis: Loci[]) {
         for (let loci of locis) {
