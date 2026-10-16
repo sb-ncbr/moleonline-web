@@ -31,6 +31,15 @@ export function getText(url: string): Promise<string> {
     return timed(url, async () => (await request(url, { method: "GET" })).text());
 }
 
+// No body and no Content-Type, so the POST stays a simple CORS request without a preflight.
+export async function postEmpty(url: string): Promise<any> {
+    return (await request(url, { method: "POST" })).json();
+}
+
+export async function deleteJson(url: string): Promise<any> {
+    return (await request(url, { method: "DELETE" })).json();
+}
+
 export async function postForm(url: string, body: FormData): Promise<any> {
     return (await request(url, { method: "POST", body })).json();
 }

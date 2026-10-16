@@ -1,6 +1,6 @@
 import { CommonOptions, DataSources } from "../config/common";
 import { MembranePoint } from "./DataInterface";
-import { getJson, postForm, postJson } from "./Http";
+import { deleteJson, getJson, postEmpty, postForm, postJson } from "./Http";
 
 
 export type ComputationStatus =
@@ -114,7 +114,7 @@ export class ApiService {
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return getJson(url);
+        return postEmpty(url);
     }
     public static initWithFile(formData: FormData): Promise<InitResponse> {
         let url = this.prepareInitUrl("", false);
@@ -226,7 +226,7 @@ export class ApiService {
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return getJson(url);
+        return postEmpty(url);
     }
 
     public static deleteProject(computationId: string) {
@@ -234,7 +234,7 @@ export class ApiService {
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return getJson(url);
+        return deleteJson(url);
     }
 
     public static getCSAResidues(computationId: string): Promise<CSAResidues> {
