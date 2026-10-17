@@ -109,3 +109,8 @@ export function Datagrid(props: { id: string, head: React.ReactNode, columnsCoun
         </div>
     </div>);
 }
+
+// A row of a property table: the property's icon (its classes) and name, then its value
+export function propertyRow(key: string, icon: string, label: string, value: React.ReactNode) {
+    return <DGElementRow key={key} columnsCount={2} columns={[<span><span className={`${icon} properties-icon`} />{label}</span>, <span>{value}</span>]} />;
+}

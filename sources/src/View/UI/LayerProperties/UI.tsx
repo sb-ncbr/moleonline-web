@@ -1,7 +1,7 @@
 import React from "react";
 import { LayersInfo } from "../../../DataInterface";
 import { SelectionHelper } from "../../CommonUtils/Selection";
-import { Datagrid, DGElementRow, DGNoDataInfoRow, DGRowEmpty, headCell } from "../Common/Datagrid/Components";
+import { Datagrid, DGNoDataInfoRow, DGRowEmpty, headCell, propertyRow } from "../Common/Datagrid/Components";
 import { roundToDecimal } from "../../../Common/Util/Numbers";
 
 let DGTABLE_COLS_COUNT = 2;
@@ -119,54 +119,23 @@ class DGBody extends React.Component<State, {}> {
             return <DGNoDataInfoRow columnsCount={DGTABLE_COLS_COUNT} infoText={NO_DATA_MESSAGE} />;
         }
 
-        let layerData = this.props.data[this.props.layerIds[0]].Properties;
-        let rows = [];
-
-        let charge = (layerData === null) ? 'N/A' : `${roundToDecimal(layerData.Charge, 2).toString()} (+${roundToDecimal(layerData.NumPositives, 2).toString()}/-${roundToDecimal(layerData.NumNegatives, 2).toString()})`;
-        let bottleneck = this.getBottleneck(this.props.layerIds);
-
-
-        let hydropathy = (layerData === null) ? 'N/A' : roundToDecimal(layerData.Hydropathy, 2).toString()
-        let polarity = (layerData === null) ? 'N/A' : roundToDecimal(layerData.Polarity, 2).toString();
-        let hydrophobicity = (layerData === null) ? 'N/A' : roundToDecimal(layerData.Hydrophobicity, 2).toString();
-        let mutability = (layerData === null) ? 'N/A' : roundToDecimal(layerData.Mutability, 2).toString();
-        let length = this.getLength(this.props.layerIds);
-        rows.push(
-            <DGElementRow key={'hydropathy'} columns={[<span><span className="bi bi-droplet properties-icon" />{"Hydropathy"}</span>, <span>{hydropathy}</span>]} />
-        );
-        rows.push(
-            <DGElementRow key={'polarity'} columns={[<span><span className="bi bi-plus properties-icon" />{"Polarity"}</span>, <span>{polarity}</span>]} />
-        );
-        rows.push(
-            <DGElementRow key={'hydrophobicity'} columns={[<span><span className="bi bi-droplet properties-icon upside-down" />{"Hydrophobicity"}</span>, <span>{hydrophobicity}</span>]} />
-        );
-        rows.push(
-            <DGElementRow key={'mutability'} columns={[<span><span className="bi bi-scissors properties-icon" />{"Mutability"}</span>, <span>{mutability}</span>]} />
-        );
-        rows.push(
-            <DGElementRow key={'charge'} columns={[<span><span className="bi bi-lightning properties-icon" />{"Charge"}</span>, <span>{charge}</span>]} />
-        );
-        rows.push(
-            <DGElementRow key={'bottlenec'} columns={[<span><span className="icon bottleneck black properties-icon" />{(this.props.layerIds.length > 1) ? "Bottleneck" : "Radius"}</span>, <span>{roundToDecimal(bottleneck, 1)}</span>]} />
-        );
-        rows.push(
-            <DGElementRow key={'logP'} columns={[<span><span className="icon logp black properties-icon" />{"LogP"}</span>, <span>{(layerData && layerData.LogP) ? roundToDecimal(layerData.LogP, 2) : 'N/A'}</span>]} />
-        );
-        rows.push(
-            <DGElementRow key={'logD'} columns={[<span><span className="icon logd black properties-icon" />{"LogD"}</span>, <span>{(layerData && layerData.LogD) ? roundToDecimal(layerData.LogD, 2) : 'N/A'}</span>]} />
-        );
-        rows.push(
-            <DGElementRow key={'logS'} columns={[<span><span className="icon logs black properties-icon" />{"LogS"}</span>, <span>{(layerData && layerData.LogS) ? roundToDecimal(layerData.LogS, 2) : 'N/A'}</span>]} />
-        );
-        rows.push(
-            <DGElementRow key={'ionizable'} columns={[<span><span className="icon ionizable black properties-icon" />{"Ionizable"}</span>, <span>{(layerData && layerData.Ionizable) ? roundToDecimal(layerData.Ionizable, 2) : 'N/A'}</span>]} />
-        );
-        rows.push(
-            <DGElementRow key={'length'} columns={[<span><span className="bi bi-arrows-expand properties-icon" />{"Length"}</span>, <span>{roundToDecimal(length, 1).toString()}</span>]} />
-        );
-        rows.push(<DGRowEmpty key={'empty'} columnsCount={DGTABLE_COLS_COUNT} />);
-
-        return rows;
+        const p = this.props.data[this.props.layerIds[0]].Properties;
+        const round = (value: number) => roundToDecimal(value, 2).toString();
+        const optional = (value: number | undefined) => (p && value) ? roundToDecimal(value, 2) : 'N/A';
+        return [
+            propertyRow('hydropathy', 'bi bi-droplet', 'Hydropathy', (p === null) ? 'N/A' : round(p.Hydropathy)),
+            propertyRow('polarity', 'bi bi-plus', 'Polarity', (p === null) ? 'N/A' : round(p.Polarity)),
+            propertyRow('hydrophobicity', 'bi bi-droplet upside-down', 'Hydrophobicity', (p === null) ? 'N/A' : round(p.Hydrophobicity)),
+            propertyRow('mutability', 'bi bi-scissors', 'Mutability', (p === null) ? 'N/A' : round(p.Mutability)),
+            propertyRow('charge', 'bi bi-lightning', 'Charge', (p === null) ? 'N/A' : `${round(p.Charge)} (+${round(p.NumPositives)}/-${round(p.NumNegatives)})`),
+            propertyRow('bottlenec', 'icon bottleneck black', (this.props.layerIds.length > 1) ? "Bottleneck" : "Radius", roundToDecimal(this.getBottleneck(this.props.layerIds), 1)),
+            propertyRow('logP', 'icon logp black', 'LogP', optional(p?.LogP)),
+            propertyRow('logD', 'icon logd black', 'LogD', optional(p?.LogD)),
+            propertyRow('logS', 'icon logs black', 'LogS', optional(p?.LogS)),
+            propertyRow('ionizable', 'icon ionizable black', 'Ionizable', optional(p?.Ionizable)),
+            propertyRow('length', 'bi bi-arrows-expand', 'Length', roundToDecimal(this.getLength(this.props.layerIds), 1).toString()),
+            <DGRowEmpty key={'empty'} columnsCount={DGTABLE_COLS_COUNT} />,
+        ];
     }
 
     render() {
