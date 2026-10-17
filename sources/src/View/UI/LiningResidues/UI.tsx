@@ -6,7 +6,7 @@ import { ResidueAnnotation } from "../../../ChannelsDBAPIService";
 import { ChannelsDBData } from "../../../Cache";
 import { StructureProperties, StructureQuery, StructureSelection } from "molstar/lib/mol-model/structure";
 import { Context } from "../../Context";
-import { getStructureOptions } from "../SequenceViewer/MoleSequenceView";
+import { getStructureOptions } from "molstar/lib/mol-plugin-ui/sequence";
 import { PluginStateObject } from "molstar/lib/mol-plugin-state/objects";
 import { atoms } from "molstar/lib/mol-model/structure/query/queries/generators";
 

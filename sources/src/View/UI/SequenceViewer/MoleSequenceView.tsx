@@ -9,127 +9,21 @@
 import * as React from 'react';
 import { PluginUIComponent } from 'molstar/lib/mol-plugin-ui/base';
 import { PluginStateObject as PSO } from 'molstar/lib/mol-plugin-state/objects';
-import { Structure, StructureElement, StructureProperties as SP, Unit } from 'molstar/lib/mol-model/structure';
+import { Structure, StructureElement, StructureProperties as SP } from 'molstar/lib/mol-model/structure';
 import { SequenceWrapper } from 'molstar/lib/mol-plugin-ui/sequence/wrapper';
 import { PolymerSequenceWrapper } from 'molstar/lib/mol-plugin-ui/sequence/polymer';
-import { MarkerAction } from 'molstar/lib/mol-util/marker-action';
 import { ParamDefinition as PD } from 'molstar/lib/mol-util/param-definition';
 import { HeteroSequenceWrapper } from 'molstar/lib/mol-plugin-ui/sequence/hetero';
-import { State, StateSelection } from 'molstar/lib/mol-state';
-import { ChainSequenceWrapper } from 'molstar/lib/mol-plugin-ui/sequence/chain';
-import { ElementSequenceWrapper } from 'molstar/lib/mol-plugin-ui/sequence/element';
+import { StateSelection } from 'molstar/lib/mol-state';
 import { elementLabel } from 'molstar/lib/mol-theme/label';
 import { Icon, HelpOutlineSvg } from 'molstar/lib/mol-plugin-ui/controls/icons';
-import { StructureSelectionManager } from 'molstar/lib/mol-plugin-state/manager/structure/selection';
 import { arrayEqual } from 'molstar/lib/mol-util/array';
 import { MoleSequence } from './MoleSequence';
+import { getModelEntityOptions, getOperatorOptions, getSequenceWrapper, getStructureOptions, splitModelEntityId } from 'molstar/lib/mol-plugin-ui/sequence';
 
-const MaxDisplaySequenceLength = 5000;
 // TODO: add virtualized Select controls (at best with a search box)?
 const MaxSelectOptionsCount = 1000;
 // const MaxSequenceWrappersCount = 30; // uncomment for boundary
-
-export function opKey(l: StructureElement.Location) {
-    const ids = SP.unit.pdbx_struct_oper_list_ids(l);
-    const ncs = SP.unit.struct_ncs_oper_id(l);
-    const hkl = SP.unit.hkl(l);
-    const spgrOp = SP.unit.spgrOp(l);
-    return `${ids.sort().join(',')}|${ncs}|${hkl}|${spgrOp}`;
-}
-
-export function splitModelEntityId(modelEntityId: string) {
-    const [modelIdx, entityId] = modelEntityId.split('|');
-    return [parseInt(modelIdx), entityId];
-}
-
-export function getSequenceWrapper(state: { structure: Structure, modelEntityId: string, chainGroupId: number, operatorKey: string }, structureSelection: StructureSelectionManager): SequenceWrapper.Any | string {
-    const { structure, modelEntityId, chainGroupId, operatorKey } = state;
-    const l = StructureElement.Location.create(structure);
-    const [modelIdx, entityId] = splitModelEntityId(modelEntityId);
-
-    const units: Unit[] = [];
-
-    for (const unit of structure.units) {
-        StructureElement.Location.set(l, structure, unit, unit.elements[0]);
-        if (structure.getModelIndex(unit.model) !== modelIdx) continue;
-        if (SP.entity.id(l) !== entityId) continue;
-        if (unit.chainGroupId !== chainGroupId) continue;
-        if (opKey(l) !== operatorKey) continue;
-
-        units.push(unit);
-    }
-
-    if (units.length > 0) {
-        const data = { structure, units };
-        const unit = units[0];
-
-        let sw: SequenceWrapper<any>;
-        if (unit.polymerElements.length) {
-            const l = StructureElement.Location.create(structure, unit, unit.elements[0]);
-            const entitySeq = unit.model.sequence.byEntityKey[SP.entity.key(l)];
-            // check if entity sequence is available
-            if (entitySeq && entitySeq.sequence.length <= MaxDisplaySequenceLength) {
-                sw = new PolymerSequenceWrapper(data);
-            } else {
-                const polymerElementCount = units.reduce((a, v) => a + v.polymerElements.length, 0);
-                if (Unit.isAtomic(unit) || polymerElementCount > MaxDisplaySequenceLength) {
-                    sw = new ChainSequenceWrapper(data);
-                } else {
-                    sw = new ElementSequenceWrapper(data);
-                }
-            }
-        } else if (Unit.isAtomic(unit)) {
-            const residueCount = units.reduce((a, v) => a + (v as Unit.Atomic).residueCount, 0);
-            if (residueCount > MaxDisplaySequenceLength) {
-                sw = new ChainSequenceWrapper(data);
-            } else {
-                sw = new HeteroSequenceWrapper(data);
-            }
-        } else {
-            console.warn('should not happen, expecting coarse units to be polymeric');
-            sw = new ChainSequenceWrapper(data);
-        }
-
-        sw.markResidue(structureSelection.getLoci(structure), MarkerAction.Select);
-        return sw;
-    } else {
-        return 'No sequence available';
-    }
-}
-
-export function getModelEntityOptions(structure: Structure, polymersOnly = false): [string, string][] {
-    const options: [string, string][] = [];
-    const l = StructureElement.Location.create(structure);
-    const seen = new Set<string>();
-
-    for (const unit of structure.units) {
-        StructureElement.Location.set(l, structure, unit, unit.elements[0]);
-        const id = SP.entity.id(l);
-        const modelIdx = structure.getModelIndex(unit.model);
-        const key = `${modelIdx}|${id}`;
-        if (seen.has(key)) continue;
-        if (polymersOnly && SP.entity.type(l) !== 'polymer') continue;
-
-        let description = SP.entity.pdbx_description(l).join(', ');
-        if (structure.models.length) {
-            if (structure.representativeModel) { // indicates model trajectory
-                description += ` (Model ${structure.models[modelIdx].modelNum})`;
-            } else if (description.startsWith('Polymer ')) { // indicates generic entity name
-                description += ` (${structure.models[modelIdx].entry})`;
-            }
-        }
-        const label = `${id}: ${description}`;
-        options.push([key, label]);
-        seen.add(key);
-
-        if (options.length > MaxSelectOptionsCount) {
-            return [['', 'Too many entities']];
-        }
-    }
-
-    if (options.length === 0) options.push(['', 'No entities']);
-    return options;
-}
 
 export function getChainOptions(structure: Structure, modelEntityId: string): [number, string, string][] {
     const options: [number, string, string][] = [];
@@ -160,50 +54,6 @@ export function getChainOptions(structure: Structure, modelEntityId: string): [n
 
     if (options.length === 0) options.push([-1, 'No chains', '']);
     return options;
-}
-
-export function getOperatorOptions(structure: Structure, modelEntityId: string, chainGroupId: number): [string, string][] {
-    const options: [string, string][] = [];
-    const l = StructureElement.Location.create(structure);
-    const seen = new Set<string>();
-    const [modelIdx, entityId] = splitModelEntityId(modelEntityId);
-
-    for (const unit of structure.units) {
-        StructureElement.Location.set(l, structure, unit, unit.elements[0]);
-        if (structure.getModelIndex(unit.model) !== modelIdx) continue;
-        if (SP.entity.id(l) !== entityId) continue;
-        if (unit.chainGroupId !== chainGroupId) continue;
-
-        const id = opKey(l);
-        if (seen.has(id)) continue;
-
-        const label = unit.conformation.operator.name;
-        options.push([id, label]);
-        seen.add(id);
-
-        if (options.length > MaxSelectOptionsCount) {
-            return [['', 'Too many operators']];
-        }
-    }
-
-    if (options.length === 0) options.push(['', 'No operators']);
-    return options;
-}
-
-export function getStructureOptions(state: State) {
-    const options: [string, string][] = [];
-    const all: Structure[] = [];
-
-    const structures = state.select(StateSelection.Generators.rootsOfType(PSO.Molecule.Structure));
-    for (const s of structures) {
-        if (!s.obj?.data) continue;
-
-        all.push(s.obj.data);
-        options.push([s.transform.ref, s.obj!.data.label]);
-    }
-
-    if (options.length === 0) options.push(['', 'No structure']);
-    return { options, all };
 }
 
 export type SequenceViewMode = 'single' | 'polymers' | 'all'
