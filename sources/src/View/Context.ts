@@ -35,7 +35,6 @@ import { Events } from "../Bridge";
 import { adjustCaverDistance } from "./VizualizerMol/color-tunnels/algorithm";
 import { ApiService } from "../MoleAPIService";
 import { requestError } from "../Http";
-import { SbNcbrTunnelsExtension } from "./VizualizerMol/tunnels-extension/behavior";
 import { Model, StructureElement, StructureProperties } from "molstar/lib/mol-model/structure";
 
 const MySpec: PluginUISpec = {
@@ -72,7 +71,6 @@ const MySpec: PluginUISpec = {
         PluginSpec.Behavior(PluginBehaviors.CustomProps.SecondaryStructure),
         PluginSpec.Behavior(PluginBehaviors.CustomProps.ValenceModel),
         PluginSpec.Behavior(PluginBehaviors.CustomProps.CrossLinkRestraint),
-        PluginSpec.Behavior(SbNcbrTunnelsExtension),
         // ...DefaultPluginUISpec().behaviors,
         // ...DefaultPluginSpec().behaviors,
     ],
