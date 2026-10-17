@@ -165,8 +165,18 @@ export class Residues {
         }
     }
 
+    // Whether the loaded structure contains a residue of this name (e.g. a cofactor such as HEM)
     public static currentContextHasResidue(residueName: string): boolean {
-        return false;
+        const plugin = Context.getInstance().plugin;
+        const structureRef = getStructureOptions(plugin.state.data).options[0][0];
+        const cell = structureRef ? plugin.state.data.select(structureRef)[0] : void 0;
+        if (!cell || !cell.obj) return false;
+
+        const structure = (cell.obj as PluginStateObject.Molecule.Structure).data;
+        const loci = StructureQuery.loci(atoms({
+            residueTest: ctx => StructureProperties.atom.label_comp_id(ctx.element) === residueName
+        }), structure);
+        return !StructureElement.Loci.isEmpty(loci);
     }
 
     public static getResiudeName(authSeqNumber: number, authAsymId: string, operatorName: string) {

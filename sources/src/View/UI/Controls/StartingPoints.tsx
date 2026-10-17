@@ -395,7 +395,7 @@ export class StartingPointCofactorBox extends React.Component<StartingPointCofac
     getValidCofactors(cofactors: Cofactors) {
         let items = new Map<string, string>();
         cofactors.forEach((value, key, map) => {
-            if (!Residues.currentContextHasResidue(key) || this.state.selected === value) {
+            if (!Residues.currentContextHasResidue(key)) {
                 return;
             }
             items.set(key, value);
