@@ -107,7 +107,7 @@ export class Residues {
                     isHet: false,
                     loci: undefined,
                     name: residueName,
-                    backbone: backbone !== null
+                    backbone: backbone === "Backbone"
                 };
 
                 resParsed.push(rv)
