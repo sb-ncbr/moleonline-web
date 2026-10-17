@@ -7,8 +7,6 @@ import { MoleFormData, PoresFormData } from "./FormData";
 import { ComputationInfo, JobStatus } from "../../../DataProxy";
 import { TooltipText, WeightFunctions } from "../../../StaticData";
 import { flattenResidues, flattenResiduesArray, isMoleJob, parseResidues, pointsToString } from "../../CommonUtils/Misc";
-import { ChannelsDBChannels } from "../../../DataInterface";
-import { ChannelsDBData } from "../../../Cache";
 import { SimpleComboBox } from "../Common/Controls/Components";
 import { fakeRedirect, getParameters } from "../../../Common/Util/Router";
 import { TabbedContainer } from "../../../Common/UI/Tabs/BootstrapTabs";
@@ -400,11 +398,10 @@ interface SubmissionsProps {
 interface SubmissionsState {
     computationInfo: CompInfo | null,
     loading: boolean,
-    channelsDBData: ChannelsDBChannels | null
 };
 export class Submissions extends React.Component<SubmissionsProps, SubmissionsState> {
 
-    state: SubmissionsState = { computationInfo: null, loading: true, channelsDBData: null }
+    state: SubmissionsState = { computationInfo: null, loading: true }
     private hasKillable = false;
 
     componentDidUpdate(prevProps: { computationInfo: CompInfo }) {
@@ -424,12 +421,6 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
         this.setState(state_);
 
         let hasKillable = false;
-
-        if (computationInfo.PdbId !== void 0 && computationInfo.PdbId !== null && computationInfo.PdbId !== "") {
-            ChannelsDBData.getChannelsData(computationInfo.PdbId)
-                .then(val => this.setState({ channelsDBData: val }))
-                .catch(err => console.log(err));
-        }
 
         for (let submission of computationInfo.Submissions) {
             if (submission.Status !== "Initializing" && submission.Status !== "Running") {
@@ -498,17 +489,9 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
             let submissions: JSX.Element[] = [];
             let submissionsData = this.state.computationInfo.Submissions;
             let submitId = 1;
-            let isChannelsDBSelected = false;
             let params = getParameters();
             if (params !== null) {
                 submitId = (params.isChannelsDB) ? -1 : params.submitId;
-                isChannelsDBSelected = params.isChannelsDB;
-            }
-
-            if (this.state.channelsDBData !== null) {
-                submissions.push(
-                    <ChannelsDBSubmission key={'channelsDBsubmission'} pdbid={this.state.computationInfo.PdbId} isSelected={isChannelsDBSelected} computationId={this.props.computationInfo.ComputationId} />
-                );
             }
 
             for (let s of submissionsData.sort((a, b) => {
@@ -665,7 +648,7 @@ export class Submission extends React.Component<{ data: ServiceSubmission, compu
                         {data.ErrorMsg ? <div className="submission-error">{data.ErrorMsg}</div> : null}
                     </a>
                 </div>
-                <div id={`submit-data-${data.SubmitId}`} className={`panel-collapse collapse${(currentSubmitId === data.SubmitId) ? ' in' : ''}`}>
+                <div id={`submit-data-${data.SubmitId}`} className={`panel-collapse collapse${(currentSubmitId === data.SubmitId) ? ' show' : ''}`}>
                     {contents}
                     <div className="panel-footer">
                         <span className="btn btn-sm btn-primary" onClick={(() => this.exportParams()).bind(this)}>Export</span><span className="btn btn-sm btn-primary" onClick={(() => this.copyParams(data.SubmitId)).bind(this)}>Copy</span><span className="btn btn-sm btn-primary" aria-disabled={!canResubmit} onClick={(() => this.reSubmit()).bind(this)}>Resubmit</span>
@@ -721,25 +704,6 @@ export class Submission extends React.Component<{ data: ServiceSubmission, compu
         link.click();
 
         URL.revokeObjectURL(link.href);
-    }
-}
-
-export class ChannelsDBSubmission extends React.Component<{ pdbid: string, computationId: string, isSelected: boolean }, {}> {
-
-    componentDidMount() {
-    }
-
-    render() {
-        let isSelected = this.props.isSelected;
-        let link = `${CommonOptions.CHANNELSDB_LINK_DETAIL_URL}/${this.props.pdbid}`;
-        let contents = <div className="panel-body">See <a target="_blank" href={link}>{link}</a> for more info.</div>
-        return (
-            <div className="panel panel-default">
-                <div id={`submit-data-ChannelsDB`} className={`panel-collapse collapse${(isSelected) ? ' in' : ''}`}>
-                    {contents}
-                </div>
-            </div>
-        );
     }
 }
 
