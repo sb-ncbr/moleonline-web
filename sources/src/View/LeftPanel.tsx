@@ -152,6 +152,12 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                     })
                     return;
                 }
+                if (!isNotFound(error)) {
+                    Events.invokeNotifyMessage({
+                        messageType: "Warning",
+                        message: describeError(error, 'Could not fetch data from ChannelsDB') + '. Only the channels computed here are shown.'
+                    })
+                }
                 try {
                     await this.loadSubmissionsChannels(info, channels);
                     Tunnels.invokeOnTunnelsLoaded();
