@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
-import { describeError, isNotFound, isRefused, requestError, RequestError } from './Http';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { CommonOptions } from '../config/common';
+import { describeError, getJson, getText, isNotFound, isRefused, postJson, requestError, RequestError } from './Http';
 
 const response = (status: number, body: unknown, statusText = 'Status') =>
     new Response(typeof body === 'string' ? body : JSON.stringify(body), { status, statusText });
@@ -44,5 +45,44 @@ describe('isNotFound and isRefused', () => {
         expect([400, 404, 410, 413].map(s => isRefused(err(s)))).toEqual([true, true, true, true]);
         expect([408, 429, 500, 503].map(s => isRefused(err(s)))).toEqual([false, false, false, false]);
         expect(isRefused(new TypeError('Failed to fetch'))).toBe(false);
+    });
+});
+
+describe('requests', () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+        vi.restoreAllMocks();
+        CommonOptions.DEBUG_MODE = false;
+    });
+
+    it('returns the parsed JSON or the text', async () => {
+        vi.stubGlobal('fetch', vi.fn(async () => response(200, { a: 1 })));
+        await expect(getJson('/api/x')).resolves.toEqual({ a: 1 });
+        await expect(getText('/api/x')).resolves.toBe('{"a":1}');
+    });
+
+    it('sends JSON bodies with their content type', async () => {
+        const fetch = vi.fn(async (_url: string, _init: RequestInit) => response(200, { ok: true }));
+        vi.stubGlobal('fetch', fetch);
+        await postJson('/api/Submit', { b: 2 });
+        const init = fetch.mock.calls[0][1];
+        expect(init.method).toBe('POST');
+        expect(init.body).toBe('{"b":2}');
+        expect(new Headers(init.headers).get('Content-Type')).toBe('application/json');
+    });
+
+    it("rejects with the API's message", async () => {
+        vi.stubGlobal('fetch', vi.fn(async () => response(410, { ErrorMsg: 'Computation was deleted.' })));
+        await expect(getJson('/api/Status/x')).rejects.toMatchObject({ message: 'Computation was deleted.', status: 410, fromApi: true });
+    });
+
+    it('times a request in debug mode until its body is read', async () => {
+        CommonOptions.DEBUG_MODE = true;
+        const events: string[] = [];
+        vi.spyOn(console, 'time').mockImplementation(() => { events.push('time'); });
+        vi.spyOn(console, 'timeEnd').mockImplementation(label => { events.push('timeEnd ' + label); });
+        vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => { events.push('body read'); return {}; } })));
+        await getJson('/api/x');
+        expect(events).toEqual(['time', 'body read', 'timeEnd GET /api/x']);
     });
 });

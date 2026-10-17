@@ -31,8 +31,6 @@ export interface ProteinDataResponse {
 
 export class ApiService {
 
-    private static DEBUG_MODE = CommonOptions.DEBUG_MODE;
-
     private static baseUrl = DataSources.ANNOTATION_API_URL[DataSources.ANNOTATION_API_MODE];
 
     private static parseChannelsAnnotations(data: AnnotationObject[]) {
@@ -115,9 +113,6 @@ export class ApiService {
 
     public static getChannelsData(pdbid: string): Promise<ChannelsDataResponse> {
         let url = `${this.baseUrl}/channels/pdb/${pdbid}`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
         return getJson(url).then((val: ChannelsDBData) => ({
             channelsAnnotations: this.parseChannelsAnnotations(val.Annotations),
             channelsData: val.Channels,
@@ -126,9 +121,6 @@ export class ApiService {
 
     public static getProteinData(pdbid: string): Promise<ProteinDataResponse> {
         let url = `${this.baseUrl}/annotations/pdb/${pdbid}`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
         return getJson(url).then(val => ({ residueData: this.parseResidueData(val.ResidueAnnotations) }));
     }
 }

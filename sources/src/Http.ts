@@ -45,47 +45,49 @@ export async function requestError(method: string, url: string, response: Respon
     return error;
 }
 
-async function request(url: string, init: RequestInit): Promise<Response> {
-    const response = await fetch(url, init);
-    if (!response.ok) {
-        throw await requestError(init.method ?? "GET", url, response);
+// In debug mode, every request is logged with the time it took, reading the response body included
+async function request<T>(url: string, init: RequestInit, read: (response: Response) => Promise<T>): Promise<T> {
+    const method = init.method ?? "GET";
+    if (CommonOptions.DEBUG_MODE)
+        console.time(`${method} ${url}`);
+    try {
+        const response = await fetch(url, init);
+        if (!response.ok) {
+            throw await requestError(method, url, response);
+        }
+        return await read(response);
+    } finally {
+        if (CommonOptions.DEBUG_MODE)
+            console.timeEnd(`${method} ${url}`);
     }
-    return response;
 }
 
-async function timed<T>(url: string, action: () => Promise<T>): Promise<T> {
-    if (CommonOptions.DEBUG_MODE)
-        console.time(`GET '${url}'`);
-    const result = await action();
-    if (CommonOptions.DEBUG_MODE)
-        console.timeEnd(`GET '${url}'`);
-    return result;
-}
+const json = (response: Response): Promise<any> => response.json();
 
 export function getJson(url: string): Promise<any> {
-    return timed(url, async () => (await request(url, { method: "GET" })).json());
+    return request(url, { method: "GET" }, json);
 }
 
 export function getText(url: string): Promise<string> {
-    return timed(url, async () => (await request(url, { method: "GET" })).text());
+    return request(url, { method: "GET" }, response => response.text());
 }
 
 // No body and no Content-Type, so the POST stays a simple CORS request without a preflight.
-export async function postEmpty(url: string): Promise<any> {
-    return (await request(url, { method: "POST" })).json();
+export function postEmpty(url: string): Promise<any> {
+    return request(url, { method: "POST" }, json);
 }
 
-export async function deleteJson(url: string): Promise<any> {
-    return (await request(url, { method: "DELETE" })).json();
+export function deleteJson(url: string): Promise<any> {
+    return request(url, { method: "DELETE" }, json);
 }
 
-export async function postForm(url: string, body: FormData): Promise<any> {
-    return (await request(url, { method: "POST", body })).json();
+export function postForm(url: string, body: FormData): Promise<any> {
+    return request(url, { method: "POST", body }, json);
 }
 
-export async function postJson(url: string, body: Object): Promise<any> {
+export function postJson(url: string, body: Object): Promise<any> {
     const headers = new Headers();
     headers.append("Accept", "application/json");
     headers.append("Content-Type", "application/json");
-    return (await request(url, { method: "POST", headers, body: JSON.stringify(body) })).json();
+    return request(url, { method: "POST", headers, body: JSON.stringify(body) }, json);
 }

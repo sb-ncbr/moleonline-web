@@ -1,6 +1,6 @@
-import { CommonOptions, DataSources } from "../config/common";
+import { DataSources } from "../config/common";
 import { MembranePoint } from "./DataInterface";
-import { deleteJson, getJson, postEmpty, postForm, postJson } from "./Http";
+import { deleteJson, getJson, getText, postEmpty, postForm, postJson } from "./Http";
 
 
 export type ComputationStatus =
@@ -116,45 +116,26 @@ function checkReport(report: any, url: string): InitResponse {
 }
 
 export class ApiService {
-    private static DEBUG_MODE = CommonOptions.DEBUG_MODE;
-
     private static baseUrl = DataSources.API_URL;
 
     // assembly: "preferred" = the entry's preferred (biological) assembly, which the API looks up;
     // "asymmetric" = the asymmetric unit; otherwise the ID of the assembly to load
     public static initWithPdbId(pdbid: string, assembly: "preferred" | "asymmetric" | string): Promise<InitResponse> {
         let url = `${this.baseUrl}/Init/${encodeURIComponent(pdbid)}?assembly=${encodeURIComponent(assembly)}`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
         return postEmpty(url).then(r => checkReport(r, url));
     }
     public static initWithFile(formData: FormData): Promise<InitResponse> {
         let url = `${this.baseUrl}/Init/`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
         return postForm(url, formData).then(r => checkReport(r, url));
     }
 
     public static getStatus(computationId: string, submitId?: number): Promise<InitResponse> {
-        let optional = "";
-        if (submitId !== void 0) {
-            optional = `?submitId=${submitId}`;
-        }
-        let url = `${this.baseUrl}/Status/${computationId}${optional}`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
+        let url = `${this.baseUrl}/Status/${computationId}${submitId !== void 0 ? `?submitId=${submitId}` : ""}`;
         return getJson(url).then(r => checkReport(r, url));
     }
 
     public static getComputationInfoList(computationId: string): Promise<CompInfo> {
         let url = `${this.baseUrl}/Compinfo/${computationId}`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
-
         return getJson(url).then((val) => {
             for (const submission of val.Submissions) {
                 checkSubmitId(submission.SubmitId, url);
@@ -165,17 +146,11 @@ export class ApiService {
 
     public static submitMoleJob(computationId: string, data: MoleConfig) {
         let url = `${this.baseUrl}/Submit/Mole/${computationId}`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
         return postJson(url, data).then(r => checkReport(r, url));
     }
 
     public static submitPoresJob(computationId: string, data: PoresConfig) {
         let url = `${this.baseUrl}/Submit/Pores/${computationId}`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
 
         // exactly these fields: the API refuses unknown ones
         const body: PoresConfig = {
@@ -190,75 +165,29 @@ export class ApiService {
     }
 
     public static getChannelsData(computationId: string, submitId: number): Promise<string> {
-        let url = `${this.baseUrl}/Data/${computationId}?submitId=${submitId}`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
-        if (this.DEBUG_MODE)
-            console.time("getChannelsData");
-        return getJson(url).then((v) => JSON.stringify(v)).then((s) => {
-            if (this.DEBUG_MODE)
-                console.timeEnd("getChannelsData");
-            return s;
-        });
+        // the JSON as text: the viewer parses it itself
+        return getText(`${this.baseUrl}/Data/${computationId}?submitId=${submitId}`);
     }
 
     public static getMembraneData(computationId: string): Promise<MembranePoints> {
-        let url = `${this.baseUrl}/Data/${computationId}?format=membrane`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
-        if (this.DEBUG_MODE)
-            console.time("getMembraneData");
-        return getJson(url).then((s) => {
-            if (this.DEBUG_MODE)
-                console.timeEnd("getMembraneData");
-            return s as MembranePoints;
-        });
+        return getJson(`${this.baseUrl}/Data/${computationId}?format=membrane`);
     }
 
     public static killRunningJob(computationId: string) {
         let url = `${this.baseUrl}/Kill/${computationId}`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
         return postEmpty(url).then(r => checkReport(r, url));
     }
 
     public static deleteProject(computationId: string) {
         let url = `${this.baseUrl}/Delete/${computationId}`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
         return deleteJson(url).then(r => checkReport(r, url));
     }
 
     public static getCSAResidues(computationId: string): Promise<CSAResidues> {
-        let url = `${this.baseUrl}/CSA/${computationId}`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
-        return getJson(url);
+        return getJson(`${this.baseUrl}/CSA/${computationId}`);
     }
 
     public static getCofactors(): Promise<Cofactors> {
-        let url = `${this.baseUrl}/inputs/cofactors.json`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
-        if (this.DEBUG_MODE)
-            console.time("getCofactors");
-        return getJson(url).then((s) => {
-            let rv = new Map<ResidueName, PatternQueryExpression>();
-            for (let key in s) {
-                if (!s.hasOwnProperty(key)) {
-                    continue;
-                }
-                rv.set(key, (s as any)[key] as PatternQueryExpression);
-            }
-            if (this.DEBUG_MODE)
-                console.timeEnd("getCofactors");
-            return rv;
-        });
+        return getJson(`${this.baseUrl}/inputs/cofactors.json`).then(s => new Map(Object.entries(s)));
     }
 }
