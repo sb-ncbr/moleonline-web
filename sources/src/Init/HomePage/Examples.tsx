@@ -8,16 +8,7 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
     private computationId!: string;
     private submitId!: number;
 
-    constructor(props: {}) {
-        super(props);
-        this.state = {
-            activeButton: -1,
-        };
-    }
-
-    handleImageClick(index: number) {
-        this.setState({ activeButton: index })
-    }
+    state = { activeButton: -1 }; // the example being started
 
     private handleFormSubmit(pdbId: string) {
         ApiService.initWithPdbId(pdbId, "preferred")
@@ -109,6 +100,34 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
         { id: '3LDC', src: '/images/example_3LDC.png', title: '3LDC - open form of Methanothermobacter thermautotrophicus Calcium-gated potassium channel MthK' },
     ];
 
+    private renderExample(example: { id: string, src: string, title: string }, index: number) {
+        const active = this.state.activeButton;
+        return <div key={example.id} className="col d-flex flex-column justify-content-center align-items-center position-relative">
+            {active === index && (
+                <div className="spinner-overlay">
+                    <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            )}
+            <figure
+                className={`figure ${active !== -1 && active !== index ? 'disabled' : ''}`}
+                style={{ maxWidth: '28rem', cursor: 'pointer' }}
+                onClick={() => { this.setState({ activeButton: index }); this.handleFormSubmit(example.id); }}
+                data-bs-toggle="tooltip"
+                data-bs-placement="bottom"
+                title={example.title}
+            >
+                <img
+                    className="img-fluid figure-img"
+                    style={{ objectFit: 'contain' }}
+                    src={example.src}
+                    alt={example.title}
+                />
+            </figure>
+        </div>;
+    }
+
     render() {
         return (
             <div className="container-fluid text-center">
@@ -117,62 +136,10 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
                         <h4><b>Examples</b></h4>
                     </div>
                 </div>
-                <div className="row mb-3">
-                    {this.examples.slice(0, 3).map((example, index) => (
-                        <div key={example.id} className="col d-flex flex-column justify-content-center align-items-center position-relative">
-                            {this.state.activeButton === index && (
-                                <div className="spinner-overlay">
-                                    <div className="spinner-border text-primary" role="status">
-                                        <span className="visually-hidden">Loading...</span>
-                                    </div>
-                                </div>
-                            )}
-                            <figure
-                                className={`figure ${this.state.activeButton !== -1 && this.state.activeButton !== index ? 'disabled' : ''}`}
-                                style={{ maxWidth: '28rem', cursor: 'pointer' }}
-                                onClick={() => { if (this.examples[index]) { this.handleImageClick(index); this.handleFormSubmit(this.examples[index].id); } }}
-                                data-bs-toggle="tooltip"
-                                data-bs-placement="bottom"
-                                title={example.title} // Tooltip content
-                            >
-                                <img
-                                    className="img-fluid figure-img"
-                                    style={{ objectFit: 'contain' }}
-                                    src={example.src}
-                                    alt={example.title}
-                                />
-                            </figure>
-                        </div>
-                    ))}
-                </div>
-                <div className="row mb-3">
-                    {this.examples.slice(3).map((example, index) => (
-                        <div key={example.id} className="col d-flex flex-column justify-content-center align-items-center position-relative">
-                            {this.state.activeButton === index + 3 && (
-                                <div className="spinner-overlay">
-                                    <div className="spinner-border text-primary" role="status">
-                                        <span className="visually-hidden">Loading...</span>
-                                    </div>
-                                </div>
-                            )}
-                            <figure
-                                className={`figure ${this.state.activeButton !== -1 && this.state.activeButton !== index + 3 ? 'disabled' : ''}`}
-                                style={{ maxWidth: '28rem', cursor: 'pointer' }}
-                                onClick={() => { if (this.examples[index + 3]) { this.handleImageClick(index + 3); this.handleFormSubmit(this.examples[index + 3].id); } }}
-                                data-bs-toggle="tooltip"
-                                data-bs-placement="bottom"
-                                title={example.title} // Tooltip content
-                            >
-                                <img
-                                    className="img-fluid figure-img"
-                                    style={{ objectFit: 'contain' }}
-                                    src={example.src}
-                                    alt={example.title}
-                                />
-                            </figure>
-                        </div>
-                    ))}
-                </div>
+                {/* two rows of three */}
+                {[0, 3].map(start => <div key={start} className="row mb-3">
+                    {this.examples.slice(start, start + 3).map((example, i) => this.renderExample(example, start + i))}
+                </div>)}
             </div>
         );
     }

@@ -10,11 +10,10 @@ import AlertMessages from "../../Common/UI/AlertMessages/UI";
 // The API refuses larger uploads
 const MAX_UPLOAD_MB = 30;
 
-declare function $(p: any): any;
-
 interface State {
     useAsymmetricUnit: boolean,
     activeTabIdx: number,
+    progress: string | null, // the submit button's label while the computation is being started
 };
 
 export class InitForm extends React.Component<{}, State> {
@@ -24,40 +23,22 @@ export class InitForm extends React.Component<{}, State> {
     state: State = {
         useAsymmetricUnit: false,
         activeTabIdx: 0,
+        progress: null,
     };
 
     private handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        let form = e.target as HTMLFormElement;
-        let $next = $('#frm-jobSetup-setupForm-next');
-        $next.val('Submitting...');
-        $next.prop('disabled', true);
+        this.setState({ progress: 'Submitting...' });
 
-        let pdbid = '';
-        let assemblyId = ''; // empty: the preferred assembly
-        let asymmetricUnit = false;
-        let file;
+        // every tab's fields stay in the form; a selected file wins
+        const field = (name: string) => (e.target as HTMLFormElement).elements.namedItem(name) as HTMLInputElement;
+        const pdbid = field('pdbid').value;
+        const assemblyId = field('assembly').value.trim(); // empty: the preferred assembly
+        const asymmetricUnit = field('asymmetric-unit').checked;
+        const file = field('file').files?.[0];
 
-        for (let idx = 0; idx < form.length; idx++) {
-            let item = form[idx] as HTMLInputElement;
-            let name = item.getAttribute('name');
-            switch (name) {
-                case 'pdbid':
-                    pdbid = item.value;
-                    break;
-                case 'assembly':
-                    assemblyId = item.value.trim();
-                    break;
-                case 'asymmetric-unit':
-                    asymmetricUnit = item.checked;
-                    break;
-                case 'file':
-                    file = (item.files !== null) ? item.files[0] : void 0;
-                    break;
-            }
-        }
-        if (file === void 0 || file === null) {
+        if (file === void 0) {
             ApiService.initWithPdbId(pdbid, asymmetricUnit ? "asymmetric" : assemblyId === '' ? "preferred" : assemblyId)
                 .then((response) => {
                     this.handleFormSubmitResponse(response);
@@ -105,9 +86,7 @@ export class InitForm extends React.Component<{}, State> {
 
     // Re-enables the form and tells the user why the computation did not start
     private showError(message: string) {
-        let $next = $('#frm-jobSetup-setupForm-next');
-        $next.prop('disabled', false);
-        $next.val('Submit');
+        this.setState({ progress: null });
         Events.invokeNotifyMessage({
             messageType: "Danger",
             message
@@ -119,7 +98,6 @@ export class InitForm extends React.Component<{}, State> {
     }
 
     private handleFormSubmitResponse(response: InitResponse) {
-        let $next = $('#frm-jobSetup-setupForm-next');
         if (response.Status === "FailedInitialization") {
             this.showError(`API was unable to initialize computation with specified parameters. API responded with message: ${response.ErrorMsg}`);
             return;
@@ -130,7 +108,7 @@ export class InitForm extends React.Component<{}, State> {
 
         if (response.Status === "Initialized") {
             console.log("Initialized");
-            $next.val('Initialized!');
+            this.setState({ progress: 'Initialized!' });
             Events.invokeNotifyMessage({
                 messageType: "Success",
                 message: "Computation was successfully initialized. You will be redirected to detail page."
@@ -141,7 +119,7 @@ export class InitForm extends React.Component<{}, State> {
 
         if (response.Status === "Initializing") {
             console.log("Waiting for computation initialization...");
-            $next.val('Initializing computation...');
+            this.setState({ progress: 'Initializing computation...' });
             window.setTimeout(this.waitForComputationInitialization.bind(this), 500);
             return;
         }
@@ -155,29 +133,13 @@ export class InitForm extends React.Component<{}, State> {
             .catch((reason) => this.showRequestError(reason));
     }
 
-    private asymmetricUnitChange(e: React.ChangeEvent<HTMLInputElement>) {
-        let el = e.target as HTMLInputElement;
-        this.setState({ useAsymmetricUnit: el.checked });
-    }
-
     render() {
-
-        let buttons = <input type="submit" name="next" className="button" id="frm-jobSetup-setupForm-next" value="Submit" />;
-        let tabs: JSX.Element[] = [];
-
-        tabs.push(
-            this.formByPDBID()
-        );
-        tabs.push(
-            this.formByFile()
-        );
-        tabs.push(
-            this.formByLastNSessions()
-        );
-
-        if (this.state.activeTabIdx === 2) { //LastNSessions -> dont show "Next" button
-            buttons = <span />
-        }
+        const tabs = [this.formByPDBID(), this.formByFile(), this.formByLastNSessions()];
+        // the last sessions are opened by a click, they have nothing to submit
+        const buttons = this.state.activeTabIdx === 2
+            ? <span />
+            : <input type="submit" name="next" className="button" id="frm-jobSetup-setupForm-next"
+                value={this.state.progress ?? 'Submit'} disabled={this.state.progress !== null} />;
 
         return (
             <>
@@ -191,15 +153,13 @@ export class InitForm extends React.Component<{}, State> {
                     <div className="InitForm">
                         <form onSubmit={this.handleFormSubmit.bind(this)}>
                             <div className="groupbox">
-                                <TabbedContainer header={["PDB ID", "File", "Last session"]} tabContents={tabs} namespace="quick-start-panel-tabs-" htmlClassName="tabs" htmlId="quick-start-panel-tabs" activeTab={this.state.activeTabIdx} onChange={((tabIdx: number) => {
-                                    this.setState({ activeTabIdx: tabIdx });
-                                }).bind(this)} />
+                                <TabbedContainer header={["PDB ID", "File", "Last session"]} tabContents={tabs} namespace="quick-start-panel-tabs-" htmlClassName="tabs" htmlId="quick-start-panel-tabs" activeTab={this.state.activeTabIdx}
+                                    onChange={(tabIdx: number) => this.setState({ activeTabIdx: tabIdx })} />
                             </div>
 
                             <div className="buttons">
                                 {buttons}
                             </div>
-                            <div><input type="hidden" name="do" value="jobSetup-setupForm-submit" /></div>
                         </form>
                     </div>
                 </div>
@@ -231,7 +191,7 @@ export class InitForm extends React.Component<{}, State> {
                 </tr>
                 <tr>
                     <td><label htmlFor="frm-jobSetup-setupForm-asymmetric-unit">Use asymmetric unit</label>:</td>
-                    <td><input type="checkbox" onChange={this.asymmetricUnitChange.bind(this)}
+                    <td><input type="checkbox" onChange={e => this.setState({ useAsymmetricUnit: e.target.checked })}
                                id="frm-jobSetup-setupForm-asymmetric-unit" name="asymmetric-unit" className="checkbox"
                                defaultChecked={false} data-bs-toggle="tooltip" title="Use asymmetric unit, not Assembly ID."/>
                     </td>
@@ -267,7 +227,7 @@ export class InitForm extends React.Component<{}, State> {
                 break;
             }
             sessions.push(
-                <LastSession key={i} session={session} parent={this} />
+                <LastSession key={i} session={session} />
             );
         }
 
@@ -313,7 +273,7 @@ export class InitForm extends React.Component<{}, State> {
     }
 }
 
-interface LastSessionProps { session: string, parent: InitForm }
+interface LastSessionProps { session: string }
 interface LastSessionState { loaded: boolean, data: CompInfo | null }
 class LastSession extends React.Component<LastSessionProps, LastSessionState> {
     state: LastSessionState = { loaded: false, data: null }
@@ -330,48 +290,24 @@ class LastSession extends React.Component<LastSessionProps, LastSessionState> {
     }
 
     render() {
-        let date = this.props.session.split("|")[0];
-        let sessionUrl = this.props.session.split("|")[1];
-        if (this.state.loaded && this.state.data !== null) {
-            const isPdbEntry = this.state.data.PdbId !== null && this.state.data.PdbId !== "";
-            const pdbid = isPdbEntry ? this.state.data.PdbId : "User structure";
-            // a PDB entry loaded without an assembly is its asymmetric unit; an uploaded structure has no assembly
-            const assemblyId = this.state.data.AssemblyId ? this.state.data.AssemblyId : (isPdbEntry ? "Asymmetric unit" : "");
-
-            let submitIdParts = sessionUrl.split("/");
-            let submission;
-            if (submitIdParts.length === 2) {
-                submission = submitIdParts[1];
-            }
-            return <tr onClick={() => {
-                location.replace(`/online/${sessionUrl}`);
-            }} className="linkLike">
-                <td>
-                    {date}
-                </td>
-                <td>
-                    {pdbid}
-                </td>
-                <td>
-                    {assemblyId}
-                </td>
-                <td>
-                    {submission}
-                </td>
-            </tr>
+        // "date|computationId[/submitId]"
+        const [date, sessionUrl] = this.props.session.split("|");
+        const open = () => location.replace(`/online/${sessionUrl}`);
+        const info = this.state.data;
+        if (!this.state.loaded || info === null) {
+            return <tr onClick={open} className="linkLike">
+                <td>{date}</td>
+                <td colSpan={3}>{sessionUrl}</td>
+            </tr>;
         }
-        else {
-            return <tr onClick={() => {
-                location.replace(`/online/${sessionUrl}`);
-            }} className="linkLike">
-                <td>
-                    {date}
-                </td>
-                <td colSpan={3}>
-                    {sessionUrl}
-                </td>
-            </tr>
-        }
+        const isPdbEntry = info.PdbId !== null && info.PdbId !== "";
+        // a PDB entry loaded without an assembly is its asymmetric unit; an uploaded structure has no assembly
+        const assemblyId = info.AssemblyId ? info.AssemblyId : (isPdbEntry ? "Asymmetric unit" : "");
+        return <tr onClick={open} className="linkLike">
+            <td>{date}</td>
+            <td>{isPdbEntry ? info.PdbId : "User structure"}</td>
+            <td>{assemblyId}</td>
+            <td>{sessionUrl.split("/")[1]}</td>
+        </tr>;
     }
-
 }
