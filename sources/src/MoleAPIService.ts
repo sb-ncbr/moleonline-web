@@ -120,21 +120,20 @@ export class ApiService {
 
     private static baseUrl = DataSources.API_URL;
 
-    private static prepareInitUrl(pdbid: string, usePores: boolean, assemblyId?: string) {
-        const pores = usePores ? 'Pores/' : '';
-        const optional = assemblyId ? `?assemblyId=${assemblyId}` : '';
-        return `${this.baseUrl}/Init/${pores}${pdbid}${optional}`;
-    }
-
-    public static initWithParams(pdbid: string, usePores: boolean, assemblyId?: string): Promise<InitResponse> {
-        let url = this.prepareInitUrl(pdbid, usePores, assemblyId);
+    // assembly: "preferred" = the entry's preferred (biological) assembly, which the API looks up (Init/Pores);
+    // "asymmetric" = the asymmetric unit; otherwise the ID of the assembly to load
+    public static initWithPdbId(pdbid: string, assembly: "preferred" | "asymmetric" | string): Promise<InitResponse> {
+        const id = encodeURIComponent(pdbid);
+        let url = assembly === "preferred" ? `${this.baseUrl}/Init/Pores/${id}`
+            : assembly === "asymmetric" ? `${this.baseUrl}/Init/${id}`
+            : `${this.baseUrl}/Init/${id}?assemblyId=${encodeURIComponent(assembly)}`;
         if (this.DEBUG_MODE) {
             console.log(url);
         }
         return postEmpty(url).then(r => checkReport(r, url));
     }
     public static initWithFile(formData: FormData): Promise<InitResponse> {
-        let url = this.prepareInitUrl("", false);
+        let url = `${this.baseUrl}/Init/`;
         if (this.DEBUG_MODE) {
             console.log(url);
         }

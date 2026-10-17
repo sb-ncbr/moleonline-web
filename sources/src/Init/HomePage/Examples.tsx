@@ -24,8 +24,7 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
     }
 
     private handleFormSubmit(pdbId: string) {
-        let pores: boolean = true;
-        ApiService.initWithParams(pdbId, pores)
+        ApiService.initWithPdbId(pdbId, "preferred")
             .then((response) => {
                 this.handleFormSubmitResponse(response);
             })

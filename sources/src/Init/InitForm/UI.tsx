@@ -45,8 +45,8 @@ export class InitForm extends React.Component<{}, State> {
         $next.prop('disabled', true);
 
         let pdbid = '';
-        let assembly;
-        let pores: boolean = true;
+        let assemblyId = ''; // empty: the preferred assembly
+        let asymmetricUnit = false;
         let file;
 
         for (let idx = 0; idx < form.length; idx++) {
@@ -57,22 +57,18 @@ export class InitForm extends React.Component<{}, State> {
                     pdbid = item.value;
                     break;
                 case 'assembly':
-                    assembly = (item.value !== '' && !item.disabled) ? item.value : void 0;
+                    assemblyId = item.value.trim();
                     break;
                 case 'asymmetric-unit':
-                    pores = !item.checked;
+                    asymmetricUnit = item.checked;
                     break;
                 case 'file':
                     file = (item.files !== null) ? item.files[0] : void 0;
                     break;
             }
         }
-        if (typeof assembly !== 'undefined' && assembly !== "1") {
-            pores = false;
-        }
-
         if (file === void 0 || file === null) {
-            ApiService.initWithParams(pdbid, pores, assembly)
+            ApiService.initWithPdbId(pdbid, asymmetricUnit ? "asymmetric" : assemblyId === '' ? "preferred" : assemblyId)
                 .then((response) => {
                     this.handleFormSubmitResponse(response);
                 })
@@ -220,9 +216,9 @@ export class InitForm extends React.Component<{}, State> {
                     <td><label htmlFor="frm-jobSetup-setupForm-unit">Assembly ID (optional)</label>:</td>
                     <td><input disabled={this.state.useAsymmetricUnit} type="text" name="assembly" maxLength={3}
                                size={15} className="text" id="frm-jobSetup-setupForm-unit"
-                               defaultValue="1" data-bs-toggle="tooltip"
+                               defaultValue="" placeholder="preferred" data-bs-toggle="tooltip"
                                title="Protein structures are resolved in asymmetric units divided or combined in PDB into assemblies with integer ID numbering.
-                               Assemblies may or may not form biological units, and most biological units have Assembly ID 1."/>
+                               Assemblies may or may not form biological units. Empty: the preferred assembly of the entry, usually its biological unit."/>
                     </td>
                 </tr>
                 <tr>
