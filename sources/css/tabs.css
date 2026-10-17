@@ -18,7 +18,6 @@
 #right-tabs {
     display: flex;
     flex-direction: column;
-    /* max-height: 33vh; */
 }
 
 #right-tabs .tab-content {
@@ -30,7 +29,6 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    /* overflow: hidden; */
 }
 
 #right-tabs .datagrid{

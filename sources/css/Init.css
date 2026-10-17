@@ -213,7 +213,6 @@ body {
 
 figure {
     filter: saturate(0.5);
-    /* transition: filter 0.3s ease; */
 }
 
 figure:hover {

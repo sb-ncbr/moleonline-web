@@ -59,8 +59,6 @@
     bottom: 0;
     border-top: none;
     padding-right: 5px;
-    /* left: 0;
-    right: 0; */
     margin-left: 3px;
     padding-left: 5px;
     border-left: 1px solid #9a9a9a;
@@ -223,21 +221,7 @@
     width: auto;
     margin-left: 5px;
     margin-right: 5px;
-    /*
-    padding-top: 2px !important;
-    padding-left: 5px;
-    padding-right: 2px;*/
     padding: 0 !important;
-    /*
-    max-height: 3.5vh;
-    margin-top: 0.75vh;
-    margin-bottom: 0.75vh;
-    line-height: 2vh;
-    padding: 0.75vh 0px;
-    padding-left: 10px;
-    padding-right: 10px;
-    float: right;
-*/
 }
 
 .submit-parent .kill-job-button {
@@ -314,11 +298,6 @@
     border-bottom-color: red;
 }
 
-/* .msp-control-group-header > button, .msp-control-group-header div {
-    height: 32px !important;
-    line-height: 32px !important;
- } */
-
 .msp-control-row>div.msp-control-row-ctrl {
     left: 160px !important;
 }
@@ -348,7 +327,6 @@ only screen and (max-height: 900px) {
     .submit-form-container .load-button {
         max-height: 4.5vh;
         margin-top: 2px;
-        /* margin-bottom: 0.5vh; */
         line-height: 2vh;
         padding: 1.25vh 5px;
     }

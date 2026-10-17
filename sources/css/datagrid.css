@@ -22,10 +22,7 @@ div#right-tabs-3 {
 .datagrid .body{
 	width:100%;
 	overflow: auto;
-	/*background-color:#f8f8f8;*/
-	/* height:28vh; */
 	overflow-x: hidden;
-	/* overflow-y: scroll; */
 }
 
 #layer-residues .datagrid .body {
@@ -52,7 +49,6 @@ div#right-tabs-3 {
 
 .datagrid .body tr td{
     border-top: #c3c3c3 1px solid;
-	/*background-color:#f8f8f8;*/
 	padding-top: 4px;
     padding-bottom: 4px;
 }
@@ -69,29 +65,11 @@ div#right-tabs-3 {
 .datagrid td{
 	padding-left:5px;
 	padding-right:5px;
-	/*height:40px;*/
 }
 .datagrid .body tr:last-child{
 	height:100%;
 }
 
-/*
-.datagrid .col.col-1,
-.datagrid * .col.col-1{
-	width:20%;
-	min-width:80px;
-}
-.datagrid .col.col-2,
-.datagrid * .col.col-2{
-	width:40%;
-	min-width:80px;
-}
-.datagrid .col.col-3,
-.datagrid * .col.col-3{
-	width:40%;
-	min-width:80px;
-}
-*/
 .datagrid .col:last-child,
 .datagrid * .col:last-child{
 	width:auto !important;
