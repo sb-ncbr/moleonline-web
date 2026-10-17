@@ -234,6 +234,9 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
                 TwoDProtsBridge.getVizualizedChannels(),
                 (status, jobId, errorMsg) => {
                     console.log(`2DProts Job Status: ${status}`);
+                    if (this.state.canceled) {
+                        return; // a status that was on its way when the job was cancelled
+                    }
                     if (status === 'SUCCESS') {
                         this.setState({ isComputing: false, jobId });
                         this.loadSvg()
@@ -257,15 +260,11 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
         }
     }
 
-    private async cancelComputation() {
-        if (this.state.jobId !== '') {
-            let state = this.state;
-            state.error = void 0;
-            state.isComputing = false;
-            state.jobId = '';
-            state.canceled = true;
-            this.setState(state);
-            TwoDProtsProxy.Watcher.stopMonitoring(this.state.jobId);
+    private cancelComputation() {
+        const jobId = this.state.jobId;
+        if (jobId !== '') {
+            TwoDProtsProxy.Watcher.stopMonitoring(jobId);
+            this.setState({ error: void 0, isComputing: false, jobId: '', canceled: true });
         }
     }
 
