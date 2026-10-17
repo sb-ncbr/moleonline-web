@@ -18,7 +18,6 @@ import { ControlGroup } from "molstar/lib/mol-plugin-ui/controls/common";
 import { BoolControl, NumberRangeControl, SelectControl, TextControl } from "molstar/lib/mol-plugin-ui/controls/parameters";
 import { ParamDefinition } from "molstar/lib/mol-util/param-definition";
 import { StartingPointBox } from "./StartingPoints";
-import { ValidationState } from "./ValidationState";
 import { getParamsKind } from "./ParamsChecker";
 import "molstar/lib/mol-plugin-ui/skin/light.scss";
 
@@ -209,7 +208,7 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
             if (formGroup !== validationGroup + "_form") {
                 return;
             }
-            ValidationState.reset(validationGroup);
+            this.props.parent.setState({ canSubmit: true });
             let s = this.state;
             let mode = s.mode;
             s.mode = (this.state.mode === "Channels") ? "Pores" : "Channels"    //setting mode to oposite to trigger update
@@ -942,18 +941,6 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
             state.submitId = submitId;
             state.openControls = false;
             this.setState(state);
-        }));
-
-        this.unsubscribe.push(ValidationState.attachOnStateChangeHandler(validationGroup, (prev, curr) => {
-            let s = this.state;
-            if (curr !== "VALID") {
-                $("#submission-form").find("input[type=submit]").attr("disabled", true);
-                s.canSubmit = false;
-            }
-            else {
-                s.canSubmit = true;
-            }
-            this.setState(s);
         }));
     }
 

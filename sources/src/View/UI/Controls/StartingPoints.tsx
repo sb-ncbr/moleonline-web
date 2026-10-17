@@ -1,6 +1,5 @@
 import React from "react";
 import { Events } from "../../CommonUtils/FormEvents";
-import { ValidationState } from "./ValidationState";
 import { flattenPoints, flattenResidues, parsePoint, parseResidues } from "../../CommonUtils/Misc";
 import { Cofactors, CSAResidues, MoleConfigResidue } from "../../../MoleAPIService";
 import { SelectionHelper } from "../../CommonUtils/Selection";
@@ -13,65 +12,6 @@ import { SelectControl, TextControl } from "molstar/lib/mol-plugin-ui/controls/p
 import { ParamDefinition } from "molstar/lib/mol-util/param-definition";
 import { CheckSvg, CloseSvg } from "molstar/lib/mol-plugin-ui/controls/icons";
 
-
-interface FormControl { }
-
-interface ControlValidationCommonProps {
-    validationGroup?: string,
-    validate?: (value: string) => Promise<{ valid: boolean, message?: string }>
-}
-
-interface TextBoxCommonProps extends ControlValidationCommonProps {
-    label: string,
-    defaultValue: string,
-    placeholder?: string,
-    tooltip?: string,
-    onChange?: (value: string) => void
-};
-interface TextBoxProps extends TextBoxCommonProps {
-    onMount?: (control: TextBox) => void
-}
-interface TextBoxState {
-    control: JSX.Element,
-    value: string
-}
-export class TextBox extends React.Component<TextBoxProps, TextBoxState> implements FormControl {
-
-    state: TextBoxState = { control: this.createControl(), value: this.props.defaultValue };
-
-    componentDidMount() {
-        if (this.props.onMount) {
-            this.props.onMount(this);
-        }
-    }
-
-    reset() {
-        this.setState({
-            value: this.props.defaultValue,
-            control: this.createControl({ ...this.props, defaultValue: this.props.defaultValue })
-        });
-    }
-
-    private createControl(props?: TextBoxProps) {
-        if (props === void 0) {
-            props = this.props;
-        }
-
-        return <TextControl name="texbox" param={ParamDefinition.Text(this.state ? this.state.value : props.defaultValue, { label: props.label, placeholder: props.placeholder })} value={this.state ? this.state.value : props.defaultValue} onChange={(v) => {
-            this.setState({ value: v.value })
-            if (this.props.onChange !== void 0) {
-                this.props.onChange(v.value);
-            }
-            if (this.props.validationGroup !== void 0) {
-                ValidationState.reset(this.props.validationGroup);
-            }
-        }} />
-    }
-
-    render() {
-        return this.state.control
-    }
-}
 
 export class ComboBoxItem {
     private value: string
@@ -98,7 +38,7 @@ interface ComboBoxState {
     value: string,
     //selectedItem:ComboBoxItem,
 }
-export class ComboBox extends React.Component<ComboBoxProps, ComboBoxState> implements FormControl {
+export class ComboBox extends React.Component<ComboBoxProps, ComboBoxState> {
 
     componentDidMount() {
         if (this.props.onMount) {
