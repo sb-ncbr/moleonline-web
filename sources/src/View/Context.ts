@@ -31,7 +31,7 @@ import { Vec3 } from "molstar/lib/mol-math/linear-algebra";
 import { getPropertyProps } from "./VizualizerMol/color-tunnels/data-model";
 import { ColorBound, Property } from "./VizualizerMol/color-tunnels/property-color";
 import { Events } from "../Bridge";
-import { adjustCaverDistance } from "./VizualizerMol/color-tunnels/algorithm";
+import { cumulativeDistances } from "./VizualizerMol/color-tunnels/algorithm";
 import { requestError } from "../Http";
 import { Model, StructureElement, StructureProperties } from "molstar/lib/mol-model/structure";
 
@@ -339,14 +339,12 @@ export class Context {
         props.label = `${channel.Type} ${channel.Id} (${name})`;
         props.description = `Length: ${len} Å`;
 
-        const caver = channel.Caver ? channel.Caver : false;
-        if (caver) {
-            adjustCaverDistance(channel);
-        }
+        // the channel's data stays as loaded: it is rendered again on every change
+        const profile = channel.Caver ? cumulativeDistances(channel.Profile) : channel.Profile;
 
         const repr = await update
             .toRoot()
-            .apply(TunnelFromRawData, { data: { data: channel.Profile, props } })
+            .apply(TunnelFromRawData, { data: { data: profile, props } })
         const tunnlRepr = await repr
             .apply(TunnelPropertyColorShapeProvider, {
                 webgl,

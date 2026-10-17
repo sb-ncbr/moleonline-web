@@ -15,7 +15,7 @@ import { ensureReasonableResolution } from 'molstar/lib/mol-repr/structure/visua
 import { Task, RuntimeContext } from 'molstar/lib/mol-task';
 import { ValueCell } from 'molstar/lib/mol-util';
 import { Color } from 'molstar/lib/mol-util/color';
-import { LayersInfo, TunnelMetaInfo, Tunnel as DataTunnel } from '../../../DataInterface';
+import { LayersInfo } from '../../../DataInterface';
 import { ColorBound, colorByDistance, DefaultColor, Property, colorTunnel, getLayerGroupId } from './property-color';
 import { Profile, Tunnel } from 'molstar/lib/extensions/sb-ncbr/tunnels/data-model';
 
@@ -146,12 +146,13 @@ function profileToVec3(profile: Profile): Vec3 {
     return Vec3.create(profile.X, profile.Y, profile.Z);
 }
 
-export function adjustCaverDistance(channel: DataTunnel & TunnelMetaInfo) {
+// Caver profiles give each point's distance from the previous one; returns a copy with the distance along the tunnel
+export function cumulativeDistances(profile: Profile[]): Profile[] {
     let distance = 0;
-    for (let i = 0; i < channel.Profile.length; i++) {
-        distance += channel.Profile[i].Distance;
-        channel.Profile[i].Distance = distance;
-    }
+    return profile.map(point => {
+        distance += point.Distance;
+        return { ...point, Distance: distance };
+    });
 }
 
 // Centripetal Catmull–Rom spline interpolation
