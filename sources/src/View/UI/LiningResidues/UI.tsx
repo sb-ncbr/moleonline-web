@@ -1,7 +1,7 @@
 import React from "react";
 import { LightResidueInfo, SelectionHelper } from "../../CommonUtils/Selection";
 import { Residues } from "../../CommonUtils/Residues";
-import { DGElementRow, DGNoDataInfoRow, DGRowEmpty } from "../Common/Datagrid/Components";
+import { Datagrid, DGElementRow, DGNoDataInfoRow, DGRowEmpty, headCell } from "../Common/Datagrid/Components";
 import { ResidueAnnotation } from "../../../ChannelsDBAPIService";
 import { ChannelsDBData } from "../../../Cache";
 import { StructureProperties, StructureQuery, StructureSelection } from "molstar/lib/mol-model/structure";
@@ -50,14 +50,12 @@ export class LiningResidues extends React.Component<{}, State> {
     }
 
     render() {
-        if (this.state.data !== null) {
-            return (<DGTable {...this.state} />
-            );
-        }
-
-        return <DGNoData {...this.state} />
+        return <Datagrid id="dg-lining-residues" columnsCount={DGTABLE_COLS_COUNT} noDataText={NO_DATA_MESSAGE}
+                head={<>{headCell('Residue', 1)}<th><Controls {...this.state} /></th></>}
+                body={(this.state.data !== null) ? <DGBody {...this.state} /> : null} />;
     }
 }
+
 function residueStringToResidueLight(residue: string): LightResidueInfo {
     /*
     [0 , 1 ,2 ,  3   ]
@@ -130,56 +128,6 @@ class Controls extends React.Component<State, {}> {
             <span className="btn btn-sm btn-outline-light bt-all hand" onClick={this.selectAll.bind(this)}>Select all</span>
         </div>
     }
-}
-
-class DGNoData extends React.Component<State, {}> {
-    render() {
-        return (<div className="datagrid" id="dg-lining-residues">
-            <div className="header">
-                <DGHead {...this.props} />
-            </div>
-            <div className="body">
-                <table>
-                    <tbody>
-                        <DGNoDataInfoRow columnsCount={DGTABLE_COLS_COUNT} infoText={NO_DATA_MESSAGE} />
-                        <DGRowEmpty columnsCount={DGTABLE_COLS_COUNT} />
-                    </tbody>
-                </table>
-            </div>
-        </div>);
-    }
-}
-
-class DGTable extends React.Component<State, {}> {
-    render() {
-        return (<div className="datagrid" id="dg-lining-residues">
-            <div className="header">
-                <DGHead {...this.props} />
-            </div>
-            <div className="body">
-                <DGBody {...this.props} />
-            </div>
-        </div>);
-    }
-}
-
-class DGHead extends React.Component<State, {}> {
-    render() {
-        return (
-            <table>
-                <thead>
-                    <tr>
-                        <th title="Residue" className="col col-1">
-                            Residue
-                        </th>
-                        <th>
-                            <Controls {...this.props} />
-                        </th>
-                    </tr>
-                </thead>
-            </table>
-        );
-    };
 }
 
 class DGBody extends React.Component<State, {}> {

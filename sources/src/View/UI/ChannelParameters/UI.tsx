@@ -3,7 +3,7 @@ import React from "react";
 import { Tunnel } from "../../../DataInterface";
 import { Tunnels } from "../../CommonUtils/Tunnels";
 import { SelectionHelper } from "../../CommonUtils/Selection";
-import { DGElementRow, DGNoDataInfoRow, DGRowEmpty } from "../Common/Datagrid/Components";
+import { Datagrid, DGElementRow, DGNoDataInfoRow, DGRowEmpty, headCell } from "../Common/Datagrid/Components";
 import { roundToDecimal } from "../../../Common/Util/Numbers";
 
 let DGTABLE_COLS_COUNT = 2;
@@ -75,68 +75,12 @@ export class ChannelParameters extends React.Component<{}, State> {
     }
 
     render() {
-        if (this.state.data !== null && this.state.currentTunnel !== null) {
-            return (
-                <div>
-                    <DGTable {...this.state} />
-                </div>
-            );
-        }
-
         return <div>
-            <DGNoData {...this.state} />
-        </div>
+            <Datagrid id="dg-channel-parameters" columnsCount={DGTABLE_COLS_COUNT} noDataText={NO_DATA_MESSAGE}
+                head={<>{headCell('Property', 1)}{headCell('Value', 2)}</>}
+                body={(this.state.data !== null && this.state.currentTunnel !== null) ? <DGBody {...this.state} /> : null} />
+        </div>;
     }
-}
-
-class DGNoData extends React.Component<State, {}> {
-    render() {
-        return (<div className="datagrid" id="dg-channel-parameters">
-            <div className="header">
-                <DGHead {...this.props} />
-            </div>
-            <div className="body">
-                <table>
-                    <tbody>
-                        <DGNoDataInfoRow columnsCount={DGTABLE_COLS_COUNT} infoText={NO_DATA_MESSAGE} />
-                        <DGRowEmpty columnsCount={DGTABLE_COLS_COUNT} />
-                    </tbody>
-                </table>
-            </div>
-        </div>);
-    }
-}
-
-class DGTable extends React.Component<State, {}> {
-    render() {
-        return (<div className="datagrid" id="dg-channel-parameters">
-            <div className="header">
-                <DGHead {...this.props} />
-            </div>
-            <div className="body">
-                <DGBody {...this.props} />
-            </div>
-        </div>);
-    }
-}
-
-class DGHead extends React.Component<State, {}> {
-    render() {
-        return (
-            <table>
-                <thead>
-                    <tr>
-                        <th title="Property" className="col col-1">
-                            Property
-                        </th>
-                        <th title="Value" className="col col-2">
-                            Value
-                        </th>
-                    </tr>
-                </thead>
-            </table>
-        );
-    };
 }
 
 class DGBody extends React.Component<State, {}> {

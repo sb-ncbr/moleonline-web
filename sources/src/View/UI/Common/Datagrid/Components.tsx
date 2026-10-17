@@ -83,3 +83,29 @@ export class DGNoDataInfoRow extends React.Component<{ columnsCount: number, inf
         return (<tr><td colSpan={this.props.columnsCount} >{infoText}</td></tr>)
     }
 }
+
+// A header cell of a datagrid: its text is also its tooltip
+export function headCell(title: string, column: number) {
+    return <th key={column} title={title} className={`col col-${column}`}>{title}</th>;
+}
+
+// A datagrid of the detail tabs: a table with the header and one with the body; without a body, the noDataText
+export function Datagrid(props: { id: string, head: React.ReactNode, columnsCount: number, noDataText: string, body: React.ReactNode | null }) {
+    return (<div className="datagrid" id={props.id}>
+        <div className="header">
+            <table>
+                <thead>
+                    <tr>{props.head}</tr>
+                </thead>
+            </table>
+        </div>
+        <div className="body">
+            {props.body ?? <table>
+                <tbody>
+                    <DGNoDataInfoRow columnsCount={props.columnsCount} infoText={props.noDataText} />
+                    <DGRowEmpty columnsCount={props.columnsCount} />
+                </tbody>
+            </table>}
+        </div>
+    </div>);
+}

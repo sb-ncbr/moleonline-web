@@ -1,7 +1,7 @@
 import React from "react";
 import { LayersInfo } from "../../../DataInterface";
 import { SelectionHelper } from "../../CommonUtils/Selection";
-import { DGElementRow, DGNoDataInfoRow, DGRowEmpty } from "../Common/Datagrid/Components";
+import { Datagrid, DGElementRow, DGNoDataInfoRow, DGRowEmpty, headCell } from "../Common/Datagrid/Components";
 import { ResidueAnnotation } from "../../../ChannelsDBAPIService";
 import { Residues } from "../../CommonUtils/Residues";
 import { ChannelsDBData } from "../../../Cache";
@@ -79,65 +79,12 @@ export class LayerResidues extends React.Component<{}, State> {
     }
 
     render() {
-        if (this.state.data !== null && this.state.layerIds.length > 0) {
-            return (
-                <div>
-                    <DGTable {...this.state} />
-                </div>
-            );
-        }
-
         return <div>
-            <DGNoData {...this.state} />
-        </div>
+            <Datagrid id="dg-layer-residues" columnsCount={DGTABLE_COLS_COUNT} noDataText={NO_DATA_MESSAGE}
+                head={headCell('Residue', 1)}
+                body={(this.state.data !== null && this.state.layerIds.length > 0) ? <DGBody {...this.state} /> : null} />
+        </div>;
     }
-}
-
-class DGNoData extends React.Component<State, {}> {
-    render() {
-        return (<div className="datagrid" id="dg-layer-residues">
-            <div className="header">
-                <DGHead {...this.props} />
-            </div>
-            <div className="body">
-                <table>
-                    <tbody>
-                        <DGNoDataInfoRow columnsCount={DGTABLE_COLS_COUNT} infoText={NO_DATA_MESSAGE} />
-                        <DGRowEmpty columnsCount={DGTABLE_COLS_COUNT} />
-                    </tbody>
-                </table>
-            </div>
-        </div>);
-    }
-}
-
-class DGTable extends React.Component<State, {}> {
-    render() {
-        return (<div className="datagrid" id="dg-layer-residues">
-            <div className="header">
-                <DGHead {...this.props} />
-            </div>
-            <div className="body">
-                <DGBody {...this.props} />
-            </div>
-        </div>);
-    }
-}
-
-class DGHead extends React.Component<State, {}> {
-    render() {
-        return (
-            <table>
-                <thead>
-                    <tr>
-                        <th title="Residue" className="col col-1">
-                            Residue
-                        </th>
-                    </tr>
-                </thead>
-            </table>
-        );
-    };
 }
 
 class DGBody extends React.Component<State, {}> {
