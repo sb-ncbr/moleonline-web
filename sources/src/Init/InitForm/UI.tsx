@@ -74,21 +74,43 @@ export class InitForm extends React.Component<{}, State> {
                 })
                 .catch((reason) => this.showRequestError(reason))
         }
-        else if (file.size > MAX_UPLOAD_MB * 1024 * 1024) {
-            // the API refuses it too (413); this saves the upload
-            this.showError(`The file is too large, at most ${MAX_UPLOAD_MB} MB can be uploaded. Gzipped files (*.pdb.gz, *.cif.gz) are accepted.`);
-        }
         else {
-            let data = new FormData();
-            data.append("file", file)
-            ApiService.initWithFile(data)
-                .then((response) => {
-                    this.handleFormSubmitResponse(response);
-                })
-                .catch((reason) => this.showRequestError(reason))
+            this.uploadFile(file);
         }
 
         return false;
+    }
+
+    // The API refuses a structure over MAX_UPLOAD_MB, also when unpacked (413); checking first saves the upload
+    private async uploadFile(file: File) {
+        const limit = MAX_UPLOAD_MB * 1024 * 1024;
+        if (file.size > limit) {
+            this.showError(`The file is too large, at most ${MAX_UPLOAD_MB} MB can be uploaded, also when unpacked.`);
+            return;
+        }
+        // a gzip file ends with its unpacked size (mod 2^32, little-endian); only a hint, the API checks the real size
+        if (file.name.toLowerCase().endsWith(".gz") && file.size >= 4) {
+            let unpacked;
+            try {
+                unpacked = new DataView(await file.slice(-4).arrayBuffer()).getUint32(0, true);
+            } catch {
+                // e.g. the file was changed or removed after it was selected
+                this.showError("The file could not be read, please select it again.");
+                return;
+            }
+            if (unpacked > limit) {
+                this.showError(`The file unpacks to ${Math.ceil(unpacked / 1024 / 1024)} MB, at most ${MAX_UPLOAD_MB} MB can be computed.`);
+                return;
+            }
+        }
+
+        let data = new FormData();
+        data.append("file", file)
+        ApiService.initWithFile(data)
+            .then((response) => {
+                this.handleFormSubmitResponse(response);
+            })
+            .catch((reason) => this.showRequestError(reason))
     }
 
     // Re-enables the form and tells the user why the computation did not start
@@ -242,7 +264,7 @@ export class InitForm extends React.Component<{}, State> {
                         <td>
                             <input type="file" name="file" className="text" id="frm-jobSetup-setupForm-file" style = {{ maxWidth: '250px' }}
                                    accept=".pdb,.cif,.gz" data-bs-toggle="tooltip"
-                                   title={`PDB (*.pdb) and mmCIF (*.cif) files, also gzipped (*.pdb.gz, *.cif.gz), at most ${MAX_UPLOAD_MB} MB. Only the first model is used. E.g. cleaned PDB with only one chain and without unnecessary HETATMs.`}/>
+                                   title={`PDB (*.pdb) and mmCIF (*.cif) files, also gzipped (*.pdb.gz, *.cif.gz), at most ${MAX_UPLOAD_MB} MB, also when unpacked. Only the first model is used. E.g. cleaned PDB with only one chain and without unnecessary HETATMs.`}/>
                         </td>
                     </tr>
                 </tbody>

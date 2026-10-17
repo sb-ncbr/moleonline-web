@@ -1,7 +1,7 @@
 import { SbNcbrTunnels, TunnelFromRawData, TunnelShapeProvider } from "molstar/lib/extensions/sb-ncbr";
 import { ANVILMembraneOrientation } from 'molstar/lib/extensions/anvil/behavior';
 import { StateTransforms } from "molstar/lib/mol-plugin-state/transforms";
-import { DeflateData, ParseCif, RawData } from "molstar/lib/mol-plugin-state/transforms/data";
+import { ParseCif, RawData } from "molstar/lib/mol-plugin-state/transforms/data";
 import { TrajectoryFromMmCif, ModelFromTrajectory, StructureFromModel, StructureComponent, TrajectoryFromPDB } from "molstar/lib/mol-plugin-state/transforms/model";
 import { StructureRepresentation3D } from "molstar/lib/mol-plugin-state/transforms/representation";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
@@ -32,7 +32,6 @@ import { getPropertyProps } from "./VizualizerMol/color-tunnels/data-model";
 import { ColorBound, Property } from "./VizualizerMol/color-tunnels/property-color";
 import { Events } from "../Bridge";
 import { adjustCaverDistance } from "./VizualizerMol/color-tunnels/algorithm";
-import { ApiService } from "../MoleAPIService";
 import { requestError } from "../Http";
 import { Model, StructureElement, StructureProperties } from "molstar/lib/mol-model/structure";
 
@@ -222,12 +221,10 @@ export class Context {
         try {
             const response = await fetch(url);
             if (response.ok) {
-                const filename = ApiService.getFilenameFromResponseHeader(response);
-                const isGzip = filename?.endsWith('.gz');
-                const rawData = this.plugin.build().toRoot()
-                    .apply(RawData, { data: isGzip ? await response.arrayBuffer() : await response.text() })
-                const data = isGzip ? rawData.apply(DeflateData, { isString: true }) : rawData;
-                const dataNode = await data.commit();
+                // the API serves every structure unpacked, as plain PDB or mmCIF text
+                const dataNode = await this.plugin.build().toRoot()
+                    .apply(RawData, { data: await response.text() })
+                    .commit();
                 const type = this.determineFileType(dataNode.data as string);
                 update = this.plugin.build();
                 if (type === "cif") {

@@ -189,22 +189,6 @@ export class ApiService {
         return postJson(url, body).then(r => checkReport(r, url));
     }
 
-    public static getFilenameFromResponseHeader(r: Response) {
-        let contentDisposition = r.headers.get("Content-Disposition");
-        //https://regex101.com/r/hJ7tS6/1
-        let regExp = /filename[^;\n=]*=(?:(['"])(.*?)\1|([^;\n]*))/;
-        let filename: string | null = null;
-
-        if (contentDisposition !== null) {
-            let result = regExp.exec(contentDisposition);
-            if (result !== null) {
-                filename = result[2] || result[3];
-            }
-        }
-
-        return filename;
-    }
-
     public static getChannelsData(computationId: string, submitId: number): Promise<string> {
         let url = `${this.baseUrl}/Data/${computationId}?submitId=${submitId}`;
         if (this.DEBUG_MODE) {
