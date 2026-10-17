@@ -193,7 +193,7 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
                 const context = Context.getInstance();
                 context.visual.setColor({ select: { r: 255, g: 0, b: 255 } });
                 context.plugin.canvas3d?.mark(loci, MarkerAction.Select);
-                context.visual.reset({ selectColor: true });
+                context.visual.resetSelectColor();
             }
             $(window).trigger('layerSelected', { layerIds: layerIdxs.slice() });
             $(window).trigger('resize');
@@ -532,7 +532,7 @@ class PropertyColorTunnel extends React.Component<{ state: State }, { property: 
 
         context.visual.setColor({ select: { r: 255, g: 0, b: 255 } });
         context.plugin.canvas3d?.mark({ loci } as Representation.Loci<Loci>, MarkerAction.Select);
-        context.visual.reset({ selectColor: true });
+        context.visual.resetSelectColor();
     };
 
     private unsubscribe: (() => void)[] = [];

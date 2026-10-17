@@ -33,7 +33,7 @@ import { ColorBound, Property } from "./VizualizerMol/color-tunnels/property-col
 import { Events } from "../Bridge";
 import { cumulativeDistances } from "./VizualizerMol/color-tunnels/algorithm";
 import { requestError } from "../Http";
-import { Model, StructureElement, StructureProperties } from "molstar/lib/mol-model/structure";
+import { StructureElement, StructureProperties } from "molstar/lib/mol-model/structure";
 
 const MySpec: PluginUISpec = {
     ...DefaultPluginUISpec(),
@@ -82,7 +82,6 @@ const MySpec: PluginUISpec = {
 
 export class Context {
     public plugin: PluginUIContext;
-    public model: Model | undefined = undefined;
     // The chains of the loaded structure by label (label_asym_id), copies named like PDBe and ChannelsDB do ("A-2");
     // null when no structure was loaded
     private resolveStructureChains!: (chains: Set<string> | null) => void;
@@ -97,7 +96,8 @@ export class Context {
         this.resolveStructureChains(null);
     }
     private assemblyRef = '';
-    selectedParams: any;
+    // Whether the last selection added representations that clearing removes
+    private selectedParams: { addedRepr?: boolean } | undefined;
     defaultRendererProps?: Canvas3DProps['renderer'];
     defaultMarkingProps?: Canvas3DProps['marking'];
 
@@ -111,7 +111,7 @@ export class Context {
         });
     }
 
-    // Remembers the current colours as the ones visual.reset() restores, unless defaults are already set
+    // Remembers the current colours as the ones visual.resetSelectColor() restores, unless defaults are already set
     private saveDefaultColorProps() {
         if (!this.plugin.canvas3d || this.defaultRendererProps) return;
         this.defaultRendererProps = { ...this.plugin.canvas3d.props.renderer };
@@ -132,63 +132,39 @@ export class Context {
             .commit();
     }
 
+    // Holding Ctrl shows the surfaces solid and pickable, so that a point on them can be clicked
     private surfaceSolidFormToggler() {
-        this.plugin.behaviors.interaction.key.subscribe(async ({ modifiers }) => {
-            if (modifiers.control) {
-                const cells = this.plugin.state.data.select(StateSelection.Generators.byRef('mole-objects')
-                    .subtree()
-                    .ofType(PluginStateObject.Shape.Provider)
-                    .filter(cell => cell.obj !== undefined && cell.obj.data.data.data.tag !== undefined && cell.obj.data.data.data.tag === 'Surface')
-                )
-                cells.map(async cell => {
-                    const children = this.plugin.state.data.select(StateSelection.children(cell.transform.ref).ofType(PluginStateObject.Shape.Representation3D));
+        const setSolid = (solid: boolean) => {
+            const cells = this.plugin.state.data.select(StateSelection.Generators.byRef('mole-objects')
+                .subtree()
+                .ofType(PluginStateObject.Shape.Provider)
+                .filter(cell => cell.obj !== undefined && cell.obj.data.data.data.tag === 'Surface')
+            )
+            cells.map(async cell => {
+                const children = this.plugin.state.data.select(StateSelection.children(cell.transform.ref).ofType(PluginStateObject.Shape.Representation3D));
+                await this.plugin.state.data.build()
+                    .to(cell.transform.ref)
+                    .update(old => {
+                        old.solidForm = solid;
+                    })
+                    .commit()
+                for (const child of children) {
                     await this.plugin.state.data.build()
-                        .to(cell.transform.ref)
+                        .to(child.transform.ref)
                         .update(old => {
-                            old.solidForm = true;
+                            old.alpha = solid ? 1 : 0.65;
+                            old.emissive = solid ? 0 : 0.20;
+                            old.pickable = solid;
                         })
                         .commit()
-                    for (const child of children) {
-                        await this.plugin.state.data.build()
-                            .to(child.transform.ref)
-                            .update(old => {
-                                old.alpha = 1;
-                                old.emissive = 0;
-                                old.pickable = true;
-                            })
-                            .commit()
-                    }
-                })
-            }
+                }
+            })
+        };
+        this.plugin.behaviors.interaction.key.subscribe(({ modifiers }) => {
+            if (modifiers.control) setSolid(true);
         })
-
-        this.plugin.behaviors.interaction.keyReleased.subscribe(async ({ modifiers }) => {
-            if (modifiers.control) {
-                const cells = this.plugin.state.data.selectQ(q => q.byRef('mole-objects')
-                    .subtree()
-                    .ofType(PluginStateObject.Shape.Provider)
-                    .filter(cell => cell.obj !== undefined && cell.obj.data.data.data.tag !== undefined && cell.obj.data.data.data.tag === 'Surface')
-                )
-                cells.map(async cell => {
-                    const children = this.plugin.state.data.select(StateSelection.children(cell.transform.ref).ofType(PluginStateObject.Shape.Representation3D));
-                    await this.plugin.state.data.build()
-                        .to(cell.transform.ref)
-                        .update(old => {
-                            old.solidForm = false;
-                        })
-                        .commit()
-                    for (const child of children) {
-                        await this.plugin.state.data.build()
-                            .to(child.transform.ref)
-                            .update(old => {
-                                old.alpha = 0.65;
-                                old.emissive = 0.20;
-                                old.pickable = false;
-                            })
-                            .commit()
-                    }
-                })
-            }
+        this.plugin.behaviors.interaction.keyReleased.subscribe(({ modifiers }) => {
+            if (modifiers.control) setSolid(false);
         })
     }
 
@@ -197,10 +173,7 @@ export class Context {
         const lines = text.split("\n").map(line => line.trim());
 
         // Check for .cif characteristics
-        if (lines.some(line => line.startsWith("data_"))) {
-            return "cif";
-        }
-        if (lines.some(line => line.startsWith("_"))) {
+        if (lines.some(line => line.startsWith("data_") || line.startsWith("_"))) {
             return "cif";
         }
 
@@ -212,12 +185,10 @@ export class Context {
         return "unknown"; // If it doesn't match either format
     }
 
-
     public async load(url: string, isBinary: boolean, assemblyId?: string | null) {
         if (this.plugin.state.data.cells.has('protein-data')) return;
         let update = this.plugin.build();
         let structure;
-        let model;
         try {
             const response = await fetch(url);
             if (response.ok) {
@@ -227,20 +198,17 @@ export class Context {
                     .commit();
                 const type = this.determineFileType(dataNode.data as string);
                 update = this.plugin.build();
+                let trajectory;
                 if (type === "cif") {
-                    model = update.to(dataNode)
-                        .apply(ParseCif)
-                        .apply(TrajectoryFromMmCif)
-                        .apply(ModelFromTrajectory)
-                    structure = model.apply(StructureFromModel, { type: assemblyId === null || assemblyId?.length === 0 ? { name: 'model', params: {} } : { name: 'assembly', params: { id: assemblyId } } });
+                    trajectory = update.to(dataNode).apply(ParseCif).apply(TrajectoryFromMmCif);
                 } else if (type === "pdb") {
-                    model = update.to(dataNode)
-                        .apply(TrajectoryFromPDB)
-                        .apply(ModelFromTrajectory)
-                    structure = model.apply(StructureFromModel, { type: assemblyId === null || assemblyId?.length === 0 ? { name: 'model', params: {} } : { name: 'assembly', params: { id: assemblyId } } });
+                    trajectory = update.to(dataNode).apply(TrajectoryFromPDB);
                 } else {
                     throw Error("Unkown type of input file")
                 }
+                structure = trajectory.apply(ModelFromTrajectory).apply(StructureFromModel, {
+                    type: assemblyId === null || assemblyId === '' ? { name: 'model', params: {} } : { name: 'assembly', params: { id: assemblyId } }
+                });
             } else {
                 throw await requestError("GET", url, response);
             }
@@ -265,15 +233,8 @@ export class Context {
             colorTheme: { name: 'element-symbol', params: {} },
             sizeTheme: { name: 'physical', params: {} },
         });
-        // water.apply(StructureRepresentation3D, {
-        //     type: { name: 'ball-and-stick', params: { alpha: 1 } },
-        //     colorTheme: { name: 'element-symbol', params: {} },
-        //     sizeTheme: { name: 'physical', params: {} },
-        // });
-
         await update.commit();
 
-        this.model = model.selector.obj?.data;
         // A copy in an assembly is the chain under another operator: the model server's file maps "A_2" to chain A
         // with operator "ASM_2", the deposited chain keeps "1_555"
         const loaded = structure.selector.obj?.data;
@@ -289,27 +250,31 @@ export class Context {
         const pivot = this.plugin.managers.structure.hierarchy.selection.structures[pivotIndex];
         if (pivot && pivot.cell.parent) {
             this.assemblyRef = pivot.cell.transform.ref;
-            this.assemblyRef = pivot.cell.transform.ref;
-        };
+        }
 
         this.visual.setDefaultColor({ r: 255, g: 0, b: 255 });
 
         return polymer;
     }
 
+    // The labels of a rendered channel
+    private tunnelProps(channel: Tunnel & TunnelMetaInfo) {
+        const len = Tunnels.getLength(channel as Tunnel);
+        const name = TunnelName.get(channel.GUID);
+        const namePart = name ? `(${name})` : '';
+        return {
+            id: channel.Id,
+            type: channel.Type,
+            highlight_label: `<b>${channel.Type} ${namePart}</b>, Length: ${len} Å`,
+            label: `${channel.Type} ${channel.Id} ${namePart}`,
+            description: `Length: ${len} Å`,
+        };
+    }
+
     public async renderTunnel(channel: Tunnel & TunnelMetaInfo): Promise<[Loci, string]> {
         const update = this.plugin.build();
         const webgl = this.plugin.canvas3dContext?.webgl;
-
-        let props = { highlight_label: '', id: '', type: '', label: '', description: '' };
-        let len = Tunnels.getLength(channel as Tunnel);
-        let name = TunnelName.get(channel.GUID);
-
-        props.id = channel.Id;
-        props.type = channel.Type;
-        props.highlight_label = `<b>${channel.Type} ${name ? '(' + name + ')' : ''}</b>, Length: ${len} Å`;
-        props.label = `${channel.Type} ${channel.Id} ${name ? '(' + name + ')' : ''}`;
-        props.description = `Length: ${len} Å`;
+        const props = this.tunnelProps(channel);
 
         const repr = await update
             .toRoot()
@@ -328,16 +293,7 @@ export class Context {
     public async renderPropertyColorTunnel(channel: Tunnel & TunnelMetaInfo, colorOptions: { property: Property, colorBounds: ColorBound }): Promise<[Loci, string]> {
         const update = this.plugin.build();
         const webgl = this.plugin.canvas3dContext?.webgl;
-
-        let props = { highlight_label: '', id: '', type: '', label: '', description: '' };
-        let len = Tunnels.getLength(channel as Tunnel);
-        let name = TunnelName.get(channel.GUID);
-
-        props.id = channel.Id;
-        props.type = channel.Type;
-        props.highlight_label = `<b>${channel.Type} (${name})</b>, Length: ${len} Å`;
-        props.label = `${channel.Type} ${channel.Id} (${name})`;
-        props.description = `Length: ${len} Å`;
+        const props = this.tunnelProps(channel);
 
         // the channel's data stays as loaded: it is rendered again on every change
         const profile = channel.Caver ? cumulativeDistances(channel.Profile) : channel.Profile;
@@ -395,10 +351,10 @@ export class Context {
 
     public async renderOrigin(data: Point[], color?: Color, ref?: string, tag?: string, type?: string, subType?: string) {
         const update = this.plugin.build();
-        const refId = UUID.create22();
+        const refId = ref ? ref : UUID.create22();
         const repr = await update
             .toRoot()
-            .apply(OriginShapeProvider, { data, colorTheme: color, type, subType, tag, ref: ref ? ref : refId }, ref ? { ref, tags: 'Origins' } : { ref: refId, tags: 'Origins' })
+            .apply(OriginShapeProvider, { data, colorTheme: color, type, subType, tag, ref: refId }, { ref: refId, tags: 'Origins' })
         await repr
             .apply(StateTransforms.Representation.ShapeRepresentation3D)
             .commit()
@@ -412,31 +368,25 @@ export class Context {
         this.selectedParams = { addedRepr: true }
     }
 
-    private getLociForParams(params: QueryParam[], structureNumber?: number) {
-        let assemblyRef = this.assemblyRef;
-        if (structureNumber) {
-            assemblyRef = this.plugin.managers.structure.hierarchy.current.structures[structureNumber - 1].cell.transform.ref;
-        }
-        if (assemblyRef === '') return EmptyLoci;
-        const data = (this.plugin.state.data.select(assemblyRef)[0].obj as PluginStateObject.Molecule.Structure).data;
+    private getLociForParams(params: QueryParam[]) {
+        if (this.assemblyRef === '') return EmptyLoci;
+        const data = (this.plugin.state.data.select(this.assemblyRef)[0].obj as PluginStateObject.Molecule.Structure).data;
         if (!data) return EmptyLoci;
         return QueryHelper.getInteractivityLoci(params, data);
     }
 
-    private normalizeColor(colorVal: any, defaultColor?: Color) {
-        let color = Color.fromRgb(170, 170, 170);
-        try {
-            if (typeof colorVal.r !== 'undefined') {
-                color = Color.fromRgb(colorVal.r, colorVal.g, colorVal.b);
-            } else if (colorVal[0] === '#') {
-                color = Color(Number(`0x${colorVal.substr(1)}`));
-            } else {
-                color = Color(colorVal);
-            }
-        } catch (e) {
-            if (defaultColor) color = defaultColor;
-        }
-        return color;
+    private normalizeColor(colorVal: ColorParams) {
+        return Color.fromRgb(colorVal.r, colorVal.g, colorVal.b);
+    }
+
+    // Sets the colour of selected things; returns the settings it applied
+    private async applySelectColor(color: ColorParams) {
+        const renderer = { ...this.plugin.canvas3d!.props.renderer };
+        const marking = { ...this.plugin.canvas3d!.props.marking };
+        renderer.selectColor = this.normalizeColor(color);
+        marking.selectEdgeColor = Color.darken(this.normalizeColor(color), 1);
+        await PluginCommands.Canvas3D.SetSettings(this.plugin, { settings: { renderer, marking } });
+        return { renderer, marking };
     }
 
     private computeCenterAndRadius(vectors: Vec3[]) {
@@ -472,32 +422,23 @@ export class Context {
     }
 
     visual = {
-        select: async (params: { data: QueryParam[], nonSelectedColor?: any, addedRepr?: boolean, structureNumber?: number, forceClear?: boolean, isHet?: boolean, focusCenter?: boolean }) => {
+        // focusCenter: focuses the centre of all the residues instead of each one with param.focus
+        select: async (params: { data: QueryParam[], focusCenter?: boolean }) => {
 
             // clear prvious selection
-            if (this.selectedParams || params.forceClear) {
-                await this.visual.clearSelection(params.structureNumber);
+            if (this.selectedParams) {
+                await this.visual.clearSelection();
             }
 
-            // Structure list to apply selection
-            let structureData = this.plugin.managers.structure.hierarchy.current.structures;
-            if (params.structureNumber) {
-                structureData = [this.plugin.managers.structure.hierarchy.current.structures[params.structureNumber - 1]];
-            }
-
-            // set non selected theme color
-            if (params.nonSelectedColor) {
-                for await (const s of structureData) {
-                    await this.plugin.managers.structure.component.updateRepresentationsTheme(s.components, { color: 'uniform', colorParams: { value: this.normalizeColor(params.nonSelectedColor) } });
-                }
-            }
+            const structureData = this.plugin.managers.structure.hierarchy.current.structures;
+            let addedRepr = false;
 
             this.plugin.canvas3d?.pause(true);
             // apply individual selections
             let centerFocusPositions: Vec3[] = [];
             for await (const param of params.data) {
                 // get loci from param
-                const loci = this.getLociForParams([param], params.structureNumber);
+                const loci = this.getLociForParams([param]);
                 if (Loci.isEmpty(loci)) continue;
                 if (loci.kind === 'element-loci') {
                     if (params.focusCenter) {
@@ -522,12 +463,12 @@ export class Context {
                 if (param.sideChain) {
                     const defaultParams = StructureComponentManager.getAddParams(this.plugin, { allowNone: false, hideSelection: true, checkExisting: true });
                     const defaultValues = ParamDefinition.getDefaultValues(defaultParams);
-                    defaultValues.options = { label: '[Focus] Target - Lining Residues', checkExisting: params.structureNumber ? false : true };
+                    defaultValues.options = { label: '[Focus] Target - Lining Residues', checkExisting: true };
                     const values = { ...defaultValues, ...{ representation: 'ball-and-stick' } };
                     const structures = this.plugin.managers.structure.hierarchy.getStructuresWithSelection();
                     await this.plugin.managers.structure.component.add(values, structures);
 
-                    params.addedRepr = true;
+                    addedRepr = true;
                 }
                 // focus loci
                 if (param.focus && !params.focusCenter) this.plugin.managers.camera.focusLoci(loci);
@@ -540,24 +481,20 @@ export class Context {
             this.plugin.canvas3d?.pause(false);
 
             // reset selection color
-            this.visual.reset({ selectColor: true });
+            this.visual.resetSelectColor();
             // save selection params to optimise clear
-            this.selectedParams = params;
+            this.selectedParams = { addedRepr };
 
         },
-        clearSelection: async (structureNumber?: number) => {
-            const structIndex = structureNumber ? structureNumber - 1 : 0;
+        clearSelection: async () => {
+            const structure = this.plugin.managers.structure.hierarchy.current.structures[0];
             this.plugin.managers.interactivity.lociSelects.deselectAll();
-            // reset theme to default
-            if (this.selectedParams && this.selectedParams.nonSelectedColor) {
-                this.visual.reset({ theme: true });
-            }
             // remove overpaints
-            await clearStructureOverpaint(this.plugin, this.plugin.managers.structure.hierarchy.current.structures[structIndex].components);
+            await clearStructureOverpaint(this.plugin, structure.components);
             // remove selection representations
             if (this.selectedParams && this.selectedParams.addedRepr) {
                 const selReprCells = [];
-                for (const c of this.plugin.managers.structure.hierarchy.current.structures[structIndex].components) {
+                for (const c of structure.components) {
                     if (c.cell && c.cell.params && c.cell.params.values && c.cell.params.values.label && c.cell.params.values.label.includes('[Focus]')) selReprCells.push(c.cell);
                 }
                 if (selReprCells.length > 0) {
@@ -572,42 +509,22 @@ export class Context {
         setColor: async (param: { select: ColorParams }) => {
             if (!this.plugin.canvas3d) return;
             this.saveDefaultColorProps();
-            const renderer = { ...this.plugin.canvas3d.props.renderer };
-            const marking = { ...this.plugin.canvas3d.props.marking };
-            renderer.selectColor = this.normalizeColor(param.select);
-            marking.selectEdgeColor = Color.darken(this.normalizeColor(param.select), 1);
-            await PluginCommands.Canvas3D.SetSettings(this.plugin, { settings: { renderer, marking } });
+            await this.applySelectColor(param.select);
         },
         setDefaultColor: async (color: ColorParams) => {
             if (!this.plugin.canvas3d) return;
-            const renderer = { ...this.plugin.canvas3d.props.renderer };
-            const marking = { ...this.plugin.canvas3d.props.marking };
-            renderer.selectColor = this.normalizeColor(color);
-            marking.selectEdgeColor = Color.darken(this.normalizeColor(color), 1);
+            const { renderer, marking } = await this.applySelectColor(color);
             this.defaultRendererProps = { ...renderer };
             this.defaultMarkingProps = { ...marking };
-            await PluginCommands.Canvas3D.SetSettings(this.plugin, { settings: { renderer, marking } });
         },
-        reset: async (params: { camera?: boolean, theme?: boolean, selectColor?: boolean }) => {
-            if (params.camera) await PluginCommands.Camera.Reset(this.plugin, { durationMs: 250 });
-
-            if (params.theme) {
-                const defaultTheme: any = { color: 'default' };
-                const componentGroups = this.plugin.managers.structure.hierarchy.currentComponentGroups;
-                for (const compGrp of componentGroups) {
-                    await this.plugin.managers.structure.component.updateRepresentationsTheme(compGrp, defaultTheme);
-                }
-            }
-
-            if (params.selectColor) {
-                // No defaults saved means no colour was changed, so there is nothing to restore
-                if (!this.plugin.canvas3d || !this.defaultRendererProps || !this.defaultMarkingProps) return;
-                const renderer = { ...this.plugin.canvas3d.props.renderer };
-                const marking = { ...this.plugin.canvas3d.props.marking };
-                renderer.selectColor = this.defaultRendererProps.selectColor;
-                marking.selectEdgeColor = this.defaultMarkingProps.selectEdgeColor;
-                await PluginCommands.Canvas3D.SetSettings(this.plugin, { settings: { renderer, marking } });
-            }
+        resetSelectColor: async () => {
+            // No defaults saved means no colour was changed, so there is nothing to restore
+            if (!this.plugin.canvas3d || !this.defaultRendererProps || !this.defaultMarkingProps) return;
+            const renderer = { ...this.plugin.canvas3d.props.renderer };
+            const marking = { ...this.plugin.canvas3d.props.marking };
+            renderer.selectColor = this.defaultRendererProps.selectColor;
+            marking.selectEdgeColor = this.defaultMarkingProps.selectEdgeColor;
+            await PluginCommands.Canvas3D.SetSettings(this.plugin, { settings: { renderer, marking } });
         },
     }
 }
