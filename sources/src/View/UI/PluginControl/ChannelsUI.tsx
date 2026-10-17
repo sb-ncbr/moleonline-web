@@ -15,7 +15,6 @@ import { Representation } from "molstar/lib/mol-repr/representation";
 import { EmptyLoci } from "molstar/lib/mol-model/loci";
 import { Colors, Enum } from "../../../StaticData";
 import { Color } from "molstar/lib/mol-util/color";
-import { debounce } from "lodash";
 import { ApiService, CompInfo } from "../../../MoleAPIService";
 import { describeError, isNotFound } from "../../../Http";
 import { ComputationInfo } from "../../../DataProxy";
@@ -530,12 +529,14 @@ export class ColorPicker extends React.Component<{ tunnel: Tunnel & TunnelMetaIn
 
     }
 
-    debouncedShowChannelVisuals = debounce(this.setTunnelColor, 100);
+    // the colour is applied 100 ms after the last change, not on every move of the picker
+    private colorTimer?: ReturnType<typeof setTimeout>;
 
     onRGB = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newColor = Color.fromHexStyle(e.currentTarget.value || '0');
         this.setState({ color: newColor });
-        this.debouncedShowChannelVisuals()
+        clearTimeout(this.colorTimer);
+        this.colorTimer = setTimeout(this.setTunnelColor, 100);
     };
 
     componentDidMount() {
