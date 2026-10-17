@@ -20,7 +20,7 @@ import { Section } from "./ChannelsUI";
 
 declare function $(p: any): any;
 
-export class PluginControl extends React.Component<{ data: any }, { isLoading?: boolean, error?: string, data?: any, isWaitingForData?: boolean }> {
+export class PluginControl extends React.Component<{ data: any }, { isLoading?: boolean, error?: string, data?: any }> {
 
     state = { isLoading: false, data: void 0, error: void 0 };
 

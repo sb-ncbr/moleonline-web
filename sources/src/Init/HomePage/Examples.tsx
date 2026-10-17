@@ -15,9 +15,6 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
         };
     }
 
-    componentDidMount() {
-    }
-
     handleImageClick(index: number) {
         this.setState({ activeButton: index })
     }

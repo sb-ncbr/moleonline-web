@@ -11,7 +11,6 @@ declare function $(p: any): any;
 
 interface State {
     data: LayersInfo[] | null,
-    app: LayerProperties,
     layerIds: number[],
     selectionOn: boolean
 };
@@ -20,7 +19,6 @@ export class LayerProperties extends React.Component<{}, State> {
 
     state: State = {
         data: null,
-        app: this,
         layerIds: [],
         selectionOn: false
     };
@@ -73,9 +71,6 @@ export class LayerProperties extends React.Component<{}, State> {
         setTimeout(function () {
             $(window).trigger('contentResize');
         }, 1);
-    }
-
-    componentWillUnmount() {
     }
 
     render() {

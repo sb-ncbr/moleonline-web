@@ -13,7 +13,6 @@ const MAX_UPLOAD_MB = 30;
 declare function $(p: any): any;
 
 interface State {
-    app: InitForm,
     useAsymmetricUnit: boolean,
     activeTabIdx: number,
 };
@@ -23,16 +22,9 @@ export class InitForm extends React.Component<{}, State> {
     private submitId!: number;
 
     state: State = {
-        app: this,
         useAsymmetricUnit: false,
         activeTabIdx: 0,
     };
-
-    componentDidMount() {
-    }
-
-    componentWillUnmount() {
-    }
 
     private handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();

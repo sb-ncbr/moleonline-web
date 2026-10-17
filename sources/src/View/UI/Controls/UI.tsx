@@ -24,15 +24,7 @@ declare function $(p: any, p1?: any): any;
 
 let validationGroup = "SettingsFormValidatonGroup";
 
-interface State {
-    app: Controls
-};
-
-export class Controls extends React.Component<{}, State> {
-
-    state = {
-        app: this
-    };
+export class Controls extends React.Component {
 
     private unsubscribe: (() => void)[] = [];
 
@@ -60,22 +52,11 @@ interface SettingsProps {
     parent: ControlTabs,
 }
 
-interface ExpandedPanels {
-    activeAtomsResidues: boolean,
-    activeAtomsResiduesAdvanced: boolean,
-    cavityParameters: boolean,
-    channelParameters: boolean,
-    channelParametersAdvanced: boolean,
-    selection: boolean
-}
-
 interface SettingsState {
-    pdbid: string,
     computationId: string,
     moleFormData: MoleFormData,
     poresFormData: PoresFormData,
     mode: "Channels" | "Pores",
-    expandedPanels: ExpandedPanels
 };
 export class Settings extends React.Component<SettingsProps, SettingsState> {
     private unsubscribe: (() => void)[] = [];
@@ -83,17 +64,8 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
     state: SettingsState = {
         moleFormData: this.getMoleDefaultValues(),
         poresFormData: this.getPoresDefaultValues(),
-        pdbid: this.props.initialData.PdbId,
         computationId: this.props.initialData.ComputationId,
         mode: "Channels",
-        expandedPanels: {
-            activeAtomsResidues: true,
-            activeAtomsResiduesAdvanced: false,
-            cavityParameters: false,
-            channelParameters: false,
-            channelParametersAdvanced: false,
-            selection: true
-        }
     }
 
     getMoleDefaultValues() {
@@ -229,20 +201,12 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                 err: s1.err
             }, () => {
                 this.setState({
-                    computationId: this.state.computationId,
-                    pdbid: this.state.pdbid,
-                    moleFormData: this.state.moleFormData,
-                    poresFormData: this.state.poresFormData,
                     mode: (params.mode === "mole") ? "Pores" : "Channels", //Change to oposite mode to final desired mode to trigger subcomponent re-render
-                    expandedPanels: this.state.expandedPanels
                 }, () => {
                     this.setState({
-                        computationId: this.state.computationId,
-                        pdbid: this.state.pdbid,
                         moleFormData: (params.mode === "mole" && params.moleConfig !== null) ? new MoleFormData(params.moleConfig) : this.getMoleDefaultValues(),
                         poresFormData: (params.mode === "pores" && params.poresConfig !== null) ? new PoresFormData(params.poresConfig) : this.getPoresDefaultValues(),
                         mode: (params.mode === "mole") ? "Channels" : "Pores", //Change to correct and final mode to trigger subcomponent re-render
-                        expandedPanels: this.state.expandedPanels
                     })
                 });
             });
@@ -573,9 +537,6 @@ function checkCanResubmit(status: ComputationStatus) {
 }
 
 export class Submission extends React.Component<{ data: ServiceSubmission, computationId: string, status: string, currentSubmitId: number, onCopy: (submitId: number) => void, onResubmit: (info: CompInfo) => void }, {}> {
-
-    componentDidMount() {
-    }
 
     getMoleJob(data: ServiceSubmission) {
         return <div className="panel-body">

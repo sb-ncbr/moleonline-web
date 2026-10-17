@@ -62,7 +62,6 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
         instanceId: -1,
         hasData: false,
         data: [] as LayerData[],
-        layerId: 0,
         layerIds: [0],
         coloringPropertyKey: "",
         customColoringPropertyKey: "",
@@ -71,12 +70,9 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
         colorBoundsMode: "Absolute" as ColorBoundsMode,
         isDOMReady: false,
         app: this,
-        currentTunnelRef: "",
         isLayerSelected: false,
         channel: undefined
     };
-
-    vizualizer!: Vizualizer
 
     componentDidMount() {
         let vizualizer = this.props.vizualizer;
@@ -91,12 +87,10 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
             state.radiusPropertyKey = vizualizer.getRadiusPropertyKey(),
             state.colorBoundsMode = this.state.colorBoundsMode
         this.setState(state);
-        this.vizualizer = vizualizer;
 
         SelectionHelper.attachOnChannelSelectHandler((data) => {
             window.setTimeout(() => {
                 let state = this.state;
-                state.currentTunnelRef = SelectionHelper.getSelectedChannelRef();
                 state.isLayerSelected = false;
                 this.setState(state);
                 activateTab("left-tabs", "1");
@@ -166,7 +160,6 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
             state.data = [];
             state.hasData = false;
             state.isDOMReady = false;
-            state.currentTunnelRef = "";
             state.isLayerSelected = false;
             this.setState(state);
             setTimeout(function () {
@@ -176,7 +169,7 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
 
         LayerColors.attachLayerIndexOverObject((layerIndex, tunnelId) => {
             if (SelectionHelper.getSelectedChannelId() !== tunnelId) return;
-            this.vizualizer.highlightHitbox(layerIndex);
+            this.props.vizualizer.highlightHitbox(layerIndex);
             if (!this.state.isLayerSelected) {
                 this.setState({ layerIds: [layerIndex] })
                 $(window).trigger('layerTriggered', layerIndex);
@@ -191,7 +184,7 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
                 await Context.getInstance().visual.clearSelection();
                 resetFocusToTunnel();
             }
-            this.vizualizer.selectLayers(layerIdxs);
+            this.props.vizualizer.selectLayers(layerIdxs);
             for (let layerIdx of layerIdxs) {
                 $(window).trigger('layerTriggered', layerIdx);
             }
@@ -223,9 +216,6 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
         }).bind(this));
     }
 
-    componentWillUnmount() {
-    }
-
     render() {
         if (this.state.hasData) {
             $('.init-lvz-tooltip').tooltip();
@@ -241,7 +231,6 @@ interface State {
     hasData: boolean,
     data: LayerData[],
     layerIds: number[],
-    layerId: number,
     coloringPropertyKey: string,
     customColoringPropertyKey: string,
     radiusPropertyKey: RadiusProperty,
@@ -249,7 +238,6 @@ interface State {
     colorBoundsMode: ColorBoundsMode
     isDOMReady: boolean,
     app: LayerVizualizer,
-    currentTunnelRef: string,
     isLayerSelected: boolean,
     channel: TunnelWithMetaData | undefined
 };

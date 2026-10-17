@@ -27,23 +27,17 @@ declare function $(p: any): any;
 
 type ChannelsControlProps = { computationId: string, submissions: Map<number, ChannelsDBChannels>, reload: () => void }
 type ChannelsControlState = {
-    isLoading?: boolean,
-    error?: string,
-    data?: any,
-    isWaitingForData?: boolean,
     submissions: Map<number, ChannelsDBChannels>,
     submissionsElems: Map<number, any[]>,
-    hideAll: boolean,
     currentSubmitId: number
 }
 
 export class ChannelsControl extends React.Component<ChannelsControlProps, ChannelsControlState> {
     //TODO store selected/visualized tunnels for 2DProts
-    state = { isLoading: false, data: void 0, error: void 0, submissions: new Map<number, ChannelsDBChannels>(), submissionsElems: new Map<number, any[]>(), hideAll: false, currentSubmitId: 0 };
+    state = { submissions: new Map<number, ChannelsDBChannels>(), submissionsElems: new Map<number, any[]>(), currentSubmitId: 0 };
 
     private toggle(e: React.MouseEvent<HTMLElement>) {
         e.preventDefault();
-        this.setState({ hideAll: !this.state.hideAll });
         Tunnels.invokeOnTunnelsHide();
     }
 
@@ -229,7 +223,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
         channels.forEach((val, key, map) => {
             if (val.length > 0) {
                 channelsControls.push(
-                    <Channels key={key.toString()} channels={val} header={key.valueOf()} channelsDB={submitId === -1} submissionId={submitId === -1 ? 'ChannelsDB' : submitId.toString()} hide={this.state.hideAll} />
+                    <Channels key={key.toString()} channels={val} header={key.valueOf()} channelsDB={submitId === -1} submissionId={submitId === -1 ? 'ChannelsDB' : submitId.toString()} />
                 );
             }
         });
@@ -417,7 +411,7 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
     }
 }
 
-export class Channels extends React.Component<{ channels: any[], header: string, channelsDB: boolean, submissionId: string, hide: boolean }, { isBusy: boolean }> {
+export class Channels extends React.Component<{ channels: any[], header: string, channelsDB: boolean, submissionId: string }, { isBusy: boolean }> {
     state = { isBusy: false }
     private unsubscribe: (() => void)[] = [];
 
@@ -461,8 +455,7 @@ export class Channels extends React.Component<{ channels: any[], header: string,
     }
 }
 
-export class Channel extends React.Component<{ channel: any, channelsDB: boolean, submissionId: string }, { isVisible: boolean, isWaitingForData: boolean }> {
-    state = { isVisible: false, isWaitingForData: false };
+export class Channel extends React.Component<{ channel: any, channelsDB: boolean, submissionId: string }> {
     private unsubscribe: (() => void)[] = [];
 
     componentDidMount() {

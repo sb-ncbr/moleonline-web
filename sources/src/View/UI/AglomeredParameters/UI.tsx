@@ -13,7 +13,6 @@ declare function $(p: any): any;
 
 interface State {
     data: Map<string, Tunnel[]> | null,
-    app: AglomeredParameters,
 };
 
 
@@ -23,7 +22,6 @@ export class AglomeredParameters extends React.Component<{}, State> {
 
     state: State = {
         data: null,
-        app: this,
     };
 
     componentDidMount() {
@@ -144,7 +142,7 @@ class DGBody extends React.Component<State, {}> {
                 if (tunnels) {
                     for (let tunnel of tunnels) {
                         rows.push(
-                            <DGRow key={tunnel.Id} tunnel={tunnel} submissionId={submission} app={this.props.app} />
+                            <DGRow key={tunnel.Id} tunnel={tunnel} submissionId={submission} />
                         );
                     }
                 }
@@ -169,7 +167,7 @@ class DGBody extends React.Component<State, {}> {
     };
 }
 
-class DGRow extends React.Component<{ tunnel: Tunnel, submissionId: string, app: AglomeredParameters }, {}> {
+class DGRow extends React.Component<{ tunnel: Tunnel, submissionId: string }, {}> {
 
     render() {
         let name = TunnelName.get(this.props.tunnel.GUID);

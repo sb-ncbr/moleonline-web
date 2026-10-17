@@ -11,17 +11,14 @@ declare function $(p: any): any;
 
 interface State {
     data: string[] | null,
-    app: LiningResidues,
 };
 
 export class LiningResidues extends React.Component<{}, State> {
 
     state: State = {
         data: null,
-        app: this,
     };
 
-    layerIdx = -1;
 
     componentDidMount() {
         SelectionHelper.attachOnChannelSelectHandler((data) => {
@@ -38,9 +35,6 @@ export class LiningResidues extends React.Component<{}, State> {
             state.data = null;
             this.setState(state);
         });
-    }
-
-    componentWillUnmount() {
     }
 
     render() {
@@ -81,11 +75,11 @@ class Controls extends React.Component<State, {}> {
 
     selectAll() {
         let residues = [];
-        if (this.props.app.state.data === null) {
+        if (this.props.data === null) {
             return;
         }
 
-        for (let residue of this.props.app.state.data) {
+        for (let residue of this.props.data) {
             residues.push(residueStringToResidueLight(residue));
         }
 
@@ -105,7 +99,6 @@ class Controls extends React.Component<State, {}> {
             }
             else {
                 //TODO
-                // rClass = Residues.getName(residue.authSeqNumber, this.props.app.props.controller!);
             }
 
             if (rClass.indexOf("blue") !== -1 || rClass.indexOf("red") !== -1) {

@@ -8,12 +8,6 @@ import { describeError, requestError } from "../../../Http";
 
 export class DownloadReport extends React.Component<{}, {}> {
 
-    componentDidMount() {
-    }
-
-    componentWillUnmount() {
-    }
-
     render() {
         return <div className="download-button">
             <DownloadResultsMenu />

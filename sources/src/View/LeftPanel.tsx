@@ -24,7 +24,7 @@ import { LoadingStatus } from "./CommonUtils/LoadingInfo/LoadingStatus";
 
 declare function $(p: any): any;
 
-export class LeftPanel extends React.Component<{ context: Context }, { isLoading?: boolean, error?: string, data?: any, isWaitingForData?: boolean, channelsData: Map<number, ChannelsDBChannels>, compId: string, isLoadingChannels: boolean, channelsDB: boolean }> {
+export class LeftPanel extends React.Component<{ context: Context }, { isLoading?: boolean, error?: string, data?: any, channelsData: Map<number, ChannelsDBChannels>, compId: string, isLoadingChannels: boolean, channelsDB: boolean }> {
     state = { isLoading: false, isLoadingChannels: false, data: void 0, error: void 0, channelsData: new Map(), compId: "", channelsDB: false };
 
     componentDidMount() {

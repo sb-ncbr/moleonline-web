@@ -1,5 +1,4 @@
 import React from "react";
-import { SelectionHelper } from "../../CommonUtils/Selection";
 import { ComputationInfo, JobStatus } from "../../../DataProxy";
 import { CompInfo } from "../../../MoleAPIService";
 import { TunnelName } from "../../../Cache";
@@ -9,10 +8,7 @@ import { Tunnels } from "../../CommonUtils/Tunnels";
 import { getParameters } from "../../../Common/Util/Router";
 
 interface State {
-    app: QuickHelp,
-    channelSelected: boolean,
     hasSubmissions: boolean,
-    fromPDBID: boolean,
     hasChannels: boolean,
     failure: string | null // why the current submission failed
 };
@@ -20,10 +16,7 @@ interface State {
 export class QuickHelp extends React.Component<{}, State> {
 
     state: State = {
-        app: this,
-        channelSelected: false,
         hasSubmissions: false,
-        fromPDBID: false,
         hasChannels: false,
         failure: null
     };
@@ -51,18 +44,6 @@ export class QuickHelp extends React.Component<{}, State> {
     }
 
     componentDidMount() {
-        let channelSelected = SelectionHelper.isSelectedAnyChannel();
-        if (channelSelected !== this.state.channelSelected) {
-            this.setState({ channelSelected });
-        }
-        // Each handler updates only its own keys, so that updates in the same tick do not overwrite each other
-        SelectionHelper.attachOnChannelDeselectHandler(() => {
-            this.setState({ channelSelected: false });
-        });
-        SelectionHelper.attachOnChannelSelectHandler((data) => {
-            this.setState({ channelSelected: true });
-        });
-
         let params = getParameters();
         if (params !== null) {
             this.currentSubmitId = params.isChannelsDB ? null : params.submitId;
@@ -73,8 +54,8 @@ export class QuickHelp extends React.Component<{}, State> {
             });
             ComputationInfo.DataProvider.subscribe(params.computationId, (compid, info) => {
                 this.compInfo = info;
+                // Each handler updates only its own keys, so that updates in the same tick do not overwrite each other
                 this.setState({
-                    fromPDBID: !(info.PdbId === null || info.PdbId === void 0 || info.PdbId === ''),
                     hasSubmissions: info.Submissions.length > 0,
                     hasChannels: TunnelName.getCachedItemsCount() > 0,
                 });
@@ -92,9 +73,6 @@ export class QuickHelp extends React.Component<{}, State> {
                 this.setState({ hasChannels: tunnels.length > 0 });
             })
         }
-    }
-
-    componentWillUnmount() {
     }
 
     render() {

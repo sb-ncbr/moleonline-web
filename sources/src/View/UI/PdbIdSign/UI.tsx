@@ -26,9 +26,6 @@ export class PdbIdSign extends React.Component<{}, State> {
             });
     }
 
-    componentWillUnmount() {
-    }
-
     render() {
         if (this.state.pdbid === void 0) {
             return <div className="current-pbdbid-sign">{(this.state.err === void 0) ? "..." : this.state.err}</div>

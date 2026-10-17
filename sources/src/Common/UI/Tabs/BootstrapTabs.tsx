@@ -11,9 +11,6 @@ export interface TabbedContainerProps {
 }
 export class TabbedContainer extends React.Component<TabbedContainerProps, {}> {
 
-    componentDidMount() {
-    }
-
     header() {
         let rv: JSX.Element[] = [];
         for (let idx = 0; idx < this.props.header.length; idx++) {

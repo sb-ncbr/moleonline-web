@@ -12,7 +12,6 @@ declare function $(p: any): any;
 
 interface State {
     data: LayersInfo[] | null,
-    app: LayerResidues,
     layerIds: number[],
     selectionOn: boolean
 };
@@ -21,7 +20,6 @@ export class LayerResidues extends React.Component<{}, State> {
 
     state: State = {
         data: null,
-        app: this,
         layerIds: [],
         selectionOn: false
     };
@@ -72,9 +70,6 @@ export class LayerResidues extends React.Component<{}, State> {
         setTimeout(function () {
             $(window).trigger('contentResize');
         }, 1);
-    }
-
-    componentWillUnmount() {
     }
 
     render() {

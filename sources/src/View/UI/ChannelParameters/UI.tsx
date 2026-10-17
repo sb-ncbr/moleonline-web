@@ -15,7 +15,6 @@ interface State {
     data: Map<string, Tunnel[]> | null,
     currentTunnel: string | null,
     currentSubmission: string | null,
-    app: ChannelParameters
 };
 
 export class ChannelParameters extends React.Component<{}, State> {
@@ -26,10 +25,8 @@ export class ChannelParameters extends React.Component<{}, State> {
         data: null,
         currentTunnel: null,
         currentSubmission: null,
-        app: this,
     };
 
-    layerIdx = -1;
 
     componentDidMount() {
         this.unsubscribe.push(Tunnels.attachOnTunnelsLoaded(() => {

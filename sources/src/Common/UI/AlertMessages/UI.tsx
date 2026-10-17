@@ -63,9 +63,6 @@ export class AlertMessages extends React.Component<{}, {}> {
         watcher.bind(this)();
     }
 
-    componentWillUnmount() {
-    }
-
     render() {
         let messages = [];
         for (let [index, m] of this.queue.entries()) {

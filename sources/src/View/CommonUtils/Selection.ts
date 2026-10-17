@@ -449,10 +449,6 @@ export class SelectionHelper {
         this.invokeOnPointSelectHandlers(points);
     }
 
-    public static getSelectedChannelRef() {
-        return (this.selectedChannelRef === void 0) ? "" : this.selectedChannelRef;
-    }
-
     public static getSelectedChannelId() {
         return (this.selectedChannelId === void 0) ? "" : this.selectedChannelId;
     }

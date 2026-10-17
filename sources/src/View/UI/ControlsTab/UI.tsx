@@ -4,9 +4,6 @@ import { Annotate } from "../Annotate/UI";
 import { DownloadReport } from "../DownloadReport/UI";
 
 export class ControlsTab extends React.Component<{}, {}> {
-    componentDidMount() {
-        
-    }
 
     render() {
         return <>
