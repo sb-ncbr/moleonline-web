@@ -57,6 +57,50 @@ export class Origin implements MoleConfigOrigin {
     }
 }
 
+// A copy of an origin, its lists too
+function copyOrigin(o: MoleConfigOrigin): MoleConfigOrigin {
+    return { Points: o.Points?.slice() ?? null, QueryExpression: o.QueryExpression, Residues: o.Residues?.slice() ?? null };
+}
+
+function toStartingPoints(origin: MoleConfigOrigin | null): StartingPoint[] {
+    if (origin === null) {
+        return [];
+    }
+    const result: StartingPoint[] = [];
+    for (const p of origin.Points ?? []) {
+        result.push({ type: "Point", uiType: "3D Point", value: new Point(p.X.toString(), p.Y.toString(), p.Z.toString()) } as StartingPointXYZ);
+    }
+    for (const residues of origin.Residues ?? []) {
+        result.push({ type: "Residue", uiType: "Residue List", value: residues.map(r => new Residue(r.SequenceNumber, r.Chain)) } as StartingPointResidue);
+    }
+    if (origin.QueryExpression !== null) {
+        result.push({ type: "Query", uiType: "PatternQuery", residue: "", value: origin.QueryExpression } as StartingPointQuery);
+    }
+    return result;
+}
+
+function toOrigin(value: StartingPoint[]): MoleConfigOrigin {
+    const points: MoleConfigPoint[] = [];
+    const residues: MoleConfigResidue[][] = [];
+    let query = null;
+    for (const p of value) {
+        switch (p.type) {
+            case "Point":
+                const point = p.value as Point;
+                points.push({ X: Number(point.x), Y: Number(point.y), Z: Number(point.z) });
+                break;
+            case "Residue":
+                residues.push((p as StartingPointResidue).value.map(r => ({ SequenceNumber: r.seqId, Chain: r.chain }) as MoleConfigResidue));
+                break;
+            case "Query":
+                query = p.value;
+        }
+    }
+    return { Points: points.length > 0 ? points : null, Residues: residues.length > 0 ? residues : null, QueryExpression: query };
+}
+
+// The MOLE settings of the form. A section (Cavity, Input, Tunnel) is sent only once one of its values is set,
+// with the defaults for the others.
 export class MoleFormData {
     private Input: MoleConfigInput | null
     private Cavity: MoleConfigCavity | null
@@ -69,435 +113,93 @@ export class MoleFormData {
     private PoresAuto: boolean
     private IgnoredResidues: string
 
+    // Copies the known fields only: the API refuses unknown ones
     public constructor(data?: MoleConfig) {
-        if (data !== void 0 && data.Cavity !== null && data.Cavity !== void 0) {
-            this.Cavity = {
-                IgnoreHETAtoms: data.Cavity.IgnoreHETAtoms,
-                InteriorThreshold: data.Cavity.InteriorThreshold,
-                IgnoreHydrogens: data.Cavity.IgnoreHydrogens,
-                ProbeRadius: data.Cavity.ProbeRadius
-            };
-        }
-        else {
-            this.Cavity = null;
-        }
-
-        if (data !== void 0 && data.CustomExits !== null && data.CustomExits !== void 0) {
-            this.CustomExits = {
-                Points: (data.CustomExits.Points !== null) ? data.CustomExits.Points.slice() : null,
-                QueryExpression: data.CustomExits.QueryExpression,
-                Residues: (data.CustomExits.Residues !== null) ? data.CustomExits.Residues.slice() : null
-            }
-        }
-        else {
-            this.CustomExits = null;
-        }
-
-        if (data !== void 0 && data.Input !== null && data.Input !== void 0) {
-            this.Input = {
-                SpecificChains: data.Input.SpecificChains
-            }
-        }
-        else {
-            this.Input = null;
-        }
-
-        if (data !== void 0 && data.NonActiveResidues !== null && data.NonActiveResidues !== void 0) {
-            this.NonActiveResidues = data.NonActiveResidues.slice();
-        }
-        else {
-            this.NonActiveResidues = null;
-        }
+        const c = data?.Cavity, i = data?.Input, t = data?.Tunnel;
+        this.Cavity = c ? { IgnoreHETAtoms: c.IgnoreHETAtoms, InteriorThreshold: c.InteriorThreshold, IgnoreHydrogens: c.IgnoreHydrogens, ProbeRadius: c.ProbeRadius } : null;
+        this.Input = i ? { SpecificChains: i.SpecificChains } : null;
+        this.Tunnel = t ? {
+            BottleneckRadius: t.BottleneckRadius, BottleneckTolerance: t.BottleneckTolerance, MaxTunnelSimilarity: t.MaxTunnelSimilarity,
+            OriginRadius: t.OriginRadius, SurfaceCoverRadius: t.SurfaceCoverRadius, UseCustomExitsOnly: t.UseCustomExitsOnly, WeightFunction: t.WeightFunction
+        } : null;
+        this.Origin = data?.Origin ? copyOrigin(data.Origin) : null;
+        this.CustomExits = data?.CustomExits ? copyOrigin(data.CustomExits) : null;
+        this.NonActiveResidues = data?.NonActiveResidues?.slice() ?? null;
         // the text of the Ignored Residues box, e.g. for copied parameters
         this.IgnoredResidues = (this.NonActiveResidues === null) ? "" : flattenResidues(this.NonActiveResidues);
-
-        if (data !== void 0 && data.Origin !== null && data.Origin !== void 0) {
-            this.Origin = {
-                Points: (data.Origin.Points !== null) ? data.Origin.Points.slice() : null,
-                QueryExpression: data.Origin.QueryExpression,
-                Residues: (data.Origin.Residues !== null) ? data.Origin.Residues.slice() : null
-            }
-        }
-        else {
-            this.Origin = null;
-        }
-
-        if (data !== void 0 && data.PoresAuto !== null && data.PoresAuto !== void 0) {
-            this.PoresAuto = data.PoresAuto;
-        }
-        else {
-            this.PoresAuto = false;
-        }
-
-        if (data !== void 0 && data.PoresMerged !== null && data.PoresMerged !== void 0) {
-            this.PoresMerged = data.PoresMerged;
-        }
-        else {
-            this.PoresMerged = false;
-        }
-
-        if (data !== void 0 && data.QueryFilter !== null && data.QueryFilter !== void 0) {
-            this.QueryFilter = data.QueryFilter;
-        }
-        else {
-            this.QueryFilter = null;
-        }
-
-        if (data !== void 0 && data.Tunnel !== null && data.Tunnel !== void 0) {
-            this.Tunnel = {
-                BottleneckRadius: data.Tunnel.BottleneckRadius,
-                BottleneckTolerance: data.Tunnel.BottleneckTolerance,
-                MaxTunnelSimilarity: data.Tunnel.MaxTunnelSimilarity,
-                OriginRadius: data.Tunnel.OriginRadius,
-                SurfaceCoverRadius: data.Tunnel.SurfaceCoverRadius,
-                UseCustomExitsOnly: data.Tunnel.UseCustomExitsOnly,
-                WeightFunction: data.Tunnel.WeightFunction
-            }
-        }
-        else {
-            this.Tunnel = null;
-        }
+        this.QueryFilter = data?.QueryFilter ?? null;
+        this.PoresAuto = data?.PoresAuto ?? false;
+        this.PoresMerged = data?.PoresMerged ?? false;
     }
 
-    public setIgnoreHETATMs(value: boolean) {
-        if (this.Cavity === null) {
-            this.Cavity = new Cavity();
-        }
-        this.Cavity.IgnoreHETAtoms = value;
-    }
+    private cavity() { return this.Cavity ??= new Cavity(); }
+    private input() { return this.Input ??= new Input(); }
+    private tunnel() { return this.Tunnel ??= new Tunnel(); }
 
-    public getIgnoreHETATMs() {
-        if (this.Cavity === null) {
-            return null;
-        }
+    public setIgnoreHETATMs(value: boolean) { this.cavity().IgnoreHETAtoms = value; }
+    public getIgnoreHETATMs() { return this.Cavity?.IgnoreHETAtoms ?? null; }
 
-        return this.Cavity.IgnoreHETAtoms;
-    }
+    public setIgnoreHydrogens(value: boolean) { this.cavity().IgnoreHydrogens = value; }
+    public getIgnoreHydrogens() { return this.Cavity?.IgnoreHydrogens ?? null; }
 
-    public setIgnoreHydrogens(value: boolean) {
-        if (this.Cavity === null) {
-            this.Cavity = new Cavity();
-        }
-        this.Cavity.IgnoreHydrogens = value;
-    }
+    public setInteriorThreshold(value: number) { this.cavity().InteriorThreshold = value; }
+    public getInteriorThreshold() { return this.Cavity?.InteriorThreshold ?? null; }
 
-    public getIgnoreHydrogens() {
-        if (this.Cavity === null) {
-            return null;
-        }
+    public setProbeRadius(value: number) { this.cavity().ProbeRadius = value; }
+    public getProbeRadius() { return this.Cavity?.ProbeRadius ?? null; }
 
-        return this.Cavity.IgnoreHydrogens;
-    }
+    public setSpecificChains(value: string) { this.input().SpecificChains = value; }
+    public getSpecificChains() { return this.Input?.SpecificChains ?? null; }
 
-    public setInteriorThreshold(value: number) {
-        if (this.Cavity === null) {
-            this.Cavity = new Cavity();
-        }
-        this.Cavity.InteriorThreshold = value;
-    }
+    public setOriginRadius(value: number) { this.tunnel().OriginRadius = value; }
+    public getOriginRadius() { return this.Tunnel?.OriginRadius ?? null; }
 
-    public getInteriorThreshold() {
-        if (this.Cavity === null) {
-            return null;
-        }
-        return this.Cavity.InteriorThreshold;
-    }
+    public setSurfaceCoverRadius(value: number) { this.tunnel().SurfaceCoverRadius = value; }
+    public getSurfaceCoverRadius() { return this.Tunnel?.SurfaceCoverRadius ?? null; }
 
-    public setProbeRadius(value: number) {
-        if (this.Cavity === null) {
-            this.Cavity = new Cavity();
-        }
-        this.Cavity.ProbeRadius = value;
-    }
+    public setWeightFunction(value: string) { this.tunnel().WeightFunction = value; }
+    public getWeightFunction() { return this.Tunnel?.WeightFunction ?? null; }
 
-    public getProbeRadius() {
-        if (this.Cavity === null) {
-            return null;
-        }
-        return this.Cavity.ProbeRadius;
-    }
+    public setBottleneckRadius(value: number) { this.tunnel().BottleneckRadius = value; }
+    public getBottleneckRadius() { return this.Tunnel?.BottleneckRadius ?? null; }
 
-    public setSpecificChains(value: string) {
-        if (this.Input === null) {
-            this.Input = new Input();
-        }
-        this.Input.SpecificChains = value;
-    }
+    public setBottleneckTolerance(value: number) { this.tunnel().BottleneckTolerance = value; }
+    public getBottleneckTolerance() { return this.Tunnel?.BottleneckTolerance ?? null; }
 
-    public getSpecificChains() {
-        if (this.Input === null) {
-            return null;
-        }
-        return this.Input.SpecificChains;
-    }
+    public setMaxTunnelSimilarity(value: number) { this.tunnel().MaxTunnelSimilarity = value; }
+    public getMaxTunnelSimilarity() { return this.Tunnel?.MaxTunnelSimilarity ?? null; }
 
-    public setOriginRadius(value: number) {
-        if (this.Tunnel === null) {
-            this.Tunnel = new Tunnel();
-        }
-        this.Tunnel.OriginRadius = value;
-    }
+    public setMergePores(value: boolean) { this.PoresMerged = value; }
+    public getMergePores() { return this.PoresMerged; }
 
-    public getOriginRadius() {
-        if (this.Tunnel === null) {
-            return null;
-        }
-        return this.Tunnel.OriginRadius;
-    }
+    public setAutomaticPores(value: boolean) { this.PoresAuto = value; }
+    public getAutomaticPores() { return this.PoresAuto; }
 
-    public setSurfaceCoverRadius(value: number) {
-        if (this.Tunnel === null) {
-            this.Tunnel = new Tunnel();
-        }
-        this.Tunnel.SurfaceCoverRadius = value;
-    }
+    public setIgnoredResidues(value: MoleConfigResidue[]) { this.NonActiveResidues = value.slice(); }
 
-    public getSurfaceCoverRadius() {
-        if (this.Tunnel === null) {
-            return null;
-        }
-        return this.Tunnel.SurfaceCoverRadius;
-    }
+    public setIgnoredResiduesStr(value: string) { this.IgnoredResidues = value; }
+    public getIgnoredResiduesStr() { return this.IgnoredResidues; }
 
-    public setWeightFunction(value: string) {
-        if (this.Tunnel === null) {
-            this.Tunnel = new Tunnel();
-        }
-        this.Tunnel.WeightFunction = value;
-    }
+    public setQueryFilter(value: string) { this.QueryFilter = value; }
+    public getQueryFilter() { return this.QueryFilter; }
 
-    public getWeightFunction() {
-        if (this.Tunnel === null) {
-            return null;
-        }
-        return this.Tunnel.WeightFunction;
-    }
+    public setStartingPoints(value: StartingPoint[]) { this.Origin = toOrigin(value); }
+    public getStartingPoints() { return toStartingPoints(this.Origin); }
 
-    public setBottleneckRadius(value: number) {
-        if (this.Tunnel === null) {
-            this.Tunnel = new Tunnel();
-        }
-        this.Tunnel.BottleneckRadius = value;
-    }
-
-    public getBottleneckRadius() {
-        if (this.Tunnel === null) {
-            return null;
-        }
-        return this.Tunnel.BottleneckRadius;
-    }
-
-    public setBottleneckTolerance(value: number) {
-        if (this.Tunnel === null) {
-            this.Tunnel = new Tunnel();
-        }
-        this.Tunnel.BottleneckTolerance = value;
-    }
-
-    public getBottleneckTollerance() {
-        if (this.Tunnel === null) {
-            return null;
-        }
-        return this.Tunnel.BottleneckTolerance;
-    }
-
-    public setMaxTunnelSimilarity(value: number) {
-        if (this.Tunnel === null) {
-            this.Tunnel = new Tunnel();
-        }
-        this.Tunnel.MaxTunnelSimilarity = value;
-    }
-
-    public getMaxTunnelSimilarity() {
-        if (this.Tunnel === null) {
-            return null;
-        }
-        return this.Tunnel.MaxTunnelSimilarity;
-    }
-
-    public setMergePores(value: boolean) {
-        this.PoresMerged = value;
-    }
-
-    public getMergePores() {
-        return this.PoresMerged;
-    }
-
-    public setAutomaticPores(value: boolean) {
-        this.PoresAuto = value;
-    }
-
-    public getAutomaticPores() {
-        return this.PoresAuto;
-    }
-
-    public setIgnoredResidues(value: MoleConfigResidue[]) {
-        this.NonActiveResidues = value.slice();
-    }
-
-    public setQueryFilter(value: string) {
-        this.QueryFilter = value;
-    }
-
-    public getQueryFilter() {
-        return this.QueryFilter;
-    }
-
-    public setIgnoredResiduesStr(value: string) {
-        this.IgnoredResidues = value;
-    }
-
-    public getIgnoredResiduesStr() {
-        return this.IgnoredResidues;
-    }
-
-    private setPoints(value: StartingPoint[], isStart: boolean) {
-        let points: MoleConfigPoint[] = [];
-        let residues: MoleConfigResidue[][] = [];
-        let query = null;
-
-        for (let p of value) {
-            switch (p.type) {
-                case "Point":
-                    let point = p.value as Point;
-                    points.push({ X: Number(point.x), Y: Number(point.y), Z: Number(point.z.toString()) });
-                    break;
-                case "Residue":
-                    let rp = (p as StartingPointResidue);
-                    rp.value
-                    residues.push(rp.value.map((val, idx, arr) => {
-                        return {
-                            SequenceNumber: val.seqId,
-                            Chain: val.chain
-                        } as MoleConfigResidue
-                    }));
-                    break;
-                case "Query":
-                    query = p.value;
-            }
-        }
-
-        if (isStart) {
-            if (this.Origin === null) {
-                this.Origin = new Origin();
-            }
-
-            this.Origin.Points = (points.length > 0) ? points : null;
-            this.Origin.Residues = (residues.length > 0) ? residues : null;
-            this.Origin.QueryExpression = query;
-        }
-        else {
-            if (this.CustomExits === null) {
-                this.CustomExits = new Origin();
-            }
-
-            this.CustomExits.Points = (points.length > 0) ? points : null;
-            this.CustomExits.Residues = (residues.length > 0) ? residues : null;
-            this.CustomExits.QueryExpression = query;
-        }
-    }
-
-    public setStartingPoints(value: StartingPoint[]) {
-        this.setPoints(value, true);
-    }
-
-    public setEndPoints(value: StartingPoint[]) {
-        this.setPoints(value, false);
-    }
-
-    public getStartingPoints(): StartingPoint[] {
-        if (this.Origin === null) {
-            return [];
-        }
-
-        let result: StartingPoint[] = [];
-        if (this.Origin.Points !== null) {
-            result = result.concat(this.Origin.Points.map((val, idx, arr) => {
-                return {
-                    type: "Point",
-                    uiType: "3D Point",
-                    value: new Point(val.X.toString(), val.Y.toString(), val.Z.toString())
-                } as StartingPointXYZ;
-            }));
-        }
-
-        if (this.Origin.Residues !== null) {
-            result = result.concat(this.Origin.Residues.map((val, idx, arr) => {
-                return {
-                    type: "Residue",
-                    uiType: "Residue List",
-                    value: val.map((v, i, a) => {
-                        return new Residue(v.SequenceNumber, v.Chain)
-                    })
-                } as StartingPointResidue
-            }));
-        }
-
-        if (this.Origin.QueryExpression !== null) {
-            result.push({
-                type: "Query",
-                uiType: "PatternQuery",
-                residue: "",
-                value: this.Origin.QueryExpression
-            } as StartingPointQuery);
-        }
-
-        return result;
-    }
-
-    public getEndingPoints(): StartingPoint[] {
-        if (this.CustomExits === null) {
-            return [];
-        }
-
-        let result: StartingPoint[] = [];
-        if (this.CustomExits.Points !== null) {
-            result = result.concat(this.CustomExits.Points.map((val, idx, arr) => {
-                return {
-                    type: "Point",
-                    uiType: "3D Point",
-                    value: new Point(val.X.toString(), val.Y.toString(), val.Z.toString())
-                } as StartingPointXYZ;
-            }));
-        }
-
-        if (this.CustomExits.Residues !== null) {
-            result = result.concat(this.CustomExits.Residues.map((val, idx, arr) => {
-                return {
-                    type: "Residue",
-                    uiType: "Residue List",
-                    value: val.map((v, i, a) => {
-                        return new Residue(v.SequenceNumber, v.Chain)
-                    })
-                } as StartingPointResidue
-            }));
-        }
-
-        if (this.CustomExits.QueryExpression !== null) {
-            result.push({
-                type: "Query",
-                uiType: "PatternQuery",
-                residue: "",
-                value: this.CustomExits.QueryExpression
-            } as StartingPointQuery);
-        }
-
-        return result;
-    }
-
-    //--
+    public setEndPoints(value: StartingPoint[]) { this.CustomExits = toOrigin(value); }
+    public getEndingPoints() { return toStartingPoints(this.CustomExits); }
 
     public getPackage(): MoleConfig {
         return {
-            Cavity: (this.Cavity === null) ? void 0 : this.Cavity,
+            Cavity: this.Cavity ?? void 0,
             CustomExits: this.CustomExits,
-            Input: (this.Input === null) ? void 0 : this.Input,
+            Input: this.Input ?? void 0,
             NonActiveResidues: this.NonActiveResidues,
             Origin: this.Origin,
             PoresAuto: this.PoresAuto,
             PoresMerged: this.PoresMerged,
             QueryFilter: this.QueryFilter,
-            Tunnel: (this.Tunnel === null) ? void 0 : this.Tunnel
+            Tunnel: this.Tunnel ?? void 0
         }
     }
 }
@@ -511,78 +213,27 @@ export class PoresFormData {
     private InteriorThreshold: number | null;
 
     public constructor(data?: PoresConfig) {
-        if (data !== void 0 && data.InMembrane !== null && data.InMembrane !== void 0) {
-            this.InMembrane = data.InMembrane;
-        }
-        else {
-            this.InMembrane = false;
-        }
-
-        if (data !== void 0 && data.IsBetaBarrel !== null && data.IsBetaBarrel !== void 0) {
-            this.IsBetaBarrel = data.IsBetaBarrel;
-        }
-        else {
-            this.IsBetaBarrel = false;
-        }
-
+        this.InMembrane = data?.InMembrane ?? false;
+        this.IsBetaBarrel = data?.IsBetaBarrel ?? false;
         this.ChainsText = formatChains(data?.Chains);
-
-        if (data !== void 0 && data.InteriorThreshold !== null && data.InteriorThreshold !== void 0) {
-            this.InteriorThreshold = data.InteriorThreshold;
-        }
-        else {
-            this.InteriorThreshold = null;
-        }
-
-        if (data !== void 0 && data.ProbeRadius !== null && data.ProbeRadius !== void 0) {
-            this.ProbeRadius = data.ProbeRadius;
-        }
-        else {
-            this.ProbeRadius = null;
-        }
+        this.InteriorThreshold = data?.InteriorThreshold ?? null;
+        this.ProbeRadius = data?.ProbeRadius ?? null;
     }
 
-    public setBetaStructure(value: boolean) {
-        this.IsBetaBarrel = value;
-    }
+    public setBetaStructure(value: boolean) { this.IsBetaBarrel = value; }
+    public getBetaStructure() { return this.IsBetaBarrel; }
 
-    public getBetaStructure() {
-        return this.IsBetaBarrel;
-    }
+    public setMembraneRegion(value: boolean) { this.InMembrane = value; }
+    public getMembraneRegion() { return this.InMembrane; }
 
-    public setMembraneRegion(value: boolean) {
-        this.InMembrane = value;
-    }
+    public setSpecificChains(value: string) { this.ChainsText = value; }
+    public getSpecificChains() { return this.ChainsText; }
 
-    public getMembraneRegion() {
-        return this.InMembrane;
-    }
+    public setProbeRadius(value: number) { this.ProbeRadius = value; }
+    public getProbeRadius() { return this.ProbeRadius; }
 
-    public setSpecificChains(value: string) {
-        this.ChainsText = value;
-    }
-
-    public getSpecificChains() {
-        return this.ChainsText;
-    }
-
-    public setProbeRadius(value: number) {
-        this.ProbeRadius = value;
-    }
-
-    public getProbeRadius() {
-        return this.ProbeRadius;
-    }
-
-    public setInteriorThreshold(value: number) {
-        this.InteriorThreshold = value;
-    }
-
-    public getInteriorThreshold() {
-        return this.InteriorThreshold;
-    }
-
-    //--
+    public setInteriorThreshold(value: number) { this.InteriorThreshold = value; }
+    public getInteriorThreshold() { return this.InteriorThreshold; }
 
     public getPackage(): PoresConfig {
         return {

@@ -396,7 +396,7 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                             this.setState(s);
                         }
                     }} />
-                    <NumberRangeControl name="Bottleneck Tolerance" param={ParamDefinition.Numeric(3, { min: 0, max: 5, step: 0.1 })} value={valueOrDefault(data.getBottleneckTollerance(), 3)} onChange={(v) => {
+                    <NumberRangeControl name="Bottleneck Tolerance" param={ParamDefinition.Numeric(3, { min: 0, max: 5, step: 0.1 })} value={valueOrDefault(data.getBottleneckTolerance(), 3)} onChange={(v) => {
                         let s = this.state;
                         if (s.moleFormData !== null) {
                             s.moleFormData.setBottleneckTolerance(v.value);
