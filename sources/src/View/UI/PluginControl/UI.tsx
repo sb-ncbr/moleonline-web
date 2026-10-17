@@ -9,14 +9,14 @@ import { LightResidueInfo, SelectionHelper } from "../../CommonUtils/Selection";
 import { Residues } from "../../CommonUtils/Residues";
 import { Tunnels } from "../../CommonUtils/Tunnels";
 import { ChannelsDBData } from "../../../Cache";
-import { ChannelAnnotation } from "../../../ChannelsDBAPIService";
-import { getParameters, isInChannelsDBMode } from "../../../Common/Util/Router";
+import { getParameters } from "../../../Common/Util/Router";
 import { CommonOptions } from "../../../../config/common";
 import { loadData, showCavityVisuals, showMembraneVisuals, showOriginsSurface } from "../../State";
 import { Context } from "../../Context";
 import { StateSelection } from "molstar/lib/mol-state";
 import WaveLoader from "../../CommonUtils/WaveLoader";
 import { LoadingStatusDisplay } from "../../CommonUtils/LoadingInfo/LoadingStatusDisplay";
+import { Section } from "./ChannelsUI";
 
 declare function $(p: any): any;
 
@@ -170,7 +170,7 @@ export class Data extends React.Component<State, {}> {
         cavities.forEach((val, key, map) => {
             if (val.length > 0) {
                 cavitiesControls.push(
-                    <Cavities key={key.toString()} cavities={val} state={this.props} header={key.valueOf()} />
+                    <Cavities key={key.toString()} cavities={val} header={key.valueOf()} />
                 );
             }
         });
@@ -350,87 +350,7 @@ export class Selection extends React.Component<State, { label?: string | JSX.Ele
     }
 }
 
-export class Section extends React.Component<{ header: string, count: number, controls: React.ReactNode, children?: React.ReactNode }, { isExpanded: boolean }> {
-    state = { isExpanded: false }
-
-    private toggle(e: React.MouseEvent<HTMLElement>) {
-        e.preventDefault();
-        this.setState({ isExpanded: !this.state.isExpanded });
-    }
-
-    render() {
-        return <div className="ui-item-container" style={{ position: 'relative' }}>
-            <div className="ui-subheader">
-                <a href='#' onClick={e => this.toggle(e)} className='section-header'><div style={{ width: '15px', display: 'inline-block', textAlign: 'center' }}>{this.state.isExpanded ? '-' : '+'}</div> {this.props.header} ({this.props.count})</a>
-                <div style={{ display: this.state.isExpanded ? 'block' : 'none' }}>{this.props.controls}</div>
-            </div>
-            <div style={{ display: this.state.isExpanded ? 'block' : 'none' }}>{this.props.children}</div>
-        </div>
-    }
-}
-
-export class Renderable extends React.Component<{ label: string | JSX.Element, element: any, annotations?: ChannelAnnotation[], toggle: (elements: any[], visible: boolean) => Promise<any> } & State, { isAnnotationsVisible: boolean }> {
-
-    state = { isAnnotationsVisible: false };
-
-    private toggle() {
-        this.props.element.__isBusy = true;
-        this.forceUpdate(() =>
-            this.props.toggle([this.props.element], !this.props.element.__isVisible)
-                .then(() => this.forceUpdate()).catch(() => this.forceUpdate()));
-    }
-
-    private highlight(isOn: boolean) {
-    }
-
-    private toggleAnnotations(e: any) {
-        this.setState({ isAnnotationsVisible: !this.state.isAnnotationsVisible });
-    }
-
-    private getAnnotationToggler() {
-        return [(this.state.isAnnotationsVisible)
-            ? <span className="hand bi bi-chevron-up" title="Hide list annotations for this channel" onClick={this.toggleAnnotations.bind(this)} />
-            : <span className="hand bi bi-chevron-down" title="Show all annotations available for this channel" onClick={this.toggleAnnotations.bind(this)} />];
-    }
-
-    private getAnnotationsElements() {
-        if (this.props.annotations === void 0) {
-            return [];
-        }
-        if (!this.state.isAnnotationsVisible) {
-            return [];
-        }
-        let elements: JSX.Element[] = [];
-        for (let [index, annotation] of this.props.annotations.entries()) {
-            let reference = <i>(No reference provided)</i>;
-            if (annotation.reference !== "") {
-                reference = <a target="_blank" href={annotation.link}>{annotation.reference} <span className="bi bi-box-arrow-up-right" /></a>;
-            }
-            elements.push(
-                <div key={index} className="annotation-line">
-                    <span className="bullet" /> <b>{annotation.name}</b>, {reference}
-                </div>
-            );
-        }
-        return elements;
-    }
-
-    render() {
-        let emptyToggler;
-        if (isInChannelsDBMode()) {
-            emptyToggler = <span className="disabled bi bi-chevron-down" title="No annotations available for this channel" onClick={this.toggleAnnotations.bind(this)} />
-        }
-        return <div className="ui-label">
-            <input type='checkbox' checked={!!this.props.element.__isVisible} onChange={() => this.toggle()} disabled={!!this.props.element.__isBusy} />
-            <label className="ui-label-element" onMouseEnter={() => this.highlight(true)} onMouseLeave={() => this.highlight(false)} >
-                {(this.props.annotations !== void 0 && this.props.annotations.length > 0) ? this.getAnnotationToggler() : emptyToggler} {this.props.label}
-            </label>
-            {this.getAnnotationsElements()}
-        </div>
-    }
-}
-
-export class Cavities extends React.Component<{ state: State, cavities: any[], header: string }, { isBusy: boolean }> {
+export class Cavities extends React.Component<{ cavities: any[], header: string }, { isBusy: boolean }> {
     state = { isBusy: false }
     private show(visible: boolean) {
         for (let element of this.props.cavities) { element.__isBusy = true; }
@@ -448,19 +368,29 @@ export class Cavities extends React.Component<{ state: State, cavities: any[], h
             controls={<div className='ui-show-all'><button className="btn btn-primary btn-sm" onClick={() => this.show(true)} disabled={this.state.isBusy || this.isDisabled()}>All</button><button className="btn btn-primary btn-sm" onClick={() => this.show(false)} disabled={this.state.isBusy || this.isDisabled()}>None</button></div>}
         >
             {this.props.cavities && this.props.cavities.length > 0
-                ? this.props.cavities.map((c, i) => <Cavity key={i} cavity={c} state={this.props.state} />)
+                ? this.props.cavities.map((c, i) => <Cavity key={i} cavity={c} />)
                 : <div className="ui-label ui-no-data-available">No data available...</div>}
         </Section>
     }
 }
 
-export class Cavity extends React.Component<{ state: State, cavity: any }, { isVisible: boolean }> {
-    state = { isVisible: false };
+// A cavity's checkbox: shows or hides it
+export class Cavity extends React.Component<{ cavity: any }> {
+    private toggle() {
+        const c = this.props.cavity;
+        c.__isBusy = true;
+        this.forceUpdate(() =>
+            showCavityVisuals([c], !c.__isVisible)
+                .then(() => this.forceUpdate()).catch(() => this.forceUpdate()));
+    }
 
     render() {
-        let c = this.props.cavity;
-        return <div key={c.Id}>
-            <Renderable label={<span><b>{c.Id}</b>, Volume: <b>{`${c.Volume | 0} Å`}<sup>3</sup></b></span>} element={c} toggle={showCavityVisuals} {...this.props.state} />
+        const c = this.props.cavity;
+        return <div>
+            <div className="ui-label">
+                <input type='checkbox' checked={!!c.__isVisible} onChange={() => this.toggle()} disabled={!!c.__isBusy} />
+                <label className="ui-label-element"> <span><b>{c.Id}</b>, Volume: <b>{`${c.Volume | 0} Å`}<sup>3</sup></b></span></label>
+            </div>
         </div>
     }
 }

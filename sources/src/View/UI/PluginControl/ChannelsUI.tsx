@@ -391,7 +391,7 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
         for (let [index, annotation] of this.props.annotations.entries()) {
             let reference = <i>(No reference provided)</i>;
             if (annotation.reference !== "") {
-                reference = <a target="#" href={annotation.link}>{annotation.reference} <span className="bi-box-arrow-up-right" /></a>;
+                reference = <a target="_blank" href={annotation.link}>{annotation.reference} <span className="bi bi-box-arrow-up-right" /></a>;
             }
             elements.push(
                 <div key={index} className="annotation-line">
