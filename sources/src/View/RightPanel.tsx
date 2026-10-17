@@ -28,7 +28,6 @@ export class RightPanel extends React.Component<{ context: Context }, {twoDProts
             coloringProperty: "Hydropathy",
             useColorMinMax: true,
             skipMiddleColor: false,
-            topMargin: 0, //15,
             customRadiusProperty: "MinRadius"
         }
 

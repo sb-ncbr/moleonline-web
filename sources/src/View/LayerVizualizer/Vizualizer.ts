@@ -18,21 +18,6 @@ export type DataURL = string;
 
 type PropertyKey = "Polarity" | "Mutability" | "Hydropathy" | "Hydrophobicity" | "Charge" | "NumNegatives" | "NumPositives" | "LogP" | "LogD" | "LogS" | "Ionizable" | "BRadius"
 
-export interface PropertiesNumberCell {
-    Polarity: number,
-    Mutability: number,
-    Hydropathy: number,
-    Hydrophobicity: number,
-    Charge: number,
-    NumNegatives: number,
-    NumPositives: number,
-    LogP: number,
-    LogD: number,
-    LogS: number,
-    Ionizable: number,
-    BRadius: number
-}
-
 export interface PropertiesColorCell {
     Polarity: RGBColor,
     Mutability: RGBColor,
@@ -51,10 +36,7 @@ export interface PropertiesColorCell {
 export interface LayersVizualizerSettings {
     coloringProperty?: String,
     useColorMinMax?: Boolean,
-    colorMaxValue?: PropertiesNumberCell,
-    colorMinValue?: PropertiesNumberCell,
     skipMiddleColor?: Boolean,
-    topMargin?: Number,
     radiusProperty?: RadiusProperty,
     customRadiusProperty?: RadiusProperty
 };
@@ -123,14 +105,8 @@ export class Vizualizer {
 
     private selectedLayerIds: number[];
 
-    private __colorFunctionSetings: Map<string, ColorPaletteFunctionSettings>;
-
     public getPublicInstanceIdx() {
         return this.publicInstanceIdx;
-    }
-
-    private setCurrentColorFunctionSettings(tunnelType: "default" | "customizable", colorFunctionSetings: ColorPaletteFunctionSettings) {
-        this.__colorFunctionSetings.set(tunnelType, colorFunctionSetings);
     }
 
     public isDataDirty() {
@@ -255,118 +231,28 @@ export class Vizualizer {
             this.useColorMinMax = settings.useColorMinMax.valueOf();
         }
 
+        // Colour scale of each property: minimum, centre and maximum
+        const scales: Record<PropertyKey, [number, number, number]> = {
+            Polarity: [0, 5, 52],
+            Mutability: [25, 75, 117],
+            Hydropathy: [-4.5, 0, 4.5],
+            Hydrophobicity: [-1.14, 0, 1.81],
+            Charge: [-5, 0, 5],
+            NumPositives: [0, 0, 5],
+            NumNegatives: [0, 0, 5],
+            LogP: [-1.03, 0.78, 2.59],
+            LogD: [-3, -0.205, 2.59],
+            LogS: [-2.48, 0.075, 2.63],
+            Ionizable: [0, 0, 5],
+            BRadius: [0, 3, 6],
+        };
         this.absCenterPositions = new Map<PropertyKey, number>();
-        this.absCenterPositions.set("Polarity", 5);
-        this.absCenterPositions.set("Hydropathy", 0);
-        this.absCenterPositions.set("Hydrophobicity", 0);
-        this.absCenterPositions.set("Mutability", 75);
-        this.absCenterPositions.set("Charge", 0);
-        this.absCenterPositions.set("NumPositives", 0);
-        this.absCenterPositions.set("NumNegatives", 0);
-        this.absCenterPositions.set("LogP", 0.78);
-        this.absCenterPositions.set("LogD", -0.205);
-        this.absCenterPositions.set("LogS", 0.075);
-        this.absCenterPositions.set("Ionizable", 0);
-        this.absCenterPositions.set("BRadius", 3);
-
-        this.absColorValueMax = new Map<string, number>();
-        this.absColorValueMax.set("Polarity", 52);
-        if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.Polarity !== void 0) {
-            this.absColorValueMax.set("Polarity", settings.colorMaxValue.Polarity.valueOf());
-        }
-        this.absColorValueMax.set("Mutability", 117);
-        if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.Mutability !== void 0) {
-            this.absColorValueMax.set("Mutability", settings.colorMaxValue.Mutability.valueOf());
-        }
-        this.absColorValueMax.set("Hydropathy", 4.5);
-        if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.Hydropathy !== void 0) {
-            this.absColorValueMax.set("Hydropathy", settings.colorMaxValue.Hydropathy.valueOf());
-        }
-        this.absColorValueMax.set("Hydrophobicity", 1.81);
-        if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.Hydrophobicity !== void 0) {
-            this.absColorValueMax.set("Hydrophobicity", settings.colorMaxValue.Hydrophobicity.valueOf());
-        }
-        this.absColorValueMax.set("Charge", 5);
-        if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.Charge !== void 0) {
-            this.absColorValueMax.set("Charge", settings.colorMaxValue.Charge.valueOf());
-        }
-        this.absColorValueMax.set("NumPositives", 5);
-        if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.NumPositives !== void 0) {
-            this.absColorValueMax.set("NumPositives", settings.colorMaxValue.NumPositives.valueOf());
-        }
-        this.absColorValueMax.set("NumNegatives", 5);
-        if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.NumNegatives !== void 0) {
-            this.absColorValueMax.set("NumNegatives", settings.colorMaxValue.NumNegatives.valueOf());
-        }
-        this.absColorValueMax.set("LogP", 2.59);
-        if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.LogP !== void 0) {
-            this.absColorValueMax.set("LogP", settings.colorMaxValue.LogP.valueOf());
-        }
-        this.absColorValueMax.set("LogD", 2.59);
-        if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.LogD !== void 0) {
-            this.absColorValueMax.set("LogD", settings.colorMaxValue.LogD.valueOf());
-        }
-        this.absColorValueMax.set("LogS", 2.63);
-        if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.LogS !== void 0) {
-            this.absColorValueMax.set("LogS", settings.colorMaxValue.LogS.valueOf());
-        }
-        this.absColorValueMax.set("Ionizable", 5);
-        if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.Ionizable !== void 0) {
-            this.absColorValueMax.set("Ionizable", settings.colorMaxValue.Ionizable.valueOf());
-        }
-        this.absColorValueMax.set("BRadius", 6);
-        if (settings.colorMaxValue !== void 0 && settings.colorMaxValue.BRadius !== void 0) {
-            this.absColorValueMax.set("BRadius", settings.colorMaxValue.BRadius.valueOf());
-        }
-
         this.absColorValueMin = new Map<string, number>();
-        this.absColorValueMin.set("Polarity", 0);
-        if (settings.colorMinValue !== void 0 && settings.colorMinValue.Polarity !== void 0) {
-            this.absColorValueMin.set("Polarity", settings.colorMinValue.Polarity.valueOf());
-        }
-        this.absColorValueMin.set("Mutability", 25);
-        if (settings.colorMinValue !== void 0 && settings.colorMinValue.Mutability !== void 0) {
-            this.absColorValueMin.set("Mutability", settings.colorMinValue.Mutability.valueOf());
-        }
-        this.absColorValueMin.set("Hydropathy", -4.5);
-        if (settings.colorMinValue !== void 0 && settings.colorMinValue.Hydropathy !== void 0) {
-            this.absColorValueMin.set("Hydropathy", settings.colorMinValue.Hydropathy.valueOf());
-        }
-        this.absColorValueMin.set("Hydrophobicity", -1.14);
-        if (settings.colorMinValue !== void 0 && settings.colorMinValue.Hydrophobicity !== void 0) {
-            this.absColorValueMin.set("Hydrophobicity", settings.colorMinValue.Hydrophobicity.valueOf());
-        }
-        this.absColorValueMin.set("Charge", -5);
-        if (settings.colorMinValue !== void 0 && settings.colorMinValue.Charge !== void 0) {
-            this.absColorValueMin.set("Charge", settings.colorMinValue.Charge.valueOf());
-        }
-        this.absColorValueMin.set("NumPositives", 0);
-        if (settings.colorMinValue !== void 0 && settings.colorMinValue.NumPositives !== void 0) {
-            this.absColorValueMin.set("NumPositives", settings.colorMinValue.NumPositives.valueOf());
-        }
-        this.absColorValueMin.set("NumNegatives", 0);
-        if (settings.colorMinValue !== void 0 && settings.colorMinValue.NumNegatives !== void 0) {
-            this.absColorValueMin.set("NumNegatives", settings.colorMinValue.NumNegatives.valueOf());
-        }
-        this.absColorValueMin.set("LogP", -1.03);
-        if (settings.colorMinValue !== void 0 && settings.colorMinValue.LogP !== void 0) {
-            this.absColorValueMin.set("LogP", settings.colorMinValue.LogP.valueOf());
-        }
-        this.absColorValueMin.set("LogD", -3);
-        if (settings.colorMinValue !== void 0 && settings.colorMinValue.LogD !== void 0) {
-            this.absColorValueMin.set("LogD", settings.colorMinValue.LogD.valueOf());
-        }
-        this.absColorValueMin.set("LogS", -2.48);
-        if (settings.colorMinValue !== void 0 && settings.colorMinValue.LogS !== void 0) {
-            this.absColorValueMin.set("LogS", settings.colorMinValue.LogS.valueOf());
-        }
-        this.absColorValueMin.set("Ionizable", 0);
-        if (settings.colorMinValue !== void 0 && settings.colorMinValue.Ionizable !== void 0) {
-            this.absColorValueMin.set("Ionizable", settings.colorMinValue.Ionizable.valueOf());
-        }
-        this.absColorValueMin.set("BRadius", 0);
-        if (settings.colorMinValue !== void 0 && settings.colorMinValue.BRadius !== void 0) {
-            this.absColorValueMin.set("BRadius", settings.colorMinValue.BRadius.valueOf());
+        this.absColorValueMax = new Map<string, number>();
+        for (const [key, [min, center, max]] of Object.entries(scales) as [PropertyKey, [number, number, number]][]) {
+            this.absColorValueMin.set(key, min);
+            this.absCenterPositions.set(key, center);
+            this.absColorValueMax.set(key, max);
         }
 
         this.radiusPropertyKey = "MinRadius";
@@ -488,8 +374,6 @@ export class Vizualizer {
         this.tmpCanvasId = `tmpCanvas_${this.publicInstanceIdx}`;
 
         this.selectedLayerIds = [];
-
-        this.__colorFunctionSetings = new Map<string, ColorPaletteFunctionSettings>();
 
         //Dynamic canvas resizing
         this.resizePercentPrecision = 1; //5% difference between real and given => cause resizing of canvas
@@ -648,18 +532,13 @@ export class Vizualizer {
             verticalAxis_2: new AxisCompnent(),
             defaultColorMixer: new Paintable(),
             defaultColorMixerHorizontal: new Paintable(),
-            customizableColorMixer: new Paintable(),
             customizableColorMixerHorizontal: new Paintable(),
             vAxis1TopLabel: new Positionable(),
             vAxis2BottomLabel: new Positionable(),
             axisLeftZeroLabel: new Positionable(),
             horizontalAxisRightLabel: new Positionable(),
-            dColorMixerTopLabel: new Positionable(),
-            dColorMixerBottomLabel: new Positionable(),
             dColorMixerLeftLabel: new Positionable(),
             dColorMixerRightLabel: new Positionable(),
-            cColorMixerTopLabel: new Positionable(),
-            cColorMixerBottomLabel: new Positionable(),
             cColorMixerLeftLabel: new Positionable(),
             cColorMixerRightLabel: new Positionable(),
             defaultCurlyBrackets: new Positionable(),
@@ -729,16 +608,6 @@ export class Vizualizer {
                 - (cmhHeight + 1/*(1=>margin-bottom)*/);
             positioning.defaultColorMixerHorizontal.height = cmhHeight;
         }
-        //Customizable Color Mixer
-        {
-            positioning.customizableColorMixer.left = positioning.defaultColorMixer.left;
-            positioning.customizableColorMixer.marginBottom = 5;
-            positioning.customizableColorMixer.marginLeft = 1;
-            positioning.customizableColorMixer.width = positioning.defaultColorMixer.width;
-            positioning.customizableColorMixer.height = positioning.defaultColorMixer.height;
-            positioning.customizableColorMixer.bottom = 0;
-        }
-
         //Customizable Color Mixer -- Horizontal
         {
             positioning.customizableColorMixerHorizontal.left = positioning.customizableTunnel.left
@@ -845,36 +714,6 @@ export class Vizualizer {
                 + ((positioning.verticalAxis_2.left === void 0) ? 0 : positioning.verticalAxis_2.left);;
             positioning.vAxis2BottomLabel.height = positioning.axisLeftZeroLabel.height;
         }
-        //Top Default Color Mixer Label
-        {
-            positioning.dColorMixerTopLabel.left = positioning.defaultColorMixer.left
-                + positioning.defaultColorMixer.marginLeft
-                + positioning.defaultColorMixer.width;
-            positioning.dColorMixerTopLabel.marginLeft = 1;
-            positioning.dColorMixerTopLabel.top = positioning.defaultTunnel.top
-                + positioning.defaultTunnel.marginTop;
-            positioning.dColorMixerTopLabel.marginTop = 0;
-
-            positioning.dColorMixerTopLabel.width = 100
-                - (positioning.defaultColorMixer.left
-                    + positioning.defaultColorMixer.marginLeft
-                    + positioning.defaultColorMixer.width
-                    + positioning.dColorMixerTopLabel.marginLeft);
-            positioning.dColorMixerTopLabel.height = positioning.axisLeftZeroLabel.height;
-        }
-        //Bottom Default Color Mixer Label
-        {
-            positioning.dColorMixerBottomLabel.left = positioning.dColorMixerTopLabel.left;
-            positioning.dColorMixerBottomLabel.marginLeft = positioning.dColorMixerTopLabel.marginLeft;
-            positioning.dColorMixerBottomLabel.top =
-                ((positioning.defaultTunnel.top === void 0) ? 0 : positioning.defaultTunnel.top)
-                + positioning.defaultTunnel.marginTop
-                + positioning.defaultTunnel.height
-                - (positioning.axisLeftZeroLabel.height);
-
-            positioning.dColorMixerBottomLabel.width = positioning.dColorMixerTopLabel.width;
-            positioning.dColorMixerBottomLabel.height = positioning.axisLeftZeroLabel.height;
-        }
         //Left Default Color Mixer Label
         {
             positioning.dColorMixerLeftLabel.left = positioning.defaultColorMixerHorizontal.left;
@@ -898,29 +737,6 @@ export class Vizualizer {
             positioning.dColorMixerRightLabel.height = positioning.dColorMixerLeftLabel.height;
         }
 
-        //Top Customizable Color Mixer Label
-        {
-            positioning.cColorMixerTopLabel.left = positioning.dColorMixerTopLabel.left;
-            positioning.cColorMixerTopLabel.marginLeft = positioning.dColorMixerTopLabel.marginLeft;
-            positioning.cColorMixerTopLabel.bottom =
-                ((positioning.customizableTunnel.bottom === void 0) ? 0 : positioning.customizableTunnel.bottom)
-                + positioning.customizableTunnel.height
-                - (positioning.axisLeftZeroLabel.height);
-            positioning.cColorMixerTopLabel.marginBottom = 0;
-
-            positioning.cColorMixerTopLabel.width = positioning.dColorMixerTopLabel.width;
-            positioning.cColorMixerTopLabel.height = positioning.axisLeftZeroLabel.height;
-        }
-        //Bottom Customizable Color Mixer Label
-        {
-            positioning.cColorMixerBottomLabel.left = positioning.dColorMixerTopLabel.left;
-            positioning.cColorMixerBottomLabel.marginLeft = positioning.dColorMixerTopLabel.marginLeft;
-            positioning.cColorMixerBottomLabel.bottom = positioning.customizableTunnel.bottom;
-            positioning.cColorMixerBottomLabel.marginBottom = positioning.customizableTunnel.marginBottom;
-
-            positioning.cColorMixerBottomLabel.width = positioning.dColorMixerTopLabel.width;
-            positioning.cColorMixerBottomLabel.height = positioning.axisLeftZeroLabel.height;
-        }
         //Left Customizable Color Mixer Label
         {
             positioning.cColorMixerLeftLabel.left = positioning.customizableColorMixerHorizontal.left;
@@ -1375,9 +1191,6 @@ export class Vizualizer {
         if (this.selectedLayerIds.length > 0) {
             this.selectLayers(this.selectedLayerIds);
         }
-
-        this.setCurrentColorFunctionSettings("default", defaultTunnelData.colorFunctionSettings);
-        this.setCurrentColorFunctionSettings("customizable", customizableTunnelData.colorFunctionSettings);
     }
 
     private switchToMainCanvas() {

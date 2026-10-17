@@ -54,7 +54,6 @@ import { LeftPanel } from "./LeftPanel";
         coloringProperty: "Hydropathy",
         useColorMinMax: true,
         skipMiddleColor: false,
-        topMargin: 0,
         customRadiusProperty: "MinRadius"
     }
 
