@@ -1,14 +1,8 @@
 import React from "react";
 import { LightResidueInfo, SelectionHelper } from "../../CommonUtils/Selection";
 import { Residues } from "../../CommonUtils/Residues";
-import { Datagrid, DGElementRow, DGNoDataInfoRow, DGRowEmpty, headCell } from "../Common/Datagrid/Components";
-import { ResidueAnnotation } from "../../../ChannelsDBAPIService";
+import { annotatedResidueRows, annotationCell, Datagrid, DGElementRow, DGNoDataInfoRow, DGRowEmpty, headCell, isBackbone } from "../Common/Datagrid/Components";
 import { ChannelsDBData } from "../../../Cache";
-import { StructureProperties, StructureQuery, StructureSelection } from "molstar/lib/mol-model/structure";
-import { Context } from "../../Context";
-import { getStructureOptions } from "molstar/lib/mol-plugin-ui/sequence";
-import { PluginStateObject } from "molstar/lib/mol-plugin-state/objects";
-import { atoms } from "molstar/lib/mol-model/structure/query/queries/generators";
 
 let DGTABLE_COLS_COUNT = 2;
 let NO_DATA_MESSAGE = "Select channel in 3D view for details...";
@@ -132,19 +126,8 @@ class Controls extends React.Component<State, {}> {
 
 class DGBody extends React.Component<State, {}> {
 
-    private getAnnotationLinkOrText(annotation: ResidueAnnotation) {
-        if (annotation.reference === "") {
-            return (annotation.text !== void 0 && annotation.text !== null) ? <span>{annotation.text}</span> : <span className="no-annotation" />;
-        }
-        return <a target="_blank" href={annotation.link} dangerouslySetInnerHTML={{ __html: annotation.text }}></a>
-    }
-
     private shortenBackbone(residue: string) {
         return residue.replace(/Backbone/g, '');
-    }
-
-    private isBackbone(residue: string) {
-        return residue.indexOf("Backbone") >= 0;
     }
 
     private selectResidue(residue: string) {
@@ -153,65 +136,15 @@ class DGBody extends React.Component<State, {}> {
         if (/\d/.test(residueLightEntity.chain.authAsymId)) { // since we're using always 'Assembly' structure type the operator name always would be 'ASM_1', 'ASM_2', ...
             operatorName = 'ASM_' + residueLightEntity.chain.authAsymId.replace(/.*?(\d+).*/, "$1");
         } else {
-            let plugin = Context.getInstance().plugin;
-            const structureOptions = getStructureOptions(plugin.state.data);
-            const structureRef = structureOptions.options[0][0];
-            const state = plugin.state.data;
-            const cell = state.select(structureRef)[0];
-            if (!structureRef || !cell || !cell.obj) return null;
-
-            const structure = (cell.obj as PluginStateObject.Molecule.Structure).data;
-            operatorName = 'ASM_1'; // Files obtained from API may be older and some structures does not include data for structure to be loaded as assembly, therefore type 'model' is used and the first chain has operator name '1_555'
-            const query = StructureSelection.unionStructure(StructureQuery.run(atoms({
-                unitTest: ctx => {
-                    return StructureProperties.unit.operator_name(ctx.element) === operatorName;
-                },
-            }), structure))
-
-            if (query.elementCount === 0) {
-                operatorName = '1_555';
-            }
+            operatorName = Residues.getOperatorName('1'); // ASM_1, or 1_555 when the structure was loaded as a model
         }
         const asymId = residueLightEntity.chain.authAsymId.split('_')[0];
         SelectionHelper.addResidueToSelection(residueLightEntity.authSeqNumber, asymId, operatorName);
     }
 
     private getSelect3DLink(residue: string) {
-        let residueEl = (this.isBackbone(residue)) ? <i><strong>{this.shortenBackbone(residue)}</strong></i> : <span>{residue}</span>;
+        let residueEl = (isBackbone(residue)) ? <i><strong>{this.shortenBackbone(residue)}</strong></i> : <span>{residue}</span>;
         return <a className="hand" onClick={(e) => { this.selectResidue(residue) }}>{residueEl}</a>
-    }
-
-    private generateSpannedRows(residue: string, annotations: ResidueAnnotation[]) {
-        let trs: JSX.Element[] = [];
-
-        let residueNameEl = this.getSelect3DLink(residue);
-
-        let first = true;
-        for (let [index, annotation] of annotations.entries()) {
-            if (first === true) {
-                first = false;
-                trs.push(
-                    <tr key={index} title={(this.isBackbone(residue) ? residue : "")} className={(this.isBackbone(residue) ? "help" : "")}>
-                        <td className={`col col-1`} rowSpan={(annotations.length > 1) ? annotations.length : void 0}>
-                            {residueNameEl}
-                        </td>
-                        <td className={`col col-2`} >
-                            {this.getAnnotationLinkOrText(annotation)}
-                        </td>
-                    </tr>
-                );
-            }
-            else {
-                trs.push(
-                    <tr key={index}>
-                        <td className={`col col-2`} >
-                            {this.getAnnotationLinkOrText(annotation)}
-                        </td>
-                    </tr>
-                );
-            }
-        }
-        return trs;
     }
 
     private generateRows() {
@@ -224,7 +157,7 @@ class DGBody extends React.Component<State, {}> {
         for (let [index, residue] of this.props.data.entries()) {
             let residueInfo = Residues.parseResidues([residue], true);
 
-            let trClass = (this.isBackbone(residue) ? "help" : "");
+            let trClass = (isBackbone(residue) ? "help" : "");
             if (residueInfo.length > 0) {
                 let authName = residueInfo[0].name;
 
@@ -235,19 +168,17 @@ class DGBody extends React.Component<State, {}> {
             let annotations = ChannelsDBData.getResidueAnnotationsImmediate(seqNumberAndChain);
             if (annotations !== null && annotations.length > 0) {
                 if (annotations.length > 1) {
-                    rows = rows.concat(
-                        this.generateSpannedRows(residue, annotations)
-                    );
+                    rows = rows.concat(annotatedResidueRows(residue, this.getSelect3DLink(residue), annotations));
                 }
                 else {
                     rows.push(
-                        <DGElementRow key={index} columnsCount={columnsCount} columns={[this.getSelect3DLink(residue), this.getAnnotationLinkOrText(annotations[0])]} title={[(this.isBackbone(residue) ? residue : "")]} trClass={trClass} />
+                        <DGElementRow key={index} columnsCount={columnsCount} columns={[this.getSelect3DLink(residue), annotationCell(annotations[0])]} title={[(isBackbone(residue) ? residue : "")]} trClass={trClass} />
                     )
                 }
             }
             else {
                 rows.push(
-                    <DGElementRow key={index} columnsCount={columnsCount} columns={[this.getSelect3DLink(residue)]} title={[(this.isBackbone(residue) ? residue : "")]} trClass={trClass} />
+                    <DGElementRow key={index} columnsCount={columnsCount} columns={[this.getSelect3DLink(residue)]} title={[(isBackbone(residue) ? residue : "")]} trClass={trClass} />
                 );
             }
         }

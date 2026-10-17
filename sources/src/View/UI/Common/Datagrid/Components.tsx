@@ -1,4 +1,5 @@
 import React from "react";
+import { ResidueAnnotation } from "../../../../ChannelsDBAPIService";
 
 export class DGRowEmpty extends React.Component<{ columnsCount: number }, {}> {
 
@@ -113,4 +114,34 @@ export function Datagrid(props: { id: string, head: React.ReactNode, columnsCoun
 // A row of a property table: the property's icon (its classes) and name, then its value
 export function propertyRow(key: string, icon: string, label: string, value: React.ReactNode) {
     return <DGElementRow key={key} columnsCount={2} columns={[<span><span className={`${icon} properties-icon`} />{label}</span>, <span>{value}</span>]} />;
+}
+
+export function isBackbone(residue: string) {
+    return residue.indexOf("Backbone") >= 0;
+}
+
+// A residue's annotation: a link to its reference, its text, or an empty mark
+export function annotationCell(annotation: ResidueAnnotation) {
+    if (annotation.reference === "") {
+        return (annotation.text !== void 0 && annotation.text !== null) ? <span>{annotation.text}</span> : <span className="no-annotation" />;
+    }
+    return <a key={annotation.link} target="_blank" href={annotation.link} dangerouslySetInnerHTML={{ __html: annotation.text }}></a>
+}
+
+// A residue with several annotations, a row each; the residue's cell spans them
+export function annotatedResidueRows(residue: string, residueCell: React.ReactNode, annotations: ResidueAnnotation[]) {
+    return annotations.map((annotation, index) => (index === 0)
+        ? <tr key={index} title={isBackbone(residue) ? residue : ""} className={isBackbone(residue) ? "help" : ""}>
+            <td className={`col col-1`} rowSpan={(annotations.length > 1) ? annotations.length : void 0}>
+                {residueCell}
+            </td>
+            <td className={`col col-2`} >
+                {annotationCell(annotation)}
+            </td>
+        </tr>
+        : <tr key={index}>
+            <td className={`col col-2`} >
+                {annotationCell(annotation)}
+            </td>
+        </tr>);
 }

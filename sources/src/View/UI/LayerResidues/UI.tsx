@@ -1,8 +1,7 @@
 import React from "react";
 import { LayersInfo } from "../../../DataInterface";
 import { SelectionHelper } from "../../CommonUtils/Selection";
-import { Datagrid, DGElementRow, DGNoDataInfoRow, DGRowEmpty, headCell } from "../Common/Datagrid/Components";
-import { ResidueAnnotation } from "../../../ChannelsDBAPIService";
+import { annotatedResidueRows, annotationCell, Datagrid, DGElementRow, DGNoDataInfoRow, DGRowEmpty, headCell, isBackbone } from "../Common/Datagrid/Components";
 import { Residues } from "../../CommonUtils/Residues";
 import { ChannelsDBData } from "../../../Cache";
 
@@ -89,50 +88,6 @@ export class LayerResidues extends React.Component<{}, State> {
 
 class DGBody extends React.Component<State, {}> {
 
-    private isBackbone(residue: string) {
-        return residue.indexOf("Backbone") >= 0;
-    }
-
-    private getAnnotationLinkOrText(annotation: ResidueAnnotation) {
-        if (annotation.reference === "") {
-            return (annotation.text !== void 0 && annotation.text !== null) ? <span>{annotation.text}</span> : <span className="no-annotation" />;
-        }
-        return <a key={annotation.link} target="_blank" href={annotation.link} dangerouslySetInnerHTML={{ __html: annotation.text }}></a>
-    }
-
-    private generateSpannedRows(residue: string, annotations: ResidueAnnotation[]) {
-        let trs: JSX.Element[] = [];
-
-        let residueNameEl = residue;
-
-        let first = true;
-        for (let [index, annotation] of annotations.entries()) {
-            if (first === true) {
-                first = false;
-                trs.push(
-                    <tr key={index} title={(this.isBackbone(residue) ? residue : "")} className={(this.isBackbone(residue) ? "help" : "")}>
-                        <td className={`col col-1`} rowSpan={(annotations.length > 1) ? annotations.length : void 0}>
-                            {residueNameEl}
-                        </td>
-                        <td className={`col col-2`} >
-                            {this.getAnnotationLinkOrText(annotation)}
-                        </td>
-                    </tr>
-                );
-            }
-            else {
-                trs.push(
-                    <tr key={index}>
-                        <td className={`col col-2`} >
-                            {this.getAnnotationLinkOrText(annotation)}
-                        </td>
-                    </tr>
-                );
-            }
-        }
-        return trs;
-    }
-
     private getResidues(layerIds: number[]): string[] {
         if (this.props.data === null) {
             return [];
@@ -164,26 +119,26 @@ class DGBody extends React.Component<State, {}> {
             let residueInfo = Residues.parseResidues([residue], true);
             let columns = [];
             columns.push(
-                (this.isBackbone(residue)) ? <span key={residue}>{residue}</span> : <strong key={residue}>{residue}</strong>
+                (isBackbone(residue)) ? <span key={residue}>{residue}</span> : <strong key={residue}>{residue}</strong>
             );
             let seqNumberAndChain = `${residueInfo[0].authSeqNumber} ${residueInfo[0].chain.authAsymId}`;
             let annotations = ChannelsDBData.getResidueAnnotationsImmediate(seqNumberAndChain);
             if (annotations !== null && annotations.length > 0) {
                 if (annotations.length > 1) {
-                    rows = rows.concat(this.generateSpannedRows(residueId, annotations));
+                    rows = rows.concat(annotatedResidueRows(residueId, residueId, annotations));
                 }
                 else {
                     columns.push(
-                        this.getAnnotationLinkOrText(annotations[0])
+                        annotationCell(annotations[0])
                     );
                     rows.push(
-                        <DGElementRow key={residue} columns={columns} columnsCount={columnCount} title={[(this.isBackbone(residue) ? residue : ""), ""]} trClass={(this.isBackbone(residue) ? "help" : "")} />
+                        <DGElementRow key={residue} columns={columns} columnsCount={columnCount} title={[(isBackbone(residue) ? residue : ""), ""]} trClass={(isBackbone(residue) ? "help" : "")} />
                     );
                 }
             }
             else {
                 rows.push(
-                    <DGElementRow key={residue} columns={columns} columnsCount={columnCount} title={[(this.isBackbone(residue) ? residue : ""), ""]} trClass={(this.isBackbone(residue) ? "help" : "")} />
+                    <DGElementRow key={residue} columns={columns} columnsCount={columnCount} title={[(isBackbone(residue) ? residue : ""), ""]} trClass={(isBackbone(residue) ? "help" : "")} />
                 );
             }
         }
