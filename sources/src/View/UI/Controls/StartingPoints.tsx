@@ -171,12 +171,23 @@ export class StartingPointBox extends React.Component<StartingPointBoxProps, Sta
     }
 
     componentDidUpdate(prevProps: StartingPointBoxProps) {
-        if (
-            prevProps.defaultItems !== this.props.defaultItems ||
-            prevProps.defaultMode !== this.props.defaultMode
-        ) {
-            this.reset();
+        // The form's points changed elsewhere (copied or cleared parameters): show them. Every render of the form
+        // passes a new array, so compare what it stores; the points entered here keep how they were picked.
+        const stored = StartingPointBox.storedPoints(this.props.defaultItems);
+        if (stored !== StartingPointBox.storedPoints(prevProps.defaultItems) && stored !== StartingPointBox.storedPoints(this.state.items)) {
+            this.setState({ items: this.props.defaultItems });
         }
+    }
+
+    // The points as the form stores them: their kind and value, in any order, coordinates as numbers
+    private static storedPoints(points: StartingPoint[]) {
+        return points.map(p => {
+            if (p.type === "Point") {
+                const v = p.value as Point;
+                return `P ${Number(v.x)} ${Number(v.y)} ${Number(v.z)}`;
+            }
+            return (p.type === "Residue") ? `R ${(p.value as Residue[]).join(";")}` : `Q ${p.value}`;
+        }).sort().join("|");
     }
 
     reset() {
