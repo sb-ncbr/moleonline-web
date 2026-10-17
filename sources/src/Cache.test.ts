@@ -28,7 +28,7 @@ describe('ChannelsDBData', () => {
         const { cache } = await freshCache();
         api.getChannelsData.mockResolvedValue(channels);
         api.getProteinData.mockResolvedValue(protein);
-        const [data, annotations] = await Promise.all([cache.getChannelsData('1tqn'), cache.getChannelsAnnotations('1tqn'), cache.doWhenCached('1tqn')]);
+        const [data, annotations] = await Promise.all([cache.getChannelsData('1tqn'), cache.getChannelsAnnotations('1tqn')]);
         expect(data).toBe(channels.channelsData);
         expect(annotations).toBe(channels.channelsAnnotations);
         expect(api.getChannelsData).toHaveBeenCalledTimes(1);

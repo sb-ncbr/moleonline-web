@@ -280,6 +280,25 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
         );
     }
 
+    // onChange of a form control: sets its value in the form data and renders the form again
+    private mole(set: (data: MoleFormData, value: any) => void) {
+        return (v: { value: any }) => {
+            if (this.state.moleFormData !== null) {
+                set(this.state.moleFormData, v.value);
+                this.forceUpdate();
+            }
+        };
+    }
+
+    private pores(set: (data: PoresFormData, value: any) => void) {
+        return (v: { value: any }) => {
+            if (this.state.poresFormData !== null) {
+                set(this.state.poresFormData, v.value);
+                this.forceUpdate();
+            }
+        };
+    }
+
     getMoleFormNew() {
         if (this.state.moleFormData === null) {
             return <div />
@@ -289,142 +308,41 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
         return <div className="settings-form basic-settings">
             <h3>Channels</h3>
             <ControlGroup header='Active Atoms/Residues' initialExpanded={this.props.parent.state.openControls}>
-                <BoolControl name='Ignore HETATMs' param={ParamDefinition.Boolean(true, { label: 'Ignore HETATMs' })} value={valueOrDefault(data.getIgnoreHETATMs(), true)} onChange={(v) => {
-                    let s = this.state;
-                    if (s.moleFormData !== null) {
-                        s.moleFormData.setIgnoreHETATMs(v.value);
-                        this.setState(s);
-                    }
-                }}
+                <BoolControl name='Ignore HETATMs' param={ParamDefinition.Boolean(true, { label: 'Ignore HETATMs' })} value={valueOrDefault(data.getIgnoreHETATMs(), true)} onChange={this.mole((d, v) => d.setIgnoreHETATMs(v))}
                 />
                 <ControlGroup header='Advanced options' initialExpanded={this.props.parent.state.openControls}>
-                    <BoolControl name='Ignore Hydrogens' param={ParamDefinition.Boolean(false, { label: 'Ignore Hydrogens' })} value={valueOrDefault(data.getIgnoreHydrogens(), false)} onChange={(v) => {
-                        let s = this.state;
-                        if (s.moleFormData !== null) {
-                            s.moleFormData.setIgnoreHydrogens(v.value);
-                            this.setState(s);
-                        }
-                    }}
+                    <BoolControl name='Ignore Hydrogens' param={ParamDefinition.Boolean(false, { label: 'Ignore Hydrogens' })} value={valueOrDefault(data.getIgnoreHydrogens(), false)} onChange={this.mole((d, v) => d.setIgnoreHydrogens(v))}
                     />
-                    <TextControl name="Query Filter" param={ParamDefinition.Text('', { label: 'Query Filter', placeholder: 'Residues(\'GOL\')' })} value={valueOrDefault(data.getQueryFilter(), "")} onChange={(v) => {
-                        let s = this.state;
-                        if (s.moleFormData !== null) {
-                            s.moleFormData.setQueryFilter(v.value);
-                            this.setState(s);
-                        }
-                    }} />
-                    <TextControl name="Ignored Residues" param={ParamDefinition.Text('', { label: 'Ignored Residues', placeholder: 'A 69, A 386, ...' })} value={valueOrDefault(data.getIgnoredResiduesStr(), "")} onChange={(v) => {
-                        let s = this.state;
-                        if (s.moleFormData !== null) {
-                            s.moleFormData.setIgnoredResidues(parseResidues(v.value));
-                            s.moleFormData.setIgnoredResiduesStr(v.value)
-                            this.setState(s);
-                        }
-                    }} />
-                    <TextControl name="Specific Chains" param={ParamDefinition.Text('', { label: 'Specific Chains', placeholder: 'A, B, ...' })} value={valueOrDefault(data.getSpecificChains(), "")} onChange={(v) => {
-                        let s = this.state;
-                        if (s.moleFormData !== null) {
-                            s.moleFormData.setSpecificChains(v.value);
-                            this.setState(s);
-                        }
-                    }} />
+                    <TextControl name="Query Filter" param={ParamDefinition.Text('', { label: 'Query Filter', placeholder: 'Residues(\'GOL\')' })} value={valueOrDefault(data.getQueryFilter(), "")} onChange={this.mole((d, v) => d.setQueryFilter(v))} />
+                    <TextControl name="Ignored Residues" param={ParamDefinition.Text('', { label: 'Ignored Residues', placeholder: 'A 69, A 386, ...' })} value={valueOrDefault(data.getIgnoredResiduesStr(), "")} onChange={this.mole((d, v) => { d.setIgnoredResidues(parseResidues(v)); d.setIgnoredResiduesStr(v); })} />
+                    <TextControl name="Specific Chains" param={ParamDefinition.Text('', { label: 'Specific Chains', placeholder: 'A, B, ...' })} value={valueOrDefault(data.getSpecificChains(), "")} onChange={this.mole((d, v) => d.setSpecificChains(v))} />
                 </ControlGroup>
             </ControlGroup>
             <ControlGroup header='Cavity Parameters' initialExpanded={this.props.parent.state.openControls}>
-                <NumberRangeControl name="Probe Radius" param={ParamDefinition.Numeric(5, { min: 1.4, max: 45, step: 0.01 })} value={valueOrDefault(data.getProbeRadius(), 5)} onChange={(v) => {
-                    let s = this.state;
-                    if (s.moleFormData !== null) {
-                        s.moleFormData.setProbeRadius(v.value);
-                        this.setState(s);
-                    }
-                }} />
-                <NumberRangeControl name="Interior Treshold" param={ParamDefinition.Numeric(1.1, { min: 0.3, max: 3, step: 0.01 })} value={valueOrDefault(data.getInteriorThreshold(), 1.1)} onChange={(v) => {
-                    let s = this.state;
-                    if (s.moleFormData !== null) {
-                        s.moleFormData.setInteriorThreshold(v.value);
-                        this.setState(s);
-                    }
-                }} />
+                <NumberRangeControl name="Probe Radius" param={ParamDefinition.Numeric(5, { min: 1.4, max: 45, step: 0.01 })} value={valueOrDefault(data.getProbeRadius(), 5)} onChange={this.mole((d, v) => d.setProbeRadius(v))} />
+                <NumberRangeControl name="Interior Treshold" param={ParamDefinition.Numeric(1.1, { min: 0.3, max: 3, step: 0.01 })} value={valueOrDefault(data.getInteriorThreshold(), 1.1)} onChange={this.mole((d, v) => d.setInteriorThreshold(v))} />
             </ControlGroup>
             <ControlGroup header='Channel Parameters' initialExpanded={this.props.parent.state.openControls}>
-                <NumberRangeControl name="Origin Radius" param={ParamDefinition.Numeric(5, { min: 0.1, max: 10, step: 0.05 })} value={valueOrDefault(data.getOriginRadius(), 5)} onChange={(v) => {
-                    let s = this.state;
-                    if (s.moleFormData !== null) {
-                        s.moleFormData.setOriginRadius(v.value);
-                        this.setState(s);
-                    }
-                }} />
-                <NumberRangeControl name="Surface Cover Radius" param={ParamDefinition.Numeric(10, { min: 5, max: 20, step: 0.5 })} value={valueOrDefault(data.getSurfaceCoverRadius(), 10)} onChange={(v) => {
-                    let s = this.state;
-                    if (s.moleFormData !== null) {
-                        s.moleFormData.setSurfaceCoverRadius(v.value);
-                        this.setState(s);
-                    }
-                }} />
+                <NumberRangeControl name="Origin Radius" param={ParamDefinition.Numeric(5, { min: 0.1, max: 10, step: 0.05 })} value={valueOrDefault(data.getOriginRadius(), 5)} onChange={this.mole((d, v) => d.setOriginRadius(v))} />
+                <NumberRangeControl name="Surface Cover Radius" param={ParamDefinition.Numeric(10, { min: 5, max: 20, step: 0.5 })} value={valueOrDefault(data.getSurfaceCoverRadius(), 10)} onChange={this.mole((d, v) => d.setSurfaceCoverRadius(v))} />
                 <SelectControl
                     name="Weight Function"
                     param={ParamDefinition.Select(valueOrDefault(data.getWeightFunction(), "VoronoiScale"), ParamDefinition.arrayToOptions(WeightFunctions.getFunctions()))}
                     value={valueOrDefault(data.getWeightFunction(), "VoronoiScale")}
-                    onChange={(v) => {
-                        let s = this.state;
-                        if (s.moleFormData !== null) {
-                            s.moleFormData.setWeightFunction(v.value);
-                            this.setState(s);
-                        }
-                    }} />
-                <BoolControl name='Merge Pores' param={ParamDefinition.Boolean(false, { label: 'Merge Pores' })} value={valueOrDefault(data.getMergePores(), false)} onChange={(v) => {
-                    let s = this.state;
-                    if (s.moleFormData !== null) {
-                        s.moleFormData.setMergePores(v.value);
-                        this.setState(s);
-                    }
-                }}
+                    onChange={this.mole((d, v) => d.setWeightFunction(v))} />
+                <BoolControl name='Merge Pores' param={ParamDefinition.Boolean(false, { label: 'Merge Pores' })} value={valueOrDefault(data.getMergePores(), false)} onChange={this.mole((d, v) => d.setMergePores(v))}
                 />
-                <BoolControl name='Automatic Pores' param={ParamDefinition.Boolean(false, { label: 'Automatic Pores' })} value={valueOrDefault(data.getAutomaticPores(), false)} onChange={(v) => {
-                    let s = this.state;
-                    if (s.moleFormData !== null) {
-                        s.moleFormData.setAutomaticPores(v.value);
-                        this.setState(s);
-                    }
-                }}
+                <BoolControl name='Automatic Pores' param={ParamDefinition.Boolean(false, { label: 'Automatic Pores' })} value={valueOrDefault(data.getAutomaticPores(), false)} onChange={this.mole((d, v) => d.setAutomaticPores(v))}
                 />
                 <ControlGroup header='Advanced options'>
-                    <NumberRangeControl name="Bottleneck Radius" param={ParamDefinition.Numeric(1.2, { min: 0, max: 5, step: 0.01 })} value={valueOrDefault(data.getBottleneckRadius(), 1.2)} onChange={(v) => {
-                        let s = this.state;
-                        if (s.moleFormData !== null) {
-                            s.moleFormData.setBottleneckRadius(v.value);
-                            this.setState(s);
-                        }
-                    }} />
-                    <NumberRangeControl name="Bottleneck Tolerance" param={ParamDefinition.Numeric(3, { min: 0, max: 5, step: 0.1 })} value={valueOrDefault(data.getBottleneckTolerance(), 3)} onChange={(v) => {
-                        let s = this.state;
-                        if (s.moleFormData !== null) {
-                            s.moleFormData.setBottleneckTolerance(v.value);
-                            this.setState(s);
-                        }
-                    }} />
-                    <NumberRangeControl name="Max Tunnel Similarity" param={ParamDefinition.Numeric(0.7, { min: 0, max: 1, step: 0.05 })} value={valueOrDefault(data.getMaxTunnelSimilarity(), 0.7)} onChange={(v) => {
-                        let s = this.state;
-                        if (s.moleFormData !== null) {
-                            s.moleFormData.setMaxTunnelSimilarity(v.value);
-                            this.setState(s);
-                        }
-                    }} />
+                    <NumberRangeControl name="Bottleneck Radius" param={ParamDefinition.Numeric(1.2, { min: 0, max: 5, step: 0.01 })} value={valueOrDefault(data.getBottleneckRadius(), 1.2)} onChange={this.mole((d, v) => d.setBottleneckRadius(v))} />
+                    <NumberRangeControl name="Bottleneck Tolerance" param={ParamDefinition.Numeric(3, { min: 0, max: 5, step: 0.1 })} value={valueOrDefault(data.getBottleneckTolerance(), 3)} onChange={this.mole((d, v) => d.setBottleneckTolerance(v))} />
+                    <NumberRangeControl name="Max Tunnel Similarity" param={ParamDefinition.Numeric(0.7, { min: 0, max: 1, step: 0.05 })} value={valueOrDefault(data.getMaxTunnelSimilarity(), 0.7)} onChange={this.mole((d, v) => d.setMaxTunnelSimilarity(v))} />
                 </ControlGroup>
             </ControlGroup>
             <ControlGroup header='Selection' initialExpanded={this.props.parent.state.openControls}>
-                <StartingPointBox label="Starting Point" tooltip={TooltipText.get("startingPoint")} defaultItems={this.state.moleFormData.getStartingPoints()} noDataText={"No starting points selected..."} onChange={(v) => {
-                    let s = this.state;
-                    if (s.moleFormData !== null) {
-                        s.moleFormData.setStartingPoints(v);
-                    }
-                }} allowPatternQuery={true} />
-                <StartingPointBox label="End Point" tooltip={TooltipText.get("endPoint")} defaultItems={this.state.moleFormData.getEndingPoints()} noDataText={"No end points selected..."} onChange={(v) => {
-                    let s = this.state;
-                    if (s.moleFormData !== null) {
-                        s.moleFormData.setEndPoints(v);
-                    }
-                }} allowPatternQuery={false} />
+                <StartingPointBox label="Starting Point" tooltip={TooltipText.get("startingPoint")} defaultItems={this.state.moleFormData.getStartingPoints()} noDataText={"No starting points selected..."} onChange={v => this.state.moleFormData?.setStartingPoints(v)} allowPatternQuery={true} />
+                <StartingPointBox label="End Point" tooltip={TooltipText.get("endPoint")} defaultItems={this.state.moleFormData.getEndingPoints()} noDataText={"No end points selected..."} onChange={v => this.state.moleFormData?.setEndPoints(v)} allowPatternQuery={false} />
             </ControlGroup>
         </div>
     }
@@ -438,44 +356,13 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
 
         return <div className="settings-form basic-settings pores">
             <h3>Pores</h3>
-            <BoolControl name='Beta Structure' param={ParamDefinition.Boolean(true, { label: 'Beta Structure' })} value={data.getBetaStructure()} onChange={(v) => {
-                let s = this.state;
-                if (s.poresFormData !== null) {
-                    s.poresFormData.setBetaStructure(v.value);
-                    this.setState(s);
-                }
-            }}
+            <BoolControl name='Beta Structure' param={ParamDefinition.Boolean(true, { label: 'Beta Structure' })} value={data.getBetaStructure()} onChange={this.pores((d, v) => d.setBetaStructure(v))}
             />
-            <BoolControl name='Membrane Region' param={ParamDefinition.Boolean(true, { label: 'Membrane Region' })} value={data.getMembraneRegion()} onChange={(v) => {
-                let s = this.state;
-                if (s.poresFormData !== null) {
-                    s.poresFormData.setMembraneRegion(v.value);
-                    this.setState(s);
-                }
-            }}
+            <BoolControl name='Membrane Region' param={ParamDefinition.Boolean(true, { label: 'Membrane Region' })} value={data.getMembraneRegion()} onChange={this.pores((d, v) => d.setMembraneRegion(v))}
             />
-            <TextControl name="Specific Chains" param={ParamDefinition.Text('', { label: 'Specific Chains', placeholder: 'A, B, ...' })} value={data.getSpecificChains()} onChange={(v) => {
-                let s = this.state;
-                //TODO probably validate here
-                if (s.poresFormData !== null) {
-                    s.poresFormData.setSpecificChains(v.value);
-                    this.setState(s);
-                }
-            }} />
-            <NumberRangeControl name="Probe Radius" param={ParamDefinition.Numeric(13, { min: 1.4, max: 45, step: 0.01 })} value={valueOrDefault(data.getProbeRadius(), 13)} onChange={(v) => {
-                let s = this.state;
-                if (s.poresFormData !== null) {
-                    s.poresFormData.setProbeRadius(v.value);
-                    this.setState(s);
-                }
-            }} />
-            <NumberRangeControl name="Interior Treshold" param={ParamDefinition.Numeric(0.8, { min: 0.3, max: 3, step: 0.01 })} value={valueOrDefault(data.getInteriorThreshold(), 0.8)} onChange={(v) => {
-                let s = this.state;
-                if (s.poresFormData !== null) {
-                    s.poresFormData.setInteriorThreshold(v.value);
-                    this.setState(s);
-                }
-            }} />
+            <TextControl name="Specific Chains" param={ParamDefinition.Text('', { label: 'Specific Chains', placeholder: 'A, B, ...' })} value={data.getSpecificChains()} onChange={this.pores((d, v) => d.setSpecificChains(v))} />
+            <NumberRangeControl name="Probe Radius" param={ParamDefinition.Numeric(13, { min: 1.4, max: 45, step: 0.01 })} value={valueOrDefault(data.getProbeRadius(), 13)} onChange={this.pores((d, v) => d.setProbeRadius(v))} />
+            <NumberRangeControl name="Interior Treshold" param={ParamDefinition.Numeric(0.8, { min: 0.3, max: 3, step: 0.01 })} value={valueOrDefault(data.getInteriorThreshold(), 0.8)} onChange={this.pores((d, v) => d.setInteriorThreshold(v))} />
         </div>
     }
 }
@@ -539,21 +426,9 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
         let hasKillable = false;
 
         if (computationInfo.PdbId !== void 0 && computationInfo.PdbId !== null && computationInfo.PdbId !== "") {
-            ChannelsDBData.doWhenCached(computationInfo.PdbId)
-                .then(() => {
-                    ChannelsDBData.getChannelsData(computationInfo.PdbId)
-                        .then(val => {
-                            let s = this.state;
-                            s.channelsDBData = val;
-                            this.setState(s);
-                        })
-                        .catch(err => {
-                            console.log(err);
-                        })
-                })
-                .catch(err => {
-                    console.log(err);
-                });
+            ChannelsDBData.getChannelsData(computationInfo.PdbId)
+                .then(val => this.setState({ channelsDBData: val }))
+                .catch(err => console.log(err));
         }
 
         for (let submission of computationInfo.Submissions) {

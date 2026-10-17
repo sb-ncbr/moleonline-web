@@ -137,10 +137,6 @@ export class ChannelsDBData {
         return result;
     }
 
-    public static doWhenCached(pdbid: string): Promise<void> {
-        return this.reload(pdbid).then(() => { });
-    }
-
     public static isCached() {
         return (this.channelAnnotationCache !== void 0
             && this.channelDataCache !== void 0
