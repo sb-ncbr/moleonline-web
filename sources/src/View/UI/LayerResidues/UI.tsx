@@ -106,12 +106,12 @@ class DGBody extends React.Component<State, {}> {
             return <DGNoDataInfoRow columnsCount={columnCount} infoText={NO_DATA_MESSAGE} />;
         }
 
-        let layerData = Residues.sort(this.getResidues(this.props.layerIds), void 0, true, true);
+        let layerData = Residues.sort(this.getResidues(this.props.layerIds));
         let rows: JSX.Element[] = [];
 
         for (let residue of layerData) {
             let residueId = residue.split(" ").slice(1, 3).join(" ");
-            let residueInfo = Residues.parseResidues([residue], true);
+            let residueInfo = Residues.parseResidues([residue]);
             let columns = [];
             columns.push(
                 (isBackbone(residue)) ? <span key={residue}>{residue}</span> : <strong key={residue}>{residue}</strong>

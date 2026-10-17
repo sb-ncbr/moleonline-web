@@ -23,7 +23,7 @@ export class LiningResidues extends React.Component<{}, State> {
     componentDidMount() {
         SelectionHelper.attachOnChannelSelectHandler((data) => {
             let state = this.state;
-            state.data = Residues.sort(data.ResidueFlow, void 0, true, true);
+            state.data = Residues.sort(data.ResidueFlow);
             this.setState(state);
             setTimeout(function () {
                 $(window).trigger('contentResize');
@@ -90,7 +90,7 @@ class Controls extends React.Component<State, {}> {
         if (this.props.data === null) {
             return;
         }
-        let allResidues = Residues.parseResidues(this.props.data, true);
+        let allResidues = Residues.parseResidues(this.props.data);
         let ionizableResidues = [];
         for (let residue of allResidues) {
             let rClass: string = "";
@@ -148,7 +148,7 @@ class DGBody extends React.Component<State, {}> {
 
         let rows: JSX.Element[] = [];
         for (let [index, residue] of this.props.data.entries()) {
-            let residueInfo = Residues.parseResidues([residue], true);
+            let residueInfo = Residues.parseResidues([residue]);
 
             let trClass = (isBackbone(residue) ? "help" : "");
             if (residueInfo.length > 0) {

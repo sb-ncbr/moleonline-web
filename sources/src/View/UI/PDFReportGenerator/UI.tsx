@@ -101,7 +101,7 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
     private addLiningResidues(template: string, residueLines: { residue: string, annotation: ResidueAnnotation | null }[]) {
         let rows = "";
         for (const { residue, annotation } of residueLines) {
-            const r = Residues.parseResidues([residue], true)[0];
+            const r = Residues.parseResidues([residue])[0];
             const backbone = r.backbone ? '<img class="report-ok-icon" src="/images/accept.gif"/>' : '';
             const note = (annotation === null) ? '' : `${annotation.text} ${(annotation.reference !== "") ? "(" + annotation.reference + ")" : ""}`;
             rows += `<tr><td>${r.name}</td><td>${r.authSeqNumber}</td><td>${r.chain.authAsymId}</td><td>${backbone}</td><td>${note}</td></tr>`;
@@ -140,7 +140,7 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
                 result.push({ residue: r, annotation: null });
                 continue;
             }
-            let info = Residues.parseResidues([r], true);
+            let info = Residues.parseResidues([r]);
             let a = annotations.get(`${info[0].authSeqNumber} ${info[0].chain.authAsymId}`);
             if (a === void 0 || a === null || a.length === 0) {
                 result.push({ residue: r, annotation: null });
@@ -165,7 +165,7 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
 
             let templateInstance = notNullTemplate.slice();
 
-            let residues = Residues.sort(channelData.Layers.ResidueFlow.slice(), void 0, true, true);
+            let residues = Residues.sort(channelData.Layers.ResidueFlow.slice());
             if (residues === void 0) {
                 return;
             }
