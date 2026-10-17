@@ -25,7 +25,7 @@ services:
         logging:
             driver: journald
             options:
-                tag: channelsdb-web
+                tag: moleonline-web
 
 # Shared with the MOLE API's compose project, whose service "api" nginx proxies to.
 # Created once: docker network create moleonline
