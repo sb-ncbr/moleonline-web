@@ -28,6 +28,16 @@ interface AppState {
     progress: number
 }
 
+// Replaces each [[PLACEHOLDER]] of the template; a missing value (null, undefined) leaves it empty
+function fill(template: string, values: Record<string, string | null | undefined>): string {
+    for (const [placeholder, value] of Object.entries(values)) {
+        template = template.split(`[[${placeholder}]]`).join(value ?? "");
+    }
+    return template;
+}
+
+const yesNo = (value: boolean | undefined) => value ? "Yes" : "No";
+
 export class PDFReportGenerator extends React.Component<{}, AppState> {
     public static templateCache: PDFTemplate | null = null;
 
@@ -71,46 +81,30 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
     }
 
     private addPhysChemProps(template: string, tunnel: Tunnel): string {
-        let length = roundToDecimal(Tunnels.getLength(tunnel), 2).toString();
-        let bottleneck = Tunnels.getBottleneck(tunnel);
-        let hydropathy = roundToDecimal(tunnel.Properties.Hydropathy, 2).toString();
-        let charge = roundToDecimal(tunnel.Properties.Charge, 2).toString();
-        let polarity = roundToDecimal(tunnel.Properties.Polarity, 2).toString();
-        let mutability = roundToDecimal(tunnel.Properties.Mutability, 2).toString();
-        let logP = (tunnel.Properties.LogP !== null && tunnel.Properties.LogP !== void 0) ? roundToDecimal(tunnel.Properties.LogP, 2).toString() : 'N/A';
-        let logD = (tunnel.Properties.LogD !== null && tunnel.Properties.LogD !== void 0) ? roundToDecimal(tunnel.Properties.LogD, 2).toString() : 'N/A';
-        let logS = (tunnel.Properties.LogS !== null && tunnel.Properties.LogS !== void 0) ? roundToDecimal(tunnel.Properties.LogS, 2).toString() : 'N/A';
-        let ionizable = (tunnel.Properties.Ionizable !== null && tunnel.Properties.Ionizable !== void 0) ? roundToDecimal(tunnel.Properties.Ionizable, 2).toString() : 'N/A';
-
-        template = this.replacePlaceholder(template, "TUNNEL-PROPS-LENGTH", length);
-        template = this.replacePlaceholder(template, "TUNNEL-PROPS-BOTTLENECK", bottleneck);
-        template = this.replacePlaceholder(template, "TUNNEL-PROPS-HYDROPATHY", hydropathy);
-        template = this.replacePlaceholder(template, "TUNNEL-PROPS-CHARGE", charge);
-        template = this.replacePlaceholder(template, "TUNNEL-PROPS-POLARITY", polarity);
-        template = this.replacePlaceholder(template, "TUNNEL-PROPS-MUTABILITY", mutability);
-        template = this.replacePlaceholder(template, "TUNNEL-PROPS-LOGP", logP);
-        template = this.replacePlaceholder(template, "TUNNEL-PROPS-LOGD", logD);
-        template = this.replacePlaceholder(template, "TUNNEL-PROPS-LOGS", logS);
-        template = this.replacePlaceholder(template, "TUNNEL-PROPS-IONIZABLE", ionizable);
-
-        return template;
+        const p = tunnel.Properties;
+        const round = (value: number) => roundToDecimal(value, 2).toString();
+        const optional = (value: number | null | undefined) => (value !== null && value !== void 0) ? round(value) : 'N/A';
+        return fill(template, {
+            "TUNNEL-PROPS-LENGTH": round(Tunnels.getLength(tunnel)),
+            "TUNNEL-PROPS-BOTTLENECK": Tunnels.getBottleneck(tunnel),
+            "TUNNEL-PROPS-HYDROPATHY": round(p.Hydropathy),
+            "TUNNEL-PROPS-CHARGE": round(p.Charge),
+            "TUNNEL-PROPS-POLARITY": round(p.Polarity),
+            "TUNNEL-PROPS-MUTABILITY": round(p.Mutability),
+            "TUNNEL-PROPS-LOGP": optional(p.LogP),
+            "TUNNEL-PROPS-LOGD": optional(p.LogD),
+            "TUNNEL-PROPS-LOGS": optional(p.LogS),
+            "TUNNEL-PROPS-IONIZABLE": optional(p.Ionizable),
+        });
     }
 
     private addLiningResidues(template: string, residueLines: { residue: string, annotation: ResidueAnnotation | null }[]) {
         let rows = "";
-        for (let i = 0; i < residueLines.length; i++) {
-            let resInfo = Residues.parseResidues([residueLines[i].residue], true);
-            let name = resInfo[0].name;
-            let seq = resInfo[0].authSeqNumber;
-            let chain = resInfo[0].chain.authAsymId;
-            let backbone = (resInfo[0].backbone) ? '<img class="report-ok-icon" src="/images/accept.gif"/>' : '';
-            let annotation = residueLines[i].annotation;
-            if (annotation === null) {
-                rows += `<tr><td>${name}</td><td>${seq}</td><td>${chain}</td><td>${backbone}</td><td></td></tr>`;
-            }
-            else {
-                rows += `<tr><td>${name}</td><td>${seq}</td><td>${chain}</td><td>${backbone}</td><td>${annotation.text} ${((annotation.reference !== "") ? "(" + annotation.reference + ")" : "")}</td></tr>`;
-            }
+        for (const { residue, annotation } of residueLines) {
+            const r = Residues.parseResidues([residue], true)[0];
+            const backbone = r.backbone ? '<img class="report-ok-icon" src="/images/accept.gif"/>' : '';
+            const note = (annotation === null) ? '' : `${annotation.text} ${(annotation.reference !== "") ? "(" + annotation.reference + ")" : ""}`;
+            rows += `<tr><td>${r.name}</td><td>${r.authSeqNumber}</td><td>${r.chain.authAsymId}</td><td>${backbone}</td><td>${note}</td></tr>`;
         }
         return template.replace("[[LINING-RESIDUES-TABLE-ROWS]]", rows);
     }
@@ -264,171 +258,51 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
         });
     }
 
-    private replacePlaceholder(template: string, placeholder: string, value: string | null) {
-        let regexp = new RegExp("\\[\\[" + placeholder + "\\]\\]", "g");
-        return template.replace(regexp, (value === null) ? "" : value);
-    }
-
     private addParamsPageCommon(template: string, urlParams: URLParams | null, compInfo: CompInfo) {
-        let emptyPlaceholders: string[] = [];
-        if (urlParams !== null) {
-            template = this.replacePlaceholder(template, "COMP-ID", urlParams.computationId);
-            template = this.replacePlaceholder(template, "SUBMIT-ID", String(urlParams.submitId));
-        }
-        else {
-            emptyPlaceholders.push("COMP-ID");
-            emptyPlaceholders.push("SUBMIT-ID");
-        }
-        template = this.replacePlaceholder(template, "URL", location.href);
-
-        let isUserStructure = compInfo.PdbId === void 0 || compInfo.PdbId === null || compInfo.PdbId === "";
-
-        template = this.replacePlaceholder(template, "PDBID", (isUserStructure) ? "User structure" : compInfo.PdbId);
-
-        template = this.replacePlaceholder(template, "ASSEMBLY-ID", (isUserStructure) ? "User structure" : ((compInfo.AssemblyId !== null) ? compInfo.AssemblyId : "Asymmetric unit"));
-
-        template = this.replaceEmptyPlaceholders(template, emptyPlaceholders);
-
-        return template;
-    }
-
-    //Replace all not filled placeholders with empty strings
-    private replaceEmptyPlaceholders(template: string, placeholders: string[]) {
-        for (let emptyPlaceholder of placeholders) {
-            template = this.replacePlaceholder(template, emptyPlaceholder, "");
-        }
-
-        return template;
+        const isUserStructure = compInfo.PdbId === void 0 || compInfo.PdbId === null || compInfo.PdbId === "";
+        return fill(template, {
+            "COMP-ID": urlParams?.computationId,
+            "SUBMIT-ID": urlParams && String(urlParams.submitId),
+            "URL": location.href,
+            "PDBID": isUserStructure ? "User structure" : compInfo.PdbId,
+            "ASSEMBLY-ID": isUserStructure ? "User structure" : (compInfo.AssemblyId ?? "Asymmetric unit"),
+        });
     }
 
     private addParamsPageMole(template: string, params: MoleConfig) {
-        template = this.replacePlaceholder(template, "MOLE-PARAMS-VISIBLE", "visible");
-        let emptyPlaceholders: string[] = [];
-        let input = params.Input;
-        let cavity = params.Cavity;
-        let exits = params.CustomExits;
-        let nonactiveResidues = params.NonActiveResidues;
-        let origin = params.Origin;
-        let tunnel = params.Tunnel;
-        if (input !== void 0) {
-            template = this.replacePlaceholder(template, "SPECIFIC-CHAINS", input.SpecificChains);
-        }
-        else {
-            emptyPlaceholders.push("SPECIFIC-CHAINS");
-        }
-        if (cavity !== void 0) {
-            template = this.replacePlaceholder(template, "IGNORE-HYDROGENS", (cavity.IgnoreHydrogens) ? "Yes" : "No");
-            template = this.replacePlaceholder(template, "IGNORE-HETATMS", (cavity.IgnoreHETAtoms) ? "Yes" : "No");
-            template = this.replacePlaceholder(template, "INTERIOR-TRESHOLD", String(cavity.InteriorThreshold));
-            template = this.replacePlaceholder(template, "PROBE-RADIUS", String(cavity.ProbeRadius));
-        }
-        else {
-            emptyPlaceholders.push("IGNORE-HYDROGENS");
-            emptyPlaceholders.push("IGNORE-HETATMS");
-            emptyPlaceholders.push("INTERIOR-TRESHOLD");
-            emptyPlaceholders.push("PROBE-RADIUS");
-        }
-        if (origin !== void 0 && origin !== null) {
-            let points = origin.Points;
-            if (points !== null) {
-                template = this.replacePlaceholder(template, "STARTING-POINT-XYZ", pointsToString(points));
-            }
-            else {
-                emptyPlaceholders.push("STARTING-POINT-XYZ");
-            }
-            let residues = origin.Residues;
-            if (residues !== null) {
-                template = this.replacePlaceholder(template, "STARTING-POINT", flattenResiduesArray(residues));
-            }
-            else {
-                emptyPlaceholders.push("STARTING-POINT");
-            }
-            if (origin.QueryExpression !== null) {
-                template = this.replacePlaceholder(template, "QUERY-FILTER", origin.QueryExpression);
-            }
-            else {
-                emptyPlaceholders.push("QUERY-FILTER");
-            }
-        }
-        else {
-            emptyPlaceholders.push("STARTING-POINT-XYZ");
-            emptyPlaceholders.push("STARTING-POINT");
-            emptyPlaceholders.push("QUERY-FILTER");
-        }
-        if (exits !== void 0 && exits !== null) {
-            let points = exits.Points;
-            if (points !== null) {
-                template = this.replacePlaceholder(template, "END-POINT-XYZ", pointsToString(points));
-            }
-            else {
-                emptyPlaceholders.push("END-POINT-XYZ");
-            }
-            let residues = exits.Residues;
-            if (residues !== null) {
-                template = this.replacePlaceholder(template, "END-POINT", flattenResiduesArray(residues));
-            }
-            else {
-                emptyPlaceholders.push("END-POINT");
-            }
-            if (exits.QueryExpression !== null) {
-                template = this.replacePlaceholder(template, "QUERY", exits.QueryExpression);
-            }
-            else {
-                emptyPlaceholders.push("QUERY");
-            }
-        }
-        else {
-            emptyPlaceholders.push("END-POINT-XYZ");
-            emptyPlaceholders.push("END-POINT");
-            emptyPlaceholders.push("QUERY");
-        }
-        if (nonactiveResidues !== void 0 && nonactiveResidues !== null) {
-            template = this.replacePlaceholder(template, "IGNORED-RESIDUES", flattenResidues(nonactiveResidues));
-        }
-        else {
-            emptyPlaceholders.push("IGNORED-RESIDUES");
-        }
-        if (tunnel !== void 0 && tunnel !== null) {
-            template = this.replacePlaceholder(template, "BOTTLENECK-RADIUS", String(tunnel.BottleneckRadius));
-            template = this.replacePlaceholder(template, "BOTTLENECK-TOLERANCE", String(tunnel.BottleneckTolerance));
-            template = this.replacePlaceholder(template, "MAX-TUNNEL-SIMILARITY", String(tunnel.MaxTunnelSimilarity));
-            template = this.replacePlaceholder(template, "ORIGIN-RADIUS", String(tunnel.OriginRadius));
-            template = this.replacePlaceholder(template, "SURFACE-COVER-RADIUS", String(tunnel.SurfaceCoverRadius));
-            template = this.replacePlaceholder(template, "WEIGHT-FUNCTION", String(tunnel.WeightFunction));
-        }
-        else {
-            emptyPlaceholders.push("BOTTLENECK-RADIUS");
-            emptyPlaceholders.push("BOTTLENECK-TOLERANCE");
-            emptyPlaceholders.push("MAX-TUNNEL-SIMILARITY");
-            emptyPlaceholders.push("ORIGIN-RADIUS");
-            emptyPlaceholders.push("SURFACE-COVER-RADIUS");
-            emptyPlaceholders.push("WEIGHT-FUNCTION");
-        }
-        if (params.PoresAuto !== void 0) {
-            template = this.replacePlaceholder(template, "AUTOMATIC-PORES", (params.PoresAuto) ? "Yes" : "No");
-        }
-        else {
-            emptyPlaceholders.push("AUTOMATIC-PORES");
-        }
-        if (params.PoresMerged !== void 0) {
-            template = this.replacePlaceholder(template, "MERGE-PORES", (params.PoresMerged) ? "Yes" : "No");
-        }
-        else {
-            emptyPlaceholders.push("MERGE-PORES");
-        }
-
-        template = this.replaceEmptyPlaceholders(template, emptyPlaceholders);
-
-        return template;
+        const { Input: input, Cavity: cavity, Tunnel: tunnel, Origin: origin, CustomExits: exits } = params;
+        return fill(template, {
+            "MOLE-PARAMS-VISIBLE": "visible",
+            "SPECIFIC-CHAINS": input?.SpecificChains,
+            "IGNORE-HYDROGENS": cavity && yesNo(cavity.IgnoreHydrogens),
+            "IGNORE-HETATMS": cavity && yesNo(cavity.IgnoreHETAtoms),
+            "INTERIOR-TRESHOLD": cavity && String(cavity.InteriorThreshold),
+            "PROBE-RADIUS": cavity && String(cavity.ProbeRadius),
+            "STARTING-POINT-XYZ": origin?.Points && pointsToString(origin.Points),
+            "STARTING-POINT": origin?.Residues && flattenResiduesArray(origin.Residues),
+            "QUERY-FILTER": origin?.QueryExpression,
+            "END-POINT-XYZ": exits?.Points && pointsToString(exits.Points),
+            "END-POINT": exits?.Residues && flattenResiduesArray(exits.Residues),
+            "QUERY": exits?.QueryExpression,
+            "IGNORED-RESIDUES": params.NonActiveResidues && flattenResidues(params.NonActiveResidues),
+            "BOTTLENECK-RADIUS": tunnel && String(tunnel.BottleneckRadius),
+            "BOTTLENECK-TOLERANCE": tunnel && String(tunnel.BottleneckTolerance),
+            "MAX-TUNNEL-SIMILARITY": tunnel && String(tunnel.MaxTunnelSimilarity),
+            "ORIGIN-RADIUS": tunnel && String(tunnel.OriginRadius),
+            "SURFACE-COVER-RADIUS": tunnel && String(tunnel.SurfaceCoverRadius),
+            "WEIGHT-FUNCTION": tunnel && String(tunnel.WeightFunction),
+            "AUTOMATIC-PORES": params.PoresAuto !== void 0 ? yesNo(params.PoresAuto) : null,
+            "MERGE-PORES": params.PoresMerged !== void 0 ? yesNo(params.PoresMerged) : null,
+        });
     }
 
     private addParamsPagePores(template: string, params: PoresConfig) {
-        template = this.replacePlaceholder(template, "PORES-PARAMS-VISIBLE", "visible");
-        template = this.replacePlaceholder(template, "BETA-STRUCTURE", (params.IsBetaBarrel) ? "Yes" : "No");
-        template = this.replacePlaceholder(template, "MEMBRANE-REGION", (params.InMembrane) ? "Yes" : "No");
-        template = this.replacePlaceholder(template, "SPECIFIC-CHAINS", formatChains(params.Chains));
-
-        return template;
+        return fill(template, {
+            "PORES-PARAMS-VISIBLE": "visible",
+            "BETA-STRUCTURE": yesNo(params.IsBetaBarrel),
+            "MEMBRANE-REGION": yesNo(params.InMembrane),
+            "SPECIFIC-CHAINS": formatChains(params.Chains),
+        });
     }
 
     private generateReport(originalVisibleChannels: (Tunnel & TunnelMetaInfo)[]) {
