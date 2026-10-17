@@ -177,23 +177,19 @@ export class Data extends React.Component<State, {}> {
         });
         let noCavitiesData = <div className="no-channels-data">There are no cavities available...</div>
 
-        let originsControls: any[] = [];
-        if (this.props.data.Origins) {
-            if (this.props.data.Origins.User !== void 0)
-                originsControls.push(<Origins key={'User'} origins={this.props.data.Origins.User} {...this.props} label='User Specifed (optimized)' />);
-            if (this.props.data.Origins.InputOrigins !== void 0)
-                originsControls.push(<Origins key={'InputOrigins'} origins={this.props.data.Origins.InputOrigins} {...this.props} label='User Specifed' />);
-            if (this.props.data.Origins.Computed !== void 0)
-                originsControls.push(<Origins key={'Computed'} origins={this.props.data.Origins.Computed} {...this.props} label='Computed' />);
-            if (this.props.data.Origins.Databse !== void 0)
-                originsControls.push(<Origins key={'Databse'} origins={this.props.data.Origins.Database} {...this.props} label='Database' />);
-            if (this.props.data.Origins.InputExits !== void 0)
-                originsControls.push(<Origins key={'InputExits'} origins={this.props.data.Origins.InputExits} {...this.props} label='Input Exits' />);
-            if (this.props.data.Origins.InputFoundExits !== void 0)
-                originsControls.push(<Origins key={'InputFoundExits'} origins={this.props.data.Origins.InputFoundExits} {...this.props} label='Input Found Exits' />);
-            if (this.props.data.Origins.CSAOrigins !== void 0)
-                originsControls.push(<Origins key={'CSAOrigins'} origins={this.props.data.Origins.CSAOrigins} {...this.props} label='CSA Origins' />);
-        }
+        // the groups of origins MOLE reports, in display order; empty groups are not shown
+        const originGroups: [string, string][] = [
+            ['User', 'User Specified (optimized)'],
+            ['InputOrigins', 'User Specified'],
+            ['Computed', 'Computed'],
+            ['Database', 'Database'],
+            ['InputExits', 'Input Exits'],
+            ['InputFoundExits', 'Input Found Exits'],
+            ['CSAOrigins', 'CSA Origins'],
+        ];
+        const origins: Record<string, any> | undefined = this.props.data.Origins;
+        const originsControls = origins ? originGroups.filter(([key]) => origins[key] !== void 0)
+            .map(([key, label]) => <Origins key={key} origins={origins[key]} {...this.props} label={label} />) : [];
 
         let noOriginsData = <div className="no-channels-data">There are no origins available...</div>
 
