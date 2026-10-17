@@ -31,11 +31,10 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
     componentDidMount() {
         LoadingStatus.setTotalSteps(6);
         leftPanelTabs();
-        let params = getParameters();
-        if (params !== null) {
-            this.setState({ channelsDB: params.isChannelsDB })
-        }
-        this.reload(this.state.channelsDB);
+        // from the URL directly: the state set here is not updated yet when reload reads it
+        const channelsDB = getParameters()?.isChannelsDB ?? false;
+        this.setState({ channelsDB });
+        this.reload(channelsDB);
         $(window).on("contentResize", this.onContentResize.bind(this));
 
         $(window).on("resize", (() => {
