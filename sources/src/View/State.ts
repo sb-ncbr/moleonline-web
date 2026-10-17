@@ -130,6 +130,10 @@ function createCSAOriginsData(computationId: string) {
                 console.log(e);
                 rej(e);
             }
+        }, false, (_compId, error) => {
+            // the CSA origins are optional: load the rest without them
+            console.warn(`CSA origins not available: ${error}`);
+            res(null);
         })
     });
 }
