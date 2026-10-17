@@ -2,7 +2,7 @@ import { roundToDecimal } from "../../Common/Util/Numbers";
 import { LayerData } from "../../DataInterface";
 import { Bundle } from "../../StaticData";
 import { isActive } from "../CommonUtils/Tabs";
-import { ArrowHeadLine, Axis, ColorMixer, ColorPaletteFunctionSettings, ContextAwareObject, CurlyBrackets, TextBox, Tunnel } from "./Backend";
+import { ArrowHeadLine, Axis, ColorMixer, ColorPaletteFunctionSettings, ContextAwareObject, CurlyBrackets, FontSize, TextAlign, TextBox, Tunnel } from "./Backend";
 import { Paintable, Axis as AxisCompnent, Positionable } from "./Components";
 
 declare function $(p: any): any;
@@ -988,15 +988,26 @@ export class Vizualizer {
         }
     }
 
-    public vizualize(renderHitboxes = true) {
+    // The values of a property the colours span: min-max of the channel or absolute bounds, and the centre
+    private colorRange(propertyKey: string) {
+        const min = (this.useColorMinMax) ? this.minColoringValue.get(propertyKey) : this.absColorValueMin.get(propertyKey);
+        if (min == void 0) {
+            throw Error("Minimal value for property '" + propertyKey + "' was not found!");
+        }
+        const max = (this.useColorMinMax) ? this.maxColoringValue.get(propertyKey) : this.absColorValueMax.get(propertyKey);
+        if (max == void 0) {
+            throw Error("Maximal value for property '" + propertyKey + "' was not found!");
+        }
+        return { min, max, center: this.absCenterPositions.get(propertyKey as PropertyKey) ?? 0 };
+    }
+
+    public vizualize() {
 
         this.resizeCanvas();
 
         let canvasWidth = this.getCanvas().width;
         let canvasHeight = this.getCanvas().height;
         let context = this.getContext();
-
-        let toRender = [];
 
         //Data was not prepared yet
         if (this.dataDirty) {
@@ -1010,183 +1021,51 @@ export class Vizualizer {
         maxDistance = roundToDecimal(maxDistance, 1); // round to 1 decimal
 
         let positioning = this.getComponentsPositioning();
+        const at = (component: Positionable) => component.toBounds(canvasWidth, canvasHeight);
+        const text = (value: string, fontSize: FontSize, textAlign: TextAlign) => new TextBox(value, context, fontSize, textAlign);
 
-        //Prepare default tunnel object
-        let dTminVal = (this.useColorMinMax) ? this.minColoringValue.get(this.coloringPropertyKey) : this.absColorValueMin.get(this.coloringPropertyKey);
-        if (dTminVal == void 0) {
-            throw Error("Minimal value for property '" + this.coloringPropertyKey + "' was not found!");
-        }
-        let dTmaxVal = (this.useColorMinMax) ? this.maxColoringValue.get(this.coloringPropertyKey) : this.absColorValueMax.get(this.coloringPropertyKey);
-        if (dTmaxVal == void 0) {
-            throw Error("Maximal value for property '" + this.coloringPropertyKey + "' was not found!");
-        }
+        const d = this.colorRange(this.coloringPropertyKey);
+        const c = this.colorRange(this.customColoringPropertyKey);
+        let defaultTunnelData = this.prepareTunnelObject(d.min, d.max, d.center, context, layers.defaultTunnelLayers, true);
+        let customizableTunnelData = this.prepareTunnelObject(c.min, c.max, c.center, context, layers.customizableTunnelLayers, false);
+        this.__tunnels.default = { tunnel: defaultTunnelData.tunnel, bounds: at(positioning.defaultTunnel) };
+        this.__tunnels.customizable = { tunnel: customizableTunnelData.tunnel, bounds: at(positioning.customizableTunnel) };
 
-        let dTcenter = this.absCenterPositions.get(this.coloringPropertyKey as PropertyKey);
-        if (dTcenter === void 0) {
-            dTcenter = 0;
-        }
-        let defaultTunnelData = this.prepareTunnelObject(dTminVal, dTmaxVal, dTcenter, context, layers.defaultTunnelLayers, true);
-        let defaultTunnelBounds = positioning.defaultTunnel.toBounds(canvasWidth, canvasHeight);
-        toRender.push({
-            drawable: defaultTunnelData.tunnel,
-            bounds: defaultTunnelBounds
-        });
-
-        //Prepare customizable tunnel object
-        let cTminVal = (this.useColorMinMax) ? this.minColoringValue.get(this.customColoringPropertyKey) : this.absColorValueMin.get(this.customColoringPropertyKey);
-        if (cTminVal == void 0) {
-            throw Error("Minimal value for property '" + this.customColoringPropertyKey + "' was not found!");
-        }
-        let cTmaxVal = (this.useColorMinMax) ? this.maxColoringValue.get(this.customColoringPropertyKey) : this.absColorValueMax.get(this.customColoringPropertyKey);
-        if (cTmaxVal == void 0) {
-            throw Error("Maximal value for property '" + this.customColoringPropertyKey + "' was not found!");
-        }
-
-        let cTcenter = this.absCenterPositions.get(this.customColoringPropertyKey as PropertyKey);
-        if (cTcenter === void 0) {
-            cTcenter = 0;
-        }
-        let customizableTunnelData = this.prepareTunnelObject(cTminVal, cTmaxVal, cTcenter, context, layers.customizableTunnelLayers, false);
-        let customizableTunnelBounds = positioning.customizableTunnel.toBounds(canvasWidth, canvasHeight);
-        toRender.push({
-            drawable: customizableTunnelData.tunnel,
-            bounds: customizableTunnelBounds
-        });
-
-        this.__tunnels.default = {
-            tunnel: defaultTunnelData.tunnel,
-            bounds: defaultTunnelBounds
-        };
-
-        this.__tunnels.customizable = {
-            tunnel: customizableTunnelData.tunnel,
-            bounds: customizableTunnelBounds
-        };
-
-        //Prepare color mixer objects
-
-        //Color mixer for default tunnel
-        //Horizontal
-        toRender.push({
-            drawable: new ColorMixer(dTminVal, dTmaxVal, context, this.getColor, defaultTunnelData.colorFunctionSettings, true),
-            bounds: positioning.defaultColorMixerHorizontal.toBounds(canvasWidth, canvasHeight)
-        });
-        //Color mixer for customizable tunnel
-        //Horizontal
-        toRender.push({
-            drawable: new ColorMixer(cTminVal, cTmaxVal, context, this.getColor, customizableTunnelData.colorFunctionSettings, true),
-            bounds: positioning.customizableColorMixerHorizontal.toBounds(canvasWidth, canvasHeight)
-        });
-
-        //Prepare horizontal axis
-        toRender.push({
-            drawable: new Axis(0, this.maxX, context, 10, true, 20, 1.6),
-            bounds: positioning.horizontalAxis.toBounds(canvasWidth, canvasHeight)
-        });
-
-        //Prepare vertical axis
-        toRender.push({
-            drawable: new Axis(0, this.getMaxY(this.maxY), context, this.verticalAxisChunkCount, false, 30, 1.6),
-            bounds: positioning.verticalAxis_1.toBounds(canvasWidth, canvasHeight)
-        });
-        toRender.push({
-            drawable: new Axis(0, this.getMaxY(this.customMaxY), context, this.verticalAxisChunkCount, false, 30, 1.6),
-            bounds: positioning.verticalAxis_2.toBounds(canvasWidth, canvasHeight)
-        });
-
-        //Prepare labels
-
-        // Label on left side of horizontal axis
-        toRender.push({
-            drawable: new TextBox("0 Å", context, "big", "right"),
-            bounds: positioning.axisLeftZeroLabel.toBounds(canvasWidth, canvasHeight)
-        });
-        // Label on right side of horizontal axis
-        toRender.push({
-            drawable: new TextBox(`${maxDistance} Å`, context, "big", "left"),
-            bounds: positioning.horizontalAxisRightLabel.toBounds(canvasWidth, canvasHeight)
-        });
-        // Label on top left side of vertical axis for default tunnel
-        toRender.push({
-            drawable: new TextBox(`${this.getMaxY(this.maxY)} Å`, context, "medium", "right"),
-            bounds: positioning.vAxis1TopLabel.toBounds(canvasWidth, canvasHeight)
-        });
-        // Label on bottom left side of vertical axis for customizable tunnel
-        toRender.push({
-            drawable: new TextBox(`${this.getMaxY(this.customMaxY)} Å`, context, "medium", "right"),
-            bounds: positioning.vAxis2BottomLabel.toBounds(canvasWidth, canvasHeight)
-        });
-        // Label on top left side of color mixer for default tunnel
-        toRender.push({
-            drawable: new TextBox(`${roundToDecimal(dTminVal, 2)}`, context, "small", "left"),
-            bounds: positioning.dColorMixerLeftLabel.toBounds(canvasWidth, canvasHeight)
-        });
-        // Label on top right side of color mixer for default tunnel
-        toRender.push({
-            drawable: new TextBox(`${roundToDecimal(dTmaxVal, 2)}`, context, "small", "right"),
-            bounds: positioning.dColorMixerRightLabel.toBounds(canvasWidth, canvasHeight)
-        });
-        // Label on bottom left side of color mixer for customizable tunnel
-        toRender.push({
-            drawable: new TextBox(`${roundToDecimal(cTminVal, 2)}`, context, "small", "left"),
-            bounds: positioning.cColorMixerLeftLabel.toBounds(canvasWidth, canvasHeight)
-        });
-        // Label on bottom right side of color mixer for customizable tunnel
-        toRender.push({
-            drawable: new TextBox(`${roundToDecimal(cTmaxVal, 2)}`, context, "small", "right"),
-            bounds: positioning.cColorMixerRightLabel.toBounds(canvasWidth, canvasHeight)
-        });
-        // Curly brackets for default tunnel
-        toRender.push({
-            drawable: new CurlyBrackets(context),
-            bounds: positioning.defaultCurlyBrackets.toBounds(canvasWidth, canvasHeight)
-        });
-        // Curly brackets Label for default tunnel
-        toRender.push({
-            drawable: new TextBox(`${Bundle.get(this.radiusPropertyKey)}`, context, "small", "left"),
-            bounds: positioning.defaultCurlyBracketsLabel.toBounds(canvasWidth, canvasHeight)
-        });
-        // Curly brackets for customizable tunnel
-        toRender.push({
-            drawable: new CurlyBrackets(context),
-            bounds: positioning.customizableCurlyBrackets.toBounds(canvasWidth, canvasHeight)
-        });
-        // Curly brackets Label for customizable tunnel
-        toRender.push({
-            drawable: new TextBox(`${Bundle.get(this.customRadiusPropertyKey)}`, context, "small", "left"),
-            bounds: positioning.customizableCurlyBracketsLabel.toBounds(canvasWidth, canvasHeight)
-        });
-        // Arrowhead line for default tunnel
-        toRender.push({
-            drawable: new ArrowHeadLine(context, true),
-            bounds: positioning.defaultArrowheadLine.toBounds(canvasWidth, canvasHeight)
-        });
-        // Arrowhead line Label for default tunnel
-        toRender.push({
-            drawable: new TextBox(`Distance`, context, "small", "center"),
-            bounds: positioning.defaultArrowheadLineLabel.toBounds(canvasWidth, canvasHeight)
-        });
-        // Arrowhead line for customizable tunnel
-        toRender.push({
-            drawable: new ArrowHeadLine(context, true),
-            bounds: positioning.customizableArrowheadLine.toBounds(canvasWidth, canvasHeight)
-        });
-        // Arrowhead line Label for customizable tunnel
-        toRender.push({
-            drawable: new TextBox(`Distance`, context, "small", "center"),
-            bounds: positioning.customizableArrowheadLineLabel.toBounds(canvasWidth, canvasHeight)
-        });
-        // Default color mixer Label
-        toRender.push({
-            drawable: new TextBox(`${this.coloringPropertyKey}`, context, "small", "center"),
-            bounds: positioning.defaultColorMixerLabel.toBounds(canvasWidth, canvasHeight)
-        });
-        // Customizable color mixer Label
-        toRender.push({
-            drawable: new TextBox(`${this.customColoringPropertyKey}`, context, "small", "center"),
-            bounds: positioning.customizableColorMixerLabel.toBounds(canvasWidth, canvasHeight)
-        });
-        this.renderObjects(toRender);
+        // Drawn in this order
+        const toRender: [ContextAwareObject, Positionable][] = [
+            [defaultTunnelData.tunnel, positioning.defaultTunnel],
+            [customizableTunnelData.tunnel, positioning.customizableTunnel],
+            // horizontal colour bars
+            [new ColorMixer(d.min, d.max, context, this.getColor, defaultTunnelData.colorFunctionSettings, true), positioning.defaultColorMixerHorizontal],
+            [new ColorMixer(c.min, c.max, context, this.getColor, customizableTunnelData.colorFunctionSettings, true), positioning.customizableColorMixerHorizontal],
+            // axes
+            [new Axis(0, this.maxX, context, 10, true, 20, 1.6), positioning.horizontalAxis],
+            [new Axis(0, this.getMaxY(this.maxY), context, this.verticalAxisChunkCount, false, 30, 1.6), positioning.verticalAxis_1],
+            [new Axis(0, this.getMaxY(this.customMaxY), context, this.verticalAxisChunkCount, false, 30, 1.6), positioning.verticalAxis_2],
+            // axis labels: the distance and the radius ranges
+            [text("0 Å", "big", "right"), positioning.axisLeftZeroLabel],
+            [text(`${maxDistance} Å`, "big", "left"), positioning.horizontalAxisRightLabel],
+            [text(`${this.getMaxY(this.maxY)} Å`, "medium", "right"), positioning.vAxis1TopLabel],
+            [text(`${this.getMaxY(this.customMaxY)} Å`, "medium", "right"), positioning.vAxis2BottomLabel],
+            // colour bar ranges
+            [text(`${roundToDecimal(d.min, 2)}`, "small", "left"), positioning.dColorMixerLeftLabel],
+            [text(`${roundToDecimal(d.max, 2)}`, "small", "right"), positioning.dColorMixerRightLabel],
+            [text(`${roundToDecimal(c.min, 2)}`, "small", "left"), positioning.cColorMixerLeftLabel],
+            [text(`${roundToDecimal(c.max, 2)}`, "small", "right"), positioning.cColorMixerRightLabel],
+            // the radius brackets and the distance arrows, with their labels
+            [new CurlyBrackets(context), positioning.defaultCurlyBrackets],
+            [text(`${Bundle.get(this.radiusPropertyKey)}`, "small", "left"), positioning.defaultCurlyBracketsLabel],
+            [new CurlyBrackets(context), positioning.customizableCurlyBrackets],
+            [text(`${Bundle.get(this.customRadiusPropertyKey)}`, "small", "left"), positioning.customizableCurlyBracketsLabel],
+            [new ArrowHeadLine(context, true), positioning.defaultArrowheadLine],
+            [text(`Distance`, "small", "center"), positioning.defaultArrowheadLineLabel],
+            [new ArrowHeadLine(context, true), positioning.customizableArrowheadLine],
+            [text(`Distance`, "small", "center"), positioning.customizableArrowheadLineLabel],
+            // the names of the coloring properties
+            [text(`${this.coloringPropertyKey}`, "small", "center"), positioning.defaultColorMixerLabel],
+            [text(`${this.customColoringPropertyKey}`, "small", "center"), positioning.customizableColorMixerLabel],
+        ];
+        this.renderObjects(toRender.map(([drawable, component]) => ({ drawable, bounds: at(component) })));
 
         if (this.selectedLayerIds.length > 0) {
             this.selectLayers(this.selectedLayerIds);

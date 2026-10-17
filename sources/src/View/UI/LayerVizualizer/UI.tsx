@@ -6,7 +6,6 @@ import { activateTab, doAfterTabActivated } from "../../CommonUtils/Tabs";
 import { Bundle, TooltipText } from "../../../StaticData";
 import { triggerDownload } from "../../CommonUtils/Misc";
 import { Tunnel } from "../../LayerVizualizer/Backend";
-import { CommonOptions } from "../../../../config/common";
 import { QueryParam } from "../../VizualizerMol/helpers";
 import { Context } from "../../Context";
 import { LayerColors } from "../../CommonUtils/LayerColors";
@@ -284,38 +283,18 @@ class Hint extends React.Component<State, {}> {
 }
 
 class ColorMenuItem extends React.Component<State & { propertyName: string, isCustom: boolean }, {}> {
-    private changeColoringProperty(e: React.MouseEvent<HTMLElement>) {
-        let targetElement = (e.target as HTMLElement);
-        let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
-        let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
-
-        let propertyName = targetElement.getAttribute("data-propertyname");
-        if (propertyName === null) {
-            if (CommonOptions.DEBUG_MODE)
-                console.log("No property name found!");
-            return;
-        }
-
+    private changeColoringProperty() {
+        const instance = Vizualizer.ACTIVE_INSTANCES[this.props.instanceId];
+        const propertyName = this.props.propertyName;
         if (this.props.isCustom) {
-            if (CommonOptions.DEBUG_MODE)
-                console.log(`setting custom property key: ${propertyName}`);
             instance.setCustomColoringPropertyKey(propertyName);
+            instance.vizualize();
+            this.props.app.setState({ customColoringPropertyKey: propertyName });
         }
         else {
-            if (CommonOptions.DEBUG_MODE)
-                console.log(`setting regular property key: ${propertyName}`);
             instance.setColoringPropertyKey(propertyName);
-        }
-
-        instance.vizualize();
-        let state = this.props.app.state;
-        if (this.props.isCustom) {
-            state.customColoringPropertyKey = propertyName;
-            this.props.app.setState(state);
-        }
-        else {
-            state.coloringPropertyKey = propertyName;
-            this.props.app.setState(state);
+            instance.vizualize();
+            this.props.app.setState({ coloringPropertyKey: propertyName });
             instance.renderOffCanvas();
             const p = LayerColors.toProperty(propertyName);
             if (p) {
@@ -326,76 +305,48 @@ class ColorMenuItem extends React.Component<State & { propertyName: string, isCu
 
     render() {
         return (
-            <li><a data-instanceidx={this.props.instanceId} data-propertyname={this.props.propertyName} data-toggle="tooltip" data-placement="right" title={TooltipText.get(this.props.propertyName)} onClick={this.changeColoringProperty.bind(this)} className="init-lvz-tooltip lvz-properties dropdown-item">{Bundle.get(this.props.propertyName)}</a></li>
+            <li><a data-toggle="tooltip" data-placement="right" title={TooltipText.get(this.props.propertyName)} onClick={() => this.changeColoringProperty()} className="init-lvz-tooltip lvz-properties dropdown-item">{Bundle.get(this.props.propertyName)}</a></li>
         );
     }
 }
 
-class RadiusMenuItem extends React.Component<State & { propertyName: string, isCustom: boolean }, {}> {
-    private changeRadiusProperty(e: React.MouseEvent<HTMLElement>) {
-        let targetElement = (e.target as HTMLElement);
-        let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
-        let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
-
-        let propertyName = targetElement.getAttribute("data-propertyname") as RadiusProperty;
-        if (propertyName === null || propertyName === void 0) {
-            return;
-        }
-
+class RadiusMenuItem extends React.Component<State & { propertyName: RadiusProperty, isCustom: boolean }, {}> {
+    private changeRadiusProperty() {
+        const instance = Vizualizer.ACTIVE_INSTANCES[this.props.instanceId];
+        const propertyName = this.props.propertyName;
         if (this.props.isCustom) {
             instance.setCustomRadiusPropertyKey(propertyName);
+            instance.vizualize();
+            this.props.app.setState({ customRadiusPropertyKey: propertyName });
         }
         else {
             instance.setRadiusPropertyKey(propertyName);
-        }
-
-        instance.vizualize();
-
-        let state = this.props.app.state;
-        if (this.props.isCustom) {
-            state.customRadiusPropertyKey = propertyName;
-            this.props.app.setState(state);
-        }
-        else {
-            state.radiusPropertyKey = propertyName;
-            this.props.app.setState(state);
+            instance.vizualize();
+            this.props.app.setState({ radiusPropertyKey: propertyName });
         }
     }
 
     render() {
         return (
-            <li><a data-instanceidx={this.props.instanceId} data-propertyname={this.props.propertyName} data-toggle="tooltip" data-placement="right" title={TooltipText.get(this.props.propertyName)} onClick={this.changeRadiusProperty.bind(this)} className="init-lvz-tooltip lvz-radius dropdown-item">{Bundle.get(this.props.propertyName)}</a></li>
+            <li><a data-toggle="tooltip" data-placement="right" title={TooltipText.get(this.props.propertyName)} onClick={() => this.changeRadiusProperty()} className="init-lvz-tooltip lvz-radius dropdown-item">{Bundle.get(this.props.propertyName)}</a></li>
         );
     }
 }
 
-class ColorBoundsMenuItem extends React.Component<State & { mode: string }, {}> {
-    private changeColorBoundsMode(e: React.MouseEvent<HTMLElement>) {
-        let targetElement = (e.target as HTMLElement);
-        let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
-        let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
-
-        let mode = targetElement.getAttribute("data-mode") as ColorBoundsMode;
-        if (mode === null || mode === void 0) {
-            return;
-        }
-
+class ColorBoundsMenuItem extends React.Component<State & { mode: ColorBoundsMode }, {}> {
+    private changeColorBoundsMode() {
+        const instance = Vizualizer.ACTIVE_INSTANCES[this.props.instanceId];
+        const mode = this.props.mode;
         instance.setColorBoundsMode(mode);
-        if (mode === 'Absolute') {
-            LayerColors.invokeOnColorBoundsChanged('absolute');
-        } else {
-            LayerColors.invokeOnColorBoundsChanged('minmax');
-        }
+        LayerColors.invokeOnColorBoundsChanged(mode === 'Absolute' ? 'absolute' : 'minmax');
         instance.vizualize();
         instance.renderOffCanvas();
-        let state = this.props.app.state;
-        state.colorBoundsMode = mode;
-        this.props.app.setState(state);
+        this.props.app.setState({ colorBoundsMode: mode });
     }
 
     render() {
         return (
-            <li><a className="dropdown-item" data-instanceidx={this.props.instanceId} data-mode={this.props.mode} onClick={this.changeColorBoundsMode.bind(this)}>{this.props.mode}</a></li>
+            <li><a className="dropdown-item" data-mode={this.props.mode} onClick={() => this.changeColorBoundsMode()}>{this.props.mode}</a></li>
         );
     }
 }
@@ -420,20 +371,11 @@ class Controls extends React.Component<State & { isCustom: boolean }, {}> {
                 <RadiusSwitch state={this.props} isCustom={this.props.isCustom} radiusProperty={(this.props.isCustom) ? this.props.customRadiusPropertyKey : this.props.radiusPropertyKey} />
                 <ColorBySwitch state={this.props} isCustom={this.props.isCustom} coloringProperty={(this.props.isCustom) ? this.props.customColoringPropertyKey : this.props.coloringPropertyKey} />
                 {!this.props.isCustom ? <div className='color-controls'>
-                    <CommonControls {...this.props} />
+                    <div className="controls block-like">
+                        <CommonButtonArea {...this.props} />
+                    </div>
                     <PropertyColorTunnel state={this.props} />
                 </div> : <></>}
-            </div>
-        );
-    }
-}
-
-class CommonControls extends React.Component<State, {}> {
-
-    render() {
-        return (
-            <div className="controls block-like">
-                <CommonButtonArea {...this.props} />
             </div>
         );
     }
@@ -472,7 +414,7 @@ class ColorBySwitch extends React.Component<{ state: State, coloringProperty: st
 
 class RadiusSwitch extends React.Component<{ state: State, radiusProperty: RadiusProperty, isCustom: boolean }, {}> {
     private generateRadiusSwitch() {
-        let properties = ["MinRadius", "MinFreeRadius"];
+        let properties: RadiusProperty[] = ["MinRadius", "MinFreeRadius"];
         let rv = [];
         for (let [index, prop] of properties.entries()) {
             rv.push(
@@ -652,7 +594,7 @@ class PropertyColorTunnel extends React.Component<{ state: State }, { property: 
 
 class CommonButtonArea extends React.Component<State, {}> {
     private generateColorBoundsSwitch() {
-        let properties = ["Min/max", "Absolute"];
+        let properties: ColorBoundsMode[] = ["Min/max", "Absolute"];
         let rv = [];
         for (let [index, prop] of properties.entries()) {
             rv.push(

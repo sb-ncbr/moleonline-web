@@ -74,7 +74,6 @@ export class Axis extends ContextAwareObject {
     private isHorizontal: boolean;
     private countOfParts: number;
     private margin: number;
-    private doHighlight: boolean = false;  //Žluté podbarvení obdélníku
 
     private lineColor = "#8c8c8c";
 
@@ -137,11 +136,6 @@ export class Axis extends ContextAwareObject {
         this.context.closePath();
 
         this.context.stroke();
-        if (this.doHighlight) {
-            this.context.fillStyle = "yellow";
-            this.context.fillRect(x, y, width, height);
-        }
-
         this.context.restore();
     }
 }
@@ -230,7 +224,6 @@ export class ArrowHeadLine extends ContextAwareObject {
     private isHorizontal: boolean;
     private bounds!: Rectangle;
 
-    private doHighlight: boolean = false;  //Žluté podbarvení obdélníku
 
     public constructor(context: CanvasRenderingContext2D, isHorizontal: boolean = true) {
         super(context);
@@ -251,15 +244,6 @@ export class ArrowHeadLine extends ContextAwareObject {
         let y2 = (this.isHorizontal ? y + height / 2 - this.lineWidth / 2 : y + height - yMargin);
 
         this.clear(this.bounds);
-
-        if (this.doHighlight) {
-            this.context.save();
-
-            this.context.fillStyle = "yellow";
-            this.context.fillRect(x, y, width, height);
-
-            this.context.restore();
-        }
 
         this.context.save();
 
@@ -324,7 +308,6 @@ export type TextAlign = "left" | "center" | "right";
 export class TextBox extends ContextAwareObject {
     private value: string;
     private fontSize: FontSize; //Velikost textu v procentech vzhledem k výšce obdelníku, kam se vykersluje 
-    private doHighlight: boolean = false;  //Žluté podbarvení obdélníků s textem
     private textAlign: TextAlign;
 
     public constructor(value: string, context: CanvasRenderingContext2D, fontSize: FontSize = "medium", textAlign: TextAlign = "center") {
@@ -365,11 +348,6 @@ export class TextBox extends ContextAwareObject {
         this.context.save();
 
         this.clear({ x, y, width, height });
-
-        if (this.doHighlight) {
-            this.context.fillStyle = "yellow";
-            this.context.fillRect(x, y, width, height);
-        }
 
         this.context.font = `normal normal normal ${realTextSize}px sans-serif`;
         this.context.fillStyle = "#8c8c8c";
