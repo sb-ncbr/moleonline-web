@@ -14,7 +14,7 @@ import { Tunnel } from "../DataInterface";
 import { EmptyLoci, Loci } from "molstar/lib/mol-model/loci";
 import { MembraneShapeProvider, MoleObjectsNodeProvider, OriginShapeProvider, PickableRepresentation3D, SurfaceShapeProvider, TunnelPropertyColorRepresentation3D, TunnelPropertyColorShapeProvider, TunnelRepresentation3D } from "./VizualizerMol/objects";
 import { MembranePoint, Point, TunnelMetaInfo } from "../DataInterface";
-import { ColorParams, InitParams } from "./VizualizerMol/spec";
+import { ColorParams } from "./VizualizerMol/spec";
 import { Canvas3DProps } from "molstar/lib/mol-canvas3d/canvas3d";
 import { QueryHelper, QueryParam } from "./VizualizerMol/helpers";
 import { PluginStateObject } from "molstar/lib/mol-plugin-state/objects";
@@ -99,14 +99,9 @@ export class Context {
         this.resolveStructureChains(null);
     }
     private assemblyRef = '';
-    initParams?: InitParams;
     selectedParams: any;
-    selectedLoci: Loci | null = null;
     defaultRendererProps?: Canvas3DProps['renderer'];
     defaultMarkingProps?: Canvas3DProps['marking'];
-    isHighlightColorUpdated = false;
-    isSelectedColorUpdated = false;
-    public data: Map<string, object> = new Map();
 
     private static instance: Context;
 
@@ -423,7 +418,7 @@ export class Context {
         this.selectedParams = { addedRepr: true }
     }
 
-    private getLociForParams(params: QueryParam[], structureNumber?: number, isHet?: boolean) {
+    private getLociForParams(params: QueryParam[], structureNumber?: number) {
         let assemblyRef = this.assemblyRef;
         if (structureNumber) {
             assemblyRef = this.plugin.managers.structure.hierarchy.current.structures[structureNumber - 1].cell.transform.ref;
@@ -483,20 +478,6 @@ export class Context {
     }
 
     visual = {
-        highlight: (params: { data: QueryParam[], color?: any, focus?: boolean, structureNumber?: number }) => {
-            const loci = this.getLociForParams(params.data, params.structureNumber);
-            if (Loci.isEmpty(loci)) return;
-            if (params.color) {
-                this.visual.setColor({ highlight: params.color });
-            }
-            this.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci });
-            if (params.focus) this.plugin.managers.camera.focusLoci(loci);
-
-        },
-        clearHighlight: async () => {
-            this.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci: EmptyLoci });
-            if (this.isHighlightColorUpdated) this.visual.reset({ highlightColor: true });
-        },
         select: async (params: { data: QueryParam[], nonSelectedColor?: any, addedRepr?: boolean, structureNumber?: number, forceClear?: boolean, isHet?: boolean, focusCenter?: boolean }) => {
 
             // clear prvious selection
@@ -522,7 +503,7 @@ export class Context {
             let centerFocusPositions: Vec3[] = [];
             for await (const param of params.data) {
                 // get loci from param
-                const loci = this.getLociForParams([param], params.structureNumber, params.isHet);
+                const loci = this.getLociForParams([param], params.structureNumber);
                 if (Loci.isEmpty(loci)) continue;
                 if (loci.kind === 'element-loci') {
                     if (params.focusCenter) {
@@ -609,39 +590,13 @@ export class Context {
             }
             this.selectedParams = undefined;
         },
-        toggleSpin: async (isSpinning?: boolean, resetCamera?: boolean) => {
+        setColor: async (param: { select: ColorParams }) => {
             if (!this.plugin.canvas3d) return;
-            const trackball = this.plugin.canvas3d.props.trackball;
-
-            let toggleSpinParam: any = trackball.animate.name === 'spin' ? { name: 'off', params: {} } : { name: 'spin', params: { speed: 1 } };
-
-            if (typeof isSpinning !== 'undefined') {
-                toggleSpinParam = { name: 'off', params: {} };
-                if (isSpinning) toggleSpinParam = { name: 'spin', params: { speed: 1 } };
-            }
-            await PluginCommands.Canvas3D.SetSettings(this.plugin, { settings: { trackball: { ...trackball, animate: toggleSpinParam } } });
-            if (resetCamera) await PluginCommands.Camera.Reset(this.plugin, {});
-        },
-        focus: async (params: QueryParam[], structureNumber?: number) => {
-            const loci = this.getLociForParams(params, structureNumber);
-            this.plugin.managers.camera.focusLoci(loci);
-        },
-        setColor: async (param: { highlight?: ColorParams, select?: ColorParams }) => {
-            if (!this.plugin.canvas3d) return;
-            if (!param.highlight && !param.select) return;
             this.saveDefaultColorProps();
             const renderer = { ...this.plugin.canvas3d.props.renderer };
             const marking = { ...this.plugin.canvas3d.props.marking };
-            if (param.highlight) {
-                renderer.highlightColor = this.normalizeColor(param.highlight);
-                marking.highlightEdgeColor = Color.darken(this.normalizeColor(param.highlight), 1);
-                this.isHighlightColorUpdated = true;
-            }
-            if (param.select) {
-                renderer.selectColor = this.normalizeColor(param.select);
-                marking.selectEdgeColor = Color.darken(this.normalizeColor(param.select), 1);
-                this.isSelectedColorUpdated = true;
-            }
+            renderer.selectColor = this.normalizeColor(param.select);
+            marking.selectEdgeColor = Color.darken(this.normalizeColor(param.select), 1);
             await PluginCommands.Canvas3D.SetSettings(this.plugin, { settings: { renderer, marking } });
         },
         setDefaultColor: async (color: ColorParams) => {
@@ -652,35 +607,26 @@ export class Context {
             marking.selectEdgeColor = Color.darken(this.normalizeColor(color), 1);
             this.defaultRendererProps = { ...renderer };
             this.defaultMarkingProps = { ...marking };
-            this.isSelectedColorUpdated = true;
             await PluginCommands.Canvas3D.SetSettings(this.plugin, { settings: { renderer, marking } });
         },
-        reset: async (params: { camera?: boolean, theme?: boolean, highlightColor?: boolean, selectColor?: boolean }) => {
+        reset: async (params: { camera?: boolean, theme?: boolean, selectColor?: boolean }) => {
             if (params.camera) await PluginCommands.Camera.Reset(this.plugin, { durationMs: 250 });
 
             if (params.theme) {
-                const defaultTheme: any = { color: this.initParams?.alphafoldView ? 'plddt-confidence' : 'default' };
+                const defaultTheme: any = { color: 'default' };
                 const componentGroups = this.plugin.managers.structure.hierarchy.currentComponentGroups;
                 for (const compGrp of componentGroups) {
                     await this.plugin.managers.structure.component.updateRepresentationsTheme(compGrp, defaultTheme);
                 }
             }
 
-            if (params.highlightColor || params.selectColor) {
+            if (params.selectColor) {
                 // No defaults saved means no colour was changed, so there is nothing to restore
                 if (!this.plugin.canvas3d || !this.defaultRendererProps || !this.defaultMarkingProps) return;
                 const renderer = { ...this.plugin.canvas3d.props.renderer };
                 const marking = { ...this.plugin.canvas3d.props.marking };
-                if (params.highlightColor) {
-                    renderer.highlightColor = this.defaultRendererProps.highlightColor;
-                    marking.highlightEdgeColor = this.defaultMarkingProps.highlightEdgeColor;
-                    this.isHighlightColorUpdated = false;
-                }
-                if (params.selectColor) {
-                    renderer.selectColor = this.defaultRendererProps.selectColor;
-                    marking.selectEdgeColor = this.defaultMarkingProps.selectEdgeColor;
-                    this.isSelectedColorUpdated = false;
-                }
+                renderer.selectColor = this.defaultRendererProps.selectColor;
+                marking.selectEdgeColor = this.defaultMarkingProps.selectEdgeColor;
                 await PluginCommands.Canvas3D.SetSettings(this.plugin, { settings: { renderer, marking } });
             }
         },

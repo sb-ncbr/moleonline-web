@@ -19,7 +19,6 @@ export class Tunnels {
     private static loadedChannels: Map<string, ChannelsDBChannels> = new Map();
     private static loadedChannelsDB: ChannelsDBChannels | undefined;
     private static onTunnelsLoaded: { handler: () => void }[];
-    private static onTunnelsCollect: { handler: (submitId: number) => void }[];
     private static onTunnelsHide: { handler: () => void }[];
 
     public static generateTunnelsDataJson() {
@@ -107,16 +106,6 @@ export class Tunnels {
 
         for (let h of this.onTunnelsHide) {
             h.handler();
-        }
-    }
-
-    public static invokeOnTunnelsCollect(submitId: number) {
-        if (this.onTunnelsCollect === void 0) {
-            return;
-        }
-
-        for (let h of this.onTunnelsCollect) {
-            h.handler(submitId);
         }
     }
 

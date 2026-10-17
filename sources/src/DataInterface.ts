@@ -244,13 +244,6 @@ export function convertLayersToLayerData(layersObject: Layers): LayerData[] {
 }
 
 export namespace Annotations {
-    export interface ProteinAnnotation {
-        Function: string,
-        Name: string,
-        Catalytics: string[],
-        UniProtId: string
-    };
-
     export interface ResidueAnnotations {
         ChannelsDB: Annotation[],
         UniProt: Annotation[]

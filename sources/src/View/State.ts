@@ -13,7 +13,6 @@ import { Residues } from "./CommonUtils/Residues";
 import { ParseJson, RawData } from "molstar/lib/mol-plugin-state/transforms/data";
 import { UUID } from "molstar/lib/mol-util";
 import { Color } from "molstar/lib/mol-util/color";
-import { Tunnels } from "./CommonUtils/Tunnels";
 import { PluginCommands } from "molstar/lib/mol-plugin/commands";
 import { ColorGenerator } from "molstar/lib/extensions/meshes/mesh-utils";
 import { Shape } from "molstar/lib/mol-model/shape";
@@ -212,7 +211,6 @@ export async function downloadChannelsData(computationId: string, submitId: numb
                     } else {
                         let data_ = s.data as MoleData;
                         data_ = generateGuidMole(data_);
-                        Tunnels.invokeOnTunnelsCollect(submitId);
                         // Events.invokeChannelDataLoaded(data_); //TODO check handlers that are attached to it
                         //TODO same with the same one here
                         // showDefaultVisuals(data_.Channels)
@@ -256,7 +254,6 @@ async function downloadChannelsDBData(computationId: string) {
                                 data_.Channels = TunnelsId.generateGuidAll(data_.Channels);
                                 data_.Channels = TunnelsId.generateIdAll(data_.Channels, computationId, 'channelsDb');
                                 data_.Annotations = [];
-                                Tunnels.invokeOnTunnelsCollect(0);
                                 // Events.invokeChannelDataLoaded(data_);
                                 //TODO probably remove, move to the first load or sync with the left panel checking
                                 // showDefaultVisuals(data_)
@@ -346,7 +343,6 @@ export function loadData(channelsDB: boolean) {
 
 function acquireData(computationId: string, submitId: number, res: any, rej: any, protein: boolean, channels: boolean, channelsDB: boolean) {
     let promises: any[] = [];
-    const context = Context.getInstance();
 
     if (protein) {
         if (CommonOptions.DEBUG_MODE)
@@ -354,16 +350,11 @@ function acquireData(computationId: string, submitId: number, res: any, rej: any
         let proteinAndCSA = new Promise<any>((res, rej) => {
             downloadProteinData(computationId, submitId)
                 .then(() => {
-                    let csaOriginsExists = context.data.has('csa-origins');
-                    if (!csaOriginsExists) {
-                        if (CommonOptions.DEBUG_MODE)
-                            console.log("reloading CSA Origins");
-                        createCSAOriginsData(computationId)
-                            .then((data) => res(data))
-                            .catch((err) => rej(err));
-                    } else {
-                        res(null)
-                    }
+                    if (CommonOptions.DEBUG_MODE)
+                        console.log("reloading CSA Origins");
+                    createCSAOriginsData(computationId)
+                        .then((data) => res(data))
+                        .catch((err) => rej(err));
                 })
                 .catch(error => rej(error));
         });

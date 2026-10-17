@@ -1,4 +1,4 @@
-import { AnnotationObject, Annotations, CHANNELSDB_CATEGORIES, ChannelsDBChannels, ChannelsDBData, Tunnel } from "./DataInterface";
+import { AnnotationObject, Annotations, ChannelsDBChannels, ChannelsDBData } from "./DataInterface";
 import { getJson } from "./Http";
 import { CommonOptions, DataSources } from "../config/common";
 import { customAlphabet } from 'nanoid';
@@ -20,22 +20,12 @@ export interface ChannelAnnotation {
     referenceType: string,
     link?: string
 };
-export interface ProteinAnnotation {
-    function: string,
-    name: string,
-    catalytics: string[],
-    uniProtId: string,
-    link: string
-};
-
 export interface ChannelsDataResponse {
-    liningResidues: string[]
     channelsAnnotations: Map<string, ChannelAnnotation[]>
     channelsData: ChannelsDBChannels,
 };
 
 export interface ProteinDataResponse {
-    proteinData: ProteinAnnotation[];
     residueData: Map<string, ResidueAnnotation[]>;
 };
 
@@ -74,40 +64,6 @@ export class ApiService {
         }
 
         return map;
-    }
-
-    private static stripChars(str: string, chars: string[]): string {
-        for (let char of chars) {
-            str = str.replace(char, "");
-        }
-
-        return str;
-    }
-    private static parseCatalytics(items: string[]): string[] {
-        let rv: string[] = [];
-        for (let item of items) {
-            let line = item.replace(/\(\d*\)/g, (x: string) => `<sub>${this.stripChars(x, ['(', ')'])}</sub>`);
-            line = line.replace(/\(\+\)|\(\-\)/g, (x: string) => `<sup>${this.stripChars(x, ['(', ')'])}</sup>`)
-
-            rv.push(line);
-        }
-        return rv;
-    }
-
-    private static parseProteinData(data: Annotations.ProteinAnnotation[]) {
-        let list: ProteinAnnotation[] = [];
-
-        for (let item of data) {
-            list.push({
-                name: item.Name,
-                function: item.Function,
-                link: this.createLink("UniProt", item.UniProtId),
-                uniProtId: item.UniProtId,
-                catalytics: this.parseCatalytics(item.Catalytics)
-            });
-        }
-
-        return list;
     }
 
     //PUBMEDID vs UniProtId ??? PUBMED není v JSONU vůbec přítomné
@@ -157,52 +113,15 @@ export class ApiService {
         return map;
     }
 
-    private static parseLiningResiduesAndChannelsData(data: ChannelsDBData) {
-        let channels: Tunnel[] = [];
-
-        for (const category of CHANNELSDB_CATEGORIES) {
-            if (data.Channels[category] !== void 0) {
-                channels = channels.concat(data.Channels[category]);
-            }
-        }
-
-        let liningResidues: string[] = [];
-        for (let channel of channels) {
-            for (let layerInfo of channel.Layers.LayersInfo) {
-                for (let residue of layerInfo.Residues) {
-                    let residueId = residue.split(" ").slice(1, 3).join(" ");
-                    if (liningResidues.indexOf(residueId) < 0) {
-                        liningResidues.push(residueId);
-                    }
-                }
-            }
-        }
-
-        return { liningResidues, channels: data.Channels };
-    }
-
-    private static handleChannelsAPIData(data: any) {
-        let liningResiduesAndChannels = this.parseLiningResiduesAndChannelsData(data);
-        let channelsAnnotations = this.parseChannelsAnnotations(data.Annotations);
-
-        return { liningResidues: liningResiduesAndChannels.liningResidues, channelsAnnotations, channelsData: liningResiduesAndChannels.channels };
-    }
-
-    private static handleAnnotationsAPIData(data: any) {
-        let proteinData = this.parseProteinData(data.EntryAnnotations);
-        let residueData = this.parseResidueData(data.ResidueAnnotations);
-
-        return { proteinData, residueData };
-    }
-
     public static getChannelsData(pdbid: string): Promise<ChannelsDataResponse> {
         let url = `${this.baseUrl}/channels/pdb/${pdbid}`;
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return getJson(url).then(async val => {
-            return this.handleChannelsAPIData(val);
-        });
+        return getJson(url).then((val: ChannelsDBData) => ({
+            channelsAnnotations: this.parseChannelsAnnotations(val.Annotations),
+            channelsData: val.Channels,
+        }));
     }
 
     public static getProteinData(pdbid: string): Promise<ProteinDataResponse> {
@@ -210,8 +129,6 @@ export class ApiService {
         if (this.DEBUG_MODE) {
             console.log(url);
         }
-        return getJson(url).then(val => {
-            return this.handleAnnotationsAPIData(val);
-        });
+        return getJson(url).then(val => ({ residueData: this.parseResidueData(val.ResidueAnnotations) }));
     }
 }
