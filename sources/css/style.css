@@ -39,7 +39,6 @@ body {
 }
 
 *,
-.ui-widget * li,
 .ui *:not(.glyphicon) {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
@@ -50,11 +49,6 @@ body {
 }
 
 
-.ui-widget-content a {
-    color: #337ab7;
-}
-
-.tabs .ui-state-active,
 .btn-primary {
     color: #fff;
     background-color: #337ab7;
@@ -220,10 +214,6 @@ only screen and (max-height: 900px) {
     #tabs{
         height: 52vh;
     }   
-    #tabs .ui-tabs-nav, 
-    #tabs .ui-tabs-panel{
-        padding:0 !important;
-    }
     .plugin {
         bottom: 52vh;
     } 
@@ -235,10 +225,6 @@ only screen and (max-height: 750px) {
         height: 56vh;
         right: 300px;
     }   
-    #tabs .ui-tabs-nav, 
-    #tabs .ui-tabs-panel{
-        padding:0 !important;
-    }
     .plugin {
         bottom: 56vh;
         right: 300px;
@@ -254,10 +240,6 @@ only screen and (max-height: 600px) {
         height: 60vh;
         right: 270px;
     }   
-    #tabs .ui-tabs-nav, 
-    #tabs .ui-tabs-panel{
-        padding:0 !important;
-    }
     .plugin {
         bottom: 60vh;
         right: 270px;
@@ -442,14 +424,6 @@ only screen and (max-height: 600px) {
 
 .right-panel .ui.toggled {
     height: 33vh;
-}
-
-.ui-tabs-panel {
-    padding: .3em 0.4em !important;
-}
-
-.ui-tabs .ui-tabs-nav .ui-tabs-anchor {
-    padding: .1em .5em !important;
 }
 
 #right-panel-tabs .datagrid {

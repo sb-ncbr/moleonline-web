@@ -226,3 +226,8 @@ function fillSpaceOnResize(elementId,lowLevelContainerId,highLevelContainerId,he
 	element.style.height = String((availableHeight/100)*height)+"px";
     element.style.width = String(parentWidth-paddingAndMarginH)+"px";
 };
+
+function parseStyleNumeric(str){
+	var val = str.split("px")[0];
+	return (isNaN(Number(val)))?0:Number(val);
+}
