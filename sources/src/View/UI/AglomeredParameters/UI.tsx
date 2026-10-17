@@ -19,13 +19,15 @@ interface State {
 
 export class AglomeredParameters extends React.Component<{}, State> {
 
+    private unsubscribe: (() => void)[] = [];
+
     state: State = {
         data: null,
         app: this,
     };
 
     componentDidMount() {
-        Tunnels.attachOnTunnelsLoaded(() => {
+        this.unsubscribe.push(Tunnels.attachOnTunnelsLoaded(() => {
             const submissionsMap: Map<string, Tunnel[]> = new Map();
             const channelsDB = Tunnels.getChannelsDB();
             if (channelsDB) {
@@ -41,12 +43,14 @@ export class AglomeredParameters extends React.Component<{}, State> {
                 }
             }
             this.setState({ data: submissionsMap });
-        })
+        }));
 
         this.forceUpdate();
     }
 
     componentWillUnmount() {
+        this.unsubscribe.forEach(u => u());
+        this.unsubscribe = [];
     }
 
     componentDidUpdate(prevState: State) {

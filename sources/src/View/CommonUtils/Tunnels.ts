@@ -3,6 +3,7 @@ import { roundToDecimal } from "../../Common/Util/Numbers";
 import { CHANNEL_CATEGORIES, ChannelsDBChannels, ExportTunnel, Tunnel } from "../../DataInterface";
 import { TunnelsId } from "./TunnelsId";
 import { TwoDProtsBridge } from "./TwoDProtsBridge";
+import { Handlers } from "./Handlers";
 
 type ReferenceType = "DOI" | "Pubmed" | "UniProt" | "";
 
@@ -18,8 +19,9 @@ interface TunnelAnnotation {
 export class Tunnels {
     private static loadedChannels: Map<string, ChannelsDBChannels> = new Map();
     private static loadedChannelsDB: ChannelsDBChannels | undefined;
-    private static onTunnelsLoaded: { handler: () => void }[];
-    private static onTunnelsHide: { handler: () => void }[];
+    // attach… returns a function that detaches the handler again
+    private static onTunnelsLoaded = new Handlers<[]>();
+    private static onTunnelsHide = new Handlers<[]>();
 
     public static generateTunnelsDataJson() {
             let annotations = ChannelsDBData.getAnnotations();
@@ -75,39 +77,11 @@ export class Tunnels {
         return this.loadedChannelsDB;
     }
 
-    public static attachOnTunnelsLoaded(handler: () => void) {
-        if (this.onTunnelsLoaded === void 0) {
-            this.onTunnelsLoaded = [];
-        }
+    public static attachOnTunnelsLoaded(handler: () => void) { return this.onTunnelsLoaded.attach(handler); }
+    public static invokeOnTunnelsLoaded() { this.onTunnelsLoaded.invoke(); }
 
-        this.onTunnelsLoaded.push({ handler });
-    }
-    public static invokeOnTunnelsLoaded() {
-        if (this.onTunnelsLoaded === void 0) {
-            return;
-        }
-
-        for (let h of this.onTunnelsLoaded) {
-            h.handler();
-        }
-    }
-
-    public static attachOnTunnelsHide(handler: () => void) {
-        if (this.onTunnelsHide === void 0) {
-            this.onTunnelsHide = [];
-        }
-
-        this.onTunnelsHide.push({ handler });
-    }
-    public static invokeOnTunnelsHide() {
-        if (this.onTunnelsHide === void 0) {
-            return;
-        }
-
-        for (let h of this.onTunnelsHide) {
-            h.handler();
-        }
-    }
+    public static attachOnTunnelsHide(handler: () => void) { return this.onTunnelsHide.attach(handler); }
+    public static invokeOnTunnelsHide() { this.onTunnelsHide.invoke(); }
 
     public static addChannels(submitId: string, channels: ChannelsDBChannels) {
         this.loadedChannels.set(submitId, channels);

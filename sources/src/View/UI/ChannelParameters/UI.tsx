@@ -20,6 +20,8 @@ interface State {
 
 export class ChannelParameters extends React.Component<{}, State> {
 
+    private unsubscribe: (() => void)[] = [];
+
     state: State = {
         data: null,
         currentTunnel: null,
@@ -30,7 +32,7 @@ export class ChannelParameters extends React.Component<{}, State> {
     layerIdx = -1;
 
     componentDidMount() {
-        Tunnels.attachOnTunnelsLoaded(() => {
+        this.unsubscribe.push(Tunnels.attachOnTunnelsLoaded(() => {
             const submissionsMap: Map<string, Tunnel[]> = new Map();
             const channelsDB = Tunnels.getChannelsDB();
             if (channelsDB) {
@@ -46,8 +48,8 @@ export class ChannelParameters extends React.Component<{}, State> {
                 }
             }
             this.setState({ data: submissionsMap });
-        })
-        SelectionHelper.attachOnChannelSelectHandler((data, channelId, submissionId) => {
+        }));
+        this.unsubscribe.push(SelectionHelper.attachOnChannelSelectHandler((data, channelId, submissionId) => {
             if (channelId === void 0 || submissionId === void 0) {
                 return;
             }
@@ -58,16 +60,18 @@ export class ChannelParameters extends React.Component<{}, State> {
             setTimeout(function () {
                 $(window).trigger('contentResize');
             }, 1);
-        });
+        }));
 
-        SelectionHelper.attachOnChannelDeselectHandler(() => {
+        this.unsubscribe.push(SelectionHelper.attachOnChannelDeselectHandler(() => {
             let state = this.state;
             state.currentTunnel = null;
             this.setState(state);
-        });
+        }));
     }
 
     componentWillUnmount() {
+        this.unsubscribe.forEach(u => u());
+        this.unsubscribe = [];
     }
 
     render() {

@@ -76,6 +76,7 @@ function sortElements(elements: Element[]) {
 
 export class TwoDProts extends React.Component<{}, { isComputing: boolean, error?: any, info?: any, jobId: string, canceled: boolean, modifiedSVG: string, selectedTunnel: string }> {
     state = { isComputing: false, error: void 0, info: void 0, jobId: "", canceled: false, modifiedSVG: "", selectedTunnel: "" };
+    private unsubscribe: (() => void)[] = [];
     private svgContainerRef = React.createRef<HTMLDivElement>();
 
     private onChannelSelect = (channel: Tunnel & TunnelMetaInfo) => {
@@ -122,8 +123,8 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
     }
 
     componentDidMount() {
-        SelectionHelper.attachOnChannelSelectHandler2(this.onChannelSelect.bind(this));
-        SelectionHelper.attachOnChannelDeselectHandler(() => {
+        this.unsubscribe.push(SelectionHelper.attachOnChannelSelectHandler2(this.onChannelSelect.bind(this)));
+        this.unsubscribe.push(SelectionHelper.attachOnChannelDeselectHandler(() => {
             if (this.state.modifiedSVG !== "" && this.state.selectedTunnel !== "") {
                 const svgElement = document.getElementById('svgContainer');
                 const targetElement = svgElement ? svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${TwoDProtsBridge.getFromIdTable(this.state.selectedTunnel)}`)}`) : null;
@@ -136,12 +137,17 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
                 }
                 this.setState({ selectedTunnel: "" })
             }
-        })
-        TwoDProtsBridge.attachOnColorTunnelChangeHandler(this.onChannelColorChanged.bind(this))
-        Events.subscribeSubmitDone(() => {
+        }));
+        this.unsubscribe.push(TwoDProtsBridge.attachOnColorTunnelChangeHandler(this.onChannelColorChanged.bind(this)));
+        this.unsubscribe.push(Events.subscribeSubmitDone(() => {
             if (document.getElementById('svgContainer')?.querySelector('svg'))
                 this.setState({ info: <div className="text-info fs-5">{'New tunnels were added. Please recompute to update 2DProts.'}</div> })
-        })
+        }));
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe.forEach(u => u());
+        this.unsubscribe = [];
     }
 
     private getLastErrorMessage(message: string): string {

@@ -419,6 +419,7 @@ export class Renderable extends React.Component<{ label: string | JSX.Element, c
 
 export class Channels extends React.Component<{ channels: any[], header: string, channelsDB: boolean, submissionId: string, hide: boolean }, { isBusy: boolean }> {
     state = { isBusy: false }
+    private unsubscribe: (() => void)[] = [];
 
     private show(visible: boolean) {
         for (let element of this.props.channels) { element.__isBusy = true; }
@@ -439,9 +440,14 @@ export class Channels extends React.Component<{ channels: any[], header: string,
     }
 
     componentDidMount() {
-        Tunnels.attachOnTunnelsHide(() => {
+        this.unsubscribe.push(Tunnels.attachOnTunnelsHide(() => {
             this.show(false);
-        })
+        }));
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe.forEach(u => u());
+        this.unsubscribe = [];
     }
 
     render() {
@@ -457,14 +463,19 @@ export class Channels extends React.Component<{ channels: any[], header: string,
 
 export class Channel extends React.Component<{ channel: any, channelsDB: boolean, submissionId: string }, { isVisible: boolean, isWaitingForData: boolean }> {
     state = { isVisible: false, isWaitingForData: false };
+    private unsubscribe: (() => void)[] = [];
 
     componentDidMount() {
-
-        Events.subscribeChannelSelect(((channelId: string) => {
+        this.unsubscribe.push(Events.subscribeChannelSelect(((channelId: string) => {
             if (this.props.channel.Id === channelId) {
                 this.selectChannel(false);
             }
-        }).bind(this));
+        }).bind(this)));
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe.forEach(u => u());
+        this.unsubscribe = [];
     }
 
     render() {
@@ -517,7 +528,7 @@ export class ColorPicker extends React.Component<{ tunnel: Tunnel & TunnelMetaIn
         if (this.state.color !== void 0 && this.state.color !== this.props.tunnel.__color) {
             this.props.tunnel.__color = this.state.color;
             showChannelVisuals([this.props.tunnel], (this.props.tunnel as any).__isVisible, true);
-            TwoDProtsBridge.invokeOnResidueSelectHandlers(this.props.tunnel);
+            TwoDProtsBridge.invokeOnColorTunnelChangeHandlers(this.props.tunnel);
         }
         this.setState({ color: undefined });
     }

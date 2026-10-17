@@ -1,4 +1,5 @@
 import { ChannelsDBChannels, Profile, Tunnel, TunnelMetaInfo } from "../../DataInterface";
+import { Handlers } from "./Handlers";
 
 interface TunnelColor {
     Color: string
@@ -13,25 +14,12 @@ interface VizualizedTunnel {
 
 export class TwoDProtsBridge {
     private static allChannels: Map<string, Tunnel & TunnelMetaInfo> = new Map();
-    private static onColorTunnelChanges: { handler: (channel: Tunnel & TunnelMetaInfo) => void }[];
+    // attach… returns a function that detaches the handler again
+    private static onColorTunnelChange = new Handlers<[Tunnel & TunnelMetaInfo]>();
     private static moleIdTable: Map<string, string> = new Map();
 
-    public static attachOnColorTunnelChangeHandler(handler: (channel: Tunnel & TunnelMetaInfo) => void) {
-        if (this.onColorTunnelChanges === void 0) {
-            this.onColorTunnelChanges = [];
-        }
-
-        this.onColorTunnelChanges.push({ handler });
-    }
-    public static invokeOnResidueSelectHandlers(channel: Tunnel & TunnelMetaInfo) {
-        if (this.onColorTunnelChanges === void 0) {
-            return;
-        }
-
-        for (let h of this.onColorTunnelChanges) {
-            h.handler(channel);
-        }
-    }
+    public static attachOnColorTunnelChangeHandler(handler: (channel: Tunnel & TunnelMetaInfo) => void) { return this.onColorTunnelChange.attach(handler); }
+    public static invokeOnColorTunnelChangeHandlers(channel: Tunnel & TunnelMetaInfo) { this.onColorTunnelChange.invoke(channel); }
 
     public static getVizualizedChannels(): (Tunnel & TunnelColor)[] {
         const channels: (Tunnel & TunnelColor)[] = [];

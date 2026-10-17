@@ -81,6 +81,7 @@ interface SettingsState {
     expandedPanels: ExpandedPanels
 };
 export class Settings extends React.Component<SettingsProps, SettingsState> {
+    private unsubscribe: (() => void)[] = [];
 
     state: SettingsState = {
         moleFormData: this.getMoleDefaultValues(),
@@ -184,7 +185,7 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
     }
 
     componentDidMount() {
-        FormEvents.attachOnSubmitEventHandler((formGroup) => {
+        this.unsubscribe.push(FormEvents.attachOnSubmitEventHandler((formGroup) => {
             if (formGroup !== validationGroup) {
                 return;
             }
@@ -198,13 +199,13 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
             }
 
             this.handleSubmitPromise(promise);
-        })
+        }));
 
-        BridgeEvents.subscribeOnReSubmit((promise) => {
+        this.unsubscribe.push(BridgeEvents.subscribeOnReSubmit((promise) => {
             this.handleSubmitPromise(promise);
-        })
+        }));
 
-        FormEvents.attachOnClearEventHandler((formGroup) => {
+        this.unsubscribe.push(FormEvents.attachOnClearEventHandler((formGroup) => {
             if (formGroup !== validationGroup + "_form") {
                 return;
             }
@@ -219,9 +220,9 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                 s2.mode = mode; //setting back correct mode
                 this.setState(s2);
             });
-        })
+        }));
 
-        BridgeEvents.subscribeCopyParameters((params: CopyParametersParams) => {
+        this.unsubscribe.push(BridgeEvents.subscribeCopyParameters((params: CopyParametersParams) => {
             let s1 = this.props.parent.state;
             this.props.parent.setState({
                 activeTabIdx: 0,
@@ -248,7 +249,12 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                     })
                 });
             });
-        });
+        }));
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe.forEach(u => u());
+        this.unsubscribe = [];
     }
 
     render() {
