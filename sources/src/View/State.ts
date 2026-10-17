@@ -5,7 +5,7 @@ import { ComputationInfo, DataProxyCSAResidues, JobStatus } from "../DataProxy";
 import { ChannelsDBChannels, ChannelsDBData, firstNonEmptyCategory, Membrane, MoleData, Origins, Tunnel, TunnelMetaInfo } from "../DataInterface";
 import { ChannelsDBData as ChannelsDBDataCache, LastVisibleChannels } from "../Cache";
 import { getParameters } from "../Common/Util/Router";
-import { ApiService, CompInfo, CSAResidues } from "../MoleAPIService";
+import { ApiService, CSAResidues } from "../MoleAPIService";
 import { isNotFound } from "../Http";
 import { Context } from "./Context";
 import { CommonOptions, DataSources } from "../../config/common";
@@ -164,12 +164,8 @@ function generateGuidMole(moleData: MoleData) {
 }
 
 // Only a pore submission computes the membrane
-function hasPoresSubmission(computationId: string) {
-    return new Promise<boolean>((res, rej) => {
-        ComputationInfo.DataProvider.get(computationId, (_compId, info: CompInfo) => {
-            res(info.Submissions.some(s => s.Mode === "Pores"));
-        }, false, (_compId, error) => rej(error));
-    });
+async function hasPoresSubmission(computationId: string) {
+    return (await ComputationInfo.get(computationId)).Submissions.some(s => s.Mode === "Pores");
 }
 
 async function downloadMembraneData(computationId: string) {
@@ -243,7 +239,7 @@ export async function downloadChannelsData(computationId: string, submitId: numb
 async function downloadChannelsDBData(computationId: string) {
     await removeChannelsData();
     return new Promise<any>((res, rej) => {
-        ApiService.getComputationInfoList(computationId).then(val => {
+        ComputationInfo.get(computationId).then(val => {
             if (val.PdbId !== null) {
                 ChannelsDBDataCache.getChannelsData(val.PdbId).then(data => {
                     let update = Context.getInstance().plugin.build();
@@ -279,7 +275,7 @@ async function downloadChannelsDBData(computationId: string) {
 function downloadProteinData(computationId: string, submitId: number) {
     return new Promise<any>(async (res, rej) => {
         try {
-            const p = await ApiService.getComputationInfoList(computationId);
+            const p = await ComputationInfo.get(computationId);
             await Context.getInstance().load(`${DataSources.API_URL}/Data/${computationId}?submitId=${submitId}&format=molecule`, false, p.AssemblyId)
                 .then((data) => {
                     res(data);

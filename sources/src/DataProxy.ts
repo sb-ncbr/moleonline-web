@@ -87,6 +87,11 @@ export namespace ComputationInfo {
         compId => ApiService.getComputationInfoList(compId),
         'Could not load computation info from the MOLE API.',
     );
+
+    // The cached computation info as a promise; rejects with the message for the user
+    export function get(computationId: string): Promise<CompInfo> {
+        return new Promise((res, rej) => DataProvider.get(computationId, (_compId, info) => res(info), false, (_compId, error) => rej(error)));
+    }
 }
 
 export namespace JobStatus {

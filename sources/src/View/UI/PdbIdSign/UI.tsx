@@ -1,5 +1,5 @@
 import React from "react";
-import { ApiService } from "../../../MoleAPIService";
+import { ComputationInfo } from "../../../DataProxy";
 import { getParameters } from "../../../Common/Util/Router";
 
 interface State { pdbid?: string, err?: string };
@@ -13,7 +13,7 @@ export class PdbIdSign extends React.Component<{}, State> {
             this.setState({ err: "!!!" });
             return;
         }
-        ApiService.getComputationInfoList(params.computationId).then((res) => {
+        ComputationInfo.get(params.computationId).then((res) => {
             if (res.PdbId === "" || res.PdbId === null || res.PdbId === void 0) {
                 this.setState({ err: "---" });
             }
