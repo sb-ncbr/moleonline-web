@@ -257,11 +257,8 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
                     <div className="ui-header flex-grow-0 flex-shrink-0" style={{ margin: 0 }}>
                         Channels
                     </div>
-                    <div className="no-channels-data">There are no channels available...</div>
-                    <div className="d-flex flex-row align-items-center gap-3 fs-6">
-                        Try reloading
-                        <button className="reload-data btn btn-primary" onClick={() => this.props.reload()}>Reload Data</button>
-                    </div>
+                    <div className="no-channels-data">No channels yet. Compute them in the Compute tab.</div>
+                    <button className="reload-data btn btn-primary" onClick={() => this.props.reload()}>Reload Data</button>
                 </div>
             </div>;
         }
@@ -278,7 +275,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
                         </h2>
                         <div id={`submission-${submitId}`} className={`accordion-collapse collapse ${submitId === this.state.currentSubmitId ? 'show' : ''}`}>
                             <div className="accordion-body">
-                                {currentChannels.length > 0 ? currentChannels : <div className="no-channels-data">There are no channels available...</div>}
+                                {currentChannels.length > 0 ? currentChannels : <div className="no-channels-data">No channels found.</div>}
                             </div>
                         </div>
                     </div>
@@ -286,7 +283,7 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
             }
         }
 
-        let noChannelsData = <div className="no-channels-data">There are no channels available...</div>
+        let noChannelsData = <div className="no-channels-data">No channels found.</div>
 
         return <div className="ui-channels d-flex flex-column" style={{ maxHeight: '100vh', padding: '0 0', marginRight: '0px' }}>
                 <div className="ui-header channels-header flex-grow-0 flex-shrink-0" style={{ margin: 0 }}>

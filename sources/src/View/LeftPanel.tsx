@@ -229,7 +229,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
             return <div className="d-flex flex-column h-100">
                 <div className="tab-content">
                     <div id="ui" className={`toggled tab-pane ${this.state.channelsData.size === 0 ? '' : 'show active'}`} role="tabpanel">
-                        <ChannelsControl computationId={this.state.compId} submissions={this.state.channelsData} reload={() => this.load(this.state.channelsDB)}/>
+                        <ChannelsControl computationId={this.state.compId} submissions={this.state.channelsData} reload={() => this.reload(this.state.channelsDB, true)}/>
                     </div>
                     <div id="controls" className={`bottom toggled tab-pane flex flex-column ${this.state.channelsData.size === 0 ? 'show active' : ''}`} role="tabpanel">
                         <PluginControl data={this.state.data} />

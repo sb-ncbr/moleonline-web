@@ -386,10 +386,11 @@ function parseLayers(channels: Map<string, Tunnel>, layersCategory: any, residue
 
 }
 
-function parseCifToChannelsDBData(blocks: CifBlock[]): ChannelsDBData {
+// undefined for a structure without tunnels, the usual uploaded file
+function parseCifToChannelsDBData(blocks: CifBlock[]): ChannelsDBData | undefined {
     const tunnelsBlock = getTunnelsBlock(blocks);
     const atomSiteBlock = getAtomSiteBlock(blocks);
-    if (!tunnelsBlock) throw new Error("No tunnels block found.");
+    if (!tunnelsBlock) return undefined;
 
     let annotations: ChannelAnnotation[] = [];
     if (tunnelsBlock.categories.sb_ncbr_channel_annotation)
