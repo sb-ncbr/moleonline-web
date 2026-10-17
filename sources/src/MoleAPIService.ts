@@ -120,13 +120,10 @@ export class ApiService {
 
     private static baseUrl = DataSources.API_URL;
 
-    // assembly: "preferred" = the entry's preferred (biological) assembly, which the API looks up (Init/Pores);
+    // assembly: "preferred" = the entry's preferred (biological) assembly, which the API looks up;
     // "asymmetric" = the asymmetric unit; otherwise the ID of the assembly to load
     public static initWithPdbId(pdbid: string, assembly: "preferred" | "asymmetric" | string): Promise<InitResponse> {
-        const id = encodeURIComponent(pdbid);
-        let url = assembly === "preferred" ? `${this.baseUrl}/Init/Pores/${id}`
-            : assembly === "asymmetric" ? `${this.baseUrl}/Init/${id}`
-            : `${this.baseUrl}/Init/${id}?assemblyId=${encodeURIComponent(assembly)}`;
+        let url = `${this.baseUrl}/Init/${encodeURIComponent(pdbid)}?assembly=${encodeURIComponent(assembly)}`;
         if (this.DEBUG_MODE) {
             console.log(url);
         }
