@@ -243,33 +243,35 @@ async function downloadChannelsDBData(computationId: string) {
     await removeChannelsData();
     return new Promise<any>((res, rej) => {
         ComputationInfo.get(computationId).then(val => {
-            if (val.PdbId !== null) {
-                ChannelsDBDataCache.getChannelsData(val.PdbId).then(data => {
-                    let update = Context.getInstance().plugin.build();
-                    update
-                        .toRoot()
-                        .apply(RawData, { data: JSON.stringify({ Channels: data }) }, { ref: 'mole-data-raw', state: { isGhost: true } })
-                        .apply(ParseJson, {}, { ref: 'mole-data' })
-                        .commit()
-                        .then((s) => {
-                            if (Object.keys(s.data).length === 0) {
-                                rej('Data not available.');
-                            } else {
-                                let data_ = s.data as ChannelsDBData;
-                                data_.Channels = TunnelsId.generateGuidAll(data_.Channels);
-                                data_.Channels = TunnelsId.generateIdAll(data_.Channels, computationId, 'channelsDb');
-                                data_.Annotations = [];
-                                // Events.invokeChannelDataLoaded(data_);
-                                //TODO probably remove, move to the first load or sync with the left panel checking
-                                // showDefaultVisuals(data_)
-                                //     .then(() => {
-                                //         res(null)
-                                //     }).catch(err => console.log(err))
-                                res(null)
-                            }
-                        }).catch(error => { rej(error); console.log(error) });
-                }).catch(err => { rej(err); console.log(err) })
+            if (!val.PdbId) {
+                rej('ChannelsDB has channels only for PDB entries, not for an uploaded structure.');
+                return;
             }
+            ChannelsDBDataCache.getChannelsData(val.PdbId).then(data => {
+                let update = Context.getInstance().plugin.build();
+                update
+                    .toRoot()
+                    .apply(RawData, { data: JSON.stringify({ Channels: data }) }, { ref: 'mole-data-raw', state: { isGhost: true } })
+                    .apply(ParseJson, {}, { ref: 'mole-data' })
+                    .commit()
+                    .then((s) => {
+                        if (Object.keys(s.data).length === 0) {
+                            rej('Data not available.');
+                        } else {
+                            let data_ = s.data as ChannelsDBData;
+                            data_.Channels = TunnelsId.generateGuidAll(data_.Channels);
+                            data_.Channels = TunnelsId.generateIdAll(data_.Channels, computationId, 'channelsDb');
+                            data_.Annotations = [];
+                            // Events.invokeChannelDataLoaded(data_);
+                            //TODO probably remove, move to the first load or sync with the left panel checking
+                            // showDefaultVisuals(data_)
+                            //     .then(() => {
+                            //         res(null)
+                            //     }).catch(err => console.log(err))
+                            res(null)
+                        }
+                    }).catch(error => { rej(error); console.log(error) });
+            }).catch(err => { rej(err); console.log(err) })
         }).catch(err => { rej(err); console.log(err) })
     });
 }
@@ -482,12 +484,12 @@ async function showChannelDefaultVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
         channel.__layerColored = false;
 
         visibleChannels.push(channel);
-        LayerColors.invokeOnChannelAdd(channel.__ref);
         LastVisibleChannels.set(channel);
 
         const [loci, ref] = await context.renderTunnel(channel);
         channel.__ref = ref;
         channel.__loci = loci as Shape.Loci;
+        LayerColors.invokeOnChannelAdd(channel.__ref);
     }
 
     return Promise.resolve().then(() => {
@@ -530,11 +532,11 @@ export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
             LastVisibleChannels.remove(channel);
         } else {
             visibleChannels.push(channel);
-            LayerColors.invokeOnChannelAdd(channel.__ref);
 
             const [loci, ref] = await context.renderTunnel(channel);
             channel.__ref = ref;
             channel.__loci = loci as Shape.Loci;
+            LayerColors.invokeOnChannelAdd(channel.__ref);
             LastVisibleChannels.set(channel);
         }
 

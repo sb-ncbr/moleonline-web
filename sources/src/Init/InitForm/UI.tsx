@@ -244,7 +244,7 @@ export class InitForm extends React.Component<{}, State> {
                 <tr>
                     <td><label htmlFor="frm-jobSetup-setupForm-asymmetric-unit">Use asymmetric unit</label>:</td>
                     <td><input type="checkbox" onChange={this.asymmetricUnitChange.bind(this)}
-                               id="frm-jobSetup-setupForm-assymetric-unit" name="asymmetric-unit" className="checkbox"
+                               id="frm-jobSetup-setupForm-asymmetric-unit" name="asymmetric-unit" className="checkbox"
                                defaultChecked={false} data-bs-toggle="tooltip" title="Use asymmetric unit, not Assembly ID."/>
                     </td>
                 </tr>

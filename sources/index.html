@@ -11,26 +11,9 @@
 	<link rel="stylesheet" href="/css/Init.css" type="text/css">
 
 	<script type="text/javascript">
+		// Bootstrap tooltips, also for the elements React renders later
 		document.addEventListener('DOMContentLoaded', function () {
-			// Auto-hide flash messages
-			const flashMessages = document.querySelectorAll('.flashmsg.info, .flashmsg.ok');
-			flashMessages.forEach(function (el) {
-				setTimeout(function () {
-					el.style.transition = 'opacity 2s';
-					el.style.opacity = '0';
-					setTimeout(function () {
-						if (el.parentNode) {
-							el.parentNode.removeChild(el);
-						}
-					}, 2000);
-				}, 10100);
-			});
-
-			// Bootstrap tooltips
-			const tooltipTriggerList = Array.prototype.slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-			tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-				new bootstrap.Tooltip(tooltipTriggerEl);
-			});
+			new bootstrap.Tooltip(document.body, { selector: '[data-bs-toggle="tooltip"]' });
 		});
 	</script>
 </head>
