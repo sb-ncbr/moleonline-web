@@ -2,7 +2,6 @@ import React from "react";
 import { ApiService, CompInfo, InitResponse, MoleConfig, PoresConfig } from "../../MoleAPIService";
 import { describeError } from "../../Http";
 import { Events } from "../../Bridge";
-import { GlobalRouter } from "../../SimpleRouter";
 import { ComputationInfo, JobStatus } from "../../DataProxy";
 
 export class Examples extends React.Component<{}, { activeButton: number }> {
@@ -51,7 +50,7 @@ export class Examples extends React.Component<{}, { activeButton: number }> {
             ComputationInfo.DataProvider.get(result.ComputationId, ((compId: string, info: CompInfo) => {
                 JobStatus.Watcher.registerOnChangeHandler(result.ComputationId, result.SubmitId, (status) => {
                     if (status.Status !== "Running") {
-                        GlobalRouter.redirect(`/${result.ComputationId}/${result.SubmitId}`, true);
+                        location.replace(`/online/${result.ComputationId}/${result.SubmitId}`);
                     }
                 }, (err) => {
                     Events.invokeNotifyMessage({

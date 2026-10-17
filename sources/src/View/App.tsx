@@ -26,13 +26,11 @@ import "../../css/MolstarSlider.scss";
 
 import { Instances } from "../Bridge";
 import { updateWithCurrentSession } from "../Common/Util/LastNSessions";
-import { GlobalRouter } from "../SimpleRouter";
 import { SelectionHelper } from "./CommonUtils/Selection";
 import { LayersVizualizerSettings, Vizualizer } from "./LayerVizualizer/Vizualizer";
 import { createRoot } from 'react-dom/client';
 import { PDFReportGenerator } from "./UI/PDFReportGenerator/UI";
 import AlertMessages from "../Common/UI/AlertMessages/UI";
-import { Routing } from "../../config/common";
 import { Context } from "./Context";
 import { ControlsTab } from "./UI/ControlsTab/UI";
 import { LayerColors } from "./CommonUtils/LayerColors";
@@ -41,9 +39,6 @@ import { LeftPanel } from "./LeftPanel";
 
 (function () {
     (window as any).TOUCH_MODE = false;
-
-    GlobalRouter.init(Routing.ROUTING_OPTIONS[Routing.ROUTING_MODE]);
-    console.log(Routing.ROUTING_MODE);
 
     updateWithCurrentSession();
 

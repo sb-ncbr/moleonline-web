@@ -10,7 +10,7 @@ import { ResidueAnnotation } from "../../../ChannelsDBAPIService";
 import { Residues } from "../../CommonUtils/Residues";
 import { SelectionHelper } from "../../CommonUtils/Selection";
 import { ChannelsDBData as ChannelsDBDataCache, LastVisibleChannels } from "../../../Cache";
-import { getCurrentUrl, getParameters, isInChannelsDBMode, URLParams } from "../../../Common/Util/Router";
+import { getParameters, isInChannelsDBMode, URLParams } from "../../../Common/Util/Router";
 import { flattenResidues, flattenResiduesArray, isMoleJob, pointsToString } from "../../CommonUtils/Misc";
 import { ComputationInfo } from "../../../DataProxy";
 import { CommonOptions } from "../../../../config/common";
@@ -279,7 +279,7 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
             emptyPlaceholders.push("COMP-ID");
             emptyPlaceholders.push("SUBMIT-ID");
         }
-        template = this.replacePlaceholder(template, "URL", getCurrentUrl());
+        template = this.replacePlaceholder(template, "URL", location.href);
 
         let isUserStructure = compInfo.PdbId === void 0 || compInfo.PdbId === null || compInfo.PdbId === "";
 

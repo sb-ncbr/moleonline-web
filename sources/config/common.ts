@@ -1,13 +1,3 @@
-export class Routing {
-    public static ROUTING_OPTIONS: any = {
-        "local": { defaultContextPath: "/online" },
-        "test": { defaultContextPath: "/online" },
-        "prod": { defaultContextPath: "/online" },
-    };
-
-    public static ROUTING_MODE = "local";
-}
-
 export class DataSources {
     // Set at build time from VITE_API_URL: a path served by this site's nginx, "/api" by default. The API sends no
     // CORS headers, so the browser must call it from the same origin, never another site's URL.

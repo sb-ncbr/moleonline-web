@@ -2,11 +2,9 @@ import React from "react";
 import {ApiService, CompInfo, InitResponse} from "../../MoleAPIService";
 import { describeError } from "../../Http";
 import {Events} from "../../Bridge";
-import {GlobalRouter} from "../../SimpleRouter";
 import {TabbedContainer} from "../../Common/UI/Tabs/BootstrapTabs";
 import {getNthSession, LAST_N_SESSIONS_N} from "../../Common/Util/LastNSessions";
 import {ComputationInfo} from "../../DataProxy";
-import {Routing} from "../../../config/common";
 import AlertMessages from "../../Common/UI/AlertMessages/UI";
 
 // The API refuses larger uploads
@@ -145,7 +143,7 @@ export class InitForm extends React.Component<{}, State> {
                 messageType: "Success",
                 message: "Computation was successfully initialized. You will be redirected to detail page."
             });
-            GlobalRouter.redirect(`/${this.computationId}`, true);
+            location.replace(`/online/${this.computationId}`);
             return;
         }
 
@@ -201,7 +199,7 @@ export class InitForm extends React.Component<{}, State> {
                         <AlertMessages />
                     </div>
                     <div className="InitForm">
-                        <form onSubmit={this.handleFormSubmit.bind(this)} action={`${Routing.ROUTING_OPTIONS[Routing.ROUTING_MODE].defaultContextPath}/`} method="post" encType="multipart/form-data">
+                        <form onSubmit={this.handleFormSubmit.bind(this)}>
                             <div className="groupbox">
                                 <TabbedContainer header={["PDB ID", "File", "Last session"]} tabContents={tabs} namespace="quick-start-panel-tabs-" htmlClassName="tabs" htmlId="quick-start-panel-tabs" activeTab={this.state.activeTabIdx} onChange={((tabIdx: number) => {
                                     let s = this.state;
@@ -358,7 +356,7 @@ class LastSession extends React.Component<LastSessionProps, LastSessionState> {
                 submission = submitIdParts[1];
             }
             return <tr onClick={() => {
-                GlobalRouter.redirect(`/online/${sessionUrl}`);
+                location.replace(`/online/${sessionUrl}`);
             }} className="linkLike">
                 <td>
                     {date}
@@ -376,7 +374,7 @@ class LastSession extends React.Component<LastSessionProps, LastSessionState> {
         }
         else {
             return <tr onClick={() => {
-                GlobalRouter.redirect(`/online/${sessionUrl}`);
+                location.replace(`/online/${sessionUrl}`);
             }} className="linkLike">
                 <td>
                     {date}

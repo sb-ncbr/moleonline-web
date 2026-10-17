@@ -10,10 +10,9 @@ import { flattenResidues, flattenResiduesArray, isMoleJob, parseResidues, points
 import { ChannelsDBChannels } from "../../../DataInterface";
 import { ChannelsDBData } from "../../../Cache";
 import { SimpleComboBox } from "../Common/Controls/Components";
-import { GlobalRouter } from "../../../SimpleRouter";
 import { fakeRedirect, getParameters } from "../../../Common/Util/Router";
 import { TabbedContainer } from "../../../Common/UI/Tabs/BootstrapTabs";
-import { CommonOptions, Routing } from "../../../../config/common";
+import { CommonOptions } from "../../../../config/common";
 import { ControlGroup } from "molstar/lib/mol-plugin-ui/controls/common";
 import { BoolControl, NumberRangeControl, SelectControl, TextControl } from "molstar/lib/mol-plugin-ui/controls/parameters";
 import { ParamDefinition } from "molstar/lib/mol-util/param-definition";
@@ -1349,7 +1348,7 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
                             messageType: "Success"
                         });
                         window.setTimeout(() => {
-                            GlobalRouter.redirect(Routing.ROUTING_OPTIONS[Routing.ROUTING_MODE].defaultContextPath);
+                            location.replace("/");
                         }, 5000);
                     })
                         .catch((err) => {
