@@ -7,9 +7,8 @@ import { PluginReactContext } from "molstar/lib/mol-plugin-ui/base";
 import { Controls } from "./UI/Controls/UI";
 import { getParameters } from "../Common/Util/Router";
 import { Events } from "../Bridge";
-import { CommonOptions, DataSources } from "../../config/common";
-import { addCaverTag, loadData } from "./State";
-import { StateSelection } from "molstar/lib/mol-state";
+import { DataSources } from "../../config/common";
+import { addCaverTag, loadMoleData } from "./State";
 import { ChannelsDBChannels, MoleData } from "../DataInterface";
 import { ComputationInfo } from "../DataProxy";
 import { ApiService, CompInfo } from "../MoleAPIService";
@@ -179,52 +178,18 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
     }
 
     load(channelsDB: boolean) {
-        const plugin = Context.getInstance().plugin;
         this.setState({ isLoading: true, error: void 0 });
         LoadingStatus.log('Loading channels from ChannelsDB...');
-        loadData(channelsDB)
+        loadMoleData(channelsDB)
             .then(data => {
                 LoadingStatus.log('Processing data from ChannelsDB...');
-                if (CommonOptions.DEBUG_MODE)
-                    console.log("loading done ok");
-                let entities = plugin.state.data.select(StateSelection.first('mole-data'))[0];
-                if (entities === undefined || entities.obj === undefined || entities.obj.data === undefined || Object.keys(entities.obj.data).length === 0) {
-                    let params = getParameters();
-                    if (params === null) {
-                        this.setState({ isLoading: false, error: `Sorry. Given url is not valid.` });
-                        return;
-                    }
-                    this.setState({ compId: params.computationId })
-                    let computationId = params.computationId;
-                    let submitId = params.submitId;
-                    // also drop the previous submission's data, it would be shown instead of the error
-                    this.setState({ isLoading: false, data: void 0, error: `There are no vizualization data for computation '${computationId}' and submission '${submitId}'. Try to submit some computation job.` });
-                    return;
-                }
-                let _data = entities.obj.data as MoleData;
-                let csaOrigins = plugin.state.data.select(StateSelection.first('csa-origins'))[0];
-                if (csaOrigins !== undefined && csaOrigins.obj !== undefined && csaOrigins.obj.data !== undefined && Object.keys(csaOrigins.obj.data).length > 0) {
-                    if ((_data as any).Origins === void 0) {
-                        (_data as any).Origins = {};
-                    }
-
-                    (_data as any).Origins.CSAOrigins = csaOrigins.obj.data.Origins.CSAOrigins;
-                }
-
-                this.setState({
-                    isLoading: false, data: _data, error: void 0
-                });
+                this.setState({ isLoading: false, data, error: void 0 });
             })
-            .catch(e => {
-                let errMessage = 'Application was unable to load data. Please try again later.';
-                if (e !== void 0 && e !== null && String(e).length > 0) {
-                    errMessage = String(e);
-                }
-
-                this.setState({ isLoading: false, error: errMessage, data: void 0 });
+            .catch(error => {
+                this.setState({ isLoading: false, error: String(error), data: void 0 });
                 Events.invokeNotifyMessage({
                     messageType: "Danger",
-                    message: errMessage
+                    message: String(error)
                 })
             });
     }

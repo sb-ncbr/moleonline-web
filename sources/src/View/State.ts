@@ -22,6 +22,7 @@ import { Property } from "./VizualizerMol/color-tunnels/property-color";
 import { LayerColors } from "./CommonUtils/LayerColors";
 import { TwoDProtsBridge } from "./CommonUtils/TwoDProtsBridge";
 import { TunnelsId } from "./CommonUtils/TunnelsId";
+import { StateSelection } from "molstar/lib/mol-state";
 
 export async function showDefaultVisualsNewSubmission(channels: ChannelsDBChannels, submitId: string) {
     return new Promise(res => {
@@ -430,6 +431,31 @@ async function showSurfaceVisuals(elements: any[], visible: boolean, type: strin
         element.__isBusy = false;
     }
     return new Promise<any>((res, rej) => { res(null) });
+}
+
+// Loads the data of the computation in the URL into the viewer. Resolves with the MOLE data to list, the CSA origins
+// added; rejects with the message for the user.
+export async function loadMoleData(channelsDB: boolean): Promise<MoleData> {
+    const plugin = Context.getInstance().plugin;
+    try {
+        await loadData(channelsDB);
+    } catch (e) {
+        throw (e !== void 0 && e !== null && String(e).length > 0) ? String(e) : 'Application was unable to load data. Please try again later.';
+    }
+    const entities = plugin.state.data.select(StateSelection.first('mole-data'))[0];
+    if (entities?.obj?.data === undefined || Object.keys(entities.obj.data).length === 0) {
+        const params = getParameters();
+        throw params === null
+            ? 'Sorry. Given url is not valid.'
+            : `There are no vizualization data for computation '${params.computationId}' and submission '${params.submitId}'. Try to submit some computation job.`;
+    }
+    const data = entities.obj.data as MoleData;
+    const csaOrigins = plugin.state.data.select(StateSelection.first('csa-origins'))[0];
+    if (csaOrigins?.obj?.data !== undefined && Object.keys(csaOrigins.obj.data).length > 0) {
+        (data as any).Origins ??= {};
+        (data as any).Origins.CSAOrigins = csaOrigins.obj.data.Origins.CSAOrigins;
+    }
+    return data;
 }
 
 export function showCavityVisuals(cavities: any[], visible: boolean): Promise<any> {

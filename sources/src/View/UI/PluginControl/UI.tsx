@@ -4,14 +4,14 @@
 
 import React from "react";
 import { Events } from "../../../Bridge";
-import { MoleData, Tunnel, Membrane as MembraneObject, Point } from "../../../DataInterface";
+import { Tunnel, Membrane as MembraneObject, Point } from "../../../DataInterface";
 import { LightResidueInfo, SelectionHelper } from "../../CommonUtils/Selection";
 import { Residues } from "../../CommonUtils/Residues";
 import { Tunnels } from "../../CommonUtils/Tunnels";
 import { ChannelsDBData } from "../../../Cache";
 import { getParameters } from "../../../Common/Util/Router";
 import { CommonOptions } from "../../../../config/common";
-import { loadData, showCavityVisuals, showMembraneVisuals, showOriginsSurface } from "../../State";
+import { loadMoleData, showCavityVisuals, showMembraneVisuals, showOriginsSurface } from "../../State";
 import { Context } from "../../Context";
 import { StateSelection } from "molstar/lib/mol-state";
 import WaveLoader from "../../CommonUtils/WaveLoader";
@@ -32,15 +32,7 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
         $(window).on("contentResize", onContentResize);
         this.unsubscribe.push(() => $(window).off("contentResize", onContentResize));
 
-        this.unsubscribe.push(Events.subscribeChangeSubmitId((submitId) => {
-            try {
-                this.load(submitId === -1);
-            } catch (ex) {
-                if (CommonOptions.DEBUG_MODE)
-                    console.log(ex);
-                this.setState({ isLoading: false, data: void 0, error: "Data not available" });
-            }
-        }));
+        this.unsubscribe.push(Events.subscribeChangeSubmitId(submitId => this.load(submitId === -1)));
 
         const onResize = () => this.forceUpdate();
         $(window).on("resize", onResize);
@@ -57,47 +49,11 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
     }
 
     load(channelsDB: boolean) {
-        const plugin = Context.getInstance().plugin;
         this.setState({ isLoading: true, error: void 0 });
-        loadData(channelsDB)
-            .then(data => {
-                if (CommonOptions.DEBUG_MODE)
-                    console.log("loading done ok");
-                let entities = plugin.state.data.select(StateSelection.first('mole-data'))[0];
-                if (entities === undefined || entities.obj === undefined || entities.obj.data === undefined || Object.keys(entities.obj.data).length === 0) {
-                    let params = getParameters();
-                    if (params === null) {
-                        this.setState({ isLoading: false, error: `Sorry. Given url is not valid.` });
-                        return;
-                    }
-                    let computationId = params.computationId;
-                    let submitId = params.submitId;
-                    // also drop the previous submission's data, it would be shown instead of the error
-                    this.setState({ isLoading: false, data: void 0, error: `There are no vizualization data for computation '${computationId}' and submission '${submitId}'. Try to submit some computation job.` });
-                    return;
-                }
-                let _data = entities.obj.data as MoleData;
-                let csaOrigins = plugin.state.data.select(StateSelection.first('csa-origins'))[0];
-                if (csaOrigins !== undefined && csaOrigins.obj !== undefined && csaOrigins.obj.data !== undefined && Object.keys(csaOrigins.obj.data).length > 0) {
-                    if ((_data as any).Origins === void 0) {
-                        (_data as any).Origins = {};
-                    }
-
-                    (_data as any).Origins.CSAOrigins = csaOrigins.obj.data.Origins.CSAOrigins;
-                }
-
-                this.setState({
-                    isLoading: false, data: _data, error: void 0
-                });
-            })
-            .catch(e => {
-                let errMessage = 'Application was unable to load data. Please try again later.';
-                if (e !== void 0 && e !== null && String(e).length > 0) {
-                    errMessage = String(e);
-                }
-
-                this.setState({ isLoading: false, error: errMessage, data: void 0 });
-            });
+        loadMoleData(channelsDB)
+            .then(data => this.setState({ isLoading: false, data, error: void 0 }))
+            // also drop the previous submission's data, it would be shown instead of the error
+            .catch(error => this.setState({ isLoading: false, data: void 0, error: String(error) }));
     }
 
     render() {
@@ -122,7 +78,7 @@ export class PluginControl extends React.Component<{ data: any }, { isLoading?: 
                                 <b>Data for specified protein are not available.</b>
                             </div>
                             <div style={{ wordWrap: "break-word" }}>
-                                <b>Reason:</b> <i dangerouslySetInnerHTML={{ __html: errorMessage }}></i>
+                                <b>Reason:</b> <i>{errorMessage}</i>
                             </div>
                         </div>);
                 } else {
