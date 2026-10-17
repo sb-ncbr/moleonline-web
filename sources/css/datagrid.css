@@ -61,10 +61,6 @@ div#right-tabs-3 {
 	background-color:inherit;
 }
 
-.datagrid tr.justify td {
-    text-align: justify;
-}
-
 .datagrid table{
 	height:100%;
 	width:100%;

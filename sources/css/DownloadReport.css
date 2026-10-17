@@ -1,12 +1,3 @@
-.download-button .glyphicon.glyphicon-download{
-    vertical-align: text-bottom;
-    font-size: 13pt;
-}
-.download-menu .download{
-    width: 100%;
-    height: 100%;
-    font-size: 11pt;
-}
 .download-button .dropdown{
     height: 100%;
     padding: 0;

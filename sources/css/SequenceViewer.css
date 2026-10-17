@@ -44,77 +44,6 @@
     margin-left: 3px;
 }
 
-.sequence-viewer .seq-header{
-    font-size: 8pt;
-    display: table-cell;
-    width: 5%;
-    min-width: 61px;
-    height: 100%;
-    top: 0;
-    padding-top: 15px;
-    padding-left: 5px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #aaa;
-}
-.sequence-viewer .seq-content{
-    display: table-cell;
-    width: 95%;
-    margin-left: 5%;
-    top: 0;
-    padding-right: 5px;
-    border-left: 1px solid #aaa;
-    padding-left: 4px;
-    padding-top: 7px;
-    border-bottom: 1px solid #aaa;
-    padding-bottom: 3px;
-}
-.sequence-viewer .seq-residue{
-    display: inline-block;
-    font-size: 8pt;
-    text-align: center;
-    padding-right: 1px;
-    width: 12px;
-}
-.sequence-viewer .seq-residue.het{
-    width:auto;
-}
-.sequence-viewer .seq-number {
-    width: 10px;
-    height: 12px;
-    padding-left: 2px;
-    text-align: left;
-}
-.sequence-viewer .seq-chain{
-    line-height: initial;
-    display: table-row;
-}
-
-.sequence-viewer .seq-chain:last-child .seq-header,
-.sequence-viewer .seq-chain:last-child .seq-content{
-    border-bottom: none;
-}
-
-.sequence-viewer .seq-letter{
-    cursor:pointer;
-    font-weight:bold;
-    padding:1px;
-    padding-right:2px;
-}
-
-.seq-waiting-for-data{
-    margin-top:15px;
-    margin-left: 5px;
-}
-
-.sequence-viewer .seq-letter:hover,
-.sequence-viewer .seq-letter.selected{
-    padding:0;
-    padding-right: 1px;
-    border:1px solid #aaa;
-    background-color: #333;
-    color:white;
-}
-
 @media only screen and (max-width: 1300px),
 only screen and (max-height: 900px) {
     .sequence-viewer .minimized{
@@ -125,9 +54,6 @@ only screen and (max-height: 900px) {
     }*/
     .sequence-viewer .minimized .seq-container{
         border-bottom: none;
-    }
-    .sequence-viewer .seq-content{
-        width:50%;
     }
 }
 
