@@ -5,7 +5,7 @@ import { SequenceViewer } from "./UI/SequenceViewer/UI";
 import { QuickHelp } from "./UI/QuickHelp/UI";
 import { LayerVizualizer } from "./UI/LayerVizualizer/UI";
 import { AglomeredParameters } from "./UI/AglomeredParameters/UI";
-import { LayersVizualizerSettings, Vizualizer } from "./LayerVizualizer/Vizualizer";
+import { Vizualizer } from "./LayerVizualizer/Vizualizer";
 import { Instances } from "../Bridge";
 import { LayerProperties } from "./UI/LayerProperties/UI";
 import { LayerResidues } from "./UI/LayerResidues/UI";
@@ -24,16 +24,8 @@ export class RightPanel extends React.Component<{ context: Context }, {twoDProts
 
 
     render() {
-        let lvSettings: LayersVizualizerSettings = {
-            coloringProperty: "Hydropathy",
-            useColorMinMax: true,
-            skipMiddleColor: false,
-            customRadiusProperty: "MinRadius"
-        }
-
-        //Create instance of layer vizualizer
-        let layerVizualizer = new Vizualizer('layer-vizualizer-ui', lvSettings);
-        Instances.setLayersVizualizer(layerVizualizer);
+        // the layer vizualizer App created; constructing one here made a new one (and window listener) on every render
+        const layerVizualizer: Vizualizer = Instances.getLayersVizualizer();
 
         return <div className="d-flex flex-column">
             <div className="chdb-panel plugin flex-grow-1" id="plugin">
