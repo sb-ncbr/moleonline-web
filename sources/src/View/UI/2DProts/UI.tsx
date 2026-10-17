@@ -223,7 +223,8 @@ export class TwoDProts extends React.Component<{}, { isComputing: boolean, error
         const computationId = params.computationId;
         try {
             TwoDProtsProxy.Watcher.startJob(
-                `${DataSources.API_URL}/Data/${computationId}?submitId=${submitId}&format=molecule`,
+                // 2DProts downloads the structure itself, so it needs the full address, also when the API is under /api
+                new URL(`${DataSources.API_URL}/Data/${computationId}?submitId=${submitId}&format=molecule`, window.location.origin).href,
                 TwoDProtsBridge.getVizualizedChannels(),
                 (status, jobId, errorMsg) => {
                     console.log(`2DProts Job Status: ${status}`);

@@ -9,7 +9,7 @@ export class Routing {
 }
 
 export class DataSources {
-    // Set at build time from VITE_API_URL (.env.development for development, the environment otherwise)
+    // Set at build time from VITE_API_URL: "/api" when this site's nginx serves the API (the default), or a full URL
     public static API_URL: string = import.meta.env.VITE_API_URL;
 
     public static PATTERN_QUERY_API_URL: any = {

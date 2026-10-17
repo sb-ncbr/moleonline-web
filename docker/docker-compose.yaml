@@ -6,7 +6,8 @@ services:
             context: ..
             dockerfile: ./docker/Dockerfile
             args:
-                VITE_API_URL: ${VITE_API_URL:?Set VITE_API_URL to the MOLE API URL}
+                # The API is served by this site's nginx under /api (nginx.site.conf)
+                VITE_API_URL: ${VITE_API_URL:-/api}
         restart: unless-stopped
         container_name: moleonline-web
         ports:
@@ -14,7 +15,15 @@ services:
         volumes:
             - ./nginx.devel.conf:/etc/nginx/nginx.conf:ro
             - ./nginx.site.conf:/etc/nginx/site.conf:ro
+        networks:
+            - moleonline
         logging:
             driver: journald
             options:
                 tag: channelsdb-web
+
+# Shared with the MOLE API's compose project, whose service "api" nginx proxies to.
+# Created once: docker network create moleonline
+networks:
+    moleonline:
+        external: true

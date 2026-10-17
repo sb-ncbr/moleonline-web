@@ -14,7 +14,4 @@ jobs:
 
       - name: Build services with Docker Compose
         run: docker compose -f docker/docker-compose.yaml build
-        env:
-          # The build only needs some API URL; this image is never deployed
-          VITE_API_URL: https://api.invalid
 

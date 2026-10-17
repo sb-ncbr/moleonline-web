@@ -24,10 +24,15 @@ const onlineRoutes: Plugin = {
 };
 
 export default defineConfig(({ mode, isPreview }) => {
+    const env = loadEnv(mode, envDir, ['VITE_', 'API_']);
     // The app has no built-in API URL; fail early instead of producing a site that calls nowhere
-    if (!isPreview && !loadEnv(mode, envDir, 'VITE_').VITE_API_URL) {
-        throw new Error('VITE_API_URL is not set. Set it in the environment, e.g. VITE_API_URL=https://... npm run build');
+    if (!isPreview && !env.VITE_API_URL) {
+        throw new Error('VITE_API_URL is not set. Set it in the environment, e.g. VITE_API_URL=/api npm run build');
     }
+    // Like nginx in production: /api goes to the API (API_PROXY, a URL), without the /api prefix
+    const proxy = env.API_PROXY ? {
+        '/api': { target: env.API_PROXY, changeOrigin: true, rewrite: (path: string) => path.replace(/^\/api/, '') },
+    } : undefined;
 
     return {
         root: 'sources',
@@ -36,6 +41,8 @@ export default defineConfig(({ mode, isPreview }) => {
         // .env files live next to package.json, not in sources/
         envDir,
         plugins: [onlineRoutes],
+        server: { proxy },
+        preview: { proxy },
         build: {
             outDir: '../dist',
             emptyOutDir: true,
