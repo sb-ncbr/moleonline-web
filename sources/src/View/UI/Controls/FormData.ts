@@ -1,6 +1,7 @@
 
 import { formatChains, MoleConfig, MoleConfigCavity, MoleConfigInput, MoleConfigOrigin, MoleConfigPoint, MoleConfigResidue, MoleConfigTunnel, parseChains, PoresConfig } from "../../../MoleAPIService";
 import { Point, Residue, StartingPoint, StartingPointQuery, StartingPointResidue, StartingPointXYZ } from "./StartingPoints";
+import { flattenResidues } from "../../CommonUtils/Misc";
 
 export class Cavity implements MoleConfigCavity {
     public IgnoreHETAtoms: boolean
@@ -66,7 +67,7 @@ export class MoleFormData {
     private CustomExits: MoleConfigOrigin | null
     private PoresMerged: boolean
     private PoresAuto: boolean
-    private IgnoredResidues!: string
+    private IgnoredResidues: string
 
     public constructor(data?: MoleConfig) {
         if (data !== void 0 && data.Cavity !== null && data.Cavity !== void 0) {
@@ -107,6 +108,8 @@ export class MoleFormData {
         else {
             this.NonActiveResidues = null;
         }
+        // the text of the Ignored Residues box, e.g. for copied parameters
+        this.IgnoredResidues = (this.NonActiveResidues === null) ? "" : flattenResidues(this.NonActiveResidues);
 
         if (data !== void 0 && data.Origin !== null && data.Origin !== void 0) {
             this.Origin = {
