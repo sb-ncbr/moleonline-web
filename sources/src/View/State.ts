@@ -332,6 +332,9 @@ export function loadData(channelsDB: boolean) {
         }), (err) => rej(err));
     })
 
+    // no structure after all: whoever waits for its chains goes on (resolving them again later is a no-op)
+    modelLoadPromise.catch(() => context.noStructure());
+
     let promises = [];
 
     promises.push(modelLoadPromise);

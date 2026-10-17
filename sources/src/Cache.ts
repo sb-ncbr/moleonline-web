@@ -1,5 +1,7 @@
 import { ApiService, ChannelAnnotation, ResidueAnnotation } from "./ChannelsDBAPIService";
 import { CHANNEL_CATEGORIES, ChannelsDBChannels, MoleData, Tunnel, TunnelMetaInfo } from "./DataInterface";
+import { Context } from "./View/Context";
+import { Events } from "./Bridge";
 
 export class TunnelName {
     private static cache: Map<string, Map<string, string>> = new Map();
@@ -74,13 +76,14 @@ export class ChannelsDBData {
     private static residueAnnotationCache: Map<string, ResidueAnnotation[]>;
 
     public static reload(pdbid: string) {
-        let channelsData = ApiService.getChannelsData(pdbid);
+        // the channels are filtered to the loaded structure, so they wait for it
+        let channelsData = Promise.all([ApiService.getChannelsData(pdbid), Context.getInstance().getStructureChains()])
+            .then(([val, chains]) => {
+                this.channelAnnotationCache = val.channelsAnnotations;
+                this.channelDataCache = (chains === null) ? val.channelsData : this.inStructure(val.channelsData, chains);
+                return val;
+            });
         let proteinData = ApiService.getProteinData(pdbid);
-
-        channelsData.then(val => {
-            this.channelAnnotationCache = val.channelsAnnotations;
-            this.channelDataCache = val.channelsData;
-        });
 
         proteinData.then(val => {
             this.residueAnnotationCache = val.residueData;
@@ -92,6 +95,34 @@ export class ChannelsDBData {
                 proteinData
             ]
         );
+    }
+
+    // ChannelsDB computed its channels on one structure, the asymmetric unit or an assembly, and names the chains
+    // lining them by label, copies as "A-2". A channel belongs to the loaded structure when every chain lining it is
+    // there: otherwise it lies where the structure has no atoms, or part of its wall is missing.
+    private static inStructure(channels: ChannelsDBChannels, chains: Set<string>): ChannelsDBChannels {
+        let hidden = 0;
+        const result = { ...channels };
+        for (const category of CHANNEL_CATEGORIES) {
+            const tunnels = channels[category];
+            if (!Array.isArray(tunnels)) {
+                continue;
+            }
+            result[category] = tunnels.filter(t => {
+                // "HIS 63 A", "ASN 242 A Backbone", "ARG 65 A-2"
+                const lining = (t.Layers?.ResidueFlow ?? []).map(r => r.split(" ")[2]).filter(c => c !== void 0);
+                const inside = lining.every(c => chains.has(c));
+                hidden += inside ? 0 : 1;
+                return inside;
+            });
+        }
+        if (hidden > 0) {
+            Events.invokeNotifyMessage({
+                messageType: "Info",
+                message: `${hidden} ChannelsDB channel${hidden === 1 ? " is" : "s are"} not shown: ChannelsDB computed them on another structure of this entry, in chains that the loaded one does not contain.`
+            });
+        }
+        return result;
     }
 
     public static doWhenCached(pdbid: string) {

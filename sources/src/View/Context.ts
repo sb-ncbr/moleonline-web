@@ -36,7 +36,7 @@ import { adjustCaverDistance } from "./VizualizerMol/color-tunnels/algorithm";
 import { ApiService } from "../MoleAPIService";
 import { requestError } from "../Http";
 import { SbNcbrTunnelsExtension } from "./VizualizerMol/tunnels-extension/behavior";
-import { Model } from "molstar/lib/mol-model/structure";
+import { Model, StructureElement, StructureProperties } from "molstar/lib/mol-model/structure";
 
 const MySpec: PluginUISpec = {
     ...DefaultPluginUISpec(),
@@ -87,6 +87,19 @@ const MySpec: PluginUISpec = {
 export class Context {
     public plugin: PluginUIContext;
     public model: Model | undefined = undefined;
+    // The chains of the loaded structure by label (label_asym_id), copies named like PDBe and ChannelsDB do ("A-2");
+    // null when no structure was loaded
+    private resolveStructureChains!: (chains: Set<string> | null) => void;
+    private structureChains = new Promise<Set<string> | null>(res => this.resolveStructureChains = res);
+
+    public getStructureChains() {
+        return this.structureChains;
+    }
+
+    // No structure will be loaded (e.g. the submission failed): nobody should wait for its chains
+    public noStructure() {
+        this.resolveStructureChains(null);
+    }
     private assemblyRef = '';
     initParams?: InitParams;
     selectedParams: any;
@@ -247,6 +260,7 @@ export class Context {
                 messageType: "Danger",
                 message: `${error}`
             })
+            this.noStructure();
             return;
         }
 
@@ -271,6 +285,16 @@ export class Context {
         await update.commit();
 
         this.model = model.selector.obj?.data;
+        // A copy in an assembly is the chain under another operator: the model server's file maps "A_2" to chain A
+        // with operator "ASM_2", the deposited chain keeps "1_555"
+        const loaded = structure.selector.obj?.data;
+        const chains = new Set<string>();
+        for (const unit of loaded?.units ?? []) {
+            const location = StructureElement.Location.create(loaded, unit, unit.elements[0]);
+            const copy = /^ASM_(\d+)$/.exec(unit.conformation.operator.name);
+            chains.add(StructureProperties.chain.label_asym_id(location) + (copy !== null && copy[1] !== "1" ? `-${copy[1]}` : ""));
+        }
+        this.resolveStructureChains(loaded === undefined ? null : chains);
 
         const pivotIndex = this.plugin.managers.structure.hierarchy.selection.structures.length - 1;
         const pivot = this.plugin.managers.structure.hierarchy.selection.structures[pivotIndex];
