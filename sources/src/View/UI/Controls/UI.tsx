@@ -1130,17 +1130,8 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
                         Submit
                     </button>
                     : <button className="btn btn-sm btn-success submit px-3" type="submit" id="controls-submit">Submit</button>}
-                <input type="button" className="btn btn-sm btn-primary kill-job-button px-3" disabled={!canKill} onClick={(e => {
-                    if ($(e.currentTarget).attr("disabled") !== "disabled") {
-                        $('#killJobDialog').modal('show');
-                        $(".chdb-panel.right-panel").addClass("has-modal");
-                    }
-                })} value="Kill" />
-                <input type="button" className="btn btn-sm btn-primary delete-project-button px-3" data-toggle="modal" data-target="#deleteProjectDialog" onClick={(e => {
-                    e.preventDefault();
-                    $(".chdb-panel.right-panel").addClass("has-modal");
-                    return false;
-                })} value="Delete" />
+                <input type="button" className="btn btn-sm btn-primary kill-job-button px-3" disabled={!canKill} onClick={() => this.killJob()} value="Kill" />
+                <input type="button" className="btn btn-sm btn-primary delete-project-button px-3" onClick={() => this.deleteProject()} value="Delete" />
                 <input className="btn btn-sm btn-primary clear-button px-3" type="button" value="Clear" onClick={() => {
                     FormEvents.invokeOnClear(validationGroup + "_form");
                 }} />
@@ -1161,104 +1152,63 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
                     <input className="btn btn-sm btn-primary submit-arrow" type="button" value="<" disabled={(!canShiftPrev) ? true : void 0} data-value={(!canShiftPrev || idx == void 0) ? void 0 : items[this.getPrevIdx(idx)].value} onClick={this.changeSubmitIdByStep.bind(this)} />
                 </div>
             </div>
-            <ModalDialog id="killJobDialog" header="Do you really want to kill running job?" body={this.prepareKillJobDialogBody()} />
-            <ModalDialog id="deleteProjectDialog" header="Do you really want to delete whole computation project?" body={this.prepareDeleteDialogBody()} />
         </div>
     }
 
-    private prepareKillJobDialogBody() {
-        return (
-            <div>
-                <button className="btn btn-primary left-button" onClick={(e) => {
-                    e.preventDefault();
-                    if (this.props.computationInfo === void 0) {
-                        return false;
-                    }
-                    ApiService.killRunningJob(this.props.computationInfo.ComputationId).then((result) => {
-                        if (result.Status !== "Aborted") {
-                            BridgeEvents.invokeNotifyMessage({
-                                message: (result.ErrorMsg.length === 0) ? "Attempt to kill job was not successful." : result.ErrorMsg,
-                                messageType: "Warning"
-                            });
-                            return;
-                        }
+    private killJob() {
+        const info = this.props.computationInfo;
+        if (info === void 0 || !window.confirm("Do you really want to kill the running job?")) {
+            return;
+        }
+        ApiService.killRunningJob(info.ComputationId).then((result) => {
+            if (result.Status !== "Aborted") {
+                BridgeEvents.invokeNotifyMessage({
+                    message: (result.ErrorMsg.length === 0) ? "Attempt to kill job was not successful." : result.ErrorMsg,
+                    messageType: "Warning"
+                });
+                return;
+            }
 
-                        BridgeEvents.invokeNotifyMessage({
-                            message: "Job has been successfully killed.",
-                            messageType: "Success"
-                        });
-                    })
-                        .catch((err) => {
-                            BridgeEvents.invokeNotifyMessage({
-                                message: describeError(err, "Attempt to kill running job failed! Please try again later."),
-                                messageType: "Danger"
-                            });
-                        });
-                    return false;
-                }} data-dismiss="modal">Yes</button>
-                <button className="btn btn-primary right-button" data-dismiss="modal">No</button>
-            </div>
-        );
+            BridgeEvents.invokeNotifyMessage({
+                message: "Job has been successfully killed.",
+                messageType: "Success"
+            });
+        })
+            .catch((err) => {
+                BridgeEvents.invokeNotifyMessage({
+                    message: describeError(err, "Attempt to kill running job failed! Please try again later."),
+                    messageType: "Danger"
+                });
+            });
     }
 
-    private prepareDeleteDialogBody() {
-        return (
-            <div>
-                <button className="btn btn-primary left-button" onClick={(e) => {
-                    e.preventDefault();
-                    if (this.props.computationInfo === void 0) {
-                        return false;
-                    }
-                    ApiService.deleteProject(this.props.computationInfo.ComputationId).then((result) => {
-                        if (result.Status !== "Deleted") {
-                            BridgeEvents.invokeNotifyMessage({
-                                message: (result.ErrorMsg.length === 0) ? "Attempt to delete current computation was not successful." : result.ErrorMsg,
-                                messageType: "Warning"
-                            });
-                            return;
-                        }
+    private deleteProject() {
+        const info = this.props.computationInfo;
+        if (info === void 0 || !window.confirm("Do you really want to delete the whole computation, with all its submissions?")) {
+            return;
+        }
+        ApiService.deleteProject(info.ComputationId).then((result) => {
+            if (result.Status !== "Deleted") {
+                BridgeEvents.invokeNotifyMessage({
+                    message: (result.ErrorMsg.length === 0) ? "Attempt to delete current computation was not successful." : result.ErrorMsg,
+                    messageType: "Warning"
+                });
+                return;
+            }
 
-                        BridgeEvents.invokeNotifyMessage({
-                            message: "Current computation was successfully deleted. You will be redirected to initial page.",
-                            messageType: "Success"
-                        });
-                        window.setTimeout(() => {
-                            location.replace("/");
-                        }, 5000);
-                    })
-                        .catch((err) => {
-                            BridgeEvents.invokeNotifyMessage({
-                                message: describeError(err, "Attempt to delete current computation failed! Please try again later."),
-                                messageType: "Danger"
-                            });
-                        });
-                    return false;
-                }} data-dismiss="modal">Yes</button>
-                <button className="btn btn-primary right-button" data-dismiss="modal">No</button>
-            </div>
-        );
-    }
-}
-
-class ModalDialog extends React.Component<{ id: string, header: string, body: JSX.Element }, {}> {
-    render() {
-        return <div id={this.props.id} className="modal fade" role="dialog">
-            <div className="modal-dialog">
-                <div className="modal-content">
-                    <div className="modal-header">
-                        <h4 className="modal-title">{this.props.header}</h4>
-                        <button type="button" className="close" data-dismiss="modal">&times;</button>
-                    </div>
-                    <div className="modal-body">
-                        {this.props.body}
-                    </div>
-                    <div className="modal-footer">
-                        <button type="button" className="btn btn-default" data-dismiss="modal" onClick={() => {
-                            $(".chdb-panel.right-panel").removeClass("has-modal");
-                        }} >Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+            BridgeEvents.invokeNotifyMessage({
+                message: "Current computation was successfully deleted. You will be redirected to initial page.",
+                messageType: "Success"
+            });
+            window.setTimeout(() => {
+                location.replace("/");
+            }, 5000);
+        })
+            .catch((err) => {
+                BridgeEvents.invokeNotifyMessage({
+                    message: describeError(err, "Attempt to delete current computation failed! Please try again later."),
+                    messageType: "Danger"
+                });
+            });
     }
 }

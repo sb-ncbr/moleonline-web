@@ -1133,10 +1133,6 @@ only screen and (max-height: 542px) {
         position: fixed;
     }
 
-    .chdb-panel.right-panel.has-modal {
-        position: absolute;
-    }
-
     .plugin,
 .chdb-panel.bottom-panel .left-tabs,
 .chdb-panel.bottom-panel .right-tabs {

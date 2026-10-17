@@ -256,20 +256,6 @@
     padding-top: 1px !important;
 }
 
-
-.modal-dialog .left-button,
-.modal-dialog .right-button {
-    width: 49%;
-}
-
-.modal-dialog .left-button {
-    margin-right: 1%;
-}
-
-.modal-dialog .right-button {
-    margin-left: 1%;
-}
-
 .submit-form-container .mode-switch {
     margin-top: 4px;
     cursor: pointer;
