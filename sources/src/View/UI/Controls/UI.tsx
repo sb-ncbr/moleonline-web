@@ -1004,7 +1004,6 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
                 <form className="form-horizontal" id="submission-form" onSubmit={this.handleSubmit.bind(this)}>
                     <ControlButtons submitId={this.state.submitId} computationInfo={this.state.data} isLoading={!this.state.canSubmit} setOpenControls={this.setOpenControls.bind(this)} />
                 </form>
-                {/* <div id="right-panel-toggler" className="toggler glyphicon glyphicon-resize-vertical"></div> */}
             </div>
         );
     }

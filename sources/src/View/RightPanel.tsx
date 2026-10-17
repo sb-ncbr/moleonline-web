@@ -58,7 +58,7 @@ export class RightPanel extends React.Component<{ context: Context }, {twoDProts
                             </div>
                         </div>
                     </div>
-                    <div id="bottom-tabs-toggler" className="toggler glyphicon glyphicon-resize-horizontal"></div>
+                    <div id="bottom-tabs-toggler" className="toggler bi bi-arrows-expand-vertical"></div>
                 </div>
                 <div className="right-tabs">
                     <div id="right-tabs">
@@ -85,7 +85,6 @@ export class RightPanel extends React.Component<{ context: Context }, {twoDProts
                         </div>
                     </div>
                 </div>
-                {/* <div id="bottom-panel-toggler" className="toggler glyphicon glyphicon-resize-vertical"></div> */}
             </div>
         </div>
     }

@@ -39,7 +39,7 @@ body {
 }
 
 *,
-.ui *:not(.glyphicon) {
+.ui * {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
@@ -1342,10 +1342,6 @@ only screen and (max-height: 542px) {
         border-bottom: 1px solid #aaa;
     }
 
-    .sequence-viewer .sequence-viewer-header .glyphicon {
-        display: none;
-    }
-
     .layerVizualizer .layer-vizualizer-canvas,
     .layerVizualizer .canvas-wrapper,
     .layerVizualizer .fake-canvas {
@@ -1477,8 +1473,8 @@ only screen and (max-height: 542px) {
 }
 
 @media only screen and (max-width: 650px) {
-    .current-pbdbid-sign .glyphicon,
-.download-button .glyphicon {
+    .current-pbdbid-sign .bi,
+    .download-button .bi {
         display: none;
     }
 

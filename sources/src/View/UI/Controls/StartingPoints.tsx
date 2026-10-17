@@ -285,7 +285,7 @@ export class StartingPointResultsBox extends React.Component<StartingPointResult
                     <div className="msp-control-row-ctrl">
                         <Button onClick={(e) => {
                             this.removeItem(i);
-                        }} children={[this.generateUIItem(i), <span className="glyphicon glyphicon-remove" />]} />
+                        }} children={[this.generateUIItem(i), <span className="bi bi-x" />]} />
                     </div>
                 </div>
             )
