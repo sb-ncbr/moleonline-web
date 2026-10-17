@@ -1,5 +1,6 @@
 import { ChannelsDBData, MoleData } from "./DataInterface";
 import { ComputationStatus, MoleConfig, PoresConfig } from "./MoleAPIService";
+import { Handlers } from "./View/CommonUtils/Handlers";
 
 export class Instances {
     private static layerVizualizer: any;
@@ -49,30 +50,20 @@ type EventName =
     | "ON-MEMBRANE-DATA-READY";
 
 export class Events {
-    private static handlers = new Map<EventName, ((...args: any[]) => void)[]>();
+    private static handlers = new Map<EventName, Handlers<any[]>>();
 
     // Returns a function that unsubscribes the handler again (e.g. when a component unmounts)
     private static subscribe(name: EventName, h: (...args: any[]) => void): () => void {
         let list = this.handlers.get(name);
         if (list === void 0) {
-            list = [];
+            list = new Handlers<any[]>();
             this.handlers.set(name, list);
         }
-        list.push(h);
-        return () => {
-            const current = this.handlers.get(name);
-            const idx = current === void 0 ? -1 : current.indexOf(h);
-            if (idx !== -1) {
-                current!.splice(idx, 1);
-            }
-        };
+        return list.attach(h);
     }
 
     private static invoke(name: EventName, ...args: any[]) {
-        // a copy: handlers may unsubscribe while the event is delivered
-        for (let h of [...(this.handlers.get(name) ?? [])]) {
-            h(...args);
-        }
+        this.handlers.get(name)?.invoke(...args);
     }
 
     public static subscribeChannelSelect(h: ChannelSelectHandler) { return this.subscribe("CHANNEL-SELECT", h); }

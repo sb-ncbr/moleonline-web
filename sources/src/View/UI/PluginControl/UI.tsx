@@ -15,7 +15,6 @@ import { CommonOptions } from "../../../../config/common";
 import { loadData, showCavityVisuals, showMembraneVisuals, showOriginsSurface } from "../../State";
 import { Context } from "../../Context";
 import { StateSelection } from "molstar/lib/mol-state";
-import { Subscription } from "rxjs";
 import WaveLoader from "../../CommonUtils/WaveLoader";
 import { LoadingStatusDisplay } from "../../CommonUtils/LoadingInfo/LoadingStatusDisplay";
 
@@ -232,9 +231,10 @@ export class Data extends React.Component<State, {}> {
 export class Selection extends React.Component<State, { label?: string | JSX.Element, tunnel: boolean }> {
     state = { label: void 0, tunnel: false }
 
-    private observerChannels: Subscription | undefined = void 0;
+    private unsubscribe: (() => void)[] = [];
+
     componentDidMount() {
-        SelectionHelper.attachOnResidueSelectHandler(((r: LightResidueInfo[]) => {
+        this.unsubscribe.push(SelectionHelper.attachOnResidueSelectHandler(((r: LightResidueInfo[]) => {
             if (r.length === 0) {
                 this.setState({
                     label: void 0,
@@ -272,9 +272,9 @@ export class Selection extends React.Component<State, { label?: string | JSX.Ele
                 label: <div className="columns">{elements}</div>,
                 tunnel: false
             });
-        }).bind(this));
+        }).bind(this)));
 
-        SelectionHelper.attachOnPointBulkSelectHandler(((points: Point[]) => {
+        this.unsubscribe.push(SelectionHelper.attachOnPointBulkSelectHandler(((points: Point[]) => {
             let elements = [];
             for (let [index, e] of points.entries()) {
                 elements.push(
@@ -287,15 +287,15 @@ export class Selection extends React.Component<State, { label?: string | JSX.Ele
                 label: <div className="columns points">{elements}</div>,
                 tunnel: false
             });
-        }).bind(this));
+        }).bind(this)));
 
-        SelectionHelper.attachOnClearSelectionHandler((() => {
+        this.unsubscribe.push(SelectionHelper.attachOnClearSelectionHandler((() => {
             this.setState({ label: void 0, tunnel: false });
             $("#left-tabs li a[href='#left-tabs-1']")
                 .text("Channel profile");
-        }).bind(this));
+        }).bind(this)));
 
-        SelectionHelper.attachOnChannelSelectHandler2((channel) => {
+        this.unsubscribe.push(SelectionHelper.attachOnChannelSelectHandler2((channel) => {
             let tunnelName = Tunnels.getName(channel as Tunnel);
             let len = Tunnels.getLength(channel as Tunnel);
             if (channel.__channelsDB) {
@@ -313,26 +313,24 @@ export class Selection extends React.Component<State, { label?: string | JSX.Ele
                 let namePart = (tunnelName === void 0) ? '' : ` (${tunnelName})`;
                 this.setState({ label: <span><b>{channel.Type}{namePart}</b>, {`Length: ${len} Å`}</span>, tunnel: true });
             }
-        })
+        }))
 
-        SelectionHelper.attachOnChannelDeselectHandler(() => {
+        this.unsubscribe.push(SelectionHelper.attachOnChannelDeselectHandler(() => {
             $("#left-tabs li a[href='#left-tabs-1']")
                 .text(`Channel profile`);
             this.setState({ label: void 0, tunnel: false })
-        })
+        }))
 
-        Events.subscribeChangeSubmitId(() => {
+        this.unsubscribe.push(Events.subscribeChangeSubmitId(() => {
             if (!this.state.tunnel) {
                 this.setState({ label: void 0 })
             }
-        })
+        }))
     }
 
     componentWillUnmount() {
-        if (this.observerChannels) {
-            this.observerChannels.unsubscribe();
-            this.observerChannels = void 0;
-        }
+        this.unsubscribe.forEach(u => u());
+        this.unsubscribe = [];
     }
 
     render() {
@@ -492,17 +490,24 @@ export class Origins extends React.Component<{ label: string | JSX.Element, orig
 }
 
 export class Membrane extends React.Component<{ label: string | JSX.Element, membraneData: any } & State, {}> {
+    private unsubscribe: (() => void)[] = [];
+
     componentDidMount() {
-        Events.subscribeOnMembraneDataReady(() => {
+        this.unsubscribe.push(Events.subscribeOnMembraneDataReady(() => {
             this.forceUpdate();
-        });
-        Events.subscribeToggleLoadingScreen(({ message, visible }) => {
+        }));
+        this.unsubscribe.push(Events.subscribeToggleLoadingScreen(({ message, visible }) => {
             if (!visible) {
                 this.props.membraneData.__isVisible = false;
                 this.toggle();
             }
-        })
+        }));
         this.toggle();
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe.forEach(u => u());
+        this.unsubscribe = [];
     }
 
     componentDidUpdate(prevProps: any) {

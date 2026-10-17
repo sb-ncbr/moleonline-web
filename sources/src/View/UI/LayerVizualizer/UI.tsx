@@ -605,14 +605,23 @@ class PropertyColorTunnel extends React.Component<{ state: State }, { property: 
         context.visual.reset({ selectColor: true });
     };
 
+    private unsubscribe: (() => void)[] = [];
+
     componentDidMount() {
-        SelectionHelper.attachOnChannelSelectHandler2(this.onChannelSelect.bind(this));
-        LayerColors.attachOnChannelRemoved(this.onChannelRemoved.bind(this));
-        LayerColors.attachOnChannelAdd(this.onChannelAdd.bind(this));
-        LayerColors.attachOnColorPropertyChagned(this.onColorPropertyChanged.bind(this));
-        LayerColors.attachOnColorBoundsChanged(this.onColorBoundsChanged.bind(this));
-        LayerColors.attachLayerIndexOver(this.onLayerIndexOver.bind(this));
-        LayerColors.attachLayerIndexSelect(this.onLayerIndexSelect.bind(this));
+        this.unsubscribe.push(
+            SelectionHelper.attachOnChannelSelectHandler2(this.onChannelSelect.bind(this)),
+            LayerColors.attachOnChannelRemoved(this.onChannelRemoved.bind(this)),
+            LayerColors.attachOnChannelAdd(this.onChannelAdd.bind(this)),
+            LayerColors.attachOnColorPropertyChagned(this.onColorPropertyChanged.bind(this)),
+            LayerColors.attachOnColorBoundsChanged(this.onColorBoundsChanged.bind(this)),
+            LayerColors.attachLayerIndexOver(this.onLayerIndexOver.bind(this)),
+            LayerColors.attachLayerIndexSelect(this.onLayerIndexSelect.bind(this)),
+        );
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe.forEach(u => u());
+        this.unsubscribe = [];
     }
 
     render() {

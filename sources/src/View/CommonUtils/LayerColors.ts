@@ -5,20 +5,22 @@ import { Representation } from "molstar/lib/mol-repr/representation";
 import { Loci } from "molstar/lib/mol-model/loci";
 import { Tunnel, TunnelMetaInfo } from "../../DataInterface";
 import { SelectionHelper } from "./Selection";
+import { Handlers } from "./Handlers";
 
 export class LayerColors {
     private static currentSelectedLayer: number = -1;
     private static selectChannelLiningResidues: boolean = false;
     private static currentCanvas: HTMLCanvasElement | undefined = undefined;
 
-    private static onColorPropertyChanged: { handler: (property: Property) => void }[];
-    private static onColorBoundsChanged: { handler: (bounds: ColorBound) => void }[];
-    private static onLayerIndexOver: { handler: (layerIndex: number) => void }[];
-    private static onLayerIndexOverObject: { handler: (layerIndex: number, tunnelId: string) => void }[];
-    private static onLayerIndexSelect: { handler: (layerIndex: number) => void }[];
-    private static onLayerIndexSelectObject: { handler: (layerIndex: number, loci: Representation.Loci<Loci>) => void }[];
-    private static onChannelRemoved: { handler: (ref: string) => void }[];
-    private static onChannelAdd: { handler: (ref: string) => void }[];
+    // attach… returns a function that detaches the handler again
+    private static onColorPropertyChanged = new Handlers<[Property]>();
+    private static onColorBoundsChanged = new Handlers<[ColorBound]>();
+    private static onLayerIndexOver = new Handlers<[number]>();
+    private static onLayerIndexOverObject = new Handlers<[number, string]>();
+    private static onLayerIndexSelect = new Handlers<[number]>();
+    private static onLayerIndexSelectObject = new Handlers<[number, Representation.Loci<Loci>]>();
+    private static onChannelRemoved = new Handlers<[string]>();
+    private static onChannelAdd = new Handlers<[string]>();
 
     public static setSelectChannelLiningResidues(value: boolean) {
         this.selectChannelLiningResidues = value;
@@ -36,146 +38,39 @@ export class LayerColors {
         return this.currentCanvas;
     }
 
-    public static attachOnColorPropertyChagned(handler: (property: Property) => void) {
-        if (this.onColorPropertyChanged === void 0) {
-            this.onColorPropertyChanged = [];
-        }
-
-        this.onColorPropertyChanged.push({ handler });
-    }
+    public static attachOnColorPropertyChagned(handler: (property: Property) => void) { return this.onColorPropertyChanged.attach(handler); }
     public static invokeOnColorPropertyChagned(property: Property | undefined) {
         if (property) {
-            if (this.onColorPropertyChanged === void 0) {
-                return;
-            }
-    
-            for (let h of this.onColorPropertyChanged) {
-                h.handler(property);
-            }
+            this.onColorPropertyChanged.invoke(property);
         }
     }
 
-    public static attachLayerIndexOver(handler: (layerIndex: number) => void) {
-        if (this.onLayerIndexOver === void 0) {
-            this.onLayerIndexOver = [];
-        }
+    public static attachLayerIndexOver(handler: (layerIndex: number) => void) { return this.onLayerIndexOver.attach(handler); }
+    public static invokeLayerIndexOver(layerIndex: number) { this.onLayerIndexOver.invoke(layerIndex); }
 
-        this.onLayerIndexOver.push({ handler });
-    }
-    public static invokeLayerIndexOver(layerIndex: number) {
-        if (this.onLayerIndexOver === void 0) {
-            return;
-        }
+    public static attachLayerIndexOverObject(handler: (layerIndex: number, tunnelId: string) => void) { return this.onLayerIndexOverObject.attach(handler); }
+    public static invokeLayerIndexOverObject(layerIndex: number, tunnelId: string) { this.onLayerIndexOverObject.invoke(layerIndex, tunnelId); }
 
-        for (let h of this.onLayerIndexOver) {
-            h.handler(layerIndex);
-        }
-    }
-
-    public static attachLayerIndexOverObject(handler: (layerIndex: number, tunnelId: string) => void) {
-        if (this.onLayerIndexOverObject === void 0) {
-            this.onLayerIndexOverObject = [];
-        }
-
-        this.onLayerIndexOverObject.push({ handler });
-    }
-    public static invokeLayerIndexOverObject(layerIndex: number, tunnelId: string) {
-        if (this.onLayerIndexOverObject === void 0) {
-            return;
-        }
-
-        for (let h of this.onLayerIndexOverObject) {
-            h.handler(layerIndex, tunnelId);
-        }
-    }
-
-    public static attachLayerIndexSelect(handler: (layerIndex: number) => void) {
-        if (this.onLayerIndexSelect === void 0) {
-            this.onLayerIndexSelect = [];
-        }
-
-        this.onLayerIndexSelect.push({ handler });
-    }
+    public static attachLayerIndexSelect(handler: (layerIndex: number) => void) { return this.onLayerIndexSelect.attach(handler); }
     public static invokeLayerIndexSelect(layerIndex: number) {
         this.currentSelectedLayer = layerIndex;
-        if (this.onLayerIndexSelect === void 0) {
-            return;
-        }
-
-        for (let h of this.onLayerIndexSelect) {
-            h.handler(layerIndex);
-        }
+        this.onLayerIndexSelect.invoke(layerIndex);
     }
 
-    public static attachLayerIndexSelectObject(handler: (layerIndex: number, loci: Representation.Loci<Loci>) => void) {
-        if (this.onLayerIndexSelectObject === void 0) {
-            this.onLayerIndexSelectObject = [];
-        }
-
-        this.onLayerIndexSelectObject.push({ handler });
-    }
+    public static attachLayerIndexSelectObject(handler: (layerIndex: number, loci: Representation.Loci<Loci>) => void) { return this.onLayerIndexSelectObject.attach(handler); }
     public static invokeLayerIndexSelectObject(layerIndex: number, loci: Representation.Loci<Loci>) {
         this.currentSelectedLayer = layerIndex;
-        if (this.onLayerIndexSelectObject === void 0) {
-            return;
-        }
-
-        for (let h of this.onLayerIndexSelectObject) {
-            h.handler(layerIndex, loci);
-        }
+        this.onLayerIndexSelectObject.invoke(layerIndex, loci);
     }
 
-    public static attachOnColorBoundsChanged(handler: (bounds: ColorBound) => void) {
-        if (this.onColorBoundsChanged === void 0) {
-            this.onColorBoundsChanged = [];
-        }
+    public static attachOnColorBoundsChanged(handler: (bounds: ColorBound) => void) { return this.onColorBoundsChanged.attach(handler); }
+    public static invokeOnColorBoundsChanged(bounds: ColorBound) { this.onColorBoundsChanged.invoke(bounds); }
 
-        this.onColorBoundsChanged.push({ handler });
-    }
-    public static invokeOnColorBoundsChanged(bounds: ColorBound) {
-        if (this.onColorBoundsChanged === void 0) {
-            return;
-        }
+    public static attachOnChannelRemoved(handler: (ref: string) => void) { return this.onChannelRemoved.attach(handler); }
+    public static invokeOnChannelRemoved(ref: string) { this.onChannelRemoved.invoke(ref); }
 
-        for (let h of this.onColorBoundsChanged) {
-            h.handler(bounds);
-        }
-    }
-
-    public static attachOnChannelRemoved(handler: (ref: string) => void) {
-        if (this.onChannelRemoved === void 0) {
-            this.onChannelRemoved = [];
-        }
-
-        this.onChannelRemoved.push({ handler });
-    }
-    public static invokeOnChannelRemoved(ref: string) {
-        if (this.onChannelRemoved === void 0) {
-            return;
-        }
-
-        for (let h of this.onChannelRemoved) {
-            h.handler(ref);
-        }
-    }
-
-    public static attachOnChannelAdd(handler: (ref: string) => void) {
-        if (this.onChannelAdd === void 0) {
-            this.onChannelAdd = [];
-        }
-
-        this.onChannelAdd.push({ handler });
-    }
-    public static invokeOnChannelAdd(ref: string) {
-        if (this.onChannelAdd === void 0) {
-            return;
-        }
-
-        for (let h of this.onChannelAdd) {
-            h.handler(ref);
-        }
-    }
-
+    public static attachOnChannelAdd(handler: (ref: string) => void) { return this.onChannelAdd.attach(handler); }
+    public static invokeOnChannelAdd(ref: string) { this.onChannelAdd.invoke(ref); }
 
     public static toProperty(property: string): Property | undefined {
         switch (property) {

@@ -16,6 +16,7 @@ import { StateSelection } from "molstar/lib/mol-state";
 import { PluginStateObject } from "molstar/lib/mol-plugin-state/objects";
 import { MarkerAction } from "molstar/lib/mol-util/marker-action";
 import { CommonOptions } from "../../../config/common";
+import { Handlers } from "./Handlers";
 
 //TODO Molstar
 
@@ -66,115 +67,32 @@ export class SelectionHelper {
 
     private static selectedChannelData: Layers | undefined;
 
-    private static onPointSelectHandlers: { handler: (points: Point[]) => void }[];
-    private static onResidueBulkSelectHandlers: { handler: (residues: LightResidueInfo[]) => void }[];
-    private static onClearSelectionHandlers: { handler: () => void }[];
-    private static onClearSelectionSequence: { handler: () => void }[];
-    private static onChannelSelectHandlers: { handler: (data: Layers, channelId?: string, submissionId?: string) => void }[];
-    private static onChannelSelectHandlers2: { handler: (channel: Tunnel & TunnelMetaInfo) => void }[];
-    private static onChannelDeselectHandlers: { handler: () => void }[];
+    // attach… returns a function that detaches the handler again
+    private static onPointSelect = new Handlers<[Point[]]>();
+    private static onResidueBulkSelect = new Handlers<[LightResidueInfo[]]>();
+    private static onClearSelection = new Handlers<[]>();
+    private static onClearSelectionSequence = new Handlers<[]>();
+    private static onChannelSelect = new Handlers<[Layers, string?, string?]>();
+    private static onChannelSelect2 = new Handlers<[Tunnel & TunnelMetaInfo]>();
+    private static onChannelDeselect = new Handlers<[]>();
 
-    public static attachOnResidueSelectHandler(handler: (residues: LightResidueInfo[]) => void) {
-        if (this.onResidueBulkSelectHandlers === void 0) {
-            this.onResidueBulkSelectHandlers = [];
-        }
+    public static attachOnResidueSelectHandler(handler: (residues: LightResidueInfo[]) => void) { return this.onResidueBulkSelect.attach(handler); }
+    private static invokeOnResidueSelectHandlers(residues: LightResidueInfo[]) { this.onResidueBulkSelect.invoke(residues); }
 
-        this.onResidueBulkSelectHandlers.push({ handler });
-    }
-    private static invokeOnResidueSelectHandlers(residues: LightResidueInfo[]) {
-        if (this.onResidueBulkSelectHandlers === void 0) {
-            return;
-        }
+    public static attachOnClearSelectionSequence(handler: () => void) { return this.onClearSelectionSequence.attach(handler); }
+    public static invokeOnClearSelectionSequence() { this.onClearSelectionSequence.invoke(); }
 
-        for (let h of this.onResidueBulkSelectHandlers) {
-            h.handler(residues);
-        }
-    }
+    public static attachOnClearSelectionHandler(handler: () => void) { return this.onClearSelection.attach(handler); }
+    private static invokeOnClearSelectionHandlers() { this.onClearSelection.invoke(); }
 
-    public static attachOnClearSelectionSequence(handler: () => void) {
-        if (this.onClearSelectionSequence === void 0) {
-            this.onClearSelectionSequence = [];
-        }
+    public static attachOnChannelSelectHandler(handler: (data: Layers, channelId?: string, submissionId?: string) => void) { return this.onChannelSelect.attach(handler); }
+    private static invokeOnChannelSelectHandlers(data: Layers, channelId?: string, submissionId?: string) { this.onChannelSelect.invoke(data, channelId, submissionId); }
 
-        this.onClearSelectionSequence.push({ handler });
-    }
-    public static invokeOnClearSelectionSequence() {
-        if (this.onClearSelectionSequence === void 0) {
-            return;
-        }
+    public static attachOnChannelSelectHandler2(handler: (channel: Tunnel & TunnelMetaInfo) => void) { return this.onChannelSelect2.attach(handler); }
+    private static invokeOnChannelSelectHandlers2(channel: Tunnel & TunnelMetaInfo) { this.onChannelSelect2.invoke(channel); }
 
-        for (let h of this.onClearSelectionSequence) {
-            h.handler();
-        }
-    }
-
-    public static attachOnClearSelectionHandler(handler: () => void) {
-        if (this.onClearSelectionHandlers === void 0) {
-            this.onClearSelectionHandlers = [];
-        }
-
-        this.onClearSelectionHandlers.push({ handler });
-    }
-    private static invokeOnClearSelectionHandlers() {
-        if (this.onClearSelectionHandlers === void 0) {
-            return;
-        }
-
-        for (let h of this.onClearSelectionHandlers) {
-            h.handler();
-        }
-    }
-
-    public static attachOnChannelSelectHandler(handler: (data: Layers, channelId?: string, submissionId?: string) => void) {
-        if (this.onChannelSelectHandlers === void 0) {
-            this.onChannelSelectHandlers = [];
-        }
-
-        this.onChannelSelectHandlers.push({ handler });
-    }
-    private static invokeOnChannelSelectHandlers(data: Layers, channelId?: string, submissionId?: string) {
-        if (this.onChannelSelectHandlers === void 0) {
-            return;
-        }
-
-        for (let h of this.onChannelSelectHandlers) {
-            h.handler(data, channelId, submissionId);
-        }
-    }
-
-    public static attachOnChannelSelectHandler2(handler: (channel: Tunnel & TunnelMetaInfo) => void) {
-        if (this.onChannelSelectHandlers2 === void 0) {
-            this.onChannelSelectHandlers2 = [];
-        }
-
-        this.onChannelSelectHandlers2.push({ handler });
-    }
-    private static invokeOnChannelSelectHandlers2(channel: Tunnel & TunnelMetaInfo) {
-        if (this.onChannelSelectHandlers2 === void 0) {
-            return;
-        }
-
-        for (let h of this.onChannelSelectHandlers2) {
-            h.handler(channel);
-        }
-    }
-
-    public static attachOnChannelDeselectHandler(handler: () => void) {
-        if (this.onChannelDeselectHandlers === void 0) {
-            this.onChannelDeselectHandlers = [];
-        }
-
-        this.onChannelDeselectHandlers.push({ handler });
-    }
-    private static invokeOnChannelDeselectHandlers() {
-        if (this.onChannelDeselectHandlers === void 0) {
-            return;
-        }
-
-        for (let h of this.onChannelDeselectHandlers) {
-            h.handler();
-        }
-    }
+    public static attachOnChannelDeselectHandler(handler: () => void) { return this.onChannelDeselect.attach(handler); }
+    private static invokeOnChannelDeselectHandlers() { this.onChannelDeselect.invoke(); }
 
     //For PDF report
     public static forceInvokeOnChannelDeselectHandlers() {
@@ -187,22 +105,8 @@ export class SelectionHelper {
         this.invokeOnChannelDeselectHandlers();
     }
 
-    public static attachOnPointBulkSelectHandler(handler: (points: Point[]) => void) {
-        if (this.onPointSelectHandlers === void 0) {
-            this.onPointSelectHandlers = [];
-        }
-
-        this.onPointSelectHandlers.push({ handler });
-    }
-    private static invokeOnPointSelectHandlers(points: Point[]) {
-        if (this.onPointSelectHandlers === void 0) {
-            return;
-        }
-
-        for (let h of this.onPointSelectHandlers) {
-            h.handler(points);
-        }
-    }
+    public static attachOnPointBulkSelectHandler(handler: (points: Point[]) => void) { return this.onPointSelect.attach(handler); }
+    private static invokeOnPointSelectHandlers(points: Point[]) { this.onPointSelect.invoke(points); }
 
     public static async clearSelection() { //TODO
         await this.clearSelectionPrivate();
