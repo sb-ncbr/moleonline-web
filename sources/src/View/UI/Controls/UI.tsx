@@ -215,8 +215,6 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
             s.moleFormData = this.getMoleDefaultValues();
             s.poresFormData = this.getPoresDefaultValues();
             this.setState(s, () => {
-                FormEvents.invokeOnClear(validationGroup);
-
                 let s2 = this.state;
                 s2.mode = mode; //setting back correct mode
                 this.setState(s2);
@@ -415,13 +413,13 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                     if (s.moleFormData !== null) {
                         s.moleFormData.setStartingPoints(v);
                     }
-                }} formGroup={validationGroup} extraClearGroup={`${validationGroup}/selection`} allowPatternQuery={true} />
+                }} allowPatternQuery={true} />
                 <StartingPointBox label="End Point" tooltip={TooltipText.get("endPoint")} defaultItems={this.state.moleFormData.getEndingPoints()} noDataText={"No end points selected..."} onChange={(v) => {
                     let s = this.state;
                     if (s.moleFormData !== null) {
                         s.moleFormData.setEndPoints(v);
                     }
-                }} formGroup={validationGroup} extraClearGroup={`${validationGroup}/selection`} allowPatternQuery={false} />
+                }} allowPatternQuery={false} />
             </ControlGroup>
         </div>
     }

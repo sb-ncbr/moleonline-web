@@ -1,5 +1,4 @@
 import React from "react";
-import { Events } from "../../CommonUtils/FormEvents";
 import { flattenPoints, flattenResidues, parsePoint, parseResidues } from "../../CommonUtils/Misc";
 import { Cofactors, CSAResidues, MoleConfigResidue } from "../../../MoleAPIService";
 import { SelectionHelper } from "../../CommonUtils/Selection";
@@ -13,38 +12,16 @@ import { ParamDefinition } from "molstar/lib/mol-util/param-definition";
 import { CheckSvg, CloseSvg } from "molstar/lib/mol-plugin-ui/controls/icons";
 
 
-export class ComboBoxItem {
-    private value: string
-
-    public constructor(value: string, label: string) {
-        this.value = value;
-    }
-
-    getValue() {
-        return this.value;
-    }
-
-};
-
 interface ComboBoxProps {
     label: string,
-    items: ComboBoxItem[],
+    items: string[],
     selectedValue: string,
-    tooltip?: string,
     onChange?: (v: string) => void,
-    onMount?: (control: ComboBox) => void
 };
 interface ComboBoxState {
     value: string,
-    //selectedItem:ComboBoxItem,
 }
 export class ComboBox extends React.Component<ComboBoxProps, ComboBoxState> {
-
-    componentDidMount() {
-        if (this.props.onMount) {
-            this.props.onMount(this);
-        }
-    }
 
     componentDidUpdate(prevProps: ComboBoxProps) {
         if (prevProps.selectedValue !== this.props.selectedValue) {
@@ -52,30 +29,14 @@ export class ComboBox extends React.Component<ComboBoxProps, ComboBoxState> {
         }
     }
 
-    reset() {
-        this.setState({
-            value: this.props.selectedValue,
-        });
-    }
-
     state: ComboBoxState = {
         value: this.props.selectedValue
     }
 
-    private getSelectedItemByValue(value: string) {
-        for (let item of this.props.items) {
-            if (item.getValue() === value) {
-                return item;
-            }
-        }
-
-        return this.props.items[0];
-    }
-
     render() {
-        let currentElement = this.getSelectedItemByValue(this.state.value);
-        return <SelectControl name={this.props.label} param={ParamDefinition.Select(currentElement.getValue(), ParamDefinition.arrayToOptions(this.props.items.map(e => e.getValue())))}
-            value={currentElement.getValue()}
+        const current = this.props.items.includes(this.state.value) ? this.state.value : this.props.items[0];
+        return <SelectControl name={this.props.label} param={ParamDefinition.Select(current, ParamDefinition.arrayToOptions(this.props.items))}
+            value={current}
             onChange={(o) => {
                 if (this.props.onChange) {
                     this.props.onChange(o.value);
@@ -142,12 +103,8 @@ interface StartingPointBoxProps {
     tooltip: string,
     label: string,
     defaultItems: StartingPoint[]
-    defaultMode?: UIPointType,
     noDataText: string,
     onChange?: (currentPoints: StartingPoint[]) => void,
-    onMount?: (control: StartingPointBox) => void
-    formGroup: string,
-    extraClearGroup?: string
     allowPatternQuery: boolean
 }
 interface StartingPointBoxState {
@@ -156,19 +113,7 @@ interface StartingPointBoxState {
 }
 export class StartingPointBox extends React.Component<StartingPointBoxProps, StartingPointBoxState> {
 
-    state: StartingPointBoxState = { items: this.props.defaultItems, mode: (this.props.defaultMode) ? this.props.defaultMode : "Current Selection" }
-
-    componentDidMount() {
-        if (this.props.onMount) {
-            this.props.onMount(this);
-        }
-
-        Events.attachOnClearEventHandler((formGroup) => {
-            if (formGroup === this.props.formGroup || (this.props.extraClearGroup !== void 0 && formGroup === this.props.extraClearGroup)) {
-                this.reset();
-            }
-        });
-    }
+    state: StartingPointBoxState = { items: this.props.defaultItems, mode: "Current Selection" }
 
     componentDidUpdate(prevProps: StartingPointBoxProps) {
         // The form's points changed elsewhere (copied or cleared parameters): show them. Every render of the form
@@ -190,20 +135,12 @@ export class StartingPointBox extends React.Component<StartingPointBoxProps, Sta
         }).sort().join("|");
     }
 
-    reset() {
-        let newMode = (this.props.defaultMode) ? this.props.defaultMode : "Current Selection";
-        this.setState({
-            items: [],
-            mode: newMode
-        });
-    }
-
     private getPointValueAsString(point: StartingPoint) {
         if (point.type === "Point") {
             return (point.value as Point).toString();
         }
         else if (point.type === "Residue") {
-            return (point.value as Residue[]).map((val, idx, arr) => { return val.toString() }).reduce((prev, cur, idx, arr) => { return prev += (idx === 0) ? '' : ',' + cur; });
+            return (point.value as Residue[]).join(",");
         }
         else {
             return point.value as string
@@ -257,15 +194,7 @@ export class StartingPointBox extends React.Component<StartingPointBoxProps, Sta
     }
 
     render() {
-        let comboItems = [];
-        for (let i of StartingPointTypes) {
-            if (!this.props.allowPatternQuery && (i === "Cofactor" || i == "PatternQuery")) {
-                continue;
-            }
-            comboItems.push(
-                new ComboBoxItem(i, i)
-            );
-        }
+        const modes = StartingPointTypes.filter(i => this.props.allowPatternQuery || (i !== "Cofactor" && i !== "PatternQuery"));
 
         let control;
         switch (this.state.mode) {
@@ -279,17 +208,17 @@ export class StartingPointBox extends React.Component<StartingPointBoxProps, Sta
                 control = <StartingPointCofactorBox label="" tooltip="" onChange={this.onChange.bind(this)} />
                 break;
             case "Residue List":
-                control = <StartingPointResidueListBox label="" tooltip="" onChange={this.onChange.bind(this)} formGroup={this.props.formGroup} />
+                control = <StartingPointResidueListBox label="" tooltip="" onChange={this.onChange.bind(this)} />
                 break;
             case "3D Point":
-                control = <StartingPoint3DPointBox label="" tooltip="" onChange={this.onChange.bind(this)} formGroup={this.props.formGroup} />
+                control = <StartingPoint3DPointBox label="" tooltip="" onChange={this.onChange.bind(this)} />
                 break;
             case "PatternQuery":
-                control = <StartingPointQueryBox label="" tooltip="" onChange={this.onChange.bind(this)} formGroup={this.props.formGroup} />
+                control = <StartingPointQueryBox label="" tooltip="" onChange={this.onChange.bind(this)} />
         }
 
         return <div>
-            <SelectControl name={this.props.label} param={ParamDefinition.Select(this.state.mode, ParamDefinition.arrayToOptions(comboItems.map(i => i.getValue())))}
+            <SelectControl name={this.props.label} param={ParamDefinition.Select(this.state.mode, ParamDefinition.arrayToOptions(modes))}
                 value={this.state.mode}
                 onChange={(v) => {
                     this.setState({ mode: v.value });
@@ -476,14 +405,7 @@ export class StartingPointCofactorBox extends React.Component<StartingPointCofac
     }
 
     generateItems(cofactors: Cofactors) {
-        let items: ComboBoxItem[] = [];
-        cofactors.forEach((value, key, map) => {
-            items.push(
-                new ComboBoxItem(key, key)
-            );
-        });
-
-        return items;
+        return Array.from(cofactors.keys());
     }
 
     private getNoDataMessage() {
@@ -509,7 +431,7 @@ export class StartingPointCofactorBox extends React.Component<StartingPointCofac
             return this.getNoDataMessage();
         }
 
-        let combo = <ComboBox items={comboItems} label={this.props.label} selectedValue={comboItems[0].getValue()} tooltip={this.props.tooltip} onChange={(v) => {
+        let combo = <ComboBox items={comboItems} label={this.props.label} selectedValue={comboItems[0]} onChange={(v) => {
             this.setState({ selected: v })
         }} />
 
@@ -539,8 +461,7 @@ export class StartingPointCofactorBox extends React.Component<StartingPointCofac
 interface StartingPointResidueListBoxProps {
     tooltip: string,
     label: string,
-    onChange?: (newPoint: StartingPoint[]) => void,
-    formGroup: string
+    onChange?: (newPoint: StartingPoint[]) => void
 }
 interface StartingPointResidueListBoxState {
     value: string,
@@ -550,19 +471,6 @@ interface StartingPointResidueListBoxState {
 export class StartingPointResidueListBox extends React.Component<StartingPointResidueListBoxProps, StartingPointResidueListBoxState> {
 
     state: StartingPointResidueListBoxState = { value: "", textbox: void 0 }
-
-    private static instanceCounter = 0;
-
-    private onClearGroup = "";
-
-    componentDidMount() {
-        this.onClearGroup = "StartingPointResidueListBox" + StartingPointResidueListBox.instanceCounter++;
-        Events.attachOnClearEventHandler((formGroup) => {
-            if (this.props.formGroup === formGroup || this.onClearGroup === formGroup) {
-                this.setState({ value: "" });
-            }
-        });
-    }
 
     render() {
         let button = <Button onClick={() => {
@@ -584,7 +492,7 @@ export class StartingPointResidueListBox extends React.Component<StartingPointRe
                     value: newPointData,
                 } as StartingPointResidue]);
 
-                Events.invokeOnClear(this.onClearGroup);
+                this.setState({ value: "" });
             }
         }} commit='on' title="Add" icon={CheckSvg}><span>Add</span></Button>
 
@@ -605,8 +513,7 @@ export class StartingPointResidueListBox extends React.Component<StartingPointRe
 interface StartingPoint3DPointBoxProps {
     tooltip: string,
     label: string,
-    onChange?: (newPoint: StartingPoint[]) => void,
-    formGroup: string
+    onChange?: (newPoint: StartingPoint[]) => void
 }
 interface StartingPoint3DPointBoxState {
     value: string
@@ -614,19 +521,6 @@ interface StartingPoint3DPointBoxState {
 export class StartingPoint3DPointBox extends React.Component<StartingPoint3DPointBoxProps, StartingPoint3DPointBoxState> {
 
     state: StartingPoint3DPointBoxState = { value: "" }
-
-    private static instanceCounter = 0;
-
-    private onClearGroup = "";
-
-    componentDidMount() {
-        this.onClearGroup = "StartingPoint3DPointBox" + StartingPoint3DPointBox.instanceCounter++;
-        Events.attachOnClearEventHandler((formGroup) => {
-            if (this.props.formGroup === formGroup || this.onClearGroup === formGroup) {
-                this.setState({ value: "" });
-            }
-        });
-    }
 
     render() {
         let button = <Button onClick={() => {
@@ -643,7 +537,7 @@ export class StartingPoint3DPointBox extends React.Component<StartingPoint3DPoin
                 } as StartingPointXYZ]);
             }
 
-            Events.invokeOnClear(this.onClearGroup);
+            this.setState({ value: "" });
         }} title="Add" commit='on' icon={CheckSvg}><span>Add</span></Button>
 
         return <div className="starting-point-control-container">
@@ -691,15 +585,7 @@ export class StartingPointCSABox extends React.Component<StartingPointCSABoxProp
     }
 
     generateItems(csaDataItems: CSAResidues) {
-        let items: ComboBoxItem[] = [];
-        for (let item of csaDataItems) {
-            let flatten = flattenResidues(item);
-            items.push(
-                new ComboBoxItem(flatten, flatten)
-            );
-        }
-
-        return items;
+        return csaDataItems.map(item => flattenResidues(item));
     }
 
     private getNoDataMessage() {
@@ -724,7 +610,7 @@ export class StartingPointCSABox extends React.Component<StartingPointCSABoxProp
             return this.getNoDataMessage();
         }
 
-        let combo = <ComboBox items={comboItems} label="CSA Active sites" selectedValue={comboItems[0].getValue()} tooltip={this.props.tooltip} onChange={(v) => {
+        let combo = <ComboBox items={comboItems} label="CSA Active sites" selectedValue={comboItems[0]} onChange={(v) => {
             this.setState({ selected: v })
         }} />
 
@@ -755,8 +641,7 @@ export class StartingPointCSABox extends React.Component<StartingPointCSABoxProp
 interface StartingPointQueryBoxProps {
     tooltip: string,
     label: string,
-    onChange?: (newPoint: StartingPoint[]) => void,
-    formGroup: string
+    onChange?: (newPoint: StartingPoint[]) => void
 }
 interface StartingPointQueryBoxState {
     value: string,
@@ -767,19 +652,6 @@ interface StartingPointQueryBoxState {
 export class StartingPointQueryBox extends React.Component<StartingPointQueryBoxProps, StartingPointQueryBoxState> {
 
     state: StartingPointQueryBoxState = { value: "", isValid: false, validationInProgress: false, validationMessage: "Query cannot be empty..." }
-
-    private static instanceCounter = 0;
-
-    private onClearGroup = "";
-
-    componentDidMount() {
-        this.onClearGroup = "StartingPointQueryBox" + StartingPointQueryBox.instanceCounter++;
-        Events.attachOnClearEventHandler((formGroup) => {
-            if (this.props.formGroup === formGroup || this.onClearGroup === formGroup) {
-                this.setState({ value: "" });
-            }
-        });
-    }
 
     render() {
         let button = <Button onClick={() => {
