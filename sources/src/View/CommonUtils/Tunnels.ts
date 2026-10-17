@@ -1,9 +1,19 @@
-import { ReferenceType, TunnelAnnotation } from "../../AnnotationToChannelsDBService";
 import { ChannelsDBData, LastVisibleChannels, TunnelName } from "../../Cache";
 import { roundToDecimal } from "../../Common/Util/Numbers";
 import { CHANNEL_CATEGORIES, ChannelsDBChannels, ExportTunnel, Tunnel } from "../../DataInterface";
 import { TunnelsId } from "./TunnelsId";
 import { TwoDProtsBridge } from "./TwoDProtsBridge";
+
+type ReferenceType = "DOI" | "Pubmed" | "UniProt" | "";
+
+interface TunnelAnnotation {
+    Id: string,
+    ChannelId?: string,
+    Name: string,
+    Description: string,
+    Reference: string,
+    ReferenceType: ReferenceType
+}
 
 export class Tunnels {
     private static loadedChannels: Map<string, ChannelsDBChannels> = new Map();
