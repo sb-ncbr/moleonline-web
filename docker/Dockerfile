@@ -18,6 +18,10 @@ FROM nginx:1.29-alpine-slim
 
 COPY --from=build /build/dist/ /var/www
 
+# nginx runs as the user nginx: the entrypoint writes conf.d/api.conf, nginx keeps its temp files
+# in /var/cache/nginx; the stock server on port 80 is not used
+RUN rm /etc/nginx/conf.d/default.conf && chown nginx /etc/nginx/conf.d /var/cache/nginx
+
 USER nginx
 
 CMD ["nginx", "-g", "daemon off;"]

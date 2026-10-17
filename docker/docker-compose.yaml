@@ -6,15 +6,20 @@ services:
             context: ..
             dockerfile: ./docker/Dockerfile
             args:
-                # The API is served by this site's nginx under /api (nginx.site.conf)
+                # The API is served by this site's nginx under /api (site.conf)
                 VITE_API_URL: ${VITE_API_URL:-/api}
         restart: unless-stopped
         container_name: moleonline-web
         ports:
             - "${MOLEONLINE_PORT:-8080}:8080"
+        environment:
+            # The entrypoint writes the templates to conf.d with the container's DNS servers
+            NGINX_ENTRYPOINT_LOCAL_RESOLVERS: 1
         volumes:
-            - ./nginx.devel.conf:/etc/nginx/nginx.conf:ro
-            - ./nginx.site.conf:/etc/nginx/site.conf:ro
+            - ./nginx.conf:/etc/nginx/nginx.conf:ro
+            - ./site.conf:/etc/nginx/site.conf:ro
+            - ./conf.d/devel.conf:/etc/nginx/conf.d/server.conf:ro
+            - ./conf.d/api.conf.template:/etc/nginx/templates/api.conf.template:ro
         networks:
             - moleonline
         logging:

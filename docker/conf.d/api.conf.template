@@ -1,0 +1,12 @@
+# The MOLE API: the service "api" on the Docker network "moleonline" (see docker-compose.yaml).
+# The image's entrypoint writes this file to conf.d/api.conf when the container starts, filling in
+# the container's DNS servers (127.0.0.11 on Docker, the network gateway on podman).
+
+# The API gets a new address when its container restarts, so nginx looks the name up again;
+# nginx also starts while the API is down
+resolver ${NGINX_LOCAL_RESOLVERS} valid=10s ipv6=off;
+
+upstream mole_api {
+    zone mole_api 64k;
+    server api:8080 resolve;
+}
