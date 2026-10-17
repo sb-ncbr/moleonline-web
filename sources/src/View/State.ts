@@ -403,7 +403,7 @@ async function showSurfaceVisuals(elements: any[], visible: boolean, type: strin
         if (!!element.__isVisible === visible) continue;
 
         element.__isVisible = visible;
-        if (!element.__color) {
+        if (element.__color === void 0) {
             element.__color = getSurfaceColorByType(element.Type);
         }
         if (!visible) {
@@ -444,7 +444,7 @@ async function showChannelDefaultVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
         channel.__id = UUID.create22();
 
         channel.__isVisible = true;
-        if (!channel.__color) {
+        if (channel.__color === void 0) {
             channel.__color = ColorGenerator.next().value;
         }
 
@@ -486,7 +486,7 @@ export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
 
         channel.__isVisible = visible;
         channel.__layerColored = false;
-        if (!channel.__color) {
+        if (channel.__color === void 0) {
             // channel.__color = ColorScheme.Colors.getRandomUnused(); // TODO
             channel.__color = ColorGenerator.next().value;
         }
@@ -546,7 +546,7 @@ export async function showChannelPropertyColorVisuals(channel: Tunnel & TunnelMe
 
     channel.__isVisible = true;
     channel.__layerColored = true;
-    if (!channel.__color) {
+    if (channel.__color === void 0) {
         // channel.__color = ColorScheme.Colors.getRandomUnused(); // TODO
         channel.__color = ColorGenerator.next().value;
     }
@@ -610,7 +610,7 @@ export async function showOriginsSurface(origins: any, visible: boolean): Promis
     const context = Context.getInstance();
 
     origins.__isVisible = visible;
-    if (!origins.__color) {
+    if (origins.__color === void 0) {
         origins.__color = getOriginColorByType(origins);
     }
     if (!visible) {

@@ -512,53 +512,35 @@ export class Channel extends React.Component<{ channel: any, channelsDB: boolean
     }
 }
 
-let __colorPickerIdSeq = 0;
-function generateColorPickerId() {
-    return `color-picker-${__colorPickerIdSeq++}`;
-}
-export class ColorPicker extends React.Component<{ tunnel: Tunnel & TunnelMetaInfo }, { visible: boolean, color: Color | undefined }> {
-    state = { visible: false, color: this.props.tunnel.__color || undefined }
-    private id!: string;
+export class ColorPicker extends React.Component<{ tunnel: Tunnel & TunnelMetaInfo }, { color: Color | undefined }> {
+    // the picked colour until it is applied to the tunnel
+    state = { color: undefined as Color | undefined }
 
     setTunnelColor = () => {
-        if (this.state.color && this.state.color !== this.props.tunnel.__color) {
+        if (this.state.color !== void 0 && this.state.color !== this.props.tunnel.__color) {
             this.props.tunnel.__color = this.state.color;
             showChannelVisuals([this.props.tunnel], (this.props.tunnel as any).__isVisible, true);
             TwoDProtsBridge.invokeOnResidueSelectHandlers(this.props.tunnel);
         }
-
+        this.setState({ color: undefined });
     }
 
     // the colour is applied 100 ms after the last change, not on every move of the picker
     private colorTimer?: ReturnType<typeof setTimeout>;
 
     onRGB = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newColor = Color.fromHexStyle(e.currentTarget.value || '0');
-        this.setState({ color: newColor });
+        this.setState({ color: Color.fromHexStyle(e.currentTarget.value || '0') });
         clearTimeout(this.colorTimer);
         this.colorTimer = setTimeout(this.setTunnelColor, 100);
     };
 
-    componentDidMount() {
-        this.id = generateColorPickerId();
-        $(window).on('click', ((e: MouseEvent) => {
-            this.forceUpdate();
-            if (!this.state.visible) {
-                return;
-            }
-            let el = ($("#" + this.id)[0] as HTMLElement).children[0];
-            let rect = el.getBoundingClientRect();
-
-            if (!(e.clientX >= rect.left && e.clientX <= rect.left + rect.width
-                && e.clientY >= rect.top && e.clientY <= rect.top + rect.height)) {
-                this.setState({ visible: false });
-            }
-        }).bind(this));
+    componentWillUnmount() {
+        clearTimeout(this.colorTimer);
     }
 
     render() {
-        let color = (this.props.tunnel.__color !== void 0) ? this.props.tunnel.__color : Colors.get(Enum.DefaultColor);
+        const color = this.state.color ?? this.props.tunnel.__color ?? Colors.get(Enum.DefaultColor);
 
-        return <input disabled={!this.props.tunnel.__isVisible} className="color-picker" id={this.id} onChange={this.onRGB} type='color' value={Color.toHexStyle(color)} style={{ order: 4, flex: '1 1 auto', minWidth: '14px', width: '14px', height: '14px', padding: '0 0 0 0', background: 'none', border: 'none', cursor: 'pointer' }}></input>
+        return <input disabled={!this.props.tunnel.__isVisible} className="color-picker" onChange={this.onRGB} type='color' value={Color.toHexStyle(color)} style={{ order: 4, flex: '1 1 auto', minWidth: '14px', width: '14px', height: '14px', padding: '0 0 0 0', background: 'none', border: 'none', cursor: 'pointer' }}></input>
     }
 }
