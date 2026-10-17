@@ -14,9 +14,8 @@ import { Tunnel } from "../DataInterface";
 import { EmptyLoci, Loci } from "molstar/lib/mol-model/loci";
 import { MembraneShapeProvider, MoleObjectsNodeProvider, OriginShapeProvider, PickableRepresentation3D, SurfaceShapeProvider, TunnelPropertyColorRepresentation3D, TunnelPropertyColorShapeProvider, TunnelRepresentation3D } from "./VizualizerMol/objects";
 import { MembranePoint, Point, TunnelMetaInfo } from "../DataInterface";
-import { ColorParams } from "./VizualizerMol/spec";
 import { Canvas3DProps } from "molstar/lib/mol-canvas3d/canvas3d";
-import { QueryHelper, QueryParam } from "./VizualizerMol/helpers";
+import { ColorParams, QueryHelper, QueryParam } from "./VizualizerMol/helpers";
 import { PluginStateObject } from "molstar/lib/mol-plugin-state/objects";
 import { StructureComponentManager } from "molstar/lib/mol-plugin-state/manager/structure/component";
 import { ParamDefinition } from "molstar/lib/mol-util/param-definition";
@@ -525,28 +524,13 @@ export class Context {
                 colorValue.action.params = { color: param.color ? this.normalizeColor(param.color) : Color.fromRgb(255, 112, 3), opacity: 1 };
                 await this.plugin.managers.structure.component.applyTheme(colorValue, structureData);
                 // add new representations
-                if (param.sideChain || param.representation) {
-                    let repr = 'ball-and-stick';
-                    if (param.representation) repr = param.representation;
+                if (param.sideChain) {
                     const defaultParams = StructureComponentManager.getAddParams(this.plugin, { allowNone: false, hideSelection: true, checkExisting: true });
                     const defaultValues = ParamDefinition.getDefaultValues(defaultParams);
                     defaultValues.options = { label: '[Focus] Target - Lining Residues', checkExisting: params.structureNumber ? false : true };
-                    const values = { ...defaultValues, ...{ representation: repr } };
+                    const values = { ...defaultValues, ...{ representation: 'ball-and-stick' } };
                     const structures = this.plugin.managers.structure.hierarchy.getStructuresWithSelection();
                     await this.plugin.managers.structure.component.add(values, structures);
-
-                    // Apply uniform theme
-                    if (param.representationColor) {
-                        let updatedStructureData = this.plugin.managers.structure.hierarchy.current.structures;
-                        if (params.structureNumber) {
-                            updatedStructureData = [this.plugin.managers.structure.hierarchy.current.structures[params.structureNumber - 1]];
-                        }
-                        const comps = updatedStructureData[0].components;
-                        const lastCompsIndex = comps.length - 1;
-                        const recentRepComp = [comps[lastCompsIndex]];
-                        const uniformColor = param.representationColor ? this.normalizeColor(param.representationColor) : Color.fromRgb(255, 112, 3);
-                        this.plugin.managers.structure.component.updateRepresentationsTheme(recentRepComp, { color: 'uniform', colorParams: { value: uniformColor } });
-                    }
 
                     params.addedRepr = true;
                 }
