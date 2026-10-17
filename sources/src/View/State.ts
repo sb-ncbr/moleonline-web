@@ -318,9 +318,15 @@ export function loadData(channelsDB: boolean) {
             else if (status.Status === "Initialized") {
                 acquireData(computationId, submitId, res, rej, !proteinLoaded, submitId == 0, channelsDB);   //TODO podminka pro prenacteni kanalu pro submit 0
             }
-            else if (status.Status === "FailedInitialization" || status.Status === "Error" || status.Status === "Deleted" || status.Status === "Aborted") {
-                // a stopped submission comes without a message
-                rej(status.ErrorMsg.trim() || (status.Status === "Aborted" ? `Submission #${submitId} was stopped, it has no results.` : `The status is ${status.Status}.`));
+            else if (status.Status === "Error" || status.Status === "Aborted") {
+                // only this submission has no results: show the computation's structure, then why
+                // (a stopped submission comes without a message)
+                const reason = status.ErrorMsg.trim() || (status.Status === "Aborted" ? `Submission #${submitId} was stopped, it has no results.` : `The status is ${status.Status}.`);
+                acquireData(computationId, submitId, () => rej(reason), rej, !proteinLoaded, false, false);
+            }
+            else if (status.Status === "FailedInitialization" || status.Status === "Deleted") {
+                // no structure to show
+                rej(status.ErrorMsg.trim() || `The status is ${status.Status}.`);
             }
             else if (status.Status === "Finished") {
                 acquireData(computationId, submitId, res, rej, !proteinLoaded, true, channelsDB);
