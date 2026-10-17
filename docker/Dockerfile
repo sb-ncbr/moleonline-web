@@ -8,7 +8,8 @@ RUN npm ci
 
 COPY . ./
 
-# MOLE API URL baked into the site, e.g. --build-arg VITE_API_URL=https://...
+# Path of the MOLE API baked into the site, served by this site's nginx (/api by default, see
+# docker-compose.yaml); the API sends no CORS headers, so it cannot be another site's URL
 ARG VITE_API_URL
 
 RUN npm run build

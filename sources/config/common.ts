@@ -9,7 +9,8 @@ export class Routing {
 }
 
 export class DataSources {
-    // Set at build time from VITE_API_URL: "/api" when this site's nginx serves the API (the default), or a full URL
+    // Set at build time from VITE_API_URL: a path served by this site's nginx, "/api" by default. The API sends no
+    // CORS headers, so the browser must call it from the same origin, never another site's URL.
     public static API_URL: string = import.meta.env.VITE_API_URL;
 
     public static PATTERN_QUERY_API_URL: any = {
