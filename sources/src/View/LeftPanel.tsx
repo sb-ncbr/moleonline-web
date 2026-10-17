@@ -144,7 +144,8 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                 LoadingStatus.log('Finalizing…');
                 this.setState({ channelsData: channels, isLoadingChannels: false })
             }).catch(async error => {
-                if (info.Submissions.length === 0) {
+                // 404: ChannelsDB has no data for this entry, it only has no ChannelsDB channels
+                if (info.Submissions.length === 0 && !isNotFound(error)) {
                     this.setState({ isLoadingChannels: false, error: String(error) })
                     Events.invokeNotifyMessage({
                         messageType: "Danger",
