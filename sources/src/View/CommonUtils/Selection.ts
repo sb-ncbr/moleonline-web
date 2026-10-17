@@ -26,37 +26,17 @@ export interface LightResidueInfo {
         authAsymId: string
     },
     operatorName: string,
-    isHet: boolean,
     loci: Loci | undefined,
     residueName: string | undefined
 };
 
-interface ResidueInfo {
-    index: number;
-    name: string;
-    authName: string;
-    seqNumber: number;
-    authSeqNumber: number;
-    insCode: string;
-    isHet: boolean;
-    chain: ChainInfo;
-    operatorName: string;
-    loci: Loci | undefined;
-}
-interface ChainInfo {
-    index: number;
-    asymId: string;
-    authAsymId: string;
-    entity: EntityInfo;
-}
-interface EntityInfo {
-    index: number;
-    entityId: string;
-}
-
 export interface ResidueLight { type: "light", info: LightResidueInfo };
-export interface Residue { type: "full", info: ResidueInfo };
 export interface StringPoint { x: string, y: string, z: string };
+
+// Rounds to 2 decimal places
+function round(p: Point): Point {
+    return { X: Math.round(p.X * 100) / 100, Y: Math.round(p.Y * 100) / 100, Z: Math.round(p.Z * 100) / 100 };
+}
 
 export class SelectionHelper {
     private static selectedChannelRef: string | undefined;
@@ -123,46 +103,19 @@ export class SelectionHelper {
             this.selectedChannelData = void 0;
             this.selectedChannelId = void 0;
         }
-        this.clearAltSelection();
-
         this.selectedResidues = void 0;
 
         this.invokeOnClearSelectionHandlers();
     }
 
-    public static clearAltSelection() {
-    }
-
-
-    public static resetScene() {
-        //TODO reset scene
-    }
-
-
     //TODO probably remove cause balls and sticks render automaticly with selection
     private static async selectResiduesBulkWithBallsAndSticks(residues: LightResidueInfo[]) {
         await SelectionHelper.clearSelectionPrivate();
-        this.selectedChannelRef = void 0;
-        this.selectedChannelData = void 0;
-        this.selectedChannelId = void 0;
-        this.selectedResidues = void 0;
-        await this.clearSelectedPoints();
 
         let queries: QueryParam[] = [];
-        let hetQueries: QueryParam[] = [];
         let locis: Loci[] = [];
         for (let residue of residues) {
-            if (residue.isHet) {
-                hetQueries.push({
-                    struct_asym_id: residue.chain.authAsymId,
-                    start_auth_residue_number: residue.authSeqNumber,
-                    end_auth_residue_number: residue.authSeqNumber,
-                    sideChain: true,
-                    focus: false,
-                    color: { r: 255, g: 0, b: 255 },
-                    ...(residue.operatorName !== undefined && residue.operatorName !== '' && { operator_name: residue.operatorName })
-                });
-            } else if (residue.loci) {
+            if (residue.loci) {
                 locis.push(residue.loci);
             } else {
                 queries.push({
@@ -181,22 +134,7 @@ export class SelectionHelper {
         if (queries.length > 0) await Context.getInstance().visual.select({ data: queries })
         if (locis.length > 0) Context.getInstance().selectLocis(locis);
 
-        // for (let residue of residues) {
-        //     queries.push(
-        //         LiteMol.Core.Structure.Query.chainsById(...[residue.chain.authAsymId]).intersectWith(
-        //             LiteMol.Core.Structure.Query.residues(
-        //                 ...[{ authSeqNumber: residue.authSeqNumber }]
-        //             )
-        //         ).compile()
-        //     );
-        // }
-
-        if (residues.length > 0) {
-            this.selectedResidues = residues;
-        }
-        else {
-            this.selectedResidues = void 0;
-        }
+        this.selectedResidues = residues.length > 0 ? residues : void 0;
 
         this.invokeOnResidueSelectHandlers(residues);
     }
@@ -233,7 +171,7 @@ export class SelectionHelper {
      * @param chain 
      * @return True - residue selected | False - residue deselected
      */
-    public static addResidueToSelection(seqNumber: number, chain: string, operator_name?: string, loci?: Loci, isHet?: boolean, residueName?: string): boolean {
+    public static addResidueToSelection(seqNumber: number, chain: string, operator_name?: string, loci?: Loci, residueName?: string): boolean {
         let residues = SelectionHelper.getSelectedResidues();
         let newSelection: LightResidueInfo[] = [];
         let deselectMode = false;
@@ -253,7 +191,7 @@ export class SelectionHelper {
         }
 
         if (!deselectMode) {
-            newSelection.push({ authSeqNumber: seqNumber, chain: { authAsymId: chain }, operatorName: operator_name ? operator_name : "", isHet: isHet ? true : false, loci, residueName });
+            newSelection.push({ authSeqNumber: seqNumber, chain: { authAsymId: chain }, operatorName: operator_name ? operator_name : "", loci, residueName });
         }
 
         if (newSelection.length > 0) {
@@ -268,47 +206,12 @@ export class SelectionHelper {
         return !deselectMode;
     }
 
-    /**
-     * 
-     * @param residues
-     * @param doRemove specifies wheter or not remove residues contained in both current selection and new selection. By default - true
-     */
-    public static addResiduesToSelection(residues: LightResidueInfo[], doRemove?: boolean) {
-        doRemove = (doRemove === void 0) ? true : doRemove;
-        let currentResidues = SelectionHelper.getSelectedResidues();
-        let newSelection: LightResidueInfo[] = [];
-
-        let contains = (res: LightResidueInfo, array: (ResidueLight | Residue)[]) => {
-            for (let i of array) {
-                if (i.info.authSeqNumber === res.authSeqNumber && i.info.chain.authAsymId === res.chain.authAsymId) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        let toRemove: (ResidueLight | Residue)[] = [];
-        for (let r of residues) {
-            if (contains(r, currentResidues)) {
-                toRemove.push({ type: "light", info: r });
-                continue;
-            }
-            newSelection.push(r);
-        }
-
-        if (toRemove.length > 0 && doRemove) {
-            for (let r of currentResidues) {
-                if (!contains(r.info, toRemove)) {
-                    newSelection.push({ authSeqNumber: r.info.authSeqNumber, chain: { authAsymId: r.info.chain.authAsymId }, operatorName: r.info.operatorName, isHet: r.info.isHet, loci: r.info.loci, residueName: '' });
-                }
-            }
-        }
-        else {
-            newSelection = newSelection.concat(currentResidues.map((val, idx, arr) => {
-                return val.info;
-            }));
-        }
+    // Adds the residues that are not selected yet
+    public static addResiduesToSelection(residues: LightResidueInfo[]) {
+        const current = this.selectedResidues ?? [];
+        const isSelected = (res: LightResidueInfo) =>
+            current.some(i => i.authSeqNumber === res.authSeqNumber && i.chain.authAsymId === res.chain.authAsymId);
+        const newSelection = residues.filter(r => !isSelected(r)).concat(current);
 
         if (newSelection.length > 0) {
             this.selectResiduesBulkWithBallsAndSticks(newSelection);
@@ -434,13 +337,8 @@ export class SelectionHelper {
         await Context.getInstance().renderOrigin([point], Colors.get(Enum.TPoint), 'point-selection-T', 'TPoint', 'TPoint');
     }
 
-    public static async selectPoints(points: Point[]) {
+    private static async selectPoints(points: Point[]) {
         await SelectionHelper.clearSelectionPrivate();
-        this.selectedChannelRef = void 0;
-        this.selectedChannelData = void 0;
-        this.selectedChannelId = void 0;
-        this.selectedResidues = void 0;
-        this.selectedPoints = void 0;
 
         await this.createPointsSelectionVisual(points);
 
@@ -482,8 +380,6 @@ export class SelectionHelper {
         });
 
         const plugin = Context.getInstance().plugin;
-        plugin.state.data.updateCellState
-
         plugin.behaviors.interaction.click.subscribe(async ({ current, button, modifiers, position }) => {
             if (current.loci.kind === 'empty-loci') {
                 return;
@@ -497,7 +393,7 @@ export class SelectionHelper {
                         let residueId = Props.residue.auth_seq_id(l);
                         let operatorName = Props.unit.operator_name(l);
                         let name = Props.atom.label_comp_id(l);
-                        SelectionHelper.addResidueToSelection(residueId, chainId, operatorName, current.loci, undefined, name);
+                        SelectionHelper.addResidueToSelection(residueId, chainId, operatorName, current.loci, name);
                     } catch (e) {
                         console.log("Something else selected instead of resiude");
                     }
@@ -511,16 +407,12 @@ export class SelectionHelper {
                     const g = loci.groups[0];
                     const tI = OrderedSet.start(g.ids);
                     const middle = Vec3.toObj(getTriangleCenter(data.vertices, data.triangles, tI));
-                    this.addPointToSelection({ X: Math.round(middle.x * 100) / 100, Y: Math.round(middle.y * 100) / 100, Z: Math.round(middle.z * 100) / 100 })
+                    this.addPointToSelection(round({ X: middle.x, Y: middle.y, Z: middle.z }))
                 } else if (current.repr && current.repr.params && typeof current.repr.params.tag === 'string' && current.repr.params.tag === "Tunnel" && current.repr.params.tunnel !== null) {
                     const channel = current.repr.params.tunnel as unknown as (Tunnel & TunnelMetaInfo);
 
                     if ((this.selectedChannelRef !== void 0) && (this.selectedChannelRef === channel.__ref)) {
                         await this.clearSelectionPrivate();
-                        this.selectedChannelRef = void 0;
-                        this.selectedChannelData = void 0;
-                        this.selectedChannelId = void 0;
-                        this.selectedChannelReprLoci = void 0;
                         this.invokeOnChannelDeselectHandlers();
                     }
                     else {
@@ -537,7 +429,6 @@ export class SelectionHelper {
                         this.selectedChannelReprLoci = current;
                         if (this.selectedChannelData !== void 0) {
                             this.selectTunnelByRef();
-                            this.clearAltSelection();
                             this.invokeOnChannelSelectHandlers(this.selectedChannelData, this.selectedChannelId, channel.__submissionId);
                         }
                         this.invokeOnChannelSelectHandlers2(channel)
@@ -564,56 +455,21 @@ export class SelectionHelper {
 
             if (data.tag === "Surface") return;
 
-            if (data.tag === "Points") {
+            // A selected point, the residues' centre, or an origin: (de)selects the point
+            if (data.tag === "Points" || data.tag === "TPoint" || data.tag === "Origins") {
                 const points = (data as OriginsSourceData).data;
                 if (points === void 0) {
                     return;
                 }
-                if (this.selectedResidues !== void 0) {
+                if (data.tag !== "Origins" && this.selectedResidues !== void 0) {
                     await this.selectResiduesBulkWithBallsAndSticks([]);
                 }
-                if (points) {
-                    const point = points[OrderedSet.start(g.ids)];
-                    await this.addPointToSelection({ X: Math.round(point.X * 100) / 100, Y: Math.round(point.Y * 100) / 100, Z: Math.round(point.Z * 100) / 100 });
-                }
+                await this.addPointToSelection(round(data.tag === "TPoint" ? points[0] : points[OrderedSet.start(g.ids)]));
                 return;
             }
 
-            if (data.tag === "TPoint") {
-                const points = (data as OriginsSourceData).data;
-                if (points === void 0) {
-                    return;
-                }
-                if (this.selectedResidues !== void 0) {
-                    await this.selectResiduesBulkWithBallsAndSticks([]);
-                }
-                if (points) {
-                    const point = points[0];
-                    await this.addPointToSelection({ X: Math.round(point.X * 100) / 100, Y: Math.round(point.Y * 100) / 100, Z: Math.round(point.Z * 100) / 100 });
-                }
-                return;
-            }
-
-            if (data.tag === "Origins") {
-                const points = (data as OriginsSourceData).data;
-                if (points === void 0) {
-                    return;
-                }
-                if (points) {
-                    const point = points[OrderedSet.start(g.ids)];
-                    await this.addPointToSelection({ X: Math.round(point.X * 100) / 100, Y: Math.round(point.Y * 100) / 100, Z: Math.round(point.Z * 100) / 100 });
-                }
-                return;
-            }
-
-            if (this.selectedPoints !== void 0) {
+            if (this.selectedPoints !== void 0 || this.selectedResidues !== void 0) {
                 await this.clearSelectionPrivate();
-                await this.clearSelectedPoints();
-            }
-
-            if (this.selectedResidues !== void 0) {
-                await this.clearSelectionPrivate();
-                this.selectedResidues = void 0;
             }
         }
     }

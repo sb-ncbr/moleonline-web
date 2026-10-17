@@ -437,7 +437,6 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
 
                                 showChannelVisuals(channels as (Tunnel[] & TunnelMetaInfo[]), false).then(() => {
                                     showChannelVisuals(originalVisibleChannels as (Tunnel[] & TunnelMetaInfo[]), true).then(() => {
-                                        SelectionHelper.resetScene();
                                         SelectionHelper.clearSelection();
                                         SelectionHelper.forceInvokeOnChannelDeselectHandlers();
                                         LastVisibleChannels.clear();

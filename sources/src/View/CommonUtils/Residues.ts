@@ -5,7 +5,7 @@ import { StructureElement, StructureSelection, StructureQuery, StructureProperti
 import { Loci } from "molstar/lib/mol-model/loci";
 import { atoms } from 'molstar/lib/mol-model/structure/query/queries/generators';
 
-interface RType { chain: { authAsymId: string }, authSeqNumber: number, operatorName: string, isHet: boolean, loci: Loci | undefined, name?: string, backbone?: boolean };
+interface RType { chain: { authAsymId: string }, authSeqNumber: number, operatorName: string, loci: Loci | undefined, name?: string, backbone?: boolean };
 export interface Point {
     X: number,
     Y: number,
@@ -60,7 +60,6 @@ export class Residues {
                     authAsymId: chain
                 },
                 operatorName: Residues.getOperatorName(operatorNumber),
-                isHet: false,
                 loci: undefined,
                 name: residueName,
                 backbone: backbone === "Backbone"

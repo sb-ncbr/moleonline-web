@@ -63,7 +63,6 @@ function residueStringToResidueLight(residue: string): LightResidueInfo {
             authAsymId: chain
         },
         operatorName: Residues.getOperatorName(operatorNumber),
-        isHet: false,
         loci: undefined,
         residueName
     };
@@ -83,7 +82,7 @@ class Controls extends React.Component<State, {}> {
             residues.push(residueStringToResidueLight(residue));
         }
 
-        SelectionHelper.addResiduesToSelection(residues, false);
+        SelectionHelper.addResiduesToSelection(residues);
     }
 
     selectIonizable() {
@@ -106,7 +105,7 @@ class Controls extends React.Component<State, {}> {
             }
         }
 
-        SelectionHelper.addResiduesToSelection(ionizableResidues, false);
+        SelectionHelper.addResiduesToSelection(ionizableResidues);
     }
 
     render() {
