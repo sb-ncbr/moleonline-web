@@ -79,30 +79,22 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
 
         vizualizer.setColorBoundsMode(this.state.colorBoundsMode);
 
-        let state = this.state;
-        state.instanceId = vizualizer.getPublicInstanceIdx(),
-            state.customColoringPropertyKey = vizualizer.getCustomColoringPropertyKey(),
-            state.coloringPropertyKey = vizualizer.getColoringPropertyKey(),
-            state.customRadiusPropertyKey = vizualizer.getCustomRadiusPropertyKey(),
-            state.radiusPropertyKey = vizualizer.getRadiusPropertyKey(),
-            state.colorBoundsMode = this.state.colorBoundsMode
-        this.setState(state);
+        this.setState({
+            instanceId: vizualizer.getPublicInstanceIdx(),
+            customColoringPropertyKey: vizualizer.getCustomColoringPropertyKey(),
+            coloringPropertyKey: vizualizer.getColoringPropertyKey(),
+            customRadiusPropertyKey: vizualizer.getCustomRadiusPropertyKey(),
+            radiusPropertyKey: vizualizer.getRadiusPropertyKey(),
+        });
 
         SelectionHelper.attachOnChannelSelectHandler((data) => {
             window.setTimeout(() => {
-                let state = this.state;
-                state.isLayerSelected = false;
-                this.setState(state);
+                this.setState({ isLayerSelected: false });
                 activateTab("left-tabs", "1");
                 let layers = convertLayersToLayerData(data);
                 doAfterTabActivated("left-tabs", "1", () => {
                     vizualizer.setData(layers);
-                    let s1 = this.state;
-                    s1.data = layers;
-                    s1.hasData = true;
-                    s1.isDOMReady = false;
-                    s1.instanceId = vizualizer.getPublicInstanceIdx();
-                    this.setState(s1, () => { // had to use callBack since the state has to be set and component has to render the 'PaintingArea' before ''vizualizer.rebindDOMRefs'
+                    this.setState({ data: layers, hasData: true, isDOMReady: false, instanceId: vizualizer.getPublicInstanceIdx() }, () => { // had to use callBack since the state has to be set and component has to render the 'PaintingArea' before ''vizualizer.rebindDOMRefs'
                         vizualizer.rebindDOMRefs();
                         let coloringPropertyKey = this.state.coloringPropertyKey;
                         let customColoringPropertyKey = this.state.customColoringPropertyKey;
@@ -128,16 +120,16 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
                         }
                         vizualizer.vizualize();
                         vizualizer.renderOffCanvas();
-                        let s2 = this.state;
-                        s2.data = layers;
-                        s2.hasData = true;
-                        s2.isDOMReady = true;
-                        s2.instanceId = vizualizer.getPublicInstanceIdx();
-                        s2.coloringPropertyKey = coloringPropertyKey;
-                        s2.customColoringPropertyKey = customColoringPropertyKey;
-                        s2.radiusPropertyKey = radiusPropertyKey;
-                        s2.customRadiusPropertyKey = customRadiusPropertyKey;
-                        this.setState(s2);
+                        this.setState({
+                            data: layers,
+                            hasData: true,
+                            isDOMReady: true,
+                            instanceId: vizualizer.getPublicInstanceIdx(),
+                            coloringPropertyKey: coloringPropertyKey,
+                            customColoringPropertyKey: customColoringPropertyKey,
+                            radiusPropertyKey: radiusPropertyKey,
+                            customRadiusPropertyKey: customRadiusPropertyKey,
+                        });
                     });
                 });
             }, 50);
@@ -145,23 +137,12 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
         SelectionHelper.attachOnChannelSelectHandler2((channel) => {
             window.setTimeout(() => {
                 doAfterTabActivated("left-tabs", "1", () => {
-                    let s1 = this.state;
-                    s1.channel = channel;
-                    this.setState(s1, () => { // had to use callBack since the state has to be set and component has to render the 'PaintingArea' before ''vizualizer.rebindDOMRefs'
-                        let s2 = this.state;
-                        s2.channel = channel;
-                        this.setState(s2);
-                    });
+                    this.setState({ channel: channel });
                 });
             }, 50);
         })
         SelectionHelper.attachOnChannelDeselectHandler(() => {
-            let state = this.state;
-            state.data = [];
-            state.hasData = false;
-            state.isDOMReady = false;
-            state.isLayerSelected = false;
-            this.setState(state);
+            this.setState({ data: [], hasData: false, isDOMReady: false, isLayerSelected: false });
             setTimeout(function () {
                 $(window).trigger('contentResize');
             }, 1);
@@ -719,16 +700,12 @@ interface Bounds {
 };
 
 interface InteractionMapState {
-    mouseControlStartLayerId: number
-    selectionMode: boolean,
     touchMode: boolean
 };
 
 class InteractionMap extends React.Component<State, InteractionMapState> {
 
     state: InteractionMapState = {
-        mouseControlStartLayerId: -1,
-        selectionMode: false,
         touchMode: false
     };
 
@@ -751,20 +728,14 @@ class InteractionMap extends React.Component<State, InteractionMapState> {
         instance.highlightHitbox(layerIdx);
         LayerColors.invokeLayerIndexOver(layerIdx);
         if (!this.props.app.state.isLayerSelected) {
-            let state = this.props.app.state;
-            state.layerIds = [layerIdx];
-            this.props.app.setState(state);
+            this.props.app.setState({ layerIds: [layerIdx] });
             $(window).trigger('layerTriggered', layerIdx);
         }
     }
 
     private async displayLayerResidues3DEventHandler(layerIdxs: number[], instance: Vizualizer) {
         LayerColors.setSelectChannelLiningResidues(true);
-        let state = this.props.app.state;
-        state.layerIds = layerIdxs;
-        state.isLayerSelected = state.layerIds.length > 0;
-
-        this.props.app.setState(state);
+        this.props.app.setState({ layerIds: layerIdxs, isLayerSelected: layerIdxs.length > 0 });
 
         if (layerIdxs.length === 0) {
             await Context.getInstance().visual.clearSelection();
@@ -908,21 +879,15 @@ class InteractionMap extends React.Component<State, InteractionMapState> {
         let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
         let instance = Vizualizer.ACTIVE_INSTANCES[instanceIdx];
 
-        let s = this.state;
         if (this.props.app.state.layerIds.length === 1
             && this.props.app.state.layerIds[0] === layerIdx
             && this.props.app.state.isLayerSelected
         ) {
-            s.mouseControlStartLayerId = -1;
             this.displayLayerResidues3DEventHandler([], instance);
         }
         else {
-            s.mouseControlStartLayerId = layerIdx;
-            s.selectionMode = true;
-            this.displayLayerResidues3DEventHandler([s.mouseControlStartLayerId], instance);
+            this.displayLayerResidues3DEventHandler([layerIdx], instance);
         }
-
-        this.setState(s);
 
         // Disable drag and drop
         e.preventDefault();
@@ -930,9 +895,7 @@ class InteractionMap extends React.Component<State, InteractionMapState> {
     }
 
     private enableTouchMode() {
-        let s = this.state;
-        s.touchMode = true;
-        this.setState(s);
+        this.setState({ touchMode: true });
     }
 
     render() {

@@ -164,13 +164,11 @@ export class StartingPointBox extends React.Component<StartingPointBoxProps, Sta
     }
 
     private onChange(newPoints: StartingPoint[]) {
-        let s = this.state;
-        let unique = s.items.slice();
+        let unique = this.state.items.slice();
         for (let p of newPoints) {
             unique = this.addNewPointUnique(p, unique);
         }
-        s.items = unique;
-        this.setState(s);
+        this.setState({ items: unique });
         if (this.props.onChange !== void 0) {
             this.props.onChange(unique.slice());
         }
@@ -184,9 +182,7 @@ export class StartingPointBox extends React.Component<StartingPointBoxProps, Sta
             }
             newItems.push(i);
         }
-        let s = this.state;
-        s.items = newItems;
-        this.setState(s);
+        this.setState({ items: newItems });
 
         if (this.props.onChange !== void 0) {
             this.props.onChange(newItems.slice());

@@ -25,18 +25,10 @@ export class LayerProperties extends React.Component<{}, State> {
 
     componentDidMount() {
         SelectionHelper.attachOnChannelDeselectHandler(() => {
-            let state = this.state;
-            state.layerIds = [];
-            state.data = null;
-            state.selectionOn = false;
-            this.setState(state);
+            this.setState({ layerIds: [], data: null, selectionOn: false });
         });
         SelectionHelper.attachOnChannelSelectHandler((data) => {
-            let state = this.state;
-            state.layerIds = [];
-            state.data = data.LayersInfo;
-            state.selectionOn = false;
-            this.setState(state);
+            this.setState({ layerIds: [], data: data.LayersInfo, selectionOn: false });
         });
 
         $(window).on('layerTriggered', this.layerTriggerHandler.bind(this));
@@ -44,15 +36,11 @@ export class LayerProperties extends React.Component<{}, State> {
     }
 
     private layerTriggerHandler(event: any, layerIdx: number) {
-        let state = this.state;
-
-        if (state.selectionOn) {
+        if (this.state.selectionOn) {
             return;
         }
 
-        state.layerIds = [layerIdx];
-
-        this.setState(state);
+        this.setState({ layerIds: [layerIdx] });
 
         setTimeout(function () {
             $(window).trigger('contentResize');
@@ -60,13 +48,7 @@ export class LayerProperties extends React.Component<{}, State> {
     }
 
     private layerSelectedHandler(event: any, data: { layerIds: number[] }) {
-        let state = this.state;
-
-        state.layerIds = data.layerIds;
-
-        state.selectionOn = state.layerIds.length > 0;
-
-        this.setState(state);
+        this.setState({ layerIds: data.layerIds, selectionOn: data.layerIds.length > 0 });
 
         setTimeout(function () {
             $(window).trigger('contentResize');

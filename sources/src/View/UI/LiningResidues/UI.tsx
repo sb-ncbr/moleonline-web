@@ -22,18 +22,14 @@ export class LiningResidues extends React.Component<{}, State> {
 
     componentDidMount() {
         SelectionHelper.attachOnChannelSelectHandler((data) => {
-            let state = this.state;
-            state.data = Residues.sort(data.ResidueFlow);
-            this.setState(state);
+            this.setState({ data: Residues.sort(data.ResidueFlow) });
             setTimeout(function () {
                 $(window).trigger('contentResize');
             }, 1);
         });
 
         SelectionHelper.attachOnChannelDeselectHandler(() => {
-            let state = this.state;
-            state.data = null;
-            this.setState(state);
+            this.setState({ data: null });
         });
     }
 

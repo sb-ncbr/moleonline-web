@@ -50,19 +50,14 @@ export class ChannelParameters extends React.Component<{}, State> {
             if (channelId === void 0 || submissionId === void 0) {
                 return;
             }
-            let state = this.state;
-            state.currentTunnel = channelId;
-            state.currentSubmission = submissionId;
-            this.setState(state);
+            this.setState({ currentTunnel: channelId, currentSubmission: submissionId });
             setTimeout(function () {
                 $(window).trigger('contentResize');
             }, 1);
         }));
 
         this.unsubscribe.push(SelectionHelper.attachOnChannelDeselectHandler(() => {
-            let state = this.state;
-            state.currentTunnel = null;
-            this.setState(state);
+            this.setState({ currentTunnel: null });
         }));
     }
 

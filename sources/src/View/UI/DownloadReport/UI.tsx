@@ -55,9 +55,7 @@ class DownloadResultsMenu extends React.Component<{}, DownloadResultsMenuState> 
         }
 
         Events.subscribeChangeSubmitId((submitId) => {
-            let state = this.state;
-            state.submitId = submitId;
-            this.setState(state);
+            this.setState({ submitId: submitId });
         });
     }
 

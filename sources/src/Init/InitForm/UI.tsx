@@ -157,9 +157,7 @@ export class InitForm extends React.Component<{}, State> {
 
     private asymmetricUnitChange(e: React.ChangeEvent<HTMLInputElement>) {
         let el = e.target as HTMLInputElement;
-        let s = this.state;
-        s.useAsymmetricUnit = el.checked;
-        this.setState(s);
+        this.setState({ useAsymmetricUnit: el.checked });
     }
 
     render() {
@@ -194,9 +192,7 @@ export class InitForm extends React.Component<{}, State> {
                         <form onSubmit={this.handleFormSubmit.bind(this)}>
                             <div className="groupbox">
                                 <TabbedContainer header={["PDB ID", "File", "Last session"]} tabContents={tabs} namespace="quick-start-panel-tabs-" htmlClassName="tabs" htmlId="quick-start-panel-tabs" activeTab={this.state.activeTabIdx} onChange={((tabIdx: number) => {
-                                    let s = this.state;
-                                    s.activeTabIdx = tabIdx;
-                                    this.setState(s);
+                                    this.setState({ activeTabIdx: tabIdx });
                                 }).bind(this)} />
                             </div>
 

@@ -104,9 +104,7 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                 Provider.get(result.ComputationId, ((compId: string, info: CompInfo) => {
                     JobStatus.Watcher.registerOnChangeHandler(result.ComputationId, result.SubmitId, (status) => {
                         if (checkCanSubmit(status.Status)) {
-                            let state = this.props.parent.state;
-                            state.canSubmit = true;
-                            this.props.parent.setState(state);
+                            this.props.parent.setState({ canSubmit: true });
                             BridgeEvents.invokeSubmitDone(result.SubmitId, status.Status);
                             if (status.Status === "Error") {
                                 BridgeEvents.invokeNotifyMessage({
@@ -122,9 +120,7 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                         })
                     })
 
-                    let state = this.props.parent.state;
-                    state.data = info;
-                    this.props.parent.setState(state);
+                    this.props.parent.setState({ data: info });
 
                     BridgeEvents.invokeNewSubmit(result.SubmitId);
                     BridgeEvents.invokeChangeSubmitId(result.SubmitId);
@@ -137,9 +133,7 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                 });
             })
             .catch((err: any) => {
-                let state = this.props.parent.state;
-                state.canSubmit = true;
-                this.props.parent.setState(state);
+                this.props.parent.setState({ canSubmit: true });
 
                 if (CommonOptions.DEBUG_MODE)
                     console.log(err);
@@ -177,16 +171,12 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
                 return;
             }
             this.props.parent.setState({ canSubmit: true });
-            let s = this.state;
-            let mode = s.mode;
-            s.mode = (this.state.mode === "Channels") ? "Pores" : "Channels"    //setting mode to oposite to trigger update
-            s.moleFormData = this.getMoleDefaultValues();
-            s.poresFormData = this.getPoresDefaultValues();
-            this.setState(s, () => {
-                let s2 = this.state;
-                s2.mode = mode; //setting back correct mode
-                this.setState(s2);
-            });
+            const mode = this.state.mode;
+            this.setState({
+                mode: mode === "Channels" ? "Pores" : "Channels", //setting mode to oposite to trigger update
+                moleFormData: this.getMoleDefaultValues(),
+                poresFormData: this.getPoresDefaultValues(),
+            }, () => this.setState({ mode })); //setting back correct mode
         }));
 
         this.unsubscribe.push(BridgeEvents.subscribeCopyParameters((params: CopyParametersParams) => {
@@ -230,9 +220,7 @@ export class Settings extends React.Component<SettingsProps, SettingsState> {
             <div>
                 <div className="mode-switch-button-container">
                     <span className="btn-sm btn-primary mode-switch" onClick={(e) => {
-                        let state = this.state;
-                        state.mode = (this.state.mode === "Channels") ? "Pores" : "Channels";
-                        this.setState(state);
+                        this.setState({ mode: this.state.mode === "Channels" ? "Pores" : "Channels" });
                     }}>Switch to {(this.state.mode === "Channels") ? "Pore" : "Channels"} mode</span>
                 </div>
                 {form}
@@ -378,9 +366,7 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
     }
 
     private prepareSubmissionData(computationInfo: CompInfo) {
-        let state_ = this.state;
-        state_.computationInfo = computationInfo;
-        this.setState(state_);
+        this.setState({ computationInfo: computationInfo });
 
         let hasKillable = false;
 
@@ -394,8 +380,7 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
                 let oldStatus = submission.Status;
 
                 if (oldStatus === void 0 || oldStatus !== state.Status) {
-                    let s = this.state;
-                    let currentCompInfo = s.computationInfo;
+                    let currentCompInfo = this.state.computationInfo;
                     if (currentCompInfo === null) {
                         console.log(`Computation info was not initialized corectly.`);
                         return;
@@ -407,8 +392,7 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
                     }
                     currentCompInfo.Submissions[subIdx].Status = state.Status;
                     currentCompInfo.Submissions[subIdx].ErrorMsg = state.ErrorMsg;
-                    s.computationInfo = currentCompInfo;
-                    this.setState(s);
+                    this.setState({ computationInfo: currentCompInfo });
                     if (oldStatus !== void 0) {
                         let hasKillable_ = this.checkHasKillable(currentCompInfo);
                         if (this.hasKillable !== hasKillable_) {
@@ -429,9 +413,7 @@ export class Submissions extends React.Component<SubmissionsProps, SubmissionsSt
         }
         this.hasKillable = hasKillable;
 
-        let state = this.state;
-        state.loading = false;
-        this.setState(state);
+        this.setState({ loading: false });
 
         if (hasKillable) {
             BridgeEvents.invokeChangeHasKillable(hasKillable);
@@ -703,9 +685,7 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
 
     componentDidMount() {
         if (this.props.activeTab !== void 0) {
-            let state = this.state;
-            state.activeTabIdx = this.props.activeTab;
-            this.setState(state);
+            this.setState({ activeTabIdx: this.props.activeTab });
         }
 
         let parameters = getParameters();
@@ -719,22 +699,14 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
                 if (info === null) {
                     return;
                 }
-                let state = this.state;
-                state.data = info;
-                state.submitId = submitId;
-                this.setState(state);
+                this.setState({ data: info, submitId: submitId });
             }).bind(this));
         } else {
-            let state = this.state;
-            state.err = "Parameters from url cannot be properly processed.";
-            this.setState(state);
+            this.setState({ err: "Parameters from url cannot be properly processed." });
         }
 
         this.unsubscribe.push(BridgeEvents.subscribeChangeSubmitId((submitId) => {
-            let state = this.state;
-            state.submitId = submitId;
-            state.openControls = false;
-            this.setState(state);
+            this.setState({ submitId: submitId, openControls: false });
         }));
     }
 
@@ -746,9 +718,7 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
     handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        let currentState = this.state;
-        currentState.canSubmit = false;
-        this.setState(currentState);
+        this.setState({ canSubmit: false });
 
         if (this.state.data === void 0) {
             return;
@@ -758,9 +728,7 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
     }
 
     setOpenControls(open: boolean) {
-        let state = this.state;
-        state.openControls = open;
-        this.setState(state);
+        this.setState({ openControls: open });
     }
 
     render() {
@@ -772,9 +740,7 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
             );
             tabs.push(
                 <Submissions computationInfo={this.state.data} onResubmit={(info) => {
-                    let state = this.state;
-                    state.data = info;
-                    this.setState(state);
+                    this.setState({ data: info });
                 }} />
             );
         }
@@ -786,9 +752,7 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
         return (
             <div className="submit-form-container">
                 <TabbedContainer header={["Submission settings", "Submissions"]} tabContents={tabs} namespace="right-panel-tabs-" htmlClassName="tabs flex-grow-1" htmlId="right-panel-tabs" activeTab={this.state.activeTabIdx} onChange={((tabIdx: number) => {
-                    let s = this.state;
-                    s.activeTabIdx = tabIdx;
-                    this.setState(s);
+                    this.setState({ activeTabIdx: tabIdx });
                 }).bind(this)} />
                 <form className="form-horizontal" id="submission-form" onSubmit={this.handleSubmit.bind(this)}>
                     <ControlButtons submitId={this.state.submitId} computationInfo={this.state.data} isLoading={!this.state.canSubmit} setOpenControls={this.setOpenControls.bind(this)} />
@@ -805,7 +769,6 @@ interface SubmissionCoboboxItem {
 interface ControlButtonsState {
     submitId: number,
     hasKillable: boolean,
-    canSubmit: boolean,
     submitLoading: boolean,
 }
 interface ControlButtonsProps {
@@ -816,20 +779,15 @@ interface ControlButtonsProps {
 }
 
 export class ControlButtons extends React.Component<ControlButtonsProps, ControlButtonsState> {
-    state: ControlButtonsState = { submitId: -1, hasKillable: false, canSubmit: true, submitLoading: false }
+    state: ControlButtonsState = { submitId: this.props.submitId, hasKillable: false, submitLoading: false }
     private unsubscribe: (() => void)[] = [];
 
     componentDidMount() {
-        this.state.submitId = this.props.submitId;
         this.unsubscribe.push(BridgeEvents.subscribeChangeHasKillable((hasKillable) => {
-            let state = this.state;
-            state.hasKillable = hasKillable;
-            this.setState(state);
+            this.setState({ hasKillable: hasKillable });
         }));
         this.unsubscribe.push(BridgeEvents.subscribeToggleLoadingScreen(({ message, visible }) => {
-            let state = this.state;
-            state.submitLoading = visible;
-            this.setState(state);
+            this.setState({ submitLoading: visible });
         }));
     }
 
@@ -839,10 +797,10 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
     }
 
     componentDidUpdate(prevProps: ControlButtonsProps) {
-    if (prevProps.submitId !== this.props.submitId) {
-        this.setState({ submitId: this.props.submitId });
+        if (prevProps.submitId !== this.props.submitId) {
+            this.setState({ submitId: this.props.submitId });
+        }
     }
-}
 
     private getSubmissions() {
         let submissions: ServiceSubmission[] = [];
@@ -915,9 +873,7 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
         let submitId = (e.currentTarget.options[idx] as HTMLOptionElement).value;
         let sid = Number(submitId).valueOf();
         changeSubmitId(this.props.computationInfo.ComputationId, sid);
-        let state = this.state;
-        state.submitId = sid;
-        this.setState(state);
+        this.setState({ submitId: sid });
     }
 
     private changeSubmitIdByStep(e: React.MouseEvent<HTMLInputElement>) {
@@ -930,9 +886,7 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
         if (submitId !== void 0) {
             let sid = Number(submitId).valueOf();
             changeSubmitId(this.props.computationInfo.ComputationId, sid);
-            let state = this.state;
-            state.submitId = sid;
-            this.setState(state);
+            this.setState({ submitId: sid });
         }
     }
 
