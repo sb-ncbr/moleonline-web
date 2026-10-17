@@ -198,32 +198,17 @@ export class Selection extends React.Component<State, { label?: string | JSX.Ele
                 });
                 return;
             }
-            let label = r.map((val, idx, array) => {
-                let name = val.residueName ? val.residueName : Residues.getResiudeName(val.authSeqNumber, val.chain.authAsymId, val.operatorName);
-                return `${name}&nbsp;${val.authSeqNumber}&nbsp;${val.chain.authAsymId}&nbsp;${val.operatorName !== '' ? `${/\d/.test(val.operatorName)
-                    ? (val.operatorName).replace(/.*?(\d+).*/, "$1") === '1'
-                        ? ''
-                        : '_' + (val.operatorName).replace(/.*?(\d+).*/, "$1")
-                    : ''
-                    }` : ''}`;
-            }).reduce((prev, cur, idx, array) => {
-                return `${prev}${(idx === 0) ? '' : ',\n'}${cur}`;
+            // The operator suffix, e.g. "_2"; the identity operator ("1") has none
+            const operator = (name: string) => {
+                const n = name.replace(/.*?(\d+).*/, "$1");
+                return /\d/.test(name) && n !== '1' ? '_' + n : '';
+            };
+            const elements = r.map((val, index) => {
+                const name = val.residueName ? val.residueName : Residues.getResiudeName(val.authSeqNumber, val.chain.authAsymId, val.operatorName);
+                return <div key={index}>
+                    {name}&nbsp;{val.authSeqNumber}&nbsp;{val.chain.authAsymId}&nbsp;{`${operator(val.operatorName)}${index < r.length - 1 ? ',' : ''}`}
+                </div>;
             });
-            let items = label.split('\n');
-            let elements = [];
-            for (let [index, e] of items.entries()) {
-                let lineParts = e.split('&nbsp;');
-                elements.push(
-                    lineParts.length === 4 ?
-                        <div key={index}>
-                            {lineParts[0]}&nbsp;{lineParts[1]}&nbsp;{lineParts[2]}&nbsp;{lineParts[3]}
-                        </div>
-                        :
-                        <div key={index}>
-                            {lineParts[0]}&nbsp;{lineParts[1]}&nbsp;{lineParts[2]}
-                        </div>
-                );
-            }
             this.setState({
                 label: <div className="columns">{elements}</div>,
                 tunnel: false
@@ -316,7 +301,7 @@ export class Cavities extends React.Component<{ cavities: any[], header: string 
     }
 
     private isDisabled() {
-        return !this.props.cavities || (this.props.cavities !== void 0 && this.props.cavities.length == 0);
+        return !this.props.cavities || this.props.cavities.length === 0;
     }
 
     render() {
@@ -359,16 +344,13 @@ export class Origins extends React.Component<{ label: string | JSX.Element, orig
                 .then(() => this.forceUpdate()).catch(() => this.forceUpdate()));
     }
 
-    private highlight(isOn: boolean) {
-    }
-
     render() {
         if (this.props.origins.Points === void 0 || !this.props.origins.Points.length) {
             return <div style={{ display: 'none' }} />
         }
 
         return <div>
-            <label onMouseEnter={() => this.highlight(true)} onMouseLeave={() => this.highlight(false)} >
+            <label>
                 <input type='checkbox' checked={!!this.props.origins.__isVisible} onChange={() => this.toggle()} disabled={!!this.props.origins.__isBusy} /> {this.props.label}
             </label>
         </div>
@@ -379,9 +361,6 @@ export class Membrane extends React.Component<{ label: string | JSX.Element, mem
     private unsubscribe: (() => void)[] = [];
 
     componentDidMount() {
-        this.unsubscribe.push(Events.subscribeOnMembraneDataReady(() => {
-            this.forceUpdate();
-        }));
         this.unsubscribe.push(Events.subscribeToggleLoadingScreen(({ message, visible }) => {
             if (!visible) {
                 this.props.membraneData.__isVisible = false;
@@ -412,16 +391,13 @@ export class Membrane extends React.Component<{ label: string | JSX.Element, mem
                 .then(() => this.forceUpdate()).catch((err) => { this.forceUpdate(); console.log(err) }));
     }
 
-    private highlight(isOn: boolean) {
-    }
-
     render() {
         if (this.props.membraneData === void 0) {
             return <div style={{ display: 'none' }} />
         }
 
         return <div>
-            <label onMouseEnter={() => this.highlight(true)} onMouseLeave={() => this.highlight(false)} >
+            <label>
                 <input type='checkbox' checked={!!this.props.membraneData.__isVisible} onChange={() => this.toggle()} disabled={!!this.props.membraneData.__isBusy} /> {this.props.label}
             </label>
         </div>

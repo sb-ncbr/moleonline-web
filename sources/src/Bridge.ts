@@ -33,7 +33,6 @@ export type ChannelDataLoadedHandler = (data: MoleData | ChannelsDBData) => void
 export type ToggleLoadingScreenHandler = (params: ToggleLoadingScreenParams) => void;
 export type RunPDFReportHandler = () => void;
 export type CopyParametersHandler = (params: CopyParametersParams) => void;
-export type OnMembraneDataReadyHandler = () => void;
 
 type EventName =
     | "NEW-SUBMIT"
@@ -46,8 +45,7 @@ type EventName =
     | "TOGGLE-LOADING-SCREEN"
     | "RUN-PDF-REPORT"
     | "COPY-PARAMETERS"
-    | "ON-RESUBMIT"
-    | "ON-MEMBRANE-DATA-READY";
+    | "ON-RESUBMIT";
 
 export class Events {
     private static handlers = new Map<EventName, Handlers<any[]>>();
@@ -99,5 +97,4 @@ export class Events {
     public static subscribeOnReSubmit(h: CopyParametersHandler) { return this.subscribe("ON-RESUBMIT", h); }
     public static invokeOnReSubmit(promise: any) { this.invoke("ON-RESUBMIT", promise); }
 
-    public static subscribeOnMembraneDataReady(h: OnMembraneDataReadyHandler) { return this.subscribe("ON-MEMBRANE-DATA-READY", h); }
 }

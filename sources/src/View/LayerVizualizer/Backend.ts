@@ -506,8 +506,6 @@ export class Tunnel extends ContextAwareObject {
     private highlightedLayerIdx: number = -1;
 
     public highlightHitbox(layerIdx: number) {
-        let touchMode = (window as any).TOUCH_MODE as boolean;
-
         let layersData = this.layersData;
         let scale = this.getScale();
 
@@ -520,11 +518,6 @@ export class Tunnel extends ContextAwareObject {
         if (this.highlightedLayerIdx >= 0) {
             this.renderSelectedDeselectedLayer(
                 graphLine, this.highlightedLayerIdx, scale, this.bounds, this.selectedLayers.indexOf(this.highlightedLayerIdx) >= 0);
-        }
-
-        if (touchMode) {
-            this.highlightedLayerIdx = -1;
-            return;
         }
 
         let path = [graphLine[layerIdx], graphLine[layerIdx + 1]];

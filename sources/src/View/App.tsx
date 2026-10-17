@@ -38,8 +38,6 @@ import { RightPanel } from "./RightPanel";
 import { LeftPanel } from "./LeftPanel";
 
 (function () {
-    (window as any).TOUCH_MODE = false;
-
     updateWithCurrentSession();
 
     let lvSettings: LayersVizualizerSettings = {

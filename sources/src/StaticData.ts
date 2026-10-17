@@ -102,7 +102,6 @@ export class Colors {
 
             case Enum.CavityBoundary: return Color(0x90ee90);
             case Enum.CavityInner: return Color(0x999999);
-            case Enum.CavitySelectable: return Color(0x90ee90);
 
             case Enum.SyntethicSelect: return Color.fromRgb(191, 82, 204);
             case Enum.TPoint: return Color.fromRgb(255, 0, 105);
@@ -123,7 +122,6 @@ export enum Enum {
     OtherOrigin,
     CavityBoundary,
     CavityInner,
-    CavitySelectable,
     TPoint,
     SyntethicSelect,
     DefaultColor,

@@ -20,8 +20,6 @@ import "molstar/lib/mol-plugin-ui/skin/light.scss";
 
 const Provider = ComputationInfo.DataProvider;
 
-declare function $(p: any, p1?: any): any;
-
 let validationGroup = "SettingsFormValidatonGroup";
 
 export class Controls extends React.Component {
@@ -704,13 +702,6 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
     private unsubscribe: (() => void)[] = [];
 
     componentDidMount() {
-        $("#right-panel-toggler").on("click", function () {
-            $(".ui").toggleClass("toggled");
-            $(".bottom").toggleClass("toggled");
-            $(window).trigger('resize');
-            $(window).trigger('contentResize');
-        });
-
         if (this.props.activeTab !== void 0) {
             let state = this.state;
             state.activeTabIdx = this.props.activeTab;
@@ -755,7 +746,6 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
     handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        $(e.target).find("input[type=submit]").attr("disabled", true);
         let currentState = this.state;
         currentState.canSubmit = false;
         this.setState(currentState);
@@ -792,12 +782,6 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
             tabs.push(
                 <div>No data</div>
             );
-        }
-        if (this.state.canSubmit) {
-            $('#controls .submit-parent').find("input[type=submit]").removeAttr("disabled");
-        }
-        else {
-            $('#controls .submit-parent').find("input[type=submit]").attr("disabled", true);
         }
         return (
             <div className="submit-form-container">

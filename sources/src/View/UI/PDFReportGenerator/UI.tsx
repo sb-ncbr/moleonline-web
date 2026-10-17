@@ -477,7 +477,6 @@ export class PDFReportGenerator extends React.Component<{}, AppState> {
 
     private afterError(err: any) {
         $(document.body.children).removeClass("no-print");
-        $("#download-report .dropdown").removeClass("open-programaticaly");
         let state = this.state;
         state.progress = 0;
         state.inProgress = false;
