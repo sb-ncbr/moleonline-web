@@ -347,21 +347,10 @@ class LastSession extends React.Component<LastSessionProps, LastSessionState> {
         let date = this.props.session.split("|")[0];
         let sessionUrl = this.props.session.split("|")[1];
         if (this.state.loaded && this.state.data !== null) {
-            let pdbid;
-            if (this.state.data.PdbId !== null && this.state.data.PdbId !== "") {
-                pdbid = this.state.data.PdbId
-            }
-            else {
-                pdbid = "User structure";
-            }
-
-            let assemblyId;
-            if (this.state.data.AssemblyId !== null && this.state.data.AssemblyId !== "") {
-                assemblyId = this.state.data.AssemblyId;
-            }
-            if (assemblyId === null) {
-                assemblyId = "Asymmetric unit"
-            }
+            const isPdbEntry = this.state.data.PdbId !== null && this.state.data.PdbId !== "";
+            const pdbid = isPdbEntry ? this.state.data.PdbId : "User structure";
+            // a PDB entry loaded without an assembly is its asymmetric unit; an uploaded structure has no assembly
+            const assemblyId = this.state.data.AssemblyId ? this.state.data.AssemblyId : (isPdbEntry ? "Asymmetric unit" : "");
 
             let submitIdParts = sessionUrl.split("/");
             let submission;
