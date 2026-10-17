@@ -107,24 +107,15 @@ export function parseResidues(residues: string | undefined): { Chain: string, Se
     return rv;
 }
 
+// "x, y, z": exactly three finite decimal numbers
 export function parsePoint(value: string | undefined): StringPoint | undefined {
     if (value === void 0) {
         return void 0;
     }
-    value = value.replace(/\s*,\s*/g, ",");
-    let parts = value.split(",");
-
-    let x = Number(parts[0]);
-    let y = Number(parts[1]);
-    let z = Number(parts[2]);
-
-    if (isNaN(x) || isNaN(y) || isNaN(z)) {
+    const parts = value.split(",").map(p => p.trim());
+    const decimal = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/;
+    if (parts.length !== 3 || parts.some(p => !decimal.test(p) || !Number.isFinite(Number(p)))) {
         return void 0;
     }
-
-    return {
-        x: parts[0],
-        y: parts[1],
-        z: parts[2]
-    }
+    return { x: parts[0], y: parts[1], z: parts[2] };
 }

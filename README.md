@@ -28,6 +28,8 @@ docker network create moleonline
 The development server (`npm run dev`, and `npm run preview` for a build) serves the API under `/api` as well and
 forwards it to a local API, `API_PROXY` in `.env.development` (`http://localhost:5077`).
 
+`npm test` runs the unit tests (Vitest, `sources/src/**/*.test.ts`) of the code that needs no browser.
+
 To run the MOLEonline front end locally in Docker, you need to have Docker installed and the API running on the
 network `moleonline`. The app listens on port 8080 unless specified otherwise by setting the environment variable MOLEONLINE_PORT. The complete run is as simple as:
 

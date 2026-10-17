@@ -7,6 +7,7 @@
     "build": "npm run typecheck && vite build",
     "build-dev": "vite build --mode development --minify false --sourcemap",
     "preview": "vite preview --mode development",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit --skipLibCheck --incremental --tsBuildInfoFile node_modules/.cache/tsbuildinfo"
   },
   "main": "index.js",
@@ -28,6 +29,7 @@
     "@types/react-dom": "^18.3.0",
     "sass": "1.83.4",
     "typescript": "^7.0.2",
-    "vite": "^8.3.4"
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5"
   }
 }
