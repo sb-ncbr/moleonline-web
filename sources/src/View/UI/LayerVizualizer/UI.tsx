@@ -699,27 +699,10 @@ interface Bounds {
     height: number
 };
 
-interface InteractionMapState {
-    touchMode: boolean
-};
-
-class InteractionMap extends React.Component<State, InteractionMapState> {
-
-    state: InteractionMapState = {
-        touchMode: false
-    };
-
-    componentDidMount() {
-        document.ontouchstart = (e) => {
-            this.enableTouchMode();
-        };
-    }
+// A tap also sends mouse events, so these handlers serve touch screens too
+class InteractionMap extends React.Component<State> {
 
     private displayDetailsEventHandler(e: React.MouseEvent<HTMLAreaElement>) {
-        if (this.state.touchMode) {
-            return;
-        }
-
         let targetElement = (e.target as HTMLElement);
         let layerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
         let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
@@ -868,12 +851,6 @@ class InteractionMap extends React.Component<State, InteractionMapState> {
     }
 
     private handleMouseDown(e: React.MouseEvent<HTMLAreaElement>) {
-
-        if (this.state.touchMode) {
-            e.preventDefault();
-            return false;
-        }
-
         let targetElement = (e.target as HTMLElement);
         let layerIdx = Number(targetElement.getAttribute("data-layeridx")).valueOf();
         let instanceIdx = Number(targetElement.getAttribute("data-instanceidx")).valueOf();
@@ -892,10 +869,6 @@ class InteractionMap extends React.Component<State, InteractionMapState> {
         // Disable drag and drop
         e.preventDefault();
         return false;
-    }
-
-    private enableTouchMode() {
-        this.setState({ touchMode: true });
     }
 
     render() {
