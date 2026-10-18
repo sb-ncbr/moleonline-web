@@ -38,7 +38,7 @@ export namespace QueryHelper {
             }
 
             if (param.operator_name) {
-                selection['unitTest'] = l => param.operator_name!.includes(StructureProperties.unit.operator_name(l.element));
+                selection['unitTest'] = l => StructureProperties.unit.operator_name(l.element) === param.operator_name;
             }
 
             return Queries.generators.atoms(selection);
