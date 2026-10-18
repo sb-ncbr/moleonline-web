@@ -6,13 +6,17 @@ import { ArrowHeadLine, Axis, ColorMixer, ColorPaletteFunctionSettings, ContextA
 import { Paintable, Axis as AxisCompnent, Positionable } from "./Components";
 
 declare function $(p: any): any;
-declare var ChannelDbPlugin: any;
 declare var C2S: any;
 
-declare var utf8: {
-    encode: (a: string) => string,
-    decode: (a: string) => string
-};
+// The colour at value, linearly between minColor at min and maxColor at max
+function interpolate(min: number, minColor: RGBColor, max: number, maxColor: RGBColor, value: number): RGBColor {
+    const t = (value - min) / (max - min);
+    return {
+        r: minColor.r + (maxColor.r - minColor.r) * t,
+        g: minColor.g + (maxColor.g - minColor.g) * t,
+        b: minColor.b + (maxColor.b - minColor.b) * t,
+    };
+}
 
 export type DataURL = string;
 
@@ -1159,9 +1163,13 @@ export class Vizualizer {
 
         let xmlSerializer = new XMLSerializer();
         let serializedSVG = `<?xml version="1.0" encoding="utf-8"?>${xmlSerializer.serializeToString(svg)}`;
-        serializedSVG = utf8.encode(serializedSVG);
+        // btoa takes bytes: one character per byte of the UTF-8 encoding
+        let binary = '';
+        for (const byte of new TextEncoder().encode(serializedSVG)) {
+            binary += String.fromCharCode(byte);
+        }
 
-        return `data:image/svg+xml;charset=utf-8;base64,${btoa(serializedSVG)}`;
+        return `data:image/svg+xml;charset=utf-8;base64,${btoa(binary)}`;
     }
 
     private getSVGData() {
@@ -1290,21 +1298,21 @@ export class Vizualizer {
         let rgb: RGBColor;
 
         if (value < (minVal + maxVal) / 2) {
-            rgb = ChannelDbPlugin.Palette.interpolate(minVal, minColor, middle, maxColorMiddle, value);
+            rgb = interpolate(minVal, minColor, middle, maxColorMiddle, value);
         }
         else {
-            rgb = ChannelDbPlugin.Palette.interpolate(middle, minColorMiddle, maxVal, maxColor, value);
+            rgb = interpolate(middle, minColorMiddle, maxVal, maxColor, value);
         }
 
         if (skipMiddle && settings.centerAbsolute) {
             throw new Error("Cannot config absolute center and skip center at once! Forbidden configuration -> skipMiddle=true && centerAbsolute=true");
         }
         if (skipMiddle && !settings.centerAbsolute) {
-            rgb = ChannelDbPlugin.Palette.interpolate(minVal, minColor, maxVal, maxColor, value);
+            rgb = interpolate(minVal, minColor, maxVal, maxColor, value);
         }
 
         if (minVal === maxVal) {
-            rgb = ChannelDbPlugin.Palette.interpolate(0, minColor, 1, maxColorMiddle, 0.5);
+            rgb = interpolate(0, minColor, 1, maxColorMiddle, 0.5);
         }
 
         return "rgb(" + String(Math.floor(rgb.r)) + "," + String(Math.floor(rgb.g)) + "," + String(Math.floor(rgb.b)) + ")";
