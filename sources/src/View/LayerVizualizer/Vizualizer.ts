@@ -1297,7 +1297,8 @@ export class Vizualizer {
 
         let rgb: RGBColor;
 
-        if (value < (minVal + maxVal) / 2) {
+        // each half runs to the centre, which is not the midpoint for absolute bounds
+        if (value < middle) {
             rgb = interpolate(minVal, minColor, middle, maxColorMiddle, value);
         }
         else {
