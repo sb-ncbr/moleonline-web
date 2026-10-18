@@ -41,29 +41,8 @@ export class LiningResidues extends React.Component<{}, State> {
 }
 
 function residueStringToResidueLight(residue: string): LightResidueInfo {
-    /*
-    [0 , 1 ,2 ,  3   ]
-    VAL 647 A Backbone
-    */
-    const regex = /^(\w+)\s+(\d+)\s+([A-Za-z]+)(?:_(\d+))?(?:\s+\w+)?$/;
-    const match = residue.match(regex);
-    if (!match) {
-        throw new Error("Invalid format");
-    }
-
-    const [, residueName, seqNumber, chain, operatorNumber] = match;
-
-    let rv = {
-        authSeqNumber: Number(seqNumber),
-        chain: {
-            authAsymId: chain
-        },
-        operatorName: Residues.getOperatorName(operatorNumber),
-        loci: undefined,
-        residueName
-    };
-
-    return rv;
+    const r = Residues.parseResidues([residue])[0];
+    return { authSeqNumber: r.authSeqNumber, chain: r.chain, operatorName: r.operatorName, loci: undefined, residueName: r.name };
 }
 
 class Controls extends React.Component<State, {}> {
@@ -119,15 +98,8 @@ class DGBody extends React.Component<State, {}> {
     }
 
     private selectResidue(residue: string) {
-        let residueLightEntity = residueStringToResidueLight(residue);
-        let operatorName = '';
-        if (/\d/.test(residueLightEntity.chain.authAsymId)) { // since we're using always 'Assembly' structure type the operator name always would be 'ASM_1', 'ASM_2', ...
-            operatorName = 'ASM_' + residueLightEntity.chain.authAsymId.replace(/.*?(\d+).*/, "$1");
-        } else {
-            operatorName = Residues.getOperatorName('1'); // ASM_1, or 1_555 when the structure was loaded as a model
-        }
-        const asymId = residueLightEntity.chain.authAsymId.split('_')[0];
-        SelectionHelper.addResidueToSelection(residueLightEntity.authSeqNumber, asymId, operatorName);
+        const r = Residues.parseResidues([residue])[0];
+        SelectionHelper.addResidueToSelection(r.authSeqNumber, r.chain.authAsymId, r.operatorName);
     }
 
     private getSelect3DLink(residue: string) {

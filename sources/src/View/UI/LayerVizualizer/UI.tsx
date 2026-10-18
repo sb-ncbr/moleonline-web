@@ -2,6 +2,7 @@ import React from "react";
 import { ColorBoundsMode, RadiusProperty, Vizualizer } from "../../LayerVizualizer/Vizualizer";
 import { convertLayersToLayerData, LayerData, TunnelMetaInfo, Tunnel as DataTunnel } from "../../../DataInterface";
 import { SelectionHelper } from "../../CommonUtils/Selection";
+import { Residues } from "../../CommonUtils/Residues";
 import { activateTab, doAfterTabActivated } from "../../CommonUtils/Tabs";
 import { Bundle, TooltipText } from "../../../StaticData";
 import { triggerDownload } from "../../CommonUtils/Misc";
@@ -20,20 +21,15 @@ import { Representation } from "molstar/lib/mol-repr/representation";
 declare function $(p: any): any;
 
 function getLayerResidues(layerIdx: number, data: LayerData[]): QueryParam[] {
-    let res = [];
-    for (let residue of data[layerIdx].Residues) {
-        let parts = (residue as string).split(" ");
-        res.push({
-            struct_asym_id: parts[2],
-            start_auth_residue_number: Number(parts[1]),
-            end_auth_residue_number: Number(parts[1]),
-            color: { r: 255, g: 0, b: 255 },
-            sideChain: true,
-            focus: false
-        })
-    }
-
-    return res;
+    return Residues.parseResidues(data[layerIdx].Residues).map(r => ({
+        struct_asym_id: r.chain.authAsymId,
+        start_auth_residue_number: r.authSeqNumber,
+        end_auth_residue_number: r.authSeqNumber,
+        operator_name: r.operatorName,
+        color: { r: 255, g: 0, b: 255 },
+        sideChain: true,
+        focus: false
+    }));
 }
 
 function resetFocusToTunnel() {

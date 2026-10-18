@@ -5,7 +5,8 @@ import { StructureElement, StructureSelection, StructureQuery, StructureProperti
 import { Loci } from "molstar/lib/mol-model/loci";
 import { atoms } from 'molstar/lib/mol-model/structure/query/queries/generators';
 
-interface RType { chain: { authAsymId: string }, authSeqNumber: number, operatorName: string, loci: Loci | undefined, name?: string, backbone?: boolean };
+// copy: the number of the assembly copy the residue is in ("2" in "B_2"), operatorName: its operator in the structure
+interface RType { chain: { authAsymId: string }, authSeqNumber: number, copy: string, operatorName: string, loci: Loci | undefined, name?: string, backbone?: boolean };
 export interface Point {
     X: number,
     Y: number,
@@ -21,10 +22,10 @@ function currentStructure() {
 }
 
 export class Residues {
-    // Sorts "NAME SEQ CHAIN[ Backbone]" residues: by chain and number, the backbone ones last
+    // Sorts "NAME SEQ CHAIN[_COPY][ Backbone]" residues: by chain, copy and number, the backbone ones last
     public static sort(residues: string[]) {
         return this.parseResidues(residues).sort(this.getSortFunctionBackboneChainSeq())
-            .map(val => `${val.name} ${val.authSeqNumber} ${val.chain.authAsymId}${val.backbone ? ' Backbone' : ''}`);
+            .map(val => `${val.name} ${val.authSeqNumber} ${val.chain.authAsymId}${val.copy === '1' ? '' : '_' + val.copy}${val.backbone ? ' Backbone' : ''}`);
     }
 
     public static getOperatorName(number: string) {
@@ -44,22 +45,24 @@ export class Residues {
         return operatorName;
     }
 
-    // Parses "NAME SEQ CHAIN[_OPERATOR][ Backbone]" residues
+    // Parses "NAME SEQ CHAIN[_COPY][ Backbone]" residues; without a copy number it is the first copy
     public static parseResidues(residues: string[]): RType[] {
-        const regex = /^(\w+)\s+(\d+)\s+([A-Za-z]+)(?:_(\d+))?(?:\s+(\w+))?$/;
+        // residue numbers can be negative, chain IDs can have digits (they never have "_", which starts the copy)
+        const regex = /^(\w+)\s+(-?\d+)\s+([A-Za-z0-9]+)(?:_(\d+))?(?:\s+(\w+))?$/;
 
         return residues.map(residue => {
             const match = residue.match(regex);
             if (!match) {
                 throw new Error("Invalid format");
             }
-            const [, residueName, seqNumber, chain, operatorNumber, backbone] = match;
+            const [, residueName, seqNumber, chain, copy = '1', backbone] = match;
             return {
                 authSeqNumber: Number(seqNumber),
                 chain: {
                     authAsymId: chain
                 },
-                operatorName: Residues.getOperatorName(operatorNumber),
+                copy,
+                operatorName: Residues.getOperatorName(copy),
                 loci: undefined,
                 name: residueName,
                 backbone: backbone === "Backbone"
@@ -71,7 +74,7 @@ export class Residues {
         return (a: RType, b: RType) => {
             if (a.backbone === b.backbone) {
                 if (a.chain.authAsymId === b.chain.authAsymId) {
-                    return a.authSeqNumber - b.authSeqNumber;
+                    return (Number(a.copy) - Number(b.copy)) || (a.authSeqNumber - b.authSeqNumber);
                 }
                 return (a.chain.authAsymId < b.chain.authAsymId) ? -1 : 1;
             }
