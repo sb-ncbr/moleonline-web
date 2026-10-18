@@ -72,7 +72,8 @@ function parseAtomSite(category: any): Map<string, { name: string, seq_id: strin
     const rowCount = category.atom_site.rowCount;
     const names = category.atom_site.getField("auth_comp_id");
     const seqIds = category.atom_site.getField("auth_seq_id");
-    const chains = category.atom_site.getField("label_asym_id");
+    // the tunnels dictionary links _sb_ncbr_channel_residue.chain_id to _atom_site.auth_asym_id
+    const chains = category.atom_site.getField("auth_asym_id");
 
     let residues: Map<string, { name: string, seq_id: string, chain: string }> = new Map();
     for (let i = 0; i < rowCount; i++) {

@@ -23,12 +23,19 @@ import { Handlers } from "./Handlers";
 export interface LightResidueInfo {
     authSeqNumber: number,
     chain: {
-        authAsymId: string
+        authAsymId: string // the label ID when labelChain is set
     },
+    labelChain?: boolean,
     operatorName: string,
     loci: Loci | undefined,
     residueName: string | undefined
 };
+
+// The same residue: number, chain (by the same kind of ID) and copy (operator)
+export function isSameResidue(a: LightResidueInfo, b: LightResidueInfo) {
+    return a.authSeqNumber === b.authSeqNumber && a.chain.authAsymId === b.chain.authAsymId
+        && !!a.labelChain === !!b.labelChain && a.operatorName === b.operatorName;
+}
 
 export interface ResidueLight { type: "light", info: LightResidueInfo };
 export interface StringPoint { x: string, y: string, z: string };
@@ -119,7 +126,7 @@ export class SelectionHelper {
                 locis.push(residue.loci);
             } else {
                 queries.push({
-                    struct_asym_id: residue.chain.authAsymId,
+                    ...(residue.labelChain ? { label_asym_id: residue.chain.authAsymId } : { auth_asym_id: residue.chain.authAsymId }),
                     start_auth_residue_number: residue.authSeqNumber,
                     end_auth_residue_number: residue.authSeqNumber,
                     sideChain: true,
@@ -171,28 +178,12 @@ export class SelectionHelper {
      * @param chain 
      * @return True - residue selected | False - residue deselected
      */
-    public static addResidueToSelection(seqNumber: number, chain: string, operator_name?: string, loci?: Loci, residueName?: string): boolean {
-        let residues = SelectionHelper.getSelectedResidues();
-        let newSelection: LightResidueInfo[] = [];
-        let deselectMode = false;
-        for (let r of residues) {
-            if (r.info.authSeqNumber === seqNumber && r.info.chain.authAsymId === chain) {
-                if (operator_name !== undefined) {
-                    if (r.info.operatorName === operator_name) {
-                        deselectMode = true;
-                        continue;
-                    }
-                } else {
-                    deselectMode = true;
-                    continue;
-                }
-            }
-            newSelection.push(r.info);
-        }
-
-        if (!deselectMode) {
-            newSelection.push({ authSeqNumber: seqNumber, chain: { authAsymId: chain }, operatorName: operator_name ? operator_name : "", loci, residueName });
-        }
+    public static addResidueToSelection(seqNumber: number, chain: string, operator_name?: string, loci?: Loci, residueName?: string, labelChain?: boolean): boolean {
+        const residue: LightResidueInfo = { authSeqNumber: seqNumber, chain: { authAsymId: chain }, labelChain, operatorName: operator_name ? operator_name : "", loci, residueName };
+        const current = this.selectedResidues ?? [];
+        // a selected residue is deselected
+        const deselectMode = current.some(r => isSameResidue(r, residue));
+        const newSelection = deselectMode ? current.filter(r => !isSameResidue(r, residue)) : current.concat([residue]);
 
         if (newSelection.length > 0) {
             this.selectResiduesBulkWithBallsAndSticks(newSelection);
@@ -206,12 +197,16 @@ export class SelectionHelper {
         return !deselectMode;
     }
 
-    // Adds the residues that are not selected yet
+    // Adds the residues that are not selected yet (a lining residue can be listed twice: with its side chain and its backbone)
     public static addResiduesToSelection(residues: LightResidueInfo[]) {
         const current = this.selectedResidues ?? [];
-        const isSelected = (res: LightResidueInfo) =>
-            current.some(i => i.authSeqNumber === res.authSeqNumber && i.chain.authAsymId === res.chain.authAsymId);
-        const newSelection = residues.filter(r => !isSelected(r)).concat(current);
+        const added: LightResidueInfo[] = [];
+        for (const r of residues) {
+            if (!current.some(i => isSameResidue(i, r)) && !added.some(i => isSameResidue(i, r))) {
+                added.push(r);
+            }
+        }
+        const newSelection = added.concat(current);
 
         if (newSelection.length > 0) {
             this.selectResiduesBulkWithBallsAndSticks(newSelection);

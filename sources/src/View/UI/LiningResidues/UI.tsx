@@ -1,6 +1,7 @@
 import React from "react";
 import { LightResidueInfo, SelectionHelper } from "../../CommonUtils/Selection";
 import { Residues } from "../../CommonUtils/Residues";
+import { Tunnels } from "../../CommonUtils/Tunnels";
 import { annotatedResidueRows, annotationCell, Datagrid, DGElementRow, DGNoDataInfoRow, DGRowEmpty, headCell, isBackbone } from "../Common/Datagrid/Components";
 import { ChannelsDBData } from "../../../Cache";
 
@@ -11,16 +12,21 @@ declare function $(p: any): any;
 
 interface State {
     data: string[] | null,
+    labelChains: boolean, // the channel names its chains by label ID
 };
 
 export class LiningResidues extends React.Component<{}, State> {
 
     state: State = {
         data: null,
+        labelChains: false,
     };
 
 
     componentDidMount() {
+        SelectionHelper.attachOnChannelSelectHandler2((channel) => {
+            this.setState({ labelChains: Tunnels.chainsByLabel(channel) });
+        });
         SelectionHelper.attachOnChannelSelectHandler((data) => {
             this.setState({ data: Residues.sort(data.ResidueFlow) });
             setTimeout(function () {
@@ -40,9 +46,9 @@ export class LiningResidues extends React.Component<{}, State> {
     }
 }
 
-function residueStringToResidueLight(residue: string): LightResidueInfo {
+function residueStringToResidueLight(residue: string, labelChain: boolean): LightResidueInfo {
     const r = Residues.parseResidues([residue])[0];
-    return { authSeqNumber: r.authSeqNumber, chain: r.chain, operatorName: r.operatorName, loci: undefined, residueName: r.name };
+    return { authSeqNumber: r.authSeqNumber, chain: r.chain, labelChain, operatorName: r.operatorName, loci: undefined, residueName: r.name };
 }
 
 class Controls extends React.Component<State, {}> {
@@ -54,7 +60,7 @@ class Controls extends React.Component<State, {}> {
         }
 
         for (let residue of this.props.data) {
-            residues.push(residueStringToResidueLight(residue));
+            residues.push(residueStringToResidueLight(residue, this.props.labelChains));
         }
 
         SelectionHelper.addResiduesToSelection(residues);
@@ -76,7 +82,7 @@ class Controls extends React.Component<State, {}> {
             }
 
             if (rClass.indexOf("blue") !== -1 || rClass.indexOf("red") !== -1) {
-                ionizableResidues.push({ ...residue, residueName: residue.name });
+                ionizableResidues.push({ ...residue, labelChain: this.props.labelChains, residueName: residue.name });
             }
         }
 
@@ -99,7 +105,7 @@ class DGBody extends React.Component<State, {}> {
 
     private selectResidue(residue: string) {
         const r = Residues.parseResidues([residue])[0];
-        SelectionHelper.addResidueToSelection(r.authSeqNumber, r.chain.authAsymId, r.operatorName);
+        SelectionHelper.addResidueToSelection(r.authSeqNumber, r.chain.authAsymId, r.operatorName, undefined, r.name, this.props.labelChains);
     }
 
     private getSelect3DLink(residue: string) {

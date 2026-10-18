@@ -11,7 +11,9 @@ export interface ColorParams { r: number, g: number, b: number }
 
 /** Residues to select: a range of auth residue numbers in a chain, optionally in one copy (operator) */
 export type QueryParam = {
-    struct_asym_id?: string,
+    // the chain, by the ID its source uses: auth as MOLE, mmCIF tunnel files and a click in 3D, label as ChannelsDB
+    auth_asym_id?: string,
+    label_asym_id?: string,
     start_auth_residue_number?: number,
     end_auth_residue_number?: number,
     operator_name?: string,
@@ -26,8 +28,10 @@ export namespace QueryHelper {
         const atmGroupsQueries = params.map(param => {
             const selection: Partial<AtomsQueryParams> = {};
 
-            if (param.struct_asym_id) {
-                selection['chainTest'] = l => StructureProperties.chain.label_asym_id(l.element) === param.struct_asym_id;
+            if (param.auth_asym_id) {
+                selection['chainTest'] = l => StructureProperties.chain.auth_asym_id(l.element) === param.auth_asym_id;
+            } else if (param.label_asym_id) {
+                selection['chainTest'] = l => StructureProperties.chain.label_asym_id(l.element) === param.label_asym_id;
             }
 
             if (param.start_auth_residue_number !== undefined && param.end_auth_residue_number !== undefined) {

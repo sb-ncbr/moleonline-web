@@ -3,6 +3,7 @@ import { ColorBoundsMode, RadiusProperty, Vizualizer } from "../../LayerVizualiz
 import { convertLayersToLayerData, LayerData, TunnelMetaInfo, Tunnel as DataTunnel } from "../../../DataInterface";
 import { SelectionHelper } from "../../CommonUtils/Selection";
 import { Residues } from "../../CommonUtils/Residues";
+import { Tunnels } from "../../CommonUtils/Tunnels";
 import { activateTab, doAfterTabActivated } from "../../CommonUtils/Tabs";
 import { Bundle, TooltipText } from "../../../StaticData";
 import { triggerDownload } from "../../CommonUtils/Misc";
@@ -20,9 +21,9 @@ import { Representation } from "molstar/lib/mol-repr/representation";
 
 declare function $(p: any): any;
 
-function getLayerResidues(layerIdx: number, data: LayerData[]): QueryParam[] {
+function getLayerResidues(layerIdx: number, data: LayerData[], labelChains: boolean): QueryParam[] {
     return Residues.parseResidues(data[layerIdx].Residues).map(r => ({
-        struct_asym_id: r.chain.authAsymId,
+        ...(labelChains ? { label_asym_id: r.chain.authAsymId } : { auth_asym_id: r.chain.authAsymId }),
         start_auth_residue_number: r.authSeqNumber,
         end_auth_residue_number: r.authSeqNumber,
         operator_name: r.operatorName,
@@ -37,11 +38,11 @@ function resetFocusToTunnel() {
     if (loci) Context.getInstance().plugin.managers.camera.focusLoci(loci);
 }
 
-async function showLayerResidues3DAndFocus(layerIds: number[], data: LayerData[]) {
+async function showLayerResidues3DAndFocus(layerIds: number[], data: LayerData[], labelChains: boolean) {
     let residues: QueryParam[] = [];
 
     for (let l of layerIds) {
-        residues = residues.concat(getLayerResidues(l, data));
+        residues = residues.concat(getLayerResidues(l, data, labelChains));
     }
 
     await Context.getInstance().visual.clearSelection();
@@ -166,7 +167,7 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
                 $(window).trigger('layerTriggered', layerIdx);
             }
             if (layerIdxs.length > 0) {
-                await showLayerResidues3DAndFocus(layerIdxs, this.state.data);
+                await showLayerResidues3DAndFocus(layerIdxs, this.state.data, Tunnels.chainsByLabel(this.state.channel));
                 const context = Context.getInstance();
                 context.visual.setColor({ select: { r: 255, g: 0, b: 255 } });
                 context.plugin.canvas3d?.mark(loci, MarkerAction.Select);
@@ -726,7 +727,7 @@ class InteractionMap extends React.Component<State> {
             $(window).trigger('layerTriggered', layerIdx);
         }
         if (layerIdxs.length > 0) {
-            await showLayerResidues3DAndFocus(layerIdxs, this.props.data);
+            await showLayerResidues3DAndFocus(layerIdxs, this.props.data, Tunnels.chainsByLabel(this.props.channel));
             LayerColors.invokeLayerIndexSelect(layerIdxs[0])
             SelectionHelper.selectTunnelByRef();
         }

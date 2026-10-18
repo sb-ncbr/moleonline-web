@@ -1,6 +1,6 @@
 import { ChannelsDBData, LastVisibleChannels, TunnelName } from "../../Cache";
 import { roundToDecimal } from "../../Common/Util/Numbers";
-import { CHANNEL_CATEGORIES, ChannelsDBChannels, ExportTunnel, Tunnel } from "../../DataInterface";
+import { CHANNEL_CATEGORIES, ChannelsDBChannels, ExportTunnel, Tunnel, TunnelMetaInfo } from "../../DataInterface";
 import { TunnelsId } from "./TunnelsId";
 import { TwoDProtsBridge } from "./TwoDProtsBridge";
 import { Handlers } from "./Handlers";
@@ -82,6 +82,22 @@ export class Tunnels {
 
     public static attachOnTunnelsHide(handler: () => void) { return this.onTunnelsHide.attach(handler); }
     public static invokeOnTunnelsHide() { this.onTunnelsHide.invoke(); }
+
+    // Marks channels as ChannelsDB's, also before they are first shown
+    public static markChannelsDB(channels: ChannelsDBChannels) {
+        for (const tunnels of Object.values(channels)) {
+            if (Array.isArray(tunnels)) {
+                for (const tunnel of tunnels) {
+                    (tunnel as TunnelMetaInfo).__channelsDB = true;
+                }
+            }
+        }
+    }
+
+    // ChannelsDB names the chains lining its channels by label ID; MOLE and mmCIF tunnel files by auth ID
+    public static chainsByLabel(channel: { __channelsDB?: boolean } | undefined) {
+        return channel?.__channelsDB === true;
+    }
 
     public static addChannels(submitId: string, channels: ChannelsDBChannels) {
         this.loadedChannels.set(submitId, channels);

@@ -125,7 +125,7 @@ export class Residues {
                 return StructureProperties.unit.operator_name(ctx.element) === operatorName;
             },
             chainTest: ctx => {
-                return StructureProperties.chain.label_asym_id(ctx.element) === authAsymId;
+                return StructureProperties.chain.auth_asym_id(ctx.element) === authAsymId;
             },
             residueTest: ctx => {
                 return StructureProperties.residue.auth_seq_id(ctx.element) === authSeqNumber;
