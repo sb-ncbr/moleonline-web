@@ -65,7 +65,7 @@ export class LayerResidues extends React.Component<{}, State> {
     }
 }
 
-class DGBody extends React.Component<State, {}> {
+export class DGBody extends React.Component<State, {}> {
 
     private getResidues(layerIds: number[]): string[] {
         if (this.props.data === null) {
@@ -94,7 +94,6 @@ class DGBody extends React.Component<State, {}> {
         let rows: JSX.Element[] = [];
 
         for (let residue of layerData) {
-            let residueId = residue.split(" ").slice(1, 3).join(" ");
             let residueInfo = Residues.parseResidues([residue]);
             let columns = [];
             columns.push(
@@ -104,7 +103,7 @@ class DGBody extends React.Component<State, {}> {
             let annotations = ChannelsDBData.getResidueAnnotationsImmediate(seqNumberAndChain);
             if (annotations !== null && annotations.length > 0) {
                 if (annotations.length > 1) {
-                    rows = rows.concat(annotatedResidueRows(residueId, residueId, annotations));
+                    rows = rows.concat(annotatedResidueRows(residue, columns[0], annotations));
                 }
                 else {
                     columns.push(
