@@ -207,17 +207,22 @@ class DGRow extends React.Component<{ tunnel: Tunnel, submissionId: string }, {}
                     {roundToDecimal(this.props.tunnel.Properties.Mutability, 2)}
                 </td>
                 <td className="col col-9">
-                    {(this.props.tunnel.Properties.LogP) ? roundToDecimal(this.props.tunnel.Properties.LogP, 2) : 'N/A'}
+                    {optional(this.props.tunnel.Properties.LogP)}
                 </td>
                 <td className="col col-10">
-                    {(this.props.tunnel.Properties.LogD) ? roundToDecimal(this.props.tunnel.Properties.LogD, 2) : 'N/A'}
+                    {optional(this.props.tunnel.Properties.LogD)}
                 </td>
                 <td className="col col-11">
-                    {(this.props.tunnel.Properties.LogS) ? roundToDecimal(this.props.tunnel.Properties.LogS, 2) : 'N/A'}
+                    {optional(this.props.tunnel.Properties.LogS)}
                 </td>
                 <td className="col col-12">
-                    {(this.props.tunnel.Properties.Ionizable) ? roundToDecimal(this.props.tunnel.Properties.Ionizable, 2) : 'N/A'}
+                    {optional(this.props.tunnel.Properties.Ionizable)}
                 </td>
             </tr>);
     }
+}
+
+// A property some channels lack; 0 is a value
+function optional(value: number | null | undefined) {
+    return (value != null) ? roundToDecimal(value, 2) : 'N/A';
 }

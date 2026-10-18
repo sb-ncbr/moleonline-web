@@ -84,7 +84,7 @@ class DGBody extends React.Component<State, {}> {
         const t = this.props.data.get(this.props.currentSubmission!)?.find(t => t.Id === this.props.currentTunnel);
         const p = t?.Properties;
         const round = (value: number) => roundToDecimal(value, 2).toString();
-        const optional = (value: number | undefined) => value ? roundToDecimal(value, 2) : 'N/A';
+        const optional = (value: number | null | undefined) => (value != null) ? roundToDecimal(value, 2) : 'N/A'; // 0 is a value
         const rows = (t === undefined || p === undefined) ? [] : [
             propertyRow('length', 'bi bi-arrows-expand', 'Length', round(Tunnels.getLength(t))),
             propertyRow('bottleneck', 'icon bottleneck black', 'Bottleneck', Tunnels.getBottleneck(t)),

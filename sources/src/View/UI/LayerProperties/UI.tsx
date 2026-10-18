@@ -98,7 +98,7 @@ class DGBody extends React.Component<State, {}> {
 
         const p = this.props.data[this.props.layerIds[0]].Properties;
         const round = (value: number) => roundToDecimal(value, 2).toString();
-        const optional = (value: number | undefined) => (p && value) ? roundToDecimal(value, 2) : 'N/A';
+        const optional = (value: number | null | undefined) => (value != null) ? roundToDecimal(value, 2) : 'N/A'; // 0 is a value
         return [
             propertyRow('hydropathy', 'bi bi-droplet', 'Hydropathy', (p === null) ? 'N/A' : round(p.Hydropathy)),
             propertyRow('polarity', 'bi bi-plus', 'Polarity', (p === null) ? 'N/A' : round(p.Polarity)),
