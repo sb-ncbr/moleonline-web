@@ -195,7 +195,6 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
 
     render() {
         if (this.state.hasData) {
-            $('.init-lvz-tooltip').tooltip();
             return <PaintingArea {...this.state} />
         }
 
@@ -270,7 +269,7 @@ class ColorMenuItem extends React.Component<State & { propertyName: string, isCu
 
     render() {
         return (
-            <li><a data-toggle="tooltip" data-placement="right" title={TooltipText.get(this.props.propertyName)} onClick={() => this.changeColoringProperty()} className="init-lvz-tooltip lvz-properties dropdown-item">{Bundle.get(this.props.propertyName)}</a></li>
+            <li><a data-bs-toggle="tooltip" data-bs-placement="right" title={TooltipText.get(this.props.propertyName)} onClick={() => this.changeColoringProperty()} className="lvz-properties dropdown-item">{Bundle.get(this.props.propertyName)}</a></li>
         );
     }
 }
@@ -293,7 +292,7 @@ class RadiusMenuItem extends React.Component<State & { propertyName: RadiusPrope
 
     render() {
         return (
-            <li><a data-toggle="tooltip" data-placement="right" title={TooltipText.get(this.props.propertyName)} onClick={() => this.changeRadiusProperty()} className="init-lvz-tooltip lvz-radius dropdown-item">{Bundle.get(this.props.propertyName)}</a></li>
+            <li><a data-bs-toggle="tooltip" data-bs-placement="right" title={TooltipText.get(this.props.propertyName)} onClick={() => this.changeRadiusProperty()} className="lvz-radius dropdown-item">{Bundle.get(this.props.propertyName)}</a></li>
         );
     }
 }

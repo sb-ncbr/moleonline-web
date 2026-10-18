@@ -51,10 +51,6 @@ export class AglomeredParameters extends React.Component<{}, State> {
         this.unsubscribe = [];
     }
 
-    componentDidUpdate(prevState: State) {
-        $('.init-agp-tooltip').tooltip({ container: 'body' });
-    }
-
     render() {
         return (
             <div>
@@ -83,40 +79,40 @@ class DGHead extends React.Component<State, {}> {
             <table>
                 <thead>
                     <tr>
-                        <th title={Tooltips.get("Submission")} className="col col-1 ATable-header-identifier init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                        <th title={Tooltips.get("Submission")} className="col col-1 ATable-header-identifier" data-bs-toggle="tooltip" data-bs-placement="bottom">
                             Submission
                         </th>
-                        <th title={Tooltips.get("Name")} className="col col-2 ATable-header-identifier init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                        <th title={Tooltips.get("Name")} className="col col-2 ATable-header-identifier" data-bs-toggle="tooltip" data-bs-placement="bottom">
                             Name
                         </th>
-                        <th title={Tooltips.get("Length")} className="col col-3 ATable-header-length init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                        <th title={Tooltips.get("Length")} className="col col-3 ATable-header-length" data-bs-toggle="tooltip" data-bs-placement="bottom">
                             <span className="bi bi-arrows-expand" /> <span className="ATable-label">Length</span>
                         </th>
-                        <th title={Tooltips.get("Bottleneck")} className="col col-4 ATable-header-bottleneck init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                        <th title={Tooltips.get("Bottleneck")} className="col col-4 ATable-header-bottleneck" data-bs-toggle="tooltip" data-bs-placement="bottom">
                             <span className="icon bottleneck" /> <span className="ATable-label">Bottleneck</span>
                         </th>
-                        <th title={Tooltips.get("agl-Hydropathy")} className="col col-5 ATable-header-hydropathy init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                        <th title={Tooltips.get("agl-Hydropathy")} className="col col-5 ATable-header-hydropathy" data-bs-toggle="tooltip" data-bs-placement="bottom">
                             <span className="bi bi-droplet" /> <span className="ATable-label">Hydropathy</span>
                         </th>
-                        <th title={Tooltips.get("agl-Charge")} className="col col-6 ATable-header-charge init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                        <th title={Tooltips.get("agl-Charge")} className="col col-6 ATable-header-charge" data-bs-toggle="tooltip" data-bs-placement="bottom">
                             <span className="bi bi-lightning" /> <span className="ATable-label">Charge</span>
                         </th>
-                        <th title={Tooltips.get("agl-Polarity")} className="col col-7 ATable-header-polarity init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                        <th title={Tooltips.get("agl-Polarity")} className="col col-7 ATable-header-polarity" data-bs-toggle="tooltip" data-bs-placement="bottom">
                             <span className="bi bi-plus" /> <span className="ATable-label">Polarity</span>
                         </th>
-                        <th title={Tooltips.get("agl-Mutability")} className="col col-8 ATable-header-mutability init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                        <th title={Tooltips.get("agl-Mutability")} className="col col-8 ATable-header-mutability" data-bs-toggle="tooltip" data-bs-placement="bottom">
                             <span className="bi bi-scissors" /> <span className="ATable-label">Mutability</span>
                         </th>
-                        <th title={Tooltips.get("agl-LogP")} className="col col-9 ATable-header-logp init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                        <th title={Tooltips.get("agl-LogP")} className="col col-9 ATable-header-logp" data-bs-toggle="tooltip" data-bs-placement="bottom">
                             <span className="icon logp" /> <span className="ATable-label">LogP</span>
                         </th>
-                        <th title={Tooltips.get("agl-LogD")} className="col col-10 ATable-header-logd init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                        <th title={Tooltips.get("agl-LogD")} className="col col-10 ATable-header-logd" data-bs-toggle="tooltip" data-bs-placement="bottom">
                             <span className="icon logd" /> <span className="ATable-label">LogD</span>
                         </th>
-                        <th title={Tooltips.get("agl-LogS")} className="col col-11 ATable-header-logs init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                        <th title={Tooltips.get("agl-LogS")} className="col col-11 ATable-header-logs" data-bs-toggle="tooltip" data-bs-placement="bottom">
                             <span className="icon logs" /> <span className="ATable-label">LogS</span>
                         </th>
-                        <th title={Tooltips.get("agl-Ionizable")} className="col col-12 ATable-header-ionizable init-agp-tooltip" data-toggle="tooltip" data-placement="bottom">
+                        <th title={Tooltips.get("agl-Ionizable")} className="col col-12 ATable-header-ionizable" data-bs-toggle="tooltip" data-bs-placement="bottom">
                             <span className="icon ionizable" /> <span className="ATable-label">Ionizable</span>
                         </th>
                     </tr>

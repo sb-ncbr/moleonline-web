@@ -1,6 +1,9 @@
 $( function() {
     // Bound on document: React renders these elements after this runs
 
+    // Bootstrap tooltips, also for the elements rendered later
+    new bootstrap.Tooltip(document.body, { selector: '[data-bs-toggle="tooltip"]' });
+
     // A shown tab gets its layout and the profile canvas, which skips resizing while hidden
     $(document).on("shown.bs.tab", "#left-tabs a, #right-tabs a", function() {
         dgResize();
