@@ -134,6 +134,7 @@ export class Context {
 
     // Holding Ctrl shows the surfaces solid and pickable, so that a point on them can be clicked
     private surfaceSolidFormToggler() {
+        // Updates only what is not in the wanted form yet: a held key repeats its key down, and new surfaces start see-through
         const setSolid = (solid: boolean) => {
             const cells = this.plugin.state.data.select(StateSelection.Generators.byRef('mole-objects')
                 .subtree()
@@ -141,13 +142,16 @@ export class Context {
                 .filter(cell => cell.obj !== undefined && cell.obj.data.data.data.tag === 'Surface')
             )
             cells.map(async cell => {
-                const children = this.plugin.state.data.select(StateSelection.children(cell.transform.ref).ofType(PluginStateObject.Shape.Representation3D));
-                await this.plugin.state.data.build()
-                    .to(cell.transform.ref)
-                    .update(old => {
-                        old.solidForm = solid;
-                    })
-                    .commit()
+                const children = this.plugin.state.data.select(StateSelection.children(cell.transform.ref).ofType(PluginStateObject.Shape.Representation3D))
+                    .filter(child => child.transform.params?.pickable !== solid);
+                if (cell.transform.params?.solidForm !== solid) {
+                    await this.plugin.state.data.build()
+                        .to(cell.transform.ref)
+                        .update(old => {
+                            old.solidForm = solid;
+                        })
+                        .commit()
+                }
                 for (const child of children) {
                     await this.plugin.state.data.build()
                         .to(child.transform.ref)
@@ -163,8 +167,9 @@ export class Context {
         this.plugin.behaviors.interaction.key.subscribe(({ modifiers }) => {
             if (modifiers.control) setSolid(true);
         })
-        this.plugin.behaviors.interaction.keyReleased.subscribe(({ modifiers }) => {
-            if (modifiers.control) setSolid(false);
+        // releasing Ctrl itself ends it, releasing another key while Ctrl is held does not
+        this.plugin.behaviors.interaction.keyReleased.subscribe(({ key, modifiers }) => {
+            if (key === 'Control' || !modifiers.control) setSolid(false);
         })
     }
 
