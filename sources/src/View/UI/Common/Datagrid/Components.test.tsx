@@ -25,4 +25,9 @@ describe('annotation rows', () => {
         expect(html(annotatedResidueRows('ILE 317 A', 'ILE 317 A', [plain]))).toBe(
             '<table><tbody><tr title="" class=""><td class="col col-1">ILE 317 A</td><td class="col col-2"><span>Binding site</span></td></tr></tbody></table>');
     });
+
+    it('keys the rows of several residues apart, so that a table can concatenate them', () => {
+        const rows = [...annotatedResidueRows('ARG 65 A', 'ARG 65 A', [link, plain]), ...annotatedResidueRows('ARG 65 A_2', 'ARG 65 A_2', [link, plain])];
+        expect(new Set(rows.map(r => r.key)).size).toBe(4);
+    });
 });

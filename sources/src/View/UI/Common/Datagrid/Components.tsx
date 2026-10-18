@@ -131,7 +131,7 @@ export function annotationCell(annotation: ResidueAnnotation) {
 // A residue with several annotations, a row each; the residue's cell spans them
 export function annotatedResidueRows(residue: string, residueCell: React.ReactNode, annotations: ResidueAnnotation[]) {
     return annotations.map((annotation, index) => (index === 0)
-        ? <tr key={index} title={isBackbone(residue) ? residue : ""} className={isBackbone(residue) ? "help" : ""}>
+        ? <tr key={`${residue} ${index}`} title={isBackbone(residue) ? residue : ""} className={isBackbone(residue) ? "help" : ""}>
             <td className={`col col-1`} rowSpan={(annotations.length > 1) ? annotations.length : void 0}>
                 {residueCell}
             </td>
@@ -139,7 +139,7 @@ export function annotatedResidueRows(residue: string, residueCell: React.ReactNo
                 {annotationCell(annotation)}
             </td>
         </tr>
-        : <tr key={index}>
+        : <tr key={`${residue} ${index}`}>
             <td className={`col col-2`} >
                 {annotationCell(annotation)}
             </td>

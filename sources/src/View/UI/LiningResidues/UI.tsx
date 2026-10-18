@@ -114,7 +114,7 @@ class DGBody extends React.Component<State, {}> {
         }
 
         let rows: JSX.Element[] = [];
-        for (let [index, residue] of this.props.data.entries()) {
+        for (let residue of this.props.data) {
             let residueInfo = Residues.parseResidues([residue]);
 
             let trClass = (isBackbone(residue) ? "help" : "");
@@ -132,13 +132,13 @@ class DGBody extends React.Component<State, {}> {
                 }
                 else {
                     rows.push(
-                        <DGElementRow key={index} columnsCount={columnsCount} columns={[this.getSelect3DLink(residue), annotationCell(annotations[0])]} title={[(isBackbone(residue) ? residue : "")]} trClass={trClass} />
+                        <DGElementRow key={residue} columnsCount={columnsCount} columns={[this.getSelect3DLink(residue), annotationCell(annotations[0])]} title={[(isBackbone(residue) ? residue : "")]} trClass={trClass} />
                     )
                 }
             }
             else {
                 rows.push(
-                    <DGElementRow key={index} columnsCount={columnsCount} columns={[this.getSelect3DLink(residue)]} title={[(isBackbone(residue) ? residue : "")]} trClass={trClass} />
+                    <DGElementRow key={residue} columnsCount={columnsCount} columns={[this.getSelect3DLink(residue)]} title={[(isBackbone(residue) ? residue : "")]} trClass={trClass} />
                 );
             }
         }
