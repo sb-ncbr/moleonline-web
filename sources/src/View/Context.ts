@@ -494,6 +494,11 @@ export class Context {
         clearSelection: async () => {
             const structure = this.plugin.managers.structure.hierarchy.current.structures[0];
             this.plugin.managers.interactivity.lociSelects.deselectAll();
+            // no structure (not loaded yet, or its loading failed): nothing more to clear
+            if (!structure) {
+                this.selectedParams = undefined;
+                return;
+            }
             // remove overpaints
             await clearStructureOverpaint(this.plugin, structure.components);
             // remove selection representations
