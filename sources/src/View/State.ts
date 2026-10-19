@@ -449,34 +449,46 @@ export function showCavityVisuals(cavities: any[], visible: boolean): Promise<an
     return showSurfaceVisuals(cavities, visible, 'Cavity', (cavity: any) => `${cavity.Type} ${cavity.Id}`, 0.33);
 }
 
+// the last pending visual operation of each channel
+const channelOperations = new WeakMap<Tunnel, Promise<unknown>>();
+
+// Runs the channel's visual operations one after another, so each one starts from the
+// channel's state left by the previous one and no rendered visual is left untracked.
+function serializeChannelOperation<T>(channel: Tunnel, operation: () => Promise<T>): Promise<T> {
+    const previous = channelOperations.get(channel) ?? Promise.resolve();
+    const result = previous.catch(() => { }).then(operation);
+    channelOperations.set(channel, result);
+    return result;
+}
+
 async function showChannelDefaultVisuals(channels: Tunnel[] & TunnelMetaInfo[], channelsDB: boolean, submitId: string): Promise<any> {
     const context = Context.getInstance();
 
-    let visibleChannels: Tunnel[] & TunnelMetaInfo[] = [];
     try {
         for (let channel of channels) {
-            channel.__id = UUID.create22();
+            await serializeChannelOperation(channel, async () => {
+                channel.__id = UUID.create22();
 
-            if (channel.__color === void 0) {
-                channel.__color = ColorGenerator.next().value;
-            }
+                if (channel.__color === void 0) {
+                    channel.__color = ColorGenerator.next().value;
+                }
 
-            if (channelsDB !== undefined && channelsDB) {
-                channel.__channelsDB = true;
-            }
+                if (channelsDB !== undefined && channelsDB) {
+                    channel.__channelsDB = true;
+                }
 
-            channel.__submissionId = submitId.toString();
-            channel.__layerColored = false;
+                channel.__submissionId = submitId.toString();
+                channel.__layerColored = false;
 
-            const [loci, ref] = await context.renderTunnel(channel);
+                const [loci, ref] = await context.renderTunnel(channel);
 
-            // only a rendered channel counts as visible, so a failure keeps the channels rendered before it
-            channel.__ref = ref;
-            channel.__loci = loci as Shape.Loci;
-            channel.__isVisible = true;
-            visibleChannels.push(channel);
-            LastVisibleChannels.set(channel);
-            LayerColors.invokeOnChannelAdd(channel.__ref);
+                // only a rendered channel counts as visible, so a failure keeps the channels rendered before it
+                channel.__ref = ref;
+                channel.__loci = loci as Shape.Loci;
+                channel.__isVisible = true;
+                LastVisibleChannels.set(channel);
+                LayerColors.invokeOnChannelAdd(channel.__ref);
+            });
         }
     } finally {
         for (let channel of channels) {
@@ -486,101 +498,108 @@ async function showChannelDefaultVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
 }
 
 export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], visible: boolean, forceRepaint?: boolean, channelsDB?: boolean, submitId?: string): Promise<any> {
-    const context = Context.getInstance();
-
-
-    let visibleChannels: Tunnel[]&TunnelMetaInfo[] = [];
-    for (let channel of channels) {
-        if (!channel.__id) channel.__id = UUID.create22();
-        if (!!channel.__isVisible === visible && !forceRepaint) continue;
-
-        if (forceRepaint !== void 0 && forceRepaint) {
-            await PluginCommands.State.RemoveObject(context.plugin, { state: context.plugin.state.data, ref: channel.__ref });
+    try {
+        for (let channel of channels) {
+            await serializeChannelOperation(channel, () => updateChannelVisual(channel, visible, forceRepaint, channelsDB, submitId));
         }
-
-        channel.__isVisible = visible;
-        channel.__layerColored = false;
-        if (channel.__color === void 0) {
-            // channel.__color = ColorScheme.Colors.getRandomUnused(); // TODO
-            channel.__color = ColorGenerator.next().value;
-        }
-        if (!channel.__submissionId && submitId) {
-            channel.__submissionId = submitId;
-        }
-
-        if (channelsDB !== undefined && channelsDB) {
-            channel.__channelsDB = true;
-        }
-
-        if (!visible) {
-            await PluginCommands.State.RemoveObject(context.plugin, { state: context.plugin.state.data, ref: channel.__ref });
-            LayerColors.invokeOnChannelRemoved(channel.__ref);
-            LastVisibleChannels.remove(channel);
-        } else {
-            visibleChannels.push(channel);
-
-            const [loci, ref] = await context.renderTunnel(channel);
-            channel.__ref = ref;
-            channel.__loci = loci as Shape.Loci;
-            LayerColors.invokeOnChannelAdd(channel.__ref);
-            LastVisibleChannels.set(channel);
-        }
-
-        const svgElement = document.getElementById('svgContainer');
-        const elementId = TwoDProtsBridge.getFromIdTable(channel.Id)
-        const element = document.getElementById(`${elementId}`)
-        if (svgElement && element) {
-            const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${elementId}`)}`);
-            if (targetElement) {
-                if (visible) {
-                    targetElement.removeAttribute("display");
-                    targetElement.setAttribute('style', `fill: ${Color.toHexStyle(channel.__color)}; stroke: ${Color.toHexStyle(channel.__color)}; opacity: 1`);
-                    targetElement.dataset.selectOriginalFill = Color.toHexStyle(channel.__color); 
-                    targetElement.dataset.hoverOriginalFill = Color.toHexStyle(channel.__color);
-                } else {
-                    targetElement.setAttribute("display", "none");
-                }
-            }
-        }
-    }
-
-    return Promise.resolve().then(() => {
+    } finally {
         for (let channel of channels) {
             channel.__isBusy = false;
         }
-    });
+    }
+}
+
+async function updateChannelVisual(channel: Tunnel & TunnelMetaInfo, visible: boolean, forceRepaint?: boolean, channelsDB?: boolean, submitId?: string) {
+    const context = Context.getInstance();
+
+    if (!channel.__id) channel.__id = UUID.create22();
+    if (!!channel.__isVisible === visible && !forceRepaint) return;
+
+    if (channel.__color === void 0) {
+        // channel.__color = ColorScheme.Colors.getRandomUnused(); // TODO
+        channel.__color = ColorGenerator.next().value;
+    }
+    if (!channel.__submissionId && submitId) {
+        channel.__submissionId = submitId;
+    }
+
+    if (channelsDB !== undefined && channelsDB) {
+        channel.__channelsDB = true;
+    }
+
+    // the channel's state changes only once the plugin has done so, so a failed channel keeps its previous state
+    if (!visible) {
+        await PluginCommands.State.RemoveObject(context.plugin, { state: context.plugin.state.data, ref: channel.__ref });
+        channel.__isVisible = false;
+        channel.__layerColored = false;
+        LayerColors.invokeOnChannelRemoved(channel.__ref);
+        LastVisibleChannels.remove(channel);
+    } else {
+        // a repainted channel keeps its old visual until the new one is rendered
+        const previousRef = channel.__ref;
+        const [loci, ref] = await context.renderTunnel(channel);
+        channel.__ref = ref;
+        channel.__loci = loci as Shape.Loci;
+        channel.__isVisible = true;
+        channel.__layerColored = false;
+        LastVisibleChannels.set(channel);
+
+        if (forceRepaint !== void 0 && forceRepaint) {
+            await PluginCommands.State.RemoveObject(context.plugin, { state: context.plugin.state.data, ref: previousRef });
+        }
+        LayerColors.invokeOnChannelAdd(channel.__ref);
+    }
+
+    const svgElement = document.getElementById('svgContainer');
+    const elementId = TwoDProtsBridge.getFromIdTable(channel.Id)
+    const element = document.getElementById(`${elementId}`)
+    if (svgElement && element) {
+        const targetElement = svgElement.querySelector<SVGGElement>(`g#${CSS.escape(`${elementId}`)}`);
+        if (targetElement) {
+            if (visible) {
+                targetElement.removeAttribute("display");
+                targetElement.setAttribute('style', `fill: ${Color.toHexStyle(channel.__color)}; stroke: ${Color.toHexStyle(channel.__color)}; opacity: 1`);
+                targetElement.dataset.selectOriginalFill = Color.toHexStyle(channel.__color); 
+                targetElement.dataset.hoverOriginalFill = Color.toHexStyle(channel.__color);
+            } else {
+                targetElement.setAttribute("display", "none");
+            }
+        }
+    }
 }
 
 export async function showChannelPropertyColorVisuals(channel: Tunnel & TunnelMetaInfo, colorOptions: { property: Property, colorBounds: ColorBound }, forceRepaint?: boolean, channelsDB?: boolean): Promise<any> {
     const context = Context.getInstance();
 
+    try {
+        await serializeChannelOperation(channel, async () => {
+            if (!channel.__id) channel.__id = UUID.create22();
+            if (!channel.__isVisible && !forceRepaint) return;
 
-    if (!channel.__id) channel.__id = UUID.create22();
-    if (!channel.__isVisible && !forceRepaint) return;
+            if (channel.__color === void 0) {
+                // channel.__color = ColorScheme.Colors.getRandomUnused(); // TODO
+                channel.__color = ColorGenerator.next().value;
+            }
 
-    channel.__isVisible = true;
-    channel.__layerColored = true;
-    if (channel.__color === void 0) {
-        // channel.__color = ColorScheme.Colors.getRandomUnused(); // TODO
-        channel.__color = ColorGenerator.next().value;
-    }
+            if (channelsDB !== void 0 && channelsDB) {
+                channel.__channelsDB = true;
+            }
 
-    if (channelsDB !== void 0 && channelsDB) {
-        channel.__channelsDB = true;
-    }
+            // the channel keeps its old visual and state until the new visual is rendered
+            const previousRef = channel.__ref;
+            const [loci, ref] = await context.renderPropertyColorTunnel(channel, colorOptions);
+            channel.__ref = ref;
+            channel.__loci = loci as Shape.Loci;
+            channel.__isVisible = true;
+            channel.__layerColored = true;
 
-    const [loci, ref] = await context.renderPropertyColorTunnel(channel, colorOptions);
-
-    if (forceRepaint !== void 0 && forceRepaint) {
-        await PluginCommands.State.RemoveObject(context.plugin, { state: context.plugin.state.data, ref: channel.__ref });
-    }
-
-    channel.__ref = ref;
-    channel.__loci = loci as Shape.Loci;
-
-    return Promise.resolve().then(() => {
+            if (forceRepaint !== void 0 && forceRepaint) {
+                await PluginCommands.State.RemoveObject(context.plugin, { state: context.plugin.state.data, ref: previousRef });
+            }
+        });
+    } finally {
         channel.__isBusy = false;
-    });
+    }
 }
 
 function getOriginColorByType(origins: any) {
