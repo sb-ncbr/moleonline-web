@@ -26,10 +26,10 @@ export class LayerResidues extends React.Component<{}, State> {
 
     componentDidMount() {
         SelectionHelper.attachOnChannelDeselectHandler(() => {
-            this.setState({ layerIds: [], data: null });
+            this.setState({ layerIds: [], data: null, selectionOn: false });
         });
         SelectionHelper.attachOnChannelSelectHandler((data) => {
-            this.setState({ layerIds: [], data: data.LayersInfo });
+            this.setState({ layerIds: [], data: data.LayersInfo, selectionOn: false });
         });
 
         $(window).on('layerTriggered', this.layerTriggerHandler.bind(this));
