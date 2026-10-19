@@ -96,6 +96,20 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
         }
     }
     
+    private async showInitialChannels(submitId: number) {
+        try {
+            await showDefaultVisuals(submitId, this.props.submissions);
+        } catch (e) {
+            // the channels are still listed; those rendered before the failure stay visible
+            Events.invokeNotifyMessage({
+                messageType: "Danger",
+                message: describeError(e, "Channels could not be displayed.")
+            });
+        }
+        this.saveChannelsElems();
+        this.publishInitialChannels(submitId);
+    }
+
     initializeSubmissionData() {
         let params = getParameters();
         if (params === null || params.submitId === 0) {
@@ -103,31 +117,19 @@ export class ChannelsControl extends React.Component<ChannelsControlProps, Chann
                 ComputationInfo.DataProvider.get(params.computationId, ((compId: string, info: CompInfo) => {
                     if (info.PdbId === "") { // from file
                         this.setState({ currentSubmitId: -2 });
-                        showDefaultVisuals(-2, this.props.submissions).then(() => {
-                            this.saveChannelsElems();
-                            this.publishInitialChannels(-2);
-                        })
+                        this.showInitialChannels(-2);
                     } else {
                         this.setState({ currentSubmitId: -1 })
-                        showDefaultVisuals(-1, this.props.submissions).then(() => {
-                            this.saveChannelsElems();
-                            this.publishInitialChannels(-1);
-                        })
+                        this.showInitialChannels(-1);
                     }
                 }))
             } else {
                 this.setState({ currentSubmitId: -1 })
-                showDefaultVisuals(-1, this.props.submissions).then(() => {
-                    this.saveChannelsElems();
-                    this.publishInitialChannels(-1);
-                })
+                this.showInitialChannels(-1);
             }
         } else {
             this.setState({ currentSubmitId: params.submitId })
-            showDefaultVisuals(params.submitId, this.props.submissions).then(() => {
-                this.saveChannelsElems();
-                this.publishInitialChannels(params.submitId);
-            })
+            this.showInitialChannels(params.submitId);
         }
     }
 

@@ -25,48 +25,33 @@ import { TunnelsId } from "./CommonUtils/TunnelsId";
 import { StateSelection } from "molstar/lib/mol-state";
 
 export async function showDefaultVisualsNewSubmission(channels: ChannelsDBChannels, submitId: string) {
-    return new Promise(res => {
-        const first = firstNonEmptyCategory(channels);
-        if (first !== null) {
-            return showChannelDefaultVisuals((first.tunnels.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], first.channelsDB, submitId).then(() => {
-                res(null);
-                return;
-            })
-        }
-        // nothing to show
-        res(null);
-    });
+    const first = firstNonEmptyCategory(channels);
+    if (first !== null) {
+        await showChannelDefaultVisuals((first.tunnels.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], first.channelsDB, submitId);
+    }
 }
 
 export async function showDefaultVisuals(currentSubmitId: number, submissionChannels: Map<number, ChannelsDBChannels>) {
-    return new Promise(res => {
-        const submissionData = submissionChannels.get(currentSubmitId)
-        if (submissionData !== undefined) {
-            const first = firstNonEmptyCategory(submissionData);
-            if (first !== null) {
-                return showChannelDefaultVisuals((first.tunnels.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], first.channelsDB, currentSubmitId === -1 ? "ChannelsDB" : currentSubmitId === -2 ? 'FromFile' : currentSubmitId.toString()).then(() => {
-                    res(null);
-                    return;
-                })
-            }
+    const submissionData = submissionChannels.get(currentSubmitId)
+    if (submissionData !== undefined) {
+        const first = firstNonEmptyCategory(submissionData);
+        if (first !== null) {
+            await showChannelDefaultVisuals((first.tunnels.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], first.channelsDB, currentSubmitId === -1 ? "ChannelsDB" : currentSubmitId === -2 ? 'FromFile' : currentSubmitId.toString());
+            return;
         }
+    }
 
-        for (const submitId of Array.from(submissionChannels.keys())) {
-            const data = submissionChannels.get(submitId)
-            if (data === undefined) continue;
-            const first = firstNonEmptyCategory(data);
-            if (first !== null) {
-                return showChannelDefaultVisuals((first.tunnels.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], first.channelsDB, submitId === -1 ? "ChannelsDB" : submitId === -2 ? 'FromFile' : submitId.toString()).then(() => {
-                    res(null);
-                    return;
-                })
-            }
-
+    for (const submitId of Array.from(submissionChannels.keys())) {
+        const data = submissionChannels.get(submitId)
+        if (data === undefined) continue;
+        const first = firstNonEmptyCategory(data);
+        if (first !== null) {
+            await showChannelDefaultVisuals((first.tunnels.slice(0, 5)) as (Tunnel & TunnelMetaInfo)[], first.channelsDB, submitId === -1 ? "ChannelsDB" : submitId === -2 ? 'FromFile' : submitId.toString());
+            return;
         }
+    }
 
-        // nothing to show
-        res(null);
-    });
+    // nothing to show
 }
 
 export async function removeChannelsData(channels?: boolean) {
@@ -468,35 +453,36 @@ async function showChannelDefaultVisuals(channels: Tunnel[] & TunnelMetaInfo[], 
     const context = Context.getInstance();
 
     let visibleChannels: Tunnel[] & TunnelMetaInfo[] = [];
-    for (let channel of channels) {
-        channel.__id = UUID.create22();
+    try {
+        for (let channel of channels) {
+            channel.__id = UUID.create22();
 
-        channel.__isVisible = true;
-        if (channel.__color === void 0) {
-            channel.__color = ColorGenerator.next().value;
+            if (channel.__color === void 0) {
+                channel.__color = ColorGenerator.next().value;
+            }
+
+            if (channelsDB !== undefined && channelsDB) {
+                channel.__channelsDB = true;
+            }
+
+            channel.__submissionId = submitId.toString();
+            channel.__layerColored = false;
+
+            const [loci, ref] = await context.renderTunnel(channel);
+
+            // only a rendered channel counts as visible, so a failure keeps the channels rendered before it
+            channel.__ref = ref;
+            channel.__loci = loci as Shape.Loci;
+            channel.__isVisible = true;
+            visibleChannels.push(channel);
+            LastVisibleChannels.set(channel);
+            LayerColors.invokeOnChannelAdd(channel.__ref);
         }
-
-        if (channelsDB !== undefined && channelsDB) {
-            channel.__channelsDB = true;
-        }
-
-        channel.__submissionId = submitId.toString();
-        channel.__layerColored = false;
-
-        visibleChannels.push(channel);
-        LastVisibleChannels.set(channel);
-
-        const [loci, ref] = await context.renderTunnel(channel);
-        channel.__ref = ref;
-        channel.__loci = loci as Shape.Loci;
-        LayerColors.invokeOnChannelAdd(channel.__ref);
-    }
-
-    return Promise.resolve().then(() => {
+    } finally {
         for (let channel of channels) {
             channel.__isBusy = false;
         }
-    });
+    }
 }
 
 export async function showChannelVisuals(channels: Tunnel[] & TunnelMetaInfo[], visible: boolean, forceRepaint?: boolean, channelsDB?: boolean, submitId?: string): Promise<any> {
