@@ -71,7 +71,7 @@
 	display:none;
 }
 
-.layerVizualizer * .controls .control-label:first{
+.layerVizualizer * .controls > .block-like:first-child > .control-label{
 	padding-left:0;
 }
 
