@@ -71,6 +71,11 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
         channel: undefined
     };
 
+    private unsubscribe: (() => void)[] = [];
+    // cancel the deferred display of the last selected channel's layers and of the channel itself
+    private cancelPendingLayers = () => { };
+    private cancelPendingChannel = () => { };
+
     componentDidMount() {
         let vizualizer = this.props.vizualizer;
 
@@ -84,12 +89,14 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
             radiusPropertyKey: vizualizer.getRadiusPropertyKey(),
         });
 
-        SelectionHelper.attachOnChannelSelectHandler((data) => {
-            window.setTimeout(() => {
+        this.unsubscribe.push(SelectionHelper.attachOnChannelSelectHandler((data) => {
+            // a channel selected meanwhile replaces this one
+            this.cancelPendingLayers();
+            const timer = window.setTimeout(() => {
                 this.setState({ isLayerSelected: false });
                 activateTab("left-tabs", "1");
                 let layers = convertLayersToLayerData(data);
-                doAfterTabActivated("left-tabs", "1", () => {
+                this.cancelPendingLayers = doAfterTabActivated("left-tabs", "1", () => {
                     vizualizer.setData(layers);
                     this.setState({ data: layers, hasData: true, isDOMReady: false, instanceId: vizualizer.getPublicInstanceIdx() }, () => { // had to use callBack since the state has to be set and component has to render the 'PaintingArea' before ''vizualizer.rebindDOMRefs'
                         vizualizer.rebindDOMRefs();
@@ -130,31 +137,37 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
                     });
                 });
             }, 50);
-        });
-        SelectionHelper.attachOnChannelSelectHandler2((channel) => {
-            window.setTimeout(() => {
-                doAfterTabActivated("left-tabs", "1", () => {
+            this.cancelPendingLayers = () => window.clearTimeout(timer);
+        }));
+        this.unsubscribe.push(SelectionHelper.attachOnChannelSelectHandler2((channel) => {
+            this.cancelPendingChannel();
+            const timer = window.setTimeout(() => {
+                this.cancelPendingChannel = doAfterTabActivated("left-tabs", "1", () => {
                     this.setState({ channel: channel });
                 });
             }, 50);
-        })
-        SelectionHelper.attachOnChannelDeselectHandler(() => {
-            this.setState({ data: [], hasData: false, isDOMReady: false, isLayerSelected: false });
+            this.cancelPendingChannel = () => window.clearTimeout(timer);
+        }));
+        this.unsubscribe.push(SelectionHelper.attachOnChannelDeselectHandler(() => {
+            // a channel selected just before is not shown anymore
+            this.cancelPendingLayers();
+            this.cancelPendingChannel();
+            this.setState({ data: [], hasData: false, isDOMReady: false, isLayerSelected: false, channel: undefined });
             setTimeout(function () {
                 $(window).trigger('contentResize');
             }, 1);
-        });
+        }));
 
-        LayerColors.attachLayerIndexOverObject((layerIndex, tunnelId) => {
+        this.unsubscribe.push(LayerColors.attachLayerIndexOverObject((layerIndex, tunnelId) => {
             if (SelectionHelper.getSelectedChannelId() !== tunnelId) return;
             this.props.vizualizer.highlightHitbox(layerIndex);
             if (!this.state.isLayerSelected) {
                 this.setState({ layerIds: [layerIndex] })
                 $(window).trigger('layerTriggered', layerIndex);
             }
-        })
+        }));
 
-        LayerColors.attachLayerIndexSelectObject(async (layerIndex, loci) => {
+        this.unsubscribe.push(LayerColors.attachLayerIndexSelectObject(async (layerIndex, loci) => {
             LayerColors.setSelectChannelLiningResidues(true);
             this.setState({ layerIds: layerIndex === -1 ? [] : [layerIndex] })
             const layerIdxs = layerIndex === -1 ? [] : [layerIndex];
@@ -176,22 +189,33 @@ export class LayerVizualizer extends React.Component<{ vizualizer: Vizualizer },
             $(window).trigger('layerSelected', { layerIds: layerIdxs.slice() });
             $(window).trigger('resize');
             LayerColors.setSelectChannelLiningResidues(false);
-        })
-        LayerColors.attachOnChannelRemoved((ref) => {
+        }));
+        this.unsubscribe.push(LayerColors.attachOnChannelRemoved((ref) => {
             if (this.state.channel !== undefined) {
                 const channel = this.state.channel;
                 if (channel.__ref === ref) {
                     this.setState({ channel })
                 }
             }
-        })
+        }));
 
-        $(window).on("lvContentResize", (() => {
-            this.forceUpdate();
-        }).bind(this));
-        $(window).on("resize", (() => {
-            this.forceUpdate();
-        }).bind(this));
+        $(window).on("lvContentResize", this.repaint);
+        $(window).on("resize", this.repaint);
+        this.unsubscribe.push(() => {
+            $(window).off("lvContentResize", this.repaint);
+            $(window).off("resize", this.repaint);
+        });
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe.forEach(u => u());
+        this.unsubscribe = [];
+        this.cancelPendingLayers();
+        this.cancelPendingChannel();
+    }
+
+    private repaint = () => {
+        this.forceUpdate();
     }
 
     render() {

@@ -22,7 +22,9 @@ export function activateTab(tabbedElementId: string, tabId: string) {
     }
 }
 
-export function doAfterTabActivated(tabbedElementId: string, tabId: string, callback: () => void) {
+// Calls the callback once the tab is shown; returns a function that cancels the call
+export function doAfterTabActivated(tabbedElementId: string, tabId: string, callback: () => void): () => void {
+    let timer: number;
     let checker = function () {
         let link = getTabLinkById(tabbedElementId, tabId);
         let href = link.attr("href");
@@ -30,10 +32,11 @@ export function doAfterTabActivated(tabbedElementId: string, tabId: string, call
             callback();
         }
         else {
-            window.setTimeout(checker, 10);
+            timer = window.setTimeout(checker, 10);
         }
     };
-    window.setTimeout(checker, 10);
+    timer = window.setTimeout(checker, 10);
+    return () => window.clearTimeout(timer);
 }
 
 export function leftPanelTabs() {

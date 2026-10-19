@@ -1,59 +1,12 @@
 import React from "react";
-import { LayersInfo } from "../../../DataInterface";
-import { SelectionHelper } from "../../CommonUtils/Selection";
+import { LayerSelectionPanel, LayerSelectionState } from "../Common/LayerSelection";
 import { Datagrid, DGNoDataInfoRow, DGRowEmpty, headCell, propertyRow } from "../Common/Datagrid/Components";
 import { roundToDecimal } from "../../../Common/Util/Numbers";
 
 let DGTABLE_COLS_COUNT = 2;
 let NO_DATA_MESSAGE = "Hover over channel(2D) for details...";
 
-declare function $(p: any): any;
-
-interface State {
-    data: LayersInfo[] | null,
-    layerIds: number[],
-    selectionOn: boolean
-};
-
-export class LayerProperties extends React.Component<{}, State> {
-
-    state: State = {
-        data: null,
-        layerIds: [],
-        selectionOn: false
-    };
-
-    componentDidMount() {
-        SelectionHelper.attachOnChannelDeselectHandler(() => {
-            this.setState({ layerIds: [], data: null, selectionOn: false });
-        });
-        SelectionHelper.attachOnChannelSelectHandler((data) => {
-            this.setState({ layerIds: [], data: data.LayersInfo, selectionOn: false });
-        });
-
-        $(window).on('layerTriggered', this.layerTriggerHandler.bind(this));
-        $(window).on('layerSelected', this.layerSelectedHandler.bind(this));
-    }
-
-    private layerTriggerHandler(event: any, layerIdx: number) {
-        if (this.state.selectionOn) {
-            return;
-        }
-
-        this.setState({ layerIds: [layerIdx] });
-
-        setTimeout(function () {
-            $(window).trigger('contentResize');
-        }, 1);
-    }
-
-    private layerSelectedHandler(event: any, data: { layerIds: number[] }) {
-        this.setState({ layerIds: data.layerIds, selectionOn: data.layerIds.length > 0 });
-
-        setTimeout(function () {
-            $(window).trigger('contentResize');
-        }, 1);
-    }
+export class LayerProperties extends LayerSelectionPanel {
 
     render() {
         return <div>
@@ -64,7 +17,7 @@ export class LayerProperties extends React.Component<{}, State> {
     }
 }
 
-class DGBody extends React.Component<State, {}> {
+class DGBody extends React.Component<LayerSelectionState, {}> {
     private getBottleneck(layerdIds: number[]) {
         if (this.props.data === null) {
             return 0;
