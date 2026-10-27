@@ -8,7 +8,7 @@ import { Controls } from "./UI/Controls/UI";
 import { getParameters } from "../Common/Util/Router";
 import { Events } from "../Bridge";
 import { CommonOptions } from "../../config/common";
-import { addCaverTag, loadData } from "./State";
+import { addMissingCaverGroups, loadData } from "./State";
 import { StateSelection } from "molstar/lib/mol-state";
 import { ChannelsDBChannels, MoleData } from "../DataInterface";
 import { ComputationInfo } from "../DataProxy";
@@ -104,7 +104,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
             ChannelsDBDataCache.getChannelsData(info.PdbId).then(async channelsDbData => {
                 const annotations: Map<string, ChannelAnnotation[]> = await ChannelsDBDataCache.getChannelsAnnotations(info.PdbId);
                 const guidChannelsDbData = TunnelsId.generateGuidAll(channelsDbData);
-                let completeChannelsDbData = addCaverTag(guidChannelsDbData);
+                let completeChannelsDbData = addMissingCaverGroups(guidChannelsDbData);
                 completeChannelsDbData = TunnelsId.generateIdAllWithAnnotations(annotations, completeChannelsDbData, compId, 'channelsDb');
                 Tunnels.setChannelsDB(completeChannelsDbData);
                 TunnelName.reload({ Channels: completeChannelsDbData }, '-1');

@@ -112,7 +112,6 @@ function parseChannels(category: any, atomSiteResidues: Map<string, { name: stri
     const ids = category.sb_ncbr_channel.getField("id");
     const types = category.sb_ncbr_channel.getField("type");
     const methods = category.sb_ncbr_channel.getField("method");
-    const software = category.sb_ncbr_channel.getField("software");
     const autos = category.sb_ncbr_channel.getField("auto");
     const cavities = category.sb_ncbr_channel.getField("cavity");
 
@@ -150,8 +149,7 @@ function parseChannels(category: any, atomSiteResidues: Map<string, { name: stri
                 LogD: 0,
                 LogS: 0,
                 BRadius: 0
-            },
-            Caver: software.str(i) === 'Caver'
+            }
         }
 
         channels.set(ids.str(i), channel);

@@ -37,7 +37,6 @@ import { ColorBound, Property } from "./VizualizerMol/color-tunnels/property-col
 import { parseCifText } from "molstar/lib/mol-io/reader/cif/text/parser";
 import { loadCifTunnels } from "./VizualizerMol/mmcif-tunnels/converter2json";
 import { Events } from "../Bridge";
-import { adjustCaverDistance } from "./VizualizerMol/color-tunnels/algorithm";
 import { ApiService } from "../MoleAPIService";
 import { SbNcbrTunnelsExtension } from "./VizualizerMol/tunnels-extension/behavior";
 import { Model } from "molstar/lib/mol-model/structure";
@@ -420,11 +419,6 @@ export class Context {
         props.highlight_label = `<b>${channel.Type} (${name})</b>, Length: ${len} Å`;
         props.label = `${channel.Type} ${channel.Id} (${name})`;
         props.description = `Length: ${len} Å`;
-
-        const caver = channel.Caver ? channel.Caver : false;
-        if (caver) {
-            adjustCaverDistance(channel);
-        }
 
         const repr = await update
             .toRoot()
