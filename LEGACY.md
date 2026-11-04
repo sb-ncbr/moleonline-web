@@ -136,7 +136,9 @@ copied in by the Dockerfile (`COPY docker/nginx.legacy.conf /etc/nginx/nginx.con
   templates, gzip, the `/tmp` paths for running unprivileged);
 - **plain HTTP on port 8080**, no `server_name`, no certificates and no redirect to HTTPS: the Gateway terminates TLS
   and redirects HTTP;
-- access log to stdout (`access_log /dev/stdout;`), so that `kubectl logs` shows the visits.
+- access log to stdout (`access_log /dev/stdout;`), so that `kubectl logs` shows the visits, with the visitor's
+  address from `X-Forwarded-For` (`set_real_ip_from 10.0.0.0/8`, the cluster's addresses) instead of the Gateway's;
+- `location = /healthz` for the readiness probe, without logging, so the probe does not fill the log.
 
 CI (`.github/workflows/`): on a push to `legacy`, build and push **`ghcr.io/sb-ncbr/moleonline-legacy`**, tagged with
 the commit's hash and `latest`, as `sb-ncbr/moleonline` does for its images (`docker/build-push-action`, the
@@ -202,7 +204,7 @@ spec:
               containerPort: 8080
           readinessProbe:
             httpGet:
-              path: /
+              path: /healthz
               port: http
           resources:
             requests:
