@@ -118,25 +118,6 @@ export class ApiService {
 
     private static baseUrl = DataSources.API_URL[DataSources.MODE];
 
-    private static sendPOST(url: string, formData: FormData): Promise<any> {
-        let fetching = Fetching.get();
-        return this.handleResponse(fetching.fetch(url, {
-            method: "POST",
-            body: formData,
-        }), url);
-    }
-    private static sendPOSTjson(url: string, formData: Object): Promise<any> {
-        let fetching = Fetching.get();
-        const headers = new Headers();
-        headers.append("Accept", "application/json");
-        headers.append("Content-Type", "application/json");
-        return this.handleResponse(fetching.fetch(url, {
-            method: "POST",
-            headers,
-            body: JSON.stringify(formData),
-
-        }), url);
-    }
     private static sendGET(url: string): Promise<any> {
         let fetching = Fetching.get();
         if (CommonOptions.DEBUG_MODE)
@@ -168,25 +149,16 @@ export class ApiService {
         });
     }
 
-    private static prepareInitUrl(pdbid: string, usePores: boolean, assemblyId?: string) {
-        const pores = usePores ? 'Pores/' : '';
-        const optional = assemblyId ? `?assemblyId=${assemblyId}` : '';
-        return `${this.baseUrl}/Init/${pores}${pdbid}${optional}`;
+    // This archive is read-only: whatever would compute, change or send something fails without a request
+    private static readOnly(): Promise<never> {
+        return Promise.reject("This archive is read-only.");
     }
 
     public static initWithParams(pdbid: string, usePores: boolean, assemblyId?: string): Promise<InitResponse> {
-        let url = this.prepareInitUrl(pdbid, usePores, assemblyId);
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
-        return this.sendGET(url);
+        return this.readOnly();
     }
     public static initWithFile(formData: FormData): Promise<InitResponse> {
-        let url = this.prepareInitUrl("", false);
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
-        return this.sendPOST(url, formData);
+        return this.readOnly();
     }
 
     public static getStatus(computationId: string, submitId?: number): Promise<InitResponse> {
@@ -229,29 +201,12 @@ export class ApiService {
         });
     }
 
-    public static submitMoleJob(computationId: string, data: MoleConfig) {
-        let url = `${this.baseUrl}/Submit/Mole/${computationId}`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
-        return this.sendPOSTjson(url, data);
+    public static submitMoleJob(computationId: string, data: MoleConfig): Promise<any> {
+        return this.readOnly();
     }
 
-    public static submitPoresJob(computationId: string, data: PoresConfig) {
-        let url = `${this.baseUrl}/Submit/Pores/${computationId}`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
-
-        let jsonRequestData = {
-            IsBetaStructure: data.IsBetaBarel,
-            InMembrane: data.InMembrane,
-            Chains: (data.Chains === null) ? "" : data.Chains,
-            InteriorThreshold: (data.InteriorThreshold === void 0 || data.InteriorThreshold === null) ? null : data.InteriorThreshold,
-            ProbeRadius: (data.ProbeRadius === void 0 || data.ProbeRadius === null) ? null : data.ProbeRadius
-        }
-
-        return this.sendPOSTjson(url, jsonRequestData);
+    public static submitPoresJob(computationId: string, data: PoresConfig): Promise<any> {
+        return this.readOnly();
     }
 
     public static getFilenameFromResponseHeader(r: Response) {
@@ -298,20 +253,12 @@ export class ApiService {
         });
     }
 
-    public static killRunningJob(computationId: string) {
-        let url = `${this.baseUrl}/Kill/${computationId}`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
-        return this.sendGET(url);
+    public static killRunningJob(computationId: string): Promise<any> {
+        return this.readOnly();
     }
 
-    public static deleteProject(computationId: string) {
-        let url = `${this.baseUrl}/Delete/${computationId}`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
-        return this.sendGET(url);
+    public static deleteProject(computationId: string): Promise<any> {
+        return this.readOnly();
     }
 
     public static getCSAResidues(computationId: string): Promise<CSAResidues> {
@@ -344,15 +291,8 @@ export class ApiService {
         });
     }
 
-    public static submitFeedback(params: SubmitFeedbackParams) {
-        let url = `${this.baseUrl}/__Mail`;
-        if (this.DEBUG_MODE) {
-            console.log(url);
-        }
-
-        return this.sendPOSTjson(url, params).then((val) => {
-            return val as SubmitFeedbackResponse;
-        });
+    public static submitFeedback(params: SubmitFeedbackParams): Promise<SubmitFeedbackResponse> {
+        return this.readOnly();
     }
 
     public static getVersions(): Promise<VersionResponse> {
