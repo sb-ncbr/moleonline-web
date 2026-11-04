@@ -1072,8 +1072,13 @@ export class Submission extends React.Component<{ data: ServiceSubmission, compu
             result = moleData.getPackage();
         }
         else {
-            const poreData = new PoresFormData(data.PoresConfig);
-            result = poreData.getPackage();
+            // the new MOLEonline loads the parameters as it has them itself: IsBetaBarrel, which this version
+            // misspells, and the chains as a list; the API has them as a list or as typed ("A, B")
+            const { IsBetaBarel, Chains, ...pores } = new PoresFormData(data.PoresConfig).getPackage();
+            const typed: unknown = Chains;
+            const chains = (Array.isArray(typed) ? typed.map(String) : String(typed ?? "").split(","))
+                .map(c => c.trim()).filter(c => c.length > 0);
+            result = { ...pores, Chains: chains, IsBetaBarrel: IsBetaBarel };
         }
 
         const jsonString = JSON.stringify(result, null, 2);
@@ -1083,10 +1088,9 @@ export class Submission extends React.Component<{ data: ServiceSubmission, compu
         link.href = URL.createObjectURL(blob);
         link.download = `params_${computationId}_${currentSubmitId}.json`;
 
+        // the link is never in the page: clicking it downloads the file, which some browsers read only after the click
         link.click();
-
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
+        setTimeout(() => URL.revokeObjectURL(link.href), 60_000);
     }
 }
 
