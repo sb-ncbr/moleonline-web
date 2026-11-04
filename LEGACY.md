@@ -109,9 +109,9 @@ read-only.") without a request. The callers already show a failed promise as an 
 
 ### Feedback form
 
-Remove it: `View/UI/Help/UI.tsx` (`submitFeedback`, line 146) sends it through the old API's `/__mail`, which no one
-watches after the switch. In its place, a line pointing to moleonline.cz for questions; `submitFeedback` in
-`MoleAPIService.ts` gets the same guard as the computations.
+Nothing to do: `View/UI/Help/UI.tsx` (`submitFeedback`, line 146), which would send it through the old API's
+`/__mail`, is not rendered anywhere (it is not in the bundle). `submitFeedback` in `MoleAPIService.ts` refuses
+anyway, with the computations.
 
 ### What stays as it is
 
