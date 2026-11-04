@@ -1,0 +1,42 @@
+name: Build and publish the archive's image
+
+# The read-only archive of the old MOLEonline (LEGACY.md): built for every push, pushed to ghcr.io for each commit on
+# legacy (its full hash, and latest), as sb-ncbr/moleonline does for its images
+on:
+  push:
+  pull_request:
+
+jobs:
+  image:
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to the GitHub Container Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/legacy'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build, and on legacy push, moleonline-legacy
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/legacy' }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/moleonline-legacy:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/moleonline-legacy:latest
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha,scope=moleonline-legacy
+          cache-to: type=gha,mode=max,scope=moleonline-legacy

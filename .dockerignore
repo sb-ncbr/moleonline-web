@@ -4,3 +4,5 @@
 build
 docker
 node_modules
+# except the configuration the image copies in (docker/Dockerfile)
+!docker/nginx.legacy.conf

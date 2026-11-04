@@ -13,6 +13,8 @@ RUN npm run build
 FROM nginx:1.29-alpine-slim
 
 COPY --from=build /build/dist/ /var/www
+# the archive's configuration (LEGACY.md); docker-compose*.yaml mount their own over it
+COPY docker/nginx.legacy.conf /etc/nginx/nginx.conf
 
 USER nginx
 
