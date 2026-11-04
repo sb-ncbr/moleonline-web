@@ -58,6 +58,22 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
         this.forceUpdate();
     }
 
+    private async loadSubmissionsChannels(info: CompInfo, channels: Map<number, ChannelsDBChannels>) {
+        for (const submission of info.Submissions) {
+            const submitId = Number(submission.SubmitId);
+
+            const data = await ApiService.getChannelsData(info.ComputationId, submitId)
+            let dataObj = JSON.parse(data) as MoleData;
+            if (dataObj !== undefined && dataObj.Channels !== undefined) {
+                let guidData = TunnelsId.generateGuidAll(dataObj.Channels);
+                guidData = TunnelsId.generateIdAll(guidData, info.ComputationId, submitId.toString())
+                TunnelName.reload({ Channels: guidData }, submitId.toString())
+                Tunnels.addChannels(submitId.toString(), guidData);
+                channels.set(submitId, guidData);
+            }
+        }
+    }
+
     loadChannels() {
         LoadingStatus.log('Loading channels from current session...');
         let params = getParameters();
@@ -90,13 +106,15 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                         Tunnels.addChannels('-2', completeChannelsDbData);
                         channels.set(-2, completeChannelsDbData);
                     }
+                    await this.loadSubmissionsChannels(info, channels);
                     Tunnels.invokeOnTunnelsLoaded();
                     LoadingStatus.log('Finalizing…');
                     this.setState({ channelsData: channels, isLoadingChannels: false })
                 })().catch(error => {
+                    this.setState({ isLoadingChannels: false, error })
                     Events.invokeNotifyMessage({
                         messageType: "Danger",
-                        message: 'Could not fetch data from ChannelsDB'
+                        message: 'Could not fetch data from MoleAPI'
                     })
                 });
                 return;
@@ -109,19 +127,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                 Tunnels.setChannelsDB(completeChannelsDbData);
                 TunnelName.reload({ Channels: completeChannelsDbData }, '-1');
                 channels.set(-1, completeChannelsDbData);
-                for (const submission of info.Submissions) {
-                    const submitId = Number(submission.SubmitId);
-
-                    const data = await ApiService.getChannelsData(compId, submitId)
-                    let dataObj = JSON.parse(data) as MoleData;
-                    if (dataObj !== undefined && dataObj.Channels !== undefined) {
-                        let guidData = TunnelsId.generateGuidAll(dataObj.Channels);
-                        guidData = TunnelsId.generateIdAll(guidData, computationId, submitId.toString())
-                        TunnelName.reload({ Channels: guidData }, submitId.toString())
-                        Tunnels.addChannels(submitId.toString(), guidData);
-                        channels.set(submitId, guidData);
-                    }
-                }
+                await this.loadSubmissionsChannels(info, channels);
                 Tunnels.invokeOnTunnelsLoaded();
                 LoadingStatus.log('Finalizing…');
                 this.setState({ channelsData: channels, isLoadingChannels: false })
@@ -135,19 +141,7 @@ export class LeftPanel extends React.Component<{ context: Context }, { isLoading
                     return;
                 }
                 try {
-                    for (const submission of info.Submissions) {
-                        const submitId = Number(submission.SubmitId);
-
-                        const data = await ApiService.getChannelsData(compId, submitId)
-                        let dataObj = JSON.parse(data) as MoleData;
-                        if (dataObj !== undefined && dataObj.Channels !== undefined) {
-                            let guidData = TunnelsId.generateGuidAll(dataObj.Channels)
-                            guidData = TunnelsId.generateIdAll(guidData, computationId, submitId.toString())
-                            TunnelName.reload({ Channels: guidData }, submitId.toString())
-                            Tunnels.addChannels(submitId.toString(), guidData);
-                            channels.set(submitId, guidData);
-                        }
-                    }
+                    await this.loadSubmissionsChannels(info, channels);
                     Tunnels.invokeOnTunnelsLoaded();
                     this.setState({ channelsData: channels, isLoadingChannels: false })
                     LoadingStatus.log('Finalizing…');
