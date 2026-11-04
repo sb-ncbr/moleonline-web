@@ -1,0 +1,128 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: moleonline-legacy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: moleonline-legacy
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: moleonline-legacy
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101  # nginx's
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: web
+          image: ghcr.io/sb-ncbr/moleonline-legacy:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: moleonline-legacy
+spec:
+  selector:
+    app.kubernetes.io/name: moleonline-legacy
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+# DNS: a CNAME of the domain to kuba-lb.cloud.e-infra.cz; the certificate is issued once it resolves
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: moleonline-legacy
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-gateway
+spec:
+  gatewayClassName: traefik
+  listeners:
+    - name: web
+      protocol: HTTP
+      port: 8000
+      hostname: moleonline-legacy.biodata.ceitec.cz
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - name: websecure
+      protocol: HTTPS
+      port: 8443
+      hostname: moleonline-legacy.biodata.ceitec.cz
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: moleonline-legacy-tls
+      allowedRoutes:
+        namespaces:
+          from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: moleonline-legacy
+spec:
+  parentRefs:
+    - name: moleonline-legacy
+      sectionName: websecure
+  hostnames:
+    - moleonline-legacy.biodata.ceitec.cz
+  rules:
+    - filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: moleonline-legacy-hsts
+      backendRefs:
+        - name: moleonline-legacy
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: moleonline-legacy-redirect
+spec:
+  parentRefs:
+    - name: moleonline-legacy
+      sectionName: web
+  hostnames:
+    - moleonline-legacy.biodata.ceitec.cz
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: moleonline-legacy-hsts
+spec:
+  headers:
+    stsSeconds: 31536000
