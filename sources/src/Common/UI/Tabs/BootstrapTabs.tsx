@@ -8,6 +8,7 @@ export interface TabbedContainerProps {
     htmlClassName?: string,
     activeTab: number
     onChange?: (tabIdx: number) => void
+    disabledTabs?: { [tabIdx: number]: string } // the hover text of each tab that cannot be opened
 }
 export class TabbedContainer extends React.Component<TabbedContainerProps, {}> {
 
@@ -18,6 +19,12 @@ export class TabbedContainer extends React.Component<TabbedContainerProps, {}> {
         let rv: JSX.Element[] = [];
         for (let idx = 0; idx < this.props.header.length; idx++) {
             let header = this.props.header[idx];
+            let disabledTitle = this.props.disabledTabs?.[idx];
+            if (disabledTitle !== void 0) {
+                // the title is on the item: Bootstrap's disabled link takes no pointer events, so its own would not show
+                rv.push(<li key={idx} className="nav-item" title={disabledTitle}><a id={`${this.props.namespace}${idx + 1}-tab`} className="nav-link disabled" aria-disabled="true" tabIndex={-1}>{header}</a></li>);
+                continue;
+            }
             rv.push(<li key={idx} className={(idx === this.props.activeTab) ? "nav-item active" : "nav-item"}><a id={`${this.props.namespace}${idx + 1}-tab`} className={(idx === this.props.activeTab) ? "nav-link active" : "nav-link"} aria-current="page" data-bs-toggle="tab" href={`#${this.props.namespace}${idx + 1}`} onClick={(() => {
                 window.setTimeout(() => {
                     if (this.props.onChange !== void 0) {

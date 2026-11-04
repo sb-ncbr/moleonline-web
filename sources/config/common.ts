@@ -30,6 +30,7 @@ export class DataSources {
 export class CommonOptions {
     public static DEBUG_MODE = false;
     public static CHANNELSDB_LINK_DETAIL_URL = "https://channelsdb2.biodata.ceitec.cz/detail/pdb";
+    public static READ_ONLY_MESSAGE = "This archive is read-only. For new computations, go to moleonline.cz.";
 }
 /*
 export let ROUTING_OPTIONS:any = {

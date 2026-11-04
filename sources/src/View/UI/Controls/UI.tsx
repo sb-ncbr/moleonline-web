@@ -10,16 +10,14 @@ import { flattenResidues, flattenResiduesArray, isMoleJob, parseResidues, points
 import { ChannelsDBChannels } from "../../../DataInterface";
 import { ChannelsDBData } from "../../../Cache";
 import { SimpleComboBox } from "../Common/Controls/Components";
-import { GlobalRouter } from "../../../SimpleRouter";
 import { fakeRedirect, getParameters } from "../../../Common/Util/Router";
 import { TabbedContainer } from "../../../Common/UI/Tabs/BootstrapTabs";
-import { CommonOptions, Routing } from "../../../../config/common";
+import { CommonOptions } from "../../../../config/common";
 import { Button, ControlGroup, ControlRow, ToggleButton } from "molstar/lib/mol-plugin-ui/controls/common";
 import { BookmarksOutlinedSvg, CloseSvg } from "molstar/lib/mol-plugin-ui/controls/icons";
 import { BoolControl, BoundedIntervalControl, IntervalControl, NumberRangeControl, SelectControl, TextControl } from "molstar/lib/mol-plugin-ui/controls/parameters";
 import { ParamDefinition } from "molstar/lib/mol-util/param-definition";
 import { StartingPointBox, ValidationState } from "../Common/Controls/FromLiteMol";
-import { isMoleConfigOrPoresConfig } from "./ParamsChecker";
 require("molstar/lib/mol-plugin-ui/skin/light.scss");
 
 var Provider = ComputationInfo.DataProvider;
@@ -975,25 +973,6 @@ function checkCanDelete(status: ComputationStatus) {
     return result;
 }
 
-function checkCanResubmit(status: ComputationStatus) {
-    let result = false;
-    switch (status as ComputationStatus) {
-        case "Aborted":
-        case "Error":
-        case "FailedInitialization":
-        case "Finished":
-        case "Initialized":
-            result = true;
-            break;
-        case "Running":
-        case "Initializing":
-        case "Deleted":
-            result = false;
-            break;
-    }
-    return result;
-}
-
 export class Submission extends React.Component<{ data: ServiceSubmission, computationId: string, status: string, currentSubmitId: number, onCopy: (submitId: number) => void, onResubmit: (info: CompInfo) => void }, {}> {
 
     componentDidMount() {
@@ -1042,7 +1021,6 @@ export class Submission extends React.Component<{ data: ServiceSubmission, compu
     render() {
         let currentSubmitId = this.props.currentSubmitId;
         let data = this.props.data;
-        let canResubmit = checkCanResubmit(this.props.status as ComputationStatus);
 
         let contents;
         if (isMoleJob(data)) {
@@ -1072,31 +1050,13 @@ export class Submission extends React.Component<{ data: ServiceSubmission, compu
                 </div>
                 <div id={`submit-data-${data.SubmitId}`} className={`panel-collapse collapse${(currentSubmitId.toString() === data.SubmitId.toString()) ? ' in' : ''}`}>
                     {contents}
-                    <div className="panel-footer">
-                        <span className="btn btn-sm btn-primary" onClick={(() => this.exportParams()).bind(this)}>Export</span><span className="btn btn-sm btn-primary" onClick={(() => this.copyParams(data.SubmitId)).bind(this)}>Copy</span><span className="btn btn-sm btn-primary" aria-disabled={!canResubmit} onClick={(() => this.reSubmit()).bind(this)}>Resubmit</span>
+                    {/* the hover text is on the footer, as the disabled buttons take no pointer events; Export has its own */}
+                    <div className="panel-footer" title={CommonOptions.READ_ONLY_MESSAGE}>
+                        <span className="btn btn-sm btn-primary" title="Download the parameters as JSON" onClick={(() => this.exportParams()).bind(this)}>Export</span><span className="btn btn-sm btn-primary disabled" aria-disabled="true">Copy</span><span className="btn btn-sm btn-primary disabled" aria-disabled="true">Resubmit</span>
                     </div>
                 </div>
             </div>
         );
-    }
-
-    private reSubmit() {
-        if (isMoleJob(this.props.data)) {
-            BridgeEvents.invokeOnReSubmit(
-                ApiService.submitMoleJob(this.props.computationId, this.props.data.MoleConfig)
-            );
-        }
-        else {
-            BridgeEvents.invokeOnReSubmit(
-                ApiService.submitPoresJob(this.props.computationId, this.props.data.PoresConfig)
-            );
-        }
-    }
-
-    private copyParams(submitId: number) {
-        if (this.props.onCopy !== void 0) {
-            this.props.onCopy(submitId);
-        }
     }
 
     private exportParams() {
@@ -1175,7 +1135,7 @@ interface ControlTabState {
 export class ControlTabs extends React.Component<{ activeTab?: number }, ControlTabState> {
 
     state: ControlTabState = {
-        activeTabIdx: 0,
+        activeTabIdx: 1,
         data: void 0,
         err: void 0,
         submitId: 1,
@@ -1249,24 +1209,8 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
     }
 
     handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        // the archive is read-only
         e.preventDefault();
-
-        $(e.target).find("input[type=submit]").attr("disabled", true);
-        let currentState = this.state;
-        currentState.canSubmit = false;
-        this.setState(currentState);
-
-        if (this.state.data === void 0) {
-            return;
-        }
-
-        FormEvents.invokeOnSubmit(validationGroup);
-    }
-
-    setOpenControls(open: boolean) {
-        let state = this.state;
-        state.openControls = open;
-        this.setState(state);
     }
 
     render() {
@@ -1286,6 +1230,7 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
         }
         else {
             tabs.push(
+                <div />,
                 <div>No data</div>
             );
         }
@@ -1299,13 +1244,13 @@ export class ControlTabs extends React.Component<{ activeTab?: number }, Control
         }
         return (
             <div className="submit-form-container">
-                <TabbedContainer header={["Submission settings", "Submissions"]} tabContents={tabs} namespace="right-panel-tabs-" htmlClassName="tabs flex-grow-1" htmlId="right-panel-tabs" activeTab={this.state.activeTabIdx} onChange={((tabIdx: number) => {
+                <TabbedContainer header={["Submission settings", "Submissions"]} tabContents={tabs} namespace="right-panel-tabs-" htmlClassName="tabs flex-grow-1" htmlId="right-panel-tabs" activeTab={this.state.activeTabIdx} disabledTabs={{ 0: CommonOptions.READ_ONLY_MESSAGE }} onChange={((tabIdx: number) => {
                     let s = this.state;
                     s.activeTabIdx = tabIdx;
                     this.setState(s);
                 }).bind(this)} />
                 <form className="form-horizontal" id="submission-form" onSubmit={this.handleSubmit.bind(this)}>
-                    <ControlButtons submitId={this.state.submitId} computationInfo={this.state.data} isLoading={!this.state.canSubmit} setOpenControls={this.setOpenControls.bind(this)} />
+                    <ControlButtons submitId={this.state.submitId} computationInfo={this.state.data} />
                 </form>
                 {/* <div id="right-panel-toggler" className="toggler glyphicon glyphicon-resize-vertical"></div> */}
             </div>
@@ -1319,32 +1264,17 @@ interface SubmissionCoboboxItem {
 }
 interface ControlButtonsState {
     submitId: number,
-    hasKillable: boolean,
-    canSubmit: boolean,
-    submitLoading: boolean,
 }
 interface ControlButtonsProps {
     submitId: number,
     computationInfo: CompInfo | undefined,
-    isLoading: boolean,
-    setOpenControls: (open: boolean) => void,
 }
 
 export class ControlButtons extends React.Component<ControlButtonsProps, ControlButtonsState> {
-    state: ControlButtonsState = { submitId: -1, hasKillable: false, canSubmit: true, submitLoading: false }
+    state: ControlButtonsState = { submitId: -1 }
 
     componentDidMount() {
         this.state.submitId = this.props.submitId;
-        BridgeEvents.subscribeChangeHasKillable((hasKillable) => {
-            let state = this.state;
-            state.hasKillable = hasKillable;
-            this.setState(state);
-        });
-        BridgeEvents.subscribeToggleLoadingScreen(({ message, visible }) => {
-            let state = this.state;
-            state.submitLoading = visible;
-            this.setState(state);
-        })
     }
 
     componentDidUpdate(prevProps: ControlButtonsProps) {
@@ -1501,184 +1431,27 @@ export class ControlButtons extends React.Component<ControlButtonsProps, Control
         return idx - 1;
     }
 
-    private handleOnReaderLoad(reader: FileReader, props: Readonly<ControlButtonsProps>) {
-        if (props === undefined || props.setOpenControls === undefined) {
-            return;
-        }
-        try {
-            const jsonData = JSON.parse(reader.result as string);
-            // const data = parseToMoleConfigOrPoresConfig(jsonData);
-            const check = isMoleConfigOrPoresConfig(jsonData);
-            if (check === null) {
-                throw Error("The file is not in the required format")
-            }
-            if (jsonData !== null) {
-                BridgeEvents.invokeCopyParameters({
-                    mode: check === "MoleConfig" ? "mole" : "pores",
-                    moleConfig: check === "MoleConfig" ? jsonData as MoleConfig : null,
-                    poresConfig: check !== "MoleConfig" ? jsonData as PoresConfig : null
-                });
-                props.setOpenControls(true);
-            }
-        } catch (error) {
-            Events.invokeNotifyMessage({
-                messageType: "Danger",
-                message: `Error loading JSON: ${error}`
-            });
-        }
-    }
-
-    private handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-        if (this.props === undefined) {
-            return;
-        }
-        const file = event.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = () => this.handleOnReaderLoad(reader, this.props);
-            reader.readAsText(file);
-            event.target.value = '';
-        }
-    }
-
     render() {
-        let canKill = (this.props.computationInfo !== void 0 && this.state.hasKillable);
         let items = this.prepareSubmissionItems();
         let idx = this.getSelectedIndex(this.state.submitId, items);
         let canShiftPrev = this.canShiftPrev();
         let canShiftNext = this.canShiftNext();
+        // The archive is read-only. The hover texts are on the parents: disabled buttons take no pointer events.
         return <div className="submit-parent">
-            <div className="d-flex flex-wrap mb-1">
-                {this.props.isLoading || this.state.submitLoading
-                    ? <button className="btn btn-sm btn-success submit px-3" type="submit" id="controls-submit" disabled>
-                        <span
-                            id="controls-loader"
-                            className="spinner-border spinner-border-sm me-2"
-                            role="status"
-                            aria-hidden="true"
-                        ></span>
-                        Submit
-                    </button>
-                    : <button className="btn btn-sm btn-success submit px-3" type="submit" id="controls-submit">Submit</button>}
-                <input type="button" className="btn btn-sm btn-primary kill-job-button px-3" disabled={!canKill} onClick={(e => {
-                    if ($(e.currentTarget).attr("disabled") !== "disabled") {
-                        $('#killJobDialog').modal('show');
-                        $(".chdb-panel.right-panel").addClass("has-modal");
-                    }
-                })} value="Kill" />
-                <input type="button" className="btn btn-sm btn-primary delete-project-button px-3" data-toggle="modal" data-target="#deleteProjectDialog" onClick={(e => {
-                    e.preventDefault();
-                    $(".chdb-panel.right-panel").addClass("has-modal");
-                    return false;
-                })} value="Delete" />
-                <input className="btn btn-sm btn-primary clear-button px-3" type="button" value="Clear" onClick={() => {
-                    FormEvents.invokeOnClear(validationGroup + "_form");
-                }} />
+            <div className="d-flex flex-wrap mb-1" title={CommonOptions.READ_ONLY_MESSAGE}>
+                <button className="btn btn-sm btn-success submit px-3" type="submit" id="controls-submit" disabled>Submit</button>
+                <input type="button" className="btn btn-sm btn-primary kill-job-button px-3" disabled value="Kill" />
+                <input type="button" className="btn btn-sm btn-primary delete-project-button px-3" disabled value="Delete" />
+                <input className="btn btn-sm btn-primary clear-button px-3" type="button" disabled value="Clear" />
             </div>
             <div className="d-flex flex-wrap">
-                <label className="btn btn-sm btn-primary load-button px-2">
-                    Load params
-                    <input
-                        type="file"
-                        accept=".json"
-                        className="d-none"
-                        onChange={this.handleFileChange.bind(this)}
-                    />
-                </label>
+                <span title={CommonOptions.READ_ONLY_MESSAGE}>
+                    <label className="btn btn-sm btn-primary load-button px-2 disabled" aria-disabled="true">Load params</label>
+                </span>
                 <div style={{ marginLeft: "5px" }}>
                     <input className="btn btn-sm btn-primary submit-arrow" type="button" value=">" disabled={(!canShiftNext) ? true : void 0} data-value={(!canShiftNext || idx === void 0) ? void 0 : items[this.getNextIdx(idx)].value} onClick={this.changeSubmitIdByStep.bind(this)} />
                     <SimpleComboBox id="submissionComboSwitch" items={items} defaultSelectedIndex={idx} className="form-control submit-combo" onSelectedChange={this.onSubmitIdComboSelectChange.bind(this)} />
                     <input className="btn btn-sm btn-primary submit-arrow" type="button" value="<" disabled={(!canShiftPrev) ? true : void 0} data-value={(!canShiftPrev || idx == void 0) ? void 0 : items[this.getPrevIdx(idx)].value} onClick={this.changeSubmitIdByStep.bind(this)} />
-                </div>
-            </div>
-            <ModalDialog id="killJobDialog" header="Do you really want to kill running job?" body={this.prepareKillJobDialogBody()} />
-            <ModalDialog id="deleteProjectDialog" header="Do you really want to delete whole computation project?" body={this.prepareDeleteDialogBody()} />
-        </div>
-    }
-
-    private prepareKillJobDialogBody() {
-        return (
-            <div>
-                <button className="btn btn-primary left-button" onClick={(e) => {
-                    e.preventDefault();
-                    if (this.props.computationInfo === void 0) {
-                        return false;
-                    }
-                    ApiService.killRunningJob(this.props.computationInfo.ComputationId).then((result) => {
-                        if (result.Status !== "Aborted") {
-                            BridgeEvents.invokeNotifyMessage({
-                                message: (result.ErrorMsg.length === 0) ? "Attempt to kill job was not successful." : result.ErrorMsg,
-                                messageType: "Warning"
-                            });
-                            return;
-                        }
-
-                        BridgeEvents.invokeNotifyMessage({
-                            message: "Job has been successfully killed.",
-                            messageType: "Success"
-                        });
-                    })
-                        .catch((err) => {
-                            BridgeEvents.invokeNotifyMessage({
-                                message: "Attempt to kill running job failed! Please try again later.",
-                                messageType: "Danger"
-                            });
-                        });
-                    return false;
-                }} data-dismiss="modal">Yes</button>
-                <button className="btn btn-primary right-button" data-dismiss="modal">No</button>
-            </div>
-        );
-    }
-
-    private prepareDeleteDialogBody() {
-        return (
-            <div>
-                <button className="btn btn-primary left-button" onClick={(e) => {
-                    e.preventDefault();
-                    if (this.props.computationInfo === void 0) {
-                        return false;
-                    }
-                    ApiService.deleteProject(this.props.computationInfo.ComputationId).then(() => {
-                        BridgeEvents.invokeNotifyMessage({
-                            message: "Current computation was successfully deleted. You will be redirected to initial page.",
-                            messageType: "Success"
-                        });
-                        window.setTimeout(() => {
-                            GlobalRouter.redirect(Routing.ROUTING_OPTIONS[Routing.ROUTING_MODE].defaultContextPath);
-                        }, 5000);
-                    })
-                        .catch((err) => {
-                            BridgeEvents.invokeNotifyMessage({
-                                message: "Attempt to delete current computation failed! Please try again later.",
-                                messageType: "Danger"
-                            });
-                        });
-                    return false;
-                }} data-dismiss="modal">Yes</button>
-                <button className="btn btn-primary right-button" data-dismiss="modal">No</button>
-            </div>
-        );
-    }
-}
-
-class ModalDialog extends React.Component<{ id: string, header: string, body: JSX.Element }, {}> {
-    render() {
-        return <div id={this.props.id} className="modal fade" role="dialog">
-            <div className="modal-dialog">
-                <div className="modal-content">
-                    <div className="modal-header">
-                        <h4 className="modal-title">{this.props.header}</h4>
-                        <button type="button" className="close" data-dismiss="modal">&times;</button>
-                    </div>
-                    <div className="modal-body">
-                        {this.props.body}
-                    </div>
-                    <div className="modal-footer">
-                        <button type="button" className="btn btn-default" data-dismiss="modal" onClick={() => {
-                            $(".chdb-panel.right-panel").removeClass("has-modal");
-                        }} >Close</button>
-                    </div>
                 </div>
             </div>
         </div>
