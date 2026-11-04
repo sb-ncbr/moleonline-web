@@ -26,6 +26,28 @@
 				}, 10100);
 			});
 
+			// Open a computation by its ID, or by a link to it (/online/<id>[/<submission>])
+			const openForm = document.getElementById('open-computation');
+			const openInput = openForm.elements['id'];
+			openInput.addEventListener('input', function () {
+				openInput.setCustomValidity('');
+			});
+			openForm.addEventListener('submit', function (e) {
+				e.preventDefault();
+				let value = openInput.value.trim();
+				const link = value.match(/\/online\/(.+)$/);
+				if (link !== null) {
+					value = link[1];
+				}
+				value = value.split(/[?#]/)[0].replace(/\/+$/, '');
+				if (!/^[A-Za-z0-9_-]+(\/[A-Za-z0-9]+)?$/.test(value)) {
+					openInput.setCustomValidity('Enter the ID of a computation or a link to it.');
+					openInput.reportValidity();
+					return;
+				}
+				window.location.href = '/online/' + value;
+			});
+
 			// Bootstrap tooltips
 			const tooltipTriggerList = Array.prototype.slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
 			tooltipTriggerList.forEach(function (tooltipTriggerEl) {
@@ -81,6 +103,18 @@
 			<hr style="border-color: rgb(110, 110, 110);">
 			<div class="row d-flex flex-row justify-content-center align-items-center w-50">
 				<div class="col mr-5">
+					<div class="card shadow mb-4" style="border-width: 2px;">
+						<div class="card-header bg-primary text-white">
+							Open a computation
+						</div>
+						<div class="card-body">
+							<form id="open-computation" class="d-flex gap-2">
+								<input type="text" name="id" class="form-control" required
+									placeholder="Its ID or link, e.g. jCAb0KkH0enFqgxsJmIbQ" aria-label="Computation ID or link">
+								<input type="submit" class="btn btn-primary" value="Open">
+							</form>
+						</div>
+					</div>
 					<div class="card shadow"
 						style="height: auto; border-width: 2px;">
 						<div id="init-form"></div>

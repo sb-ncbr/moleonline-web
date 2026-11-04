@@ -1,11 +1,10 @@
 import React from "react";
-import {ApiService, CompInfo, InitResponse} from "../../MoleAPIService";
-import {Events} from "../../Bridge";
+import {CompInfo} from "../../MoleAPIService";
 import {GlobalRouter} from "../../SimpleRouter";
 import {TabbedContainer} from "../../Common/UI/Tabs/BootstrapTabs";
 import {getNthSession, LAST_N_SESSIONS_N} from "../../Common/Util/LastNSessions";
 import {ComputationInfo} from "../../DataProxy";
-import {Routing} from "../../../config/common";
+import {CommonOptions, Routing} from "../../../config/common";
 import AlertMessages from "../../Common/UI/AlertMessages/UI";
 
 declare function $(p: any): any;
@@ -17,9 +16,6 @@ interface State {
 };
 
 export class InitForm extends React.Component<{}, State> {
-    private computationId: string;
-    private submitId: number;
-
     state: State = {
         app: this,
         useAsymmetricUnit: false,
@@ -33,110 +29,9 @@ export class InitForm extends React.Component<{}, State> {
     }
 
     private handleFormSubmit(e: Event) {
+        // the archive is read-only
         e.preventDefault();
-
-        let form = e.target as HTMLFormElement;
-        let $next = $('#frm-jobSetup-setupForm-next');
-        $next.val('Submitting...');
-        $next.prop('disabled', true);
-
-        let pdbid = '';
-        let assembly;
-        let pores: boolean = true;
-        let file;
-
-        for (let idx = 0; idx < form.length; idx++) {
-            let item = form[idx] as HTMLInputElement;
-            let name = item.getAttribute('name');
-            switch (name) {
-                case 'pdbid':
-                    pdbid = item.value;
-                    break;
-                case 'assembly':
-                    assembly = (item.value !== '' && !item.disabled) ? item.value : void 0;
-                    break;
-                case 'asymmetric-unit':
-                    pores = !item.checked;
-                    break;
-                case 'file':
-                    file = (item.files !== null) ? item.files[0] : void 0;
-                    break;
-            }
-        }
-        if (typeof assembly !== 'undefined' && assembly !== "1") {
-            pores = false;
-        }
-
-        if (file === void 0 || file === null) {
-            ApiService.initWithParams(pdbid, pores, assembly)
-                .then((response) => {
-                    this.handleFormSubmitResponse(response);
-                })
-                .catch((reason) => {
-                    //TODO:...
-                    console.log(reason);
-                })
-        }
-        else {
-            let data = new FormData();
-            data.append("file", file)
-            ApiService.initWithFile(data)
-                .then((response) => {
-                    this.handleFormSubmitResponse(response);
-                })
-                .catch((reason) => {
-                    //TODO:...
-                    console.log(reason);
-                })
-        }
-
         return false;
-    }
-
-    private handleFormSubmitResponse(response: InitResponse) {
-        let $next = $('#frm-jobSetup-setupForm-next');
-        if (response.Status === "FailedInitialization") {
-            $next.prop('disabled', false);
-            $next.val('Submit');
-            Events.invokeNotifyMessage({
-                messageType: "Danger",
-                message: `API was unable to initialize computation with specified parameters. API responded with message: ${response.ErrorMsg}`
-            })
-            return;
-        }
-
-        this.computationId = response.ComputationId;
-        this.submitId = response.SubmitId;
-
-        if (response.Status === "Initialized") {
-            console.log("Initialized");
-            $next.val('Initialized!');
-            Events.invokeNotifyMessage({
-                messageType: "Success",
-                message: "Computation was successfully initialized. You will be redirected to detail page."
-            });
-            GlobalRouter.redirect(`/${this.computationId}`, true);
-            return;
-        }
-
-        if (response.Status === "Initializing") {
-            console.log("Waiting for computation initialization...");
-            $next.val('Initializing computation...');
-            window.setTimeout(this.waitForComputationInitialization.bind(this), 500);
-            return;
-        }
-
-        $next.prop('disabled', false);
-        Events.invokeNotifyMessage({
-            messageType: "Danger",
-            message: `Unexpected computation status received from API: ${response.Status}`
-        })
-    }
-
-    private waitForComputationInitialization() {
-        ApiService.getStatus(this.computationId, this.submitId).then((response) => {
-            this.handleFormSubmitResponse(response);
-        });
     }
 
     private asymmetricUnitChange(e: Event) {
@@ -148,14 +43,15 @@ export class InitForm extends React.Component<{}, State> {
 
     render() {
 
-        let buttons = <input type="submit" name="next" className="button" id="frm-jobSetup-setupForm-next" value="Submit" />;
+        let buttons = <span title={CommonOptions.READ_ONLY_MESSAGE}><input type="submit" name="next" className="button" id="frm-jobSetup-setupForm-next" value="Submit" disabled /></span>;
         let tabs: JSX.Element[] = [];
 
+        // The archive is read-only: the fields stay, disabled; the last sessions are only opened
         tabs.push(
-            this.formByPDBID()
+            <fieldset disabled title={CommonOptions.READ_ONLY_MESSAGE}>{this.formByPDBID()}</fieldset>
         );
         tabs.push(
-            this.formByFile()
+            <fieldset disabled title={CommonOptions.READ_ONLY_MESSAGE}>{this.formByFile()}</fieldset>
         );
         tabs.push(
             this.formByLastNSessions()

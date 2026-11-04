@@ -75,9 +75,10 @@ examples stay, disabled, with the same hover text. Both start computations: `Ini
   `cursor: not-allowed`). Not with the class `disabled`: `Init.css` (line 224) gives it `pointer-events: none`,
   which also kills the hover text. The figures already have a `title` (the example's name): append the hover
   text to it.
-- Next to the form: the notice, and a field "Open a computation by its ID" that goes to `/online/<id>`, for people
-  who have only the ID.
-- The sentence about session cookies (line 74) no longer applies.
+- Above the form: a card "Open a computation", a field that takes an ID or a link to a computation and goes to
+  `/online/<id>[/<n>]`, for people who have only the ID (plain HTML and a script in `index.html`).
+- The sentence about session cookies (line 74) stays: the detail page records the computations opened here, and
+  "Last session" lists them.
 
 ### Detail page (`sources/src/View/UI/Controls/UI.tsx`)
 

@@ -258,3 +258,9 @@ figure:hover {
 #archive {
     scroll-margin-top: 120px;
 }
+
+/* the examples, which do not start a computation in the archive */
+.read-only-example {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
